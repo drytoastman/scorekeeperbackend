@@ -1,0 +1,18 @@
+{% extends "/register/rbase.html" %}
+{% import '/register/macros.html' as m %}
+
+{% block content %}
+
+<div id='loginouter' class='container'>
+
+<h3>Reset Username and Password</h3>
+
+<div class='row justify-content-md-center'><div class='col col-md-auto error'>{{ m.errordisplay() }}</div></div>
+
+{{form.html('resetform', url_for('.reset'), method='POST')|safe}}
+<div class='row'>
+<small class='col form-text text-muted'>Enter a new username and password</small>
+</div>
+
+</div> <!-- loginouter -->
+{% endblock content %}

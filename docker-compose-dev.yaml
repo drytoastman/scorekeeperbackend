@@ -1,0 +1,29 @@
+---
+# This compose file is meant for development purposes
+version: '3.2'
+services:
+  web:
+    # mount the local user's directory and create a link in the container so it uses the local copy of the web service
+    build:   "web"
+    volumes: ["./web:/code"]
+    command: "ash -c 'pip install -e /code && webserver.py'"
+    environment:
+      - NWRSC_DEBUG=1
+    networks: { net1: }
+    ports:    ["80:80"]
+
+  db:
+    build:    "db"
+    volumes:  ["database:/var/lib/postgresql/data"]
+    networks: { net1: }
+    ports:    ["127.0.0.1:5432:5432", "54329:5432"]
+
+networks:
+  net1:
+    ipam:
+      driver: default
+      config: [ subnet: "192.168.24.0/24" ]
+
+volumes:
+  database:
+

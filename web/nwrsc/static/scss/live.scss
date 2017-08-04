@@ -1,0 +1,44 @@
+
+@import "jquerymobile.scss";
+
+table.res {
+  background: white;
+  border: 1px solid gray;
+  border-collapse: collapse;
+  width: 100%;
+  td, th {
+    color: black;
+    border: 1px solid gray;
+    text-shadow: none;
+  }
+
+	tr {
+	  &.highlight td {
+	    font-weight: bold;
+	    background: #DDD;
+	  }
+	  &.improvedon td {
+	    font-weight: bold;
+	    background: #EEF;
+	    color: #99E;
+	  }
+	  &.couldhave td {
+	    font-weight: bold;
+	    background: #EDD;
+	    color: #E77;
+	  }
+	}
+}
+
+
+
+table.selection {
+	border-collapse: collapse;
+	td {
+	  text-align: center;
+	  border-bottom: 1px solid gray;
+	  padding: 2px;
+	}
+}
+
+

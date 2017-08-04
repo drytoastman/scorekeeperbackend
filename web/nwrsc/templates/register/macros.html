@@ -1,0 +1,192 @@
+
+{% macro navbar(current) %}
+<nav class="navbar navbar-toggleable-sm navbar-inverse bg-primary">
+  <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class='navbar-brand'><img src='/static/images/cone.png'/> Scorekeeper Reg</div>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+        <li class="nav-item {{'active' if current=='profile'}}"><a class="nav-link" href="{{url_for(".profile")}}">Profile</a></li>
+        <li id="seriesdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown">Series {{g.series or "<no series>"}}</a>
+          <div class="dropdown-menu">
+          {% for s in g.activeseries %}
+            {% if s != g.series %}
+                <a class="dropdown-item" href="{{url_for(g.selection, series=s)}}">{{s}}</a>
+            {% endif %}
+          {% endfor %}
+          </div>
+        </li>
+        {% if not g.series  %}
+        <li class="nav-item"><a class="nav-link disabled">Cars</a></li>
+        <li class="nav-item"><a class="nav-link disabled">Events</a></li>
+        {% else %}
+        <li class="nav-item {{'active' if current=='cars'}}"><a class="nav-link" href="{{url_for(".cars")}}">Cars</a></li>
+        <li class="nav-item {{'active' if current=='events'}}"><a class="nav-link" href="{{url_for(".events")}}">Events</a></li>
+        {% endif %}
+        <li class="nav-item"><a class="nav-link" href="{{url_for(".logout")}}">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+{% endmacro %}
+
+
+{% macro errordisplay() %}
+<div class='formerror'>
+{% for msg in get_flashed_messages() %}
+<div class='error'>{{msg}}</div>
+{% endfor %}
+</div>
+{% endmacro %}
+
+
+{% macro modal(id, title, body) %}
+<div class='modal fade' id='{{id}}' tabindex=-1 role='dialog'>
+<div class='modal-dialog' role='document'>
+<div class='modal-content' style='overflow:hidden'>
+
+<div class='modal-header'>
+<h1 class='modal-title text-center'>{{title}}</h1>
+<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+</div> {# modal-header #}
+
+<div class='modal-body'>
+<div class='container-fluid'>
+<div class='modal-error'></div>
+{{ body|safe }}
+{{caller() if caller}}
+</div> {# container-fluid #}
+</div> {# modal-body #}
+
+</div> {# modal-content #}
+</div> {# modal-dialog #}
+</div> {# modal #}
+{% endmacro %}
+
+
+{% macro driverDisplay(driver) %}
+{% set basic = ('address', 'city', 'state', 'zip', 'phone', 'brag', 'sponsor') %}
+
+<div class='driverwrapper'>
+<div class='name'>{{driver.firstname}} {{driver.lastname}}</div>
+<div class='email'>{{driver.email}}</div>
+<div class='membership'>{{driver.membership}}</div>
+<div class='address'>{{driver.attr.address}}</div>
+<div class='csz'>{{driver.attr.city}} {{driver.attr.state}} {{driver.attr.zip}}</div>
+<div class='phone'>{{driver.attr.phone}}</div>
+{% if driver.attr.brag %}
+<div class='brag'>Brag: {{driver.attr.brag}}</div>
+{% endif %}
+{% if driver.attr.sponsor %}
+<div class='dsponsor'>Sponsor: {{driver.attr.sponsor}}</div>
+{% endif %}
+
+{% for k, v in driver.attr.items(): -%}
+{%- if k not in basic -%}
+<div class='{{k}}'>{{v}}</div>
+{%- endif -%}
+{%- endfor %}
+</div>
+
+{% endmacro %}
+
+
+{% macro carDisplay(car) %}
+<div class='cardisplay'>
+{% set istr = g.classdata.getIndexStr(car) -%}
+<span class='code'>{{car.classcode}}/{{car.number}} {{istr and "("+istr+")" or ""}}</span>
+<span class='desc'>{{car.attr.year}} {{car.attr.make}} {{car.attr.model}} {{car.attr.color}}</span> 
+</div>
+{% endmacro %}
+
+
+{% macro  paypalLink(event) %}
+    <form class='paypalform' action='https://www.paypal.com/cgi-bin/webscr' method='post' target='_blank'>
+    <span class='eimage'>
+    <input type='hidden' name='cmd' value='_xclick' />
+    <input type='hidden' name='business' value='{{event.paypal}}' />
+    <input type='hidden' name='item_name' value='{{event.name}}' />
+    <input type='hidden' name='custom' value='{{g.driver.driverid}}/{{event.eventid}}' />
+    <input type='hidden' name='amount' value='{{event.cost}}' />
+    <input type='hidden' name='currency_code' value='USD' />
+    <input type='image' src='https://www.paypal.com/en_US/i/btn/x-click-but3.gif' name='submit'
+                        alt='Make payments with payPal - it&#039;s fast, free and secure!' />
+    </span>
+    </form>
+{% endmacro %}
+
+
+{% macro  entryLink(ev, text) %}
+<a class='viewlink' href='{{url_for('.view', eventid=ev.eventid)}}'>{{text}}</a>
+{% endmacro %}
+
+
+{% macro  eventdisplay(ev, ecars, registered, error='') %}
+    <script type="text/javascript">
+    gRegistered[{{ev.eventid}}] = {{registered|to_json|safe}};
+    </script>
+
+    <div class='insidewrapper row'> {# have to reset row inside collapse it seems #}
+    <div class='detailscontainer col-5'>
+    <div class='header'>Details</div>
+
+    <dl>
+    {%- if not ev.hasOpened() %}
+    <dt>Opens</dt><dd>{{ev.regopened.strftime('%b %d at %I:%M%p')}}</dd>
+    {%- endif %}
+    <dt>{{ev.hasClosed() and "Closed" or "Closes"}}</dt><dd>{{ev.regclosed.strftime('%b %d %I:%M %p')}}</dd>
+
+    {%- for k, v in ev.attr.items() -%}
+    {%- if k not in ('payments', 'notes') and v %}
+    <dt>{{k|title}}</dt><dd>{{v}}</dd>
+    {%- endif %}
+    {%- endfor %}
+
+    {%- if ev.hasOpened() %}
+        {%-  if ev.totlimit %}
+            {%-  if ev.sinlimit %}
+            <dt>Singles</dt><dd>{{entryLink(ev, "%s/%s" % (ev.drivercount, ev.sinlimit))}}</dd>
+            <dt>Total</dt><dd>{{entryLink(ev, "%s/%s" % (ev.entrycount, ev.totlimit))}}</dd>
+            {%-  else %}
+            <dt>Entries</dt><dd>{{entryLink(ev, "%s/%s" % (ev.entrycount, ev.totlimit))}}</dd>
+            {%-  endif %}
+        {%-  else %}
+        <dt>Entries</dt><dd>{{entryLink(ev, ev.entrycount)}}</dd>
+        {%-  endif %}
+    {%- endif %}
+
+    {%- if ev.isOpen() and ev.attr.payments %}
+    <dt>Payments</dt><dd>{{ev.attr.payments|safe}}</dd>
+    {%- endif %}
+
+    {%- if not ev.hasClosed() and ev.attr.notes %}
+    <dt>Notes</dt><dd>{{ev.attr.notes|safe}}</dd>
+    {%- endif %}
+    </dl>
+    </div>
+
+    <div class='eventcarlist col-7'>
+        <div class='header'>Your Registration</div>
+        <div class='error'>{{error}}</div>
+        <ol>
+        {%- for carid in registered %}
+            <li>{{carDisplay(ecars[carid])}}</li>
+        {%- endfor %}
+        </ol>
+
+        {%- if ev.isOpen() %}
+            {%- if ev.mylimit > 0 or registered|length > 0 %}
+            <button class='register btn btn-outline-primary' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
+            {%- endif %}
+
+            {%- if registered|length >= ev.mylimit and ev.limitmessage %}
+            <div class='alert alert-warning'>{{ev.limitmessage}}</div>
+            {%- endif %}
+        {%- endif %}
+    </div>
+    </div>
+
+{% endmacro %}
+
+

@@ -1,0 +1,103 @@
+
+{% macro classtables(results) -%}
+<table class='classresults'>
+{% for code,entrants in results.items()|sort %}
+	<tbody id='body{{code}}'>
+    {{headerrow(code)}}
+    {% for e in entrants %}
+        {{entrantrow(e)}}
+        {%- for runs in e.runs[1:] -%}
+            <tr>
+            {% for run in runs -%}
+                {{runcell(run, e.indexstr and True or False)}}
+            {%- endfor -%}
+            </tr>
+        {%- endfor -%}
+    {% endfor %}
+	</tbody>
+{% else %}
+    <tr><td>No results found</td></tr>
+{% endfor %}
+</table>
+{%- endmacro %}
+
+
+
+{% macro headerrow(classcode) -%}
+{% if g.event.courses > 1 %}
+{% set colcount = 10 + g.event.runs %}
+{% else %}
+{% set colcount = 9 + g.event.runs %}
+{% endif %}
+<tr class='classhead'>
+    <th colspan='{{colcount}}'>
+    <a>{{classcode}}</a> - {{g.classdata.classlist[classcode].descrip}}
+    </th>
+</tr>
+<tr>
+    <th class='pos'></th>
+    <th class='trophy'></th>
+    <th class='name'>Name</th>
+    <th class='carnum'>#</th>
+    <th class='caryear'>Year</th>
+    <th class='cardesc'>Make/Model</th>
+    <th class='caridx'>Idx</th>
+{% for ii in range(1, g.event.runs+1) -%}
+    <th class='run'>Run {{ii}}</th>
+{% endfor %}
+    <th></th>  {# Extra col to fix firefox border bug #}
+{% if g.event.courses > 1 %}
+    <th class='total'>Total</th>
+{% endif %}
+    <th class='points'>Points</th>
+</tr>
+{% endmacro %}
+
+
+
+{%- macro entrantrow(entrant) %}
+{% if g.event.courses > 1 %}
+{% set colcount = 9 + g.event.runs %}
+{% set rowspan = "rowspan='%s'" % (g.event.courses) %}
+{% else %}
+{% set colcount = 8 + g.event.runs %}
+{% set rowspan = "" %}
+{% endif %}
+<tr class='entrantrow'>
+    <td class='pos'     {{rowspan|safe}}>{{entrant.position}}</td>
+    <td class='trophy'  {{rowspan|safe}}>{{entrant.trophy and 'T' or ''}}</td>
+    <td class='name'    {{rowspan|safe}}>{{entrant.firstname}} {{entrant.lastname}}</td>
+    <td class='carnum'  {{rowspan|safe}}>{{entrant.number}}</td>
+    <td class='caryear' {{rowspan|safe}}>{{entrant.year}}</td>
+    <td class='cardesc' {{rowspan|safe}}>{{entrant.make}} {{entrant.model}} {{entrant.color}}</td>
+    <td class='caridx'  {{rowspan|safe}}>{{entrant.indexstr}}</td>
+    {% for run in entrant.runs[0] -%}
+        {{runcell(run, entrant.indexstr and True or False)}}
+    {%- endfor %}
+    <td {{rowspan|safe}}></td> {# Extra col to fix firefox border bug #}
+    {% if g.event.courses > 1 %}
+    <td class='total' {{rowspan|safe}}>{{entrant.net | t3}}</td>
+    {% endif %}
+    <td class='points' {{rowspan|safe}}>{{entrant.points | t3}}</td>
+</tr>
+{% endmacro %}
+
+
+{%- macro runcell(run, showraw) %}
+{%- if not run %}
+    <td class='run'>
+    no data
+{%- else %}
+    <td class='run{{run.norder==1 and " bestnet" or ""}}{{run.rorder==1 and " bestraw" or ""}}'>
+{%- if run.status == "OK" -%}
+    <span class='net'>{{run.net | t3}} ({{run.cones}},{{run.gates}})</span>
+    {%if showraw %}<span class='raw'>[{{run.raw|t3}}]</span>{% endif %}
+{%- elif run.status == "PLC" -%}
+{%- else %}
+    <span class='net'>{{run.status}}</span>
+{%- endif -%}
+{%- endif -%}
+    </td>
+{% endmacro -%}
+
+

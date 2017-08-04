@@ -1,0 +1,192 @@
+/** Some misc stuff, center divs, headers, no boders on linked images, **/
+
+div, h1, h2, h3, h4 { text-align:center; margin-top: 0px; margin-bottom: 0px; }
+
+a img { border: none; }
+
+
+/** Center tables with collapsed borders **/
+
+table {
+	margin: 0px auto;
+	border-collapse: collapse;
+}
+
+table.classresults, table.toptimes, table.auditreport, table.champ {
+	font-size:0.9em; 
+}
+
+table.toptimes {
+	border: 1px solid #bbb;
+	td.pos {
+		border-left: 1px solid #bbb;
+	}
+	td.time {
+		font-size: 1.1em;
+		font-weight: bold;
+		padding-left: 8px;
+		padding-right: 5px;
+	}
+	tr:nth-child(even) {
+		background-color: #ddd
+	}
+}
+
+/** Various TD types and their span internals **/
+
+td {
+	text-align:left; 
+	padding: 5px 3px 3px;
+}
+
+
+tr.lastcourse td {
+	border-bottom: 1px solid #777;
+}
+
+tr.missingmin td {
+	color: #CCC;
+}
+
+td.run, td.points {
+	text-align:center;
+}
+
+td.drop {
+	text-decoration: line-through;
+	color: #BBB;
+}
+
+td.carnum {
+	text-align:right;
+}
+
+@media print {
+	th.caryear, th.carnum, th.cardesc, td.caryear, td.carnum, td.cardesc {
+		display: none;
+	}
+}
+
+td.bestnet { 
+	font-weight: bold; 
+}
+
+td.bestnet .net {
+	text-decoration: underline;
+}
+
+td.attend {
+	text-align: center;
+}
+
+span { 
+	padding: 2px; 
+	&.raw, &.net {
+		display: block;
+	}
+	&.reaction {
+		display: block;
+		font-size: 0.8em;
+	}
+}
+
+/** Table header entries **/
+
+th { 
+	background-color: #bbb; 
+	text-align: center;
+	padding: 1px 3px;
+}
+
+tr.classhead th { 
+	background-color: #4682B4; 
+	color: white; 
+	text-align: left; 
+	border-top: 1px solid black;
+	padding-left: 6px;
+}
+
+th.toptimeshead {
+	background-color: #4682B4; 
+	color: white; 
+}
+
+
+/** These are all the special items at the top of the results **/
+
+div#seriestitle {
+	font: bold 1.5rem Tahoma;
+	color: darken(#4682B4, 20%);
+}
+
+div#sponsortitle {
+	font: bold 1.5rem Tahoma;
+	color: darken(#4682B4, 20%);
+}
+
+div#eventtitle {
+	font: bold 1.2rem Tahoma;
+	color: darken(#4682B4, 20%);
+}
+
+div#hosttitle {
+	font-weight: bold;
+}
+
+div#hosttitle span.host {
+	font-style: italic;
+}
+
+div#classlinks {
+	font-size:0.9em; 
+	margin-bottom: 10px;
+}
+
+div#classlinks a {
+	margin-left: 2px;
+	margin-right: 2px;
+}
+
+/** Challenge related things **/
+
+table.challengeround {
+    margin-bottom: 20px;
+    width: 650px;
+
+	th {
+    	border: 1px solid grey;
+	}
+
+	td.entrant {
+	    width: 180px;
+	}
+	
+	td {
+	    padding: 2px 6px;
+	    border: 1px solid grey;
+	}
+	
+	tr.winner {
+	    background: #EE9;
+	}
+	
+	td.result {
+	    text-align:center;
+	    font-size: 1.2em;
+	}
+	
+	span.dial {
+		font-weight: bold;
+	}
+}
+
+table.dialins {
+	td { 
+		border-top: 1px dashed black;
+		padding: 2px 10px 1px 10px; 
+	}
+	td.sort { 
+		font-weight: bold; 
+	}
+}
+

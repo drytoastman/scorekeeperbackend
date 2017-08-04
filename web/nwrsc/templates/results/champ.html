@@ -1,0 +1,47 @@
+{% extends "results/rbase.html" %}
+
+{% block content %}
+<!-- Series info -->
+<div id='seriestitle'>{{settings.seriesname}}</div>
+{% if settings.minevents > 0 %}
+<div id='minwarning'>(Min Attendance of {{settings.minevents}} Events To Place)</div>
+{% endif %}
+<hr />
+<!-- Results -->
+
+<table class='champ'>
+{% for code, entrants in results.items()|sort %}
+{% set cls = classdata.classlist[code] %}
+
+<tr class='classhead'><th colspan='{{events|length + 4}}'>{{cls.classcode}} - {{cls.descrip}} -
+            Average Per Event: {{"%.2lf"%(entrants.entries/(events|length))}}</th></tr>
+<tr>
+<th>#</th>
+<th>Name</th>
+<th>Attended</th>
+{% for event in events %}
+<th>Event {{loop.index}}</th>
+{% endfor %}
+<th>Total</th>
+</tr>
+        
+{% for e in entrants %}
+	{% if e.eventcount < settings.minevents %}
+	<tr class='missingmin'>
+	{% else %}
+	<tr>
+	{% endif %}
+    <td>{{e.position}}</td>
+    <td class='name'>{{e.firstname}} {{e.lastname}}</td>
+    <td class='attend'>{{e.eventcount}}</td>
+    {% for event in events %}
+		{% set key = "d-"+event.date %}
+        <td class='points {{key in e.points.drop and "drop" or ""}}'>{{e.points.events[key]|t3}}</td>
+    {% endfor %}
+    <td class='points'>{{e.points.total|t3}}</td>
+    </tr>
+{% endfor %}
+{% endfor %}
+</table>
+{% endblock content %}
+

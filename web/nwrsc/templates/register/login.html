@@ -1,0 +1,59 @@
+{% extends "/register/rbase.html" %}
+{% import '/register/macros.html' as m %}
+
+
+{% macro errorcell(tomatch, active) %}
+{% if tomatch == active %}
+<div class='row'>
+<div class='col text-center'>
+{{ m.errordisplay() }}
+</div>
+</div>
+{% endif %}
+{% endmacro %}
+
+
+{% block content %}
+
+<div id='loginouter' class='container'>
+
+<h1>Scorekeeper</h1>
+
+<nav class="nav nav-tabs justify-content-center" role="tablist">
+    <a class="nav-link {{'active' if active=='login'}}"    role="tab" data-toggle="tab" href="#login">Login</a>
+    <a class="nav-link {{'active' if active=='reset'}}"    role="tab" data-toggle="tab" href="#reset">Reset</a>
+    <a class="nav-link {{'active' if active=='register'}}" role="tab" data-toggle="tab" href="#register">Register</a>
+</nav>
+
+<div class='tab-content'>
+
+
+<div id='login' role="tabpanel" class='tab-pane {{'active' if active=='login'}}'>
+{{ errorcell('login', active) }}
+{{ login.html('loginform', url_for('.login'), 'post')|safe }}
+<div class='row'>
+<small class='col form-text text-muted'>If you had a profile in the previous system, use the Reset tab to set a username and password</small>
+</div>
+</div>
+
+<div id='reset' role="tabpanel" class='tab-pane {{'active' if active=='reset'}}'>
+{{ errorcell('reset', active) }}
+{{ reset.html('resetform', url_for('.login'), 'post')|safe }}
+<div class='row'>
+<small class='col form-text text-muted'>If you do not have a valid email in your profile, you must contact us to reset your login information</small>
+</div>
+</div>
+
+<div id='register' role="tabpanel" class='tab-pane {{'active' if active=='register'}}'>
+{{ errorcell('register', active) }}
+<div class='row'><div class='col align-self-center error'>{{registererror}}</div></div>
+{{ register.html('registerform', url_for('.login'), 'post')|safe }}
+<div class='row'>
+<small class='col form-text text-muted'>This is for new users who haven't run in an event.  This will not link to any previous profiles</small>
+</div>
+</div>
+
+</div>
+</div> <!-- loginouter -->
+{% endblock content %}
+

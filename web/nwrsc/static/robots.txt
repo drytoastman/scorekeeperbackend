@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /announcer/
+Disallow: /db/
+Disallow: /dbserve/
+Disallow: /error/
+Disallow: /history/
+Disallow: /json/
+Disallow: /live/
+Disallow: /register/
+Disallow: /xml/

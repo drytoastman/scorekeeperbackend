@@ -1,0 +1,391 @@
+$basefont: Lucida Grande, Lucida Sans, Arial, sans-serif;
+$grayborder: 1px solid #bbb;
+$eventsborder: 1px solid #ccc;
+$containerborder: 1px solid #aaa;
+$linkblue: rgb(40,40,255);
+$bordercolor: #BBB;
+
+$bootstrapblue: #0275d8;
+$bootstrapitem: rgba(255, 255, 255, 0.75);
+
+@import "font-awesome/font-awesome.scss";
+@import "bootstrap.scss";
+
+/* Things for all pages */
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav {
+    ul {
+        margin-bottom: 1px !important;
+    }
+}
+
+.navbar {
+    padding: 0px;
+  
+    .nav-item > a:hover  {
+        color: white !important;
+    }
+    .navbar-toggler {
+        margin-top: 9px;
+    }
+}
+
+
+.title {
+    font-size: 1.4rem;
+    border-bottom: 1px solid $bordercolor;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    span.smaller {
+        font-size: 1.0rem;
+        vertical-align: sub;
+    }
+}
+
+.error {
+    color: red;
+}
+
+.modal-header {
+    padding: 0.5rem 1.0rem;
+    background: $bootstrapblue;
+    color: white;
+    border-bottom: 1px solid darken($bootstrapblue, 10%);
+    button span {
+        color: white;
+    }
+    h1 {
+        font-size: 1.4rem;
+    }
+}
+
+.cardisplay {
+    span {
+        white-space: nowrap;
+    }
+    span.code {
+        font-weight: bold;
+        display: block;
+    }
+    span.desc {
+        font-size: 0.9rem;
+    }
+}
+
+form {
+    label {
+        text-align: right;
+        font-weight: bold;
+        margin: 0;
+        padding: 0;
+    }
+
+    input, select, #indexalternate {
+        margin: 0.2rem 0px;
+        height: 1.8rem;
+        padding-left: 0.5rem !important;
+        width: 100%;
+    }
+    
+    label.error {
+        color: red;
+        margin-left: auto;
+    }
+
+    input.error, select.error {
+        background: rgba(255, 0, 0, 0.1);
+    }
+
+    #indexalternate {  /* both of these are just weird things for small alignment details */
+        padding-left: 0px !important;
+        padding-top: 2px !important;
+    }
+
+    input[type=submit] {
+        height: 2.0rem;
+        margin-top: 0.8rem;
+        padding: 0px;
+    }
+
+    input[name=message] {
+        display: none;
+    }
+
+    input[type=checkbox] {
+        flex: initial;
+        width: auto;
+    }
+}
+
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+
+/* Some adjustments when bootstrap adjusts at the sm boundary */
+
+@media (max-width: 768px) {
+    form {
+        label {
+            text-align: left;
+            margin-left: 0px;
+            margin-bottom: -5px;
+            padding-left: 0.1rem !important;
+        }
+    }
+
+    .col-md-6 {
+        margin-top: 1rem;
+    }
+
+    #seriesdropdown {
+        .dropdown-menu, .dropdown-item {
+            color: $bootstrapitem;
+            background-color: $bootstrapblue;
+        }
+    }
+}
+
+@media (min-width: 768px) {
+    .detailscontainer {
+        dt {
+            display: inline-block;
+            width: 4rem;
+            text-align: right;
+            margin-right: 0.3rem;
+        }
+        dd {
+            margin-left: 0.3rem;
+            display: inline;
+            > * {
+                display: inline-block;
+                vertical-align: middle;
+                margin-left: -0.3rem;
+            }
+        }
+        dd:after {
+            content:'';
+            display: block;
+        }
+    }
+}
+
+/* Things specific to particular containers */
+
+#loginouter {
+    margin-top: 3rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    max-width: 40rem;
+
+    h1, h3 {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    small.col {
+        text-align: center;
+    }
+
+    .tab-content {
+        margin-top: 1rem;
+    }
+}
+
+#profileouter {
+    button.editprofile {
+        display: block;
+        margin-top: 1rem;
+    }
+
+    .driverwrapper {
+        .name {
+            font-weight: bold;
+        }
+        :not(.name) {
+            font-size: 0.9rem;
+            margin-left: 0.3rem;
+        }
+    }
+
+    .registeredlink {
+        margin-left: -0.5rem;
+    }
+
+    .eventtitle {
+        margin-top: 0.6rem;
+        font-size: 1.05rem;
+        white-space: nowrap;
+        overflow: hidden;
+        .date {
+            font-weight: bold;
+        }
+    }
+
+    .fa-calendar {
+        vertical-align: initial;
+        padding: 0px 0.4rem;
+        font-size: 1.4rem;
+    }
+
+    ol {
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        padding-left: 2rem;
+    }
+}
+    
+
+#eventsouter {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+#eventscontainer {
+    width: 100%;
+    min-width: 20rem;
+    margin: auto;
+
+    > .title {
+        border-bottom-style: none;
+    }
+
+    div.eventheader {
+        border-top: 1px solid $bordercolor;
+
+        a {
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1.3rem;
+            margin: 0.1rem;
+            width: 100%;
+        }
+
+        &.eventopen a {
+            color: $linkblue;
+        }
+
+        &.eventclosed span {
+            color: #888;
+        }
+
+        .eventdate {
+            display: inline-block;
+            width: 7.1rem;
+            text-align: right;
+        }
+    
+        .eventname {
+            margin-left: 0.5rem;
+        }
+    }
+
+    div.eventholder {
+        .header {
+            font-weight: bold;
+            border-bottom: 1px solid $bordercolor;
+            padding-left: 1rem;
+            margin-bottom: 0.4rem;
+
+        }
+
+        dl {
+            margin-top: -0.4rem;
+            margin-left: 0.4rem;
+        }
+    }
+
+    .fa-pulse {
+        display: block;
+        margin: auto;
+    }
+    
+    div.insidewrapper {
+        padding: 0.5rem;
+    }
+
+    ol {
+        overflow: hidden;
+        padding-left: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .alert {
+        margin: 0.3rem 0;
+        padding: 0.3rem;
+    }
+}
+    
+
+#carscontainer {
+    table {
+        margin: auto;
+        td {
+            padding: 0.25rem;
+        }
+    }
+
+    button.newcar {
+        width: 100%;
+    }
+
+    .fa {
+        font-size: 1.4rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+
+#usedwrapper {
+    width: 90%;
+    margin: auto;
+
+    a {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+
+    ul {
+        text-align: center;
+        padding-right: 2.0rem;
+        li {
+            display: inline-block;
+            width: 2.6rem;
+            text-align: right;
+        }
+    }
+}
+
+#registermodal {
+    label {
+        font-weight: normal;
+        text-align: left;
+    }
+
+    .fa-car {
+        margin: 0.5rem;
+    }
+
+    .row:hover {
+        background: rgba(0,0,255, 0.1);
+    }
+
+    input[type=checkbox] {
+        margin: 0.5rem;
+        margin-left: auto;
+        height: 2rem;
+        width: 2rem;
+    }
+}
+

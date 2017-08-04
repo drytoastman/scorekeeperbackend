@@ -1,0 +1,45 @@
+{% extends "/results/rbase.html" %}
+{% import '/results/ttmacros.html' as tt %}
+{% if g.event.ispro %}
+{% import '/results/promacros.html' as res %}
+{% else %}
+{% import '/results/macros.html' as res %}
+{% endif %}
+
+{% block content %}
+{% if not ispost %}
+
+<h2>{{g.title}}</h2>
+{{res.classtables(results)}}
+
+{% else %}
+
+<!-- Series info -->
+<div id='seriescustom'>
+{{g.settings.customheader|safe}}
+</div>
+
+<div id='seriestitle'>{{g.settings.seriesname}}</div>
+
+<!-- Event info -->
+<div id='eventtitle'>{{g.event.date}} - {{g.event.name}}</div>
+<div id='hosttitle'>Hosted At: <span class='host'>{{g.event.location}}</span></div>
+<div id='entrantcount'>({{g.entrantcount}} Entrants)</div>
+
+<hr />
+<!-- Results -->
+
+<div id='classlinks'>
+{% for cls in results|sort -%}
+<a href='#body{{cls}}'>{{cls}}</a>
+{% endfor %}
+</div>
+
+{{res.classtables(results)}}
+<br/>
+<br/>
+{{tt.toptimestable(g.toptimes)}}
+
+{% endif %}
+{% endblock content %}
+

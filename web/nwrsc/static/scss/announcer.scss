@@ -1,0 +1,118 @@
+$bootstrapblue: #0275d8;
+$headerfill: $bootstrapblue;
+$titlesfill: lighten( $bootstrapblue, 10% );
+$tabcolor: darken( $bootstrapblue, 10% );
+
+@import "bootstrap.scss";
+
+.layout {
+  font-size: 0.9rem;
+  margin: 4px;
+  td {
+    vertical-align: top;
+	padding: 1px;
+	padding-top: 5px;
+  }
+  table {
+    width: 100%;
+  }
+}
+
+
+.nav-link.active {
+  background-color: $tabcolor !important;
+  color: white !important;
+}
+
+.nav-link {
+  border-color: #BBB !important;
+}
+
+#timeroutput {
+	font-size: 2.5rem;
+	color: #444;
+	display: block;
+	text-align: center;
+}
+
+#runorder {
+  margin-bottom: 0.5rem;
+}
+
+#classtable, #champtable, div.halffiller {
+  min-width: 23rem;
+}
+
+#classtable td, #champtable td {
+  white-space: nowrap;
+}
+
+div.halffiller {
+  padding-top: 2rem;
+  text-align: center;
+}
+
+
+.layout {
+    table {
+        td, th {
+            border: 1px grey solid;
+            padding: 0 0.3rem;
+        }
+        td.fullwidth, td.halfwidth {
+            border: 0;
+            padding: 0.2rem;
+        }
+    }
+}
+  
+span.header {
+  font-weight: bold;
+  background-color: $headerfill;
+  color: white;
+  display: block;
+  border: 1px solid gray;
+  text-align: center;
+}
+
+span.change {
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+span.status {
+  font-weight: bold;
+}
+
+tr {
+  &.header th {
+    text-align: center;
+    font-weight: bold;
+    background-color: $headerfill;
+    border-color: $headerfill;
+    color: #fff;
+  }
+  &.titles th {
+    text-align: center;
+    font-weight: bold;
+    background-color: $titlesfill;
+    border-color: $titlesfill;
+    color: #fff;
+  }
+  &.highlight td, &.improvedon, &.couldhave {
+    font-size: 110%;
+    font-weight: bold;
+  }
+  &.highlight td {
+    background: #DDD;
+  }
+  &.improvedon td {
+    background: #EEF;
+    color: #99E;
+  }
+  &.couldhave td {
+    background: #EDD;
+    color: #E77;
+  }
+}
+

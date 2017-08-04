@@ -1,0 +1,55 @@
+{% extends "register/rbase.html" %}
+{% import '/register/macros.html' as m %}
+
+{% block content %}
+{{m.navbar('profile')}}
+
+<div id='profileouter' class='container'>
+
+<div class='row justify-content-center'>
+<div class='col text-center'>
+<div>{{ m.errordisplay() }}</div>
+</div>
+</div>
+
+<div class='row justify-content-center'>
+
+<div class='col-md-6'>
+<div class='title'>Scorekeeper Profile</div>
+{{m.driverDisplay(g.driver)}}
+<button class='editprofile btn btn-outline-primary' title='Edit Profile' data-toggle='modal' data-target='#profilemodal'>Edit Profile</button>
+</div>
+
+<div class='col-md-6'>
+<div class='title'>Upcoming Entries</div>
+
+<div class='row'>
+<div class='col'>
+<a class='registeredlink text-center' href='{{url_for(".ical", driverid=g.driver.driverid)}}'><span class='fa fa-calendar'></span>ical link</a>
+</div>
+</div> {# sub-row #}
+
+{% for date,events in upcoming.items()|sort %}
+{% for (series,name),entries in events.items()|sort %}
+<div class='row'>
+<div class='col eventtitle'>
+<span class='date'>{{date.strftime('%a %b %d')}} </span>
+<span class='series'>{{series}} </span>
+<span class='name'>{{name}}</span>
+<ol>
+{% for e in entries %}
+<li>{{m.carDisplay(e)}}</li>
+{% endfor %}
+</ol>
+{% endfor %}
+{% endfor %}
+</div> {# title col #}
+</div> {# row #}
+
+</div> {# col-md-6 #}
+</div> {# row #}
+</div> {# container #}
+
+{{m.modal('profilemodal', 'Profile Editor', form.html('profileform', url_for('.profilepost'), 'post', 'col-md-3', 'col-md-9'))}}
+
+{% endblock content %}

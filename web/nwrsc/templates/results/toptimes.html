@@ -1,0 +1,8 @@
+{% extends "/results/rbase.html" %}
+{% import '/results/ttmacros.html' as tt %}
+
+{% block content %}
+<h3>{{header}}</h3>
+{{tt.toptimestable(table)}}
+{% endblock content %}
+

@@ -1,0 +1,55 @@
+{% extends "/base.html" %}
+
+{% block headers %}
+{% assets filters="libsass,cssmin", output="announcer.css", "scss/announcer.scss" %}
+	<link rel="stylesheet" href="{{ASSET_URL}}" /> 
+{% endassets %}
+
+{% assets filters="rjsmin", output="announcer.js", "js/jquery-3.2.0.js", "js/tether.js", "js/bootstrap-4a6.js", "js/nwr.js", "js/announcer.js" %}
+	<script type="text/javascript" src="{{ASSET_URL}}"></script>
+{% endassets %}
+
+{% endblock %}
+
+{% block content %}
+
+<table class='layout' id='mainlayout'><tr><td>
+
+<span class='header'>Timer</span>
+<span id='timeroutput'>0.000</span>
+
+<div id='runorder' class='ui-widget'></div>
+
+<nav class="nav nav-tabs justify-content-center" role="tablist">
+    <a class="nav-link"        role="tab" data-toggle="tab" href="#nexte">Next To Finish</a>
+    <a class="nav-link active" role="tab" data-toggle="tab" href="#firste">Last To Finish</a>
+    <a class="nav-link"        role="tab" data-toggle="tab" href="#seconde">Second To Last</a>
+</nav>
+
+<div id="entranttabs" class="tab-content">
+    <div id="nexte"   role="tabpanel" class="tab-pane"        modified='0'></div>
+    <div id="firste"  role="tabpanel" class="tab-pane active" modified='0'></div>
+    <div id="seconde" role="tabpanel" class="tab-pane"        modified='0'></div>
+</div>
+
+</td><td>
+
+<span class='header'>Top Times</span>
+<nav class="nav nav-tabs justify-content-center" role="tablist">
+    <a class="nav-link"        role="tab" data-toggle="tab" href="#toprawcell">Unindexed</a>
+    <a class="nav-link active" role="tab" data-toggle="tab" href="#topnetcell">Indexed</a>
+    {% for ii in range(g.event.segments) %}
+    <a class="nav-link"        role="tab" data-toggle="tab" href="#topseg{{ii}}cell">Seg {{ii}}</a>
+    {% endfor %}
+</nav>
+<div id="toptimetabs" class="tab-content">
+    <div id="toprawcell" role="tabpanel"       class="tab-pane"></div>
+    <div id="topnetcell" role="tabpanel"       class="tab-pane active"></div>
+	{%for ii in range(g.event.segments) %}
+    <div id="topseg{{ii}}cell" role="tabpanel" class="tab-pane"></div>
+	{% endfor %}
+</div>
+
+</td></tr></table>
+{% endblock content %}
+
