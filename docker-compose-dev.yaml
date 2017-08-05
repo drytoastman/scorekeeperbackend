@@ -2,21 +2,26 @@
 # This compose file is meant for development purposes
 version: '3.2'
 services:
+
   web:
     # mount the local user's directory and create a link in the container so it uses the local copy of the web service
-    build:   "web"
-    volumes: ["./web:/code"]
-    command: "ash -c 'pip install -e /code && webserver.py'"
+    build:    "web"
+    command:  "ash -c 'pip install -e /code && webserver.py'"
     environment:
       - NWRSC_DEBUG=1
+    volumes:  
+        - "./web:/code"
+        - "dbsocket:/var/run/postgresql"
     networks: { net1: }
     ports:    ["80:80"]
 
   db:
     build:    "db"
-    volumes:  ["database:/var/lib/postgresql/data"]
+    volumes:  
+        - "database:/var/lib/postgresql/data"
+        - "dbsocket:/var/run/postgresql"
     networks: { net1: }
-    ports:    ["127.0.0.1:5432:5432", "54329:5432"]
+    ports:    ["54329:5432"]
 
 networks:
   net1:
@@ -26,4 +31,5 @@ networks:
 
 volumes:
   database:
+  dbsocket:
 

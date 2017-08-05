@@ -5,14 +5,18 @@ services:
 
   web:
     image:    "drytoastman/scweb:${TAG:-latest}"
+    volumes:  
+        - "dbsocket:/var/run/postgresql"
     networks: { net1: }
     ports:    ["80:80"]
 
   db:
     image:    "drytoastman/scdb:${TAG:-latest}"
-    volumes:  ["database:/var/lib/postgresql/data"]
+    volumes:  
+        - "database:/var/lib/postgresql/data"
+        - "dbsocket:/var/run/postgresql"
     networks: { net1: }
-    ports:    ["127.0.0.1:5432:5432", "54329:5432"]
+    ports:    ["54329:5432"]
 
 networks:
   net1:
@@ -22,4 +26,5 @@ networks:
 
 volumes:
   database:
+  dbsocket:
 

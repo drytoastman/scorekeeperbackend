@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 #from nwrsc.controllers.lib.objecteditors import ObjectEditor
 #from nwrsc.controllers.lib.cardprinting import CardPrinting
 #from nwrsc.controllers.lib.purgecopy import PurgeCopy
-from flask import Blueprint, g, redirect, request, render_template, session, url_for
+from flask import Blueprint, current_app, g, redirect, request, render_template, session, url_for
 
 from nwrsc.model import *
 from nwrsc.lib.postgresql import check_password
@@ -36,7 +36,7 @@ def login():
         abort(404)
 
     if request.form.get('password'):
-        if check_password(g.series, request.form.get('password').strip()):
+        if check_password(current_app.config['DB_HOST'], g.series, request.form.get('password').strip()):
             session[AUTHKEY][g.series] = 1
             session.modified = True
             return redirect(url_for(".index"))

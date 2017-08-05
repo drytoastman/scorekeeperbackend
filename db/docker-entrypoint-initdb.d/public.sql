@@ -4,6 +4,7 @@
 CREATE EXTENSION hstore;
 
 CREATE USER localuser;
+CREATE USER nulluser WITH PASSWORD 'nulluser';
 CREATE ROLE driversaccess;
 GRANT driversaccess TO localuser;
 
