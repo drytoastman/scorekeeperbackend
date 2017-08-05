@@ -4,15 +4,15 @@ version: '3.2'
 services:
 
   web:
-    image:    "drytoastman/nwrscweb:${TAG:-latest}"
+    image:    "drytoastman/scweb:${TAG:-latest}"
     networks: { net1: }
     ports:    ["80:80"]
 
   db:
-    image:    "drytoastman/nwrscdb:${TAG:-latest}"
+    image:    "drytoastman/scdb:${TAG:-latest}"
     volumes:  ["database:/var/lib/postgresql/data"]
     networks: { net1: }
-    ports:    ["127.0.0.1:54329:5432"]
+    ports:    ["127.0.0.1:5432:5432", "54329:5432"]
 
 networks:
   net1:
