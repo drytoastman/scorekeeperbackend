@@ -1,28 +1,48 @@
 ---
-# This compose file is meant for use in deployment
+# This compose file is meant for development purposes
+# It mounts the local user's directory and creates a link in the web container
+# so that it uses the local copy of the web service
+#
+# We use a script to create a docker-compose file for deployment with specific
+# images on docker hub and remove the extra developement features
+
 version: '3.2'
 services:
 
   web:
-    image:    "drytoastman/scweb:${TAG:-latest}"
+    build:   "web"
+    command: "ash -c 'pip install -e /code && webserver.py'"
+    environment:
+        - NWRSC_DEBUG=1
     volumes:  
         - "dbsocket:/var/run/postgresql"
-    networks: { net1: }
-    ports:    ["80:80"]
+        - "./web:/code"
+    networks:
+        net1:
+    ports:
+        - "80:80"  # Web for all
 
   db:
-    image:    "drytoastman/scdb:${TAG:-latest}"
+    build: "db"
     volumes:  
         - "database:/var/lib/postgresql/data"
         - "dbsocket:/var/run/postgresql"
-    networks: { net1: }
-    ports:    ["54329:5432"]
+    networks:
+        net1:
+    ports:
+        - "54329:5432" # DB for external
 
+  gate:
+    build: "gate"
+    volumes:  
+        - "dbsocket:/var/run/postgresql"
+    networks:
+        net1:
+    ports:
+        - "127.0.0.1:5432:6432" # DB for localhost
+    
 networks:
   net1:
-    ipam:
-      driver: default
-      config: [ subnet: "192.168.24.0/24" ]
 
 volumes:
   database:

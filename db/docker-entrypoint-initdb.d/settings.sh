@@ -18,3 +18,5 @@ ssl_cert_file = 'server.crt'
 ssl_key_file = 'server.key'
 " >> postgresql.conf
 
+cp /docker-entrypoint-initdb.d/series.template series.sql
+ 
