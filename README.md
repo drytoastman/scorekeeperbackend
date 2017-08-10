@@ -6,7 +6,6 @@ They include:
 1. The postgresql database
 1. The web services
 1. The merge processor
-1. The postgresql localhost gateway
 
 ## Development
 

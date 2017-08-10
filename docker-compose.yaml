@@ -30,17 +30,9 @@ services:
     networks:
         net1:
     ports:
-        - "54329:5432" # DB for external
+        - "54329:5432" # DB for external SSL connections
+        - "127.0.0.1:5432:6432" # DB for trusted localhost
 
-  gate:
-    build: "gate"
-    volumes:  
-        - "dbsocket:/var/run/postgresql"
-    networks:
-        net1:
-    ports:
-        - "127.0.0.1:5432:6432" # DB for localhost
-    
 networks:
   net1:
 
