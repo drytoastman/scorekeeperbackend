@@ -28,12 +28,12 @@ def convert(sourcefile, password):
 
     # Assumes that we are running on the docker host and can access the system like the Java applications
     psycopg2.extras.register_uuid()
-    new = psycopg2.connect(host='127.0.0.1', port=5432, user='postgres', dbname='scorekeeper', cursor_factory=psycopg2.extras.DictCursor)
+    new = psycopg2.connect(host='127.0.0.1', port=5432, user='postgres', dbname='scorekeeper', application_name='oldimport', cursor_factory=psycopg2.extras.DictCursor)
     cur = new.cursor()
 
     cur.execute("select schema_name from information_schema.schemata where schema_name=%s", (name,))
     if cur.rowcount > 0:
-        raise Exception("{} is already an active series, not continuing", name)
+        raise Exception("{} is already an active series, not continuing".format(name))
 
     cur.execute("select create_series(%s,%s)", (name, password))
     cur.execute("set search_path=%s,%s", (name, 'public'))
@@ -78,6 +78,8 @@ def convert(sourcefile, password):
 
     #CLASSLIST (map seriesid)
     print("classes")
+    cur.execute("insert into classlist values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
+                    ('HOLD', 'Unknown Class', '', '', 1.0, False, False, False, False, False, 0))
     for r in old.execute("select * from classlist"):
         c = AttrWrapper(r, r.keys())
         c.usecarflag  = c.usecarflag and True or False
@@ -95,6 +97,8 @@ def convert(sourcefile, password):
         c = AttrWrapper(r, r.keys())
         if c.driverid < 0:
             continue
+        if c.classcode in ('UNKNWN', 'UKNWN'):
+            c.classcode = 'HOLD'
         newc = dict()
         newc['carid']      = uuid.uuid1()
         newc['driverid']   = remapdriver[c.driverid]
