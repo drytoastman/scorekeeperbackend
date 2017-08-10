@@ -1,6 +1,7 @@
 import logging
 import dateutil.parser
 import datetime
+import uuid
 
 from flask import g
 from math import ceil
@@ -47,6 +48,10 @@ class Result(object):
         for the results, json and xml controllers as the data is present even if the series has been
         archived.  If the series is active and the data in the regular tables is more up to date, we 
         regenerate the values in the results table.
+        Names are:
+            info   - series info structure
+            champ  - championship data
+            [UUID] - event or challenge result data matched to that id
     """
 
     @classmethod
@@ -61,18 +66,16 @@ class Result(object):
 
     @classmethod
     def getEventResults(cls, eventid, asstring=False):
-        name = "e%d"%eventid
-        if cls._needUpdate(('classlist', 'indexlist', 'events', 'cars', 'runs'), name):
-            cls._updateEventResults(name, eventid)
-        return cls._loadResults(name, asstring)
+        if cls._needUpdate(('classlist', 'indexlist', 'events', 'cars', 'runs'), eventid):
+            cls._updateEventResults(eventid)
+        return cls._loadResults(eventid, asstring)
 
     @classmethod
     def getChallengeResults(cls, challengeid):
-        name = "c%d"%challengeid
-        if cls._needUpdate(('challengerounds', 'challengeruns'), name):
-            cls._updateChallengeResults(name, challengeid)
+        if cls._needUpdate(('challengerounds', 'challengeruns'), challengeid):
+            cls._updateChallengeResults(challengeid)
         ret = dict() # Have to convert back to dict as JSON can't store using ints as keys
-        for rnd in cls._loadResults(name, asstring=False):
+        for rnd in cls._loadResults(challengeid, asstring=False):
             ret[rnd['round']] = rnd
         return ret
 
@@ -150,7 +153,7 @@ class Result(object):
         with g.db.cursor() as cur:
             cur.execute("select " +
                 "(select max(time) from serieslog where tablen in %s) >" +
-                "(select modified from results where series=%s and name=%s)", (tables, g.series, name))
+                "(select modified from results where series=%s and name=%s::text)", (tables, g.series, name))
             mod = cur.fetchone()[0]
             if mod is None or mod: 
                 return True
@@ -161,7 +164,7 @@ class Result(object):
         with g.db.cursor() as cur:
             key = "data"
             if asstring: key += "::text"
-            cur.execute("select "+key+" from results where series=%s and name=%s", (g.series, name))
+            cur.execute("select "+key+" from results where series=%s and name=%s::text", (g.series, name))
             res = cur.fetchone()
             if res is not None:
                 return res['data']
@@ -175,7 +178,7 @@ class Result(object):
         with g.db.cursor() as cur:
             cur.execute("set role %s", (g.series,))
             cur.execute("insert into results values (%s, %s, '{}', now()) ON CONFLICT (series, name) DO NOTHING", (g.series, name))
-            cur.execute("update results set data=%s, modified=now() where series=%s and name=%s", (JSONEncoder().encode(data), g.series, name))
+            cur.execute("update results set data=%s, modified=now() where series=%s and name=%s::text", (JSONEncoder().encode(data), g.series, name))
             cur.execute("reset role")
             g.db.commit()
 
@@ -196,7 +199,7 @@ class Result(object):
 
 
     @classmethod
-    def _updateEventResults(cls, name, eventid):
+    def _updateEventResults(cls, eventid):
         """
             Creating the cached event result data for the given event.
             The event result data is {<classcode>, [<Entrant>]}.
@@ -295,7 +298,7 @@ class Result(object):
                             e.prodial = res[0].dialraw * res[0].indexval / e.indexval / 2.0
 
     
-        cls._insertResults(name, results)
+        cls._insertResults(eventid, results)
 
     @classmethod
     def _decorateEntrant(cls, e):
@@ -399,7 +402,7 @@ class Result(object):
 
 
     @classmethod
-    def _updateChallengeResults(cls, name, challengeid):
+    def _updateChallengeResults(cls, challengeid):
         rounds = dict()
         with g.db.cursor() as cur:
             getrounds = "SELECT x.*, " \
@@ -499,7 +502,7 @@ class Result(object):
                 else:
                     rnd.detail = 'Tied?'
     
-        cls._insertResults(name, list(rounds.values()))
+        cls._insertResults(challengeid, list(rounds.values()))
 
 
     @classmethod
@@ -662,7 +665,7 @@ class SeriesInfo(dict):
 
     def getEvent(self, eventid):
         for e in self['events']:
-            if e['eventid'] == eventid:
+            if uuid.UUID(e['eventid']) == eventid:
                 return Event(**e)
         return None
 

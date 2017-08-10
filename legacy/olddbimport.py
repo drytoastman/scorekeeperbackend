@@ -3,8 +3,6 @@
 import sys
 import os
 
-from nwrsc.lib.postgresql import ensure_series_schema
-
 class AttrWrapper(object):
     def __init__(self, tup, headers):
         for k,v in zip(headers, tup):
@@ -17,19 +15,27 @@ def convert(sourcefile, password):
     import psycopg2
     import psycopg2.extras
 
-    remapdriver   = dict()
-    remapcar      = dict({-1:None})
-    challengeruns = list()
+    remapdriver    = dict()
+    remapcar       = dict({-1:None})
+    remapevent     = dict()
+    remapchallenge = dict()
+    challengeruns  = list()
     name = os.path.basename(sourcefile[:-3])
     print("putting things in", name)
 
     old = sqlite3.connect(sourcefile)
     old.row_factory = sqlite3.Row
 
+    # Assumes that we are running on the docker host and can access the system like the Java applications
     psycopg2.extras.register_uuid()
-    ensure_series_schema({'host':'127.0.0.1', 'port':54329, 'user':'postgres'}, name, password)
-    new = psycopg2.connect(host='127.0.0.1', port=54329, user='postgres', dbname='scorekeeper', cursor_factory=psycopg2.extras.DictCursor)
+    new = psycopg2.connect(host='127.0.0.1', port=5432, user='postgres', dbname='scorekeeper', cursor_factory=psycopg2.extras.DictCursor)
     cur = new.cursor()
+
+    cur.execute("select schema_name from information_schema.schemata where schema_name=%s", (name,))
+    if cur.rowcount > 0:
+        raise Exception("{} is already an active series, not continuing", name)
+
+    cur.execute("select create_series(%s,%s)", (name, password))
     cur.execute("set search_path=%s,%s", (name, 'public'))
 
     #DRIVERS, add to global list and remap ids as necessary
@@ -116,7 +122,7 @@ def convert(sourcefile, password):
         else:
             segments = len(e.segments.replace(" ", "").split(","))
         newe = dict()
-        newe['eventid']     = e.id
+        newe['eventid']     = uuid.uuid1()
         newe['name']        = e.name
         newe['date']        = e.date
         newe['regopened']   = e.regopened
@@ -142,8 +148,8 @@ def convert(sourcefile, password):
         cur.execute("insert into events values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
             (newe['eventid'], newe['name'], newe['date'], newe['regopened'], newe['regclosed'], newe['courses'], newe['runs'], newe['countedruns'], newe['segments'],
             newe['perlimit'], newe['sinlimit'], newe['totlimit'], newe['conepen'], newe['gatepen'], newe['ispro'], newe['ispractice'], json.dumps(newe['attr'])))
-    # Make sure database sequence is on the same page as us
-    cur.execute("ALTER SEQUENCE events_eventid_seq RESTART WITH %s", (maxeid+1,))
+
+        remapevent[e.id] = newe['eventid']
 
     #REGISTERED (map carid)
     print("registered")
@@ -152,7 +158,7 @@ def convert(sourcefile, password):
         if oldr.eventid > 0x0FFFF:
             continue
         if oldr.carid in remapcar:
-            cur.execute("insert into registered values (%s, %s, %s, now())", (oldr.eventid, remapcar[oldr.carid], oldr.paid and True or False))
+            cur.execute("insert into registered values (%s, %s, %s, now())", (remapevent[oldr.eventid], remapcar[oldr.carid], oldr.paid and True or False))
         else:
             print("skipping unknown carid {}".format(oldr.carid))
 
@@ -161,14 +167,14 @@ def convert(sourcefile, password):
     print("classorder")
     for r in old.execute("select * from rungroups"):
         oldr = AttrWrapper(r, r.keys())
-        cur.execute("insert into classorder values (%s, %s, %s, %s, now())", (oldr.eventid, oldr.classcode, oldr.rungroup, oldr.gorder))
+        cur.execute("insert into classorder values (%s, %s, %s, %s, now())", (remapevent[oldr.eventid], oldr.classcode, oldr.rungroup, oldr.gorder))
 
 
     #RUNORDER 
     print("runorder")
     for r in old.execute("select * from runorder"):
         oldr = AttrWrapper(r, r.keys())
-        cur.execute("insert into runorder values (%s, %s, %s, %s, %s, now())", (oldr.eventid, oldr.course, oldr.rungroup, oldr.row, remapcar[oldr.carid]))
+        cur.execute("insert into runorder values (%s, %s, %s, %s, %s, now())", (remapevent[oldr.eventid], oldr.course, oldr.rungroup, oldr.row, remapcar[oldr.carid]))
 
 
     #RUNS (map eventid, carid)
@@ -187,7 +193,7 @@ def convert(sourcefile, password):
             if seg is not None and seg > 0:
                 attr['seg%d'%ii] = seg
         cur.execute("insert into runs values (%s, %s, %s, %s, %s, %s, %s, %s, %s, now())",
-            (oldr.eventid, remapcar[oldr.carid], oldr.course, oldr.run, oldr.cones, oldr.gates, oldr.raw, oldr.status, json.dumps(attr)))
+            (remapevent[oldr.eventid], remapcar[oldr.carid], oldr.course, oldr.run, oldr.cones, oldr.gates, oldr.raw, oldr.status, json.dumps(attr)))
 
 
     #SETTINGS
@@ -207,12 +213,13 @@ def convert(sourcefile, password):
         c = AttrWrapper(r, r.keys())
 
         newc = dict()
-        newc['challengeid'] = c.id
-        newc['eventid']     = c.eventid
+        newc['challengeid'] = uuid.uuid1()
+        newc['eventid']     = remapevent[c.eventid]
         newc['name']        = c.name
         newc['depth']       = c.depth
 
         cur.execute("insert into challenges values (%s, %s, %s, %s, now())", (newc['challengeid'], newc['eventid'], newc['name'], newc['depth']))
+        remapchallenge[c.id] = newc['challengeid']
 
 
     #CHALLENGEROUNDS (remap roundid, challengeid, carid)
@@ -221,7 +228,7 @@ def convert(sourcefile, password):
     maxcid = 1
     for rp in old.execute("select * from challengerounds"):
         r = AttrWrapper(rp, rp.keys())
-        cid  = r.challengeid
+        cid  = remapchallenge[r.challengeid]
         c1id = remapcar[r.car1id]
         c2id = remapcar[r.car2id]
         ss = r.swappedstart and True or False
@@ -230,14 +237,12 @@ def convert(sourcefile, password):
         check1.add((cid, r.round))
         maxcid = max(maxcid, cid)
         cur.execute("insert into challengerounds values (%s, %s, %s, %s, %s, %s, %s, now())", (cid, r.round, ss, c1id, c1d, c2id, c2d))
-    # Make sure database sequence is on the same page as us
-    cur.execute("ALTER SEQUENCE challenges_challengeid_seq RESTART WITH %s", (maxcid+1,))
 
 
     #CHALLENGERUNS (now in ther own table)
     print("challengeruns")
     for r in challengeruns:
-        chid  = r.eventid >> 16
+        chid  = remapchallenge[r.eventid >> 16]
         round = r.eventid & 0x0FFF
         caid  = remapcar[r.carid]
         if caid is not None and (chid, round) in check1:

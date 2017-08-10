@@ -3,6 +3,7 @@
   that it continues to work after old series are expunged.
 """
 from operator import itemgetter
+import logging
 
 from flask import Blueprint, request, abort, render_template, get_template_attribute, make_response, g
 from nwrsc.model import Result
@@ -10,6 +11,7 @@ from nwrsc.lib.bracket import Bracket
 from nwrsc.lib.misc import csvlist
 
 Results = Blueprint("Results", __name__)
+log = logging.getLogger(__name__)
 
 ## The indexes and lists
 
@@ -17,7 +19,7 @@ Results = Blueprint("Results", __name__)
 def index():
     return render_template('results/eventlist.html', events=Result.getSeriesInfo()['events'])
 
-@Results.route("/<int:eventid>")
+@Results.route("/<uuid:eventid>")
 def event():
     info    = Result.getSeriesInfo()
     results = Result.getEventResults(g.eventid)
@@ -57,19 +59,19 @@ def _resultsforclasses(clslist=None, grplist=None):
     return render_template('results/eventresults.html', ispost=ispost, results=results)
 
 
-@Results.route("/<int:eventid>/byclass")
+@Results.route("/<uuid:eventid>/byclass")
 def byclass():
     classes = csvlist(request.args.get('list', ''))
     g.title = "Results For Class {}".format(','.join(classes))
     return _resultsforclasses(clslist=classes)
 
-@Results.route("/<int:eventid>/bygroup")
+@Results.route("/<uuid:eventid>/bygroup")
 def bygroup():
     groups = csvlist(request.args.get('list', ''), int)
     g.title = "Results For Group {}".format(','.join(map(str, groups)))
     return _resultsforclasses(grplist=groups)
 
-@Results.route("/<int:eventid>/post")
+@Results.route("/<uuid:eventid>/post")
 def post():
     return _resultsforclasses()
 
@@ -80,7 +82,7 @@ def champ():
     events  = [x for x in info['events'] if not x['ispractice']]
     return render_template('/results/champ.html', results=results, settings=info.getSettings(), classdata=info.getClassData(), events=events)
 
-@Results.route("/<int:eventid>/tt")
+@Results.route("/<uuid:eventid>/tt")
 def tt():
     indexed  = bool(int(request.args.get('indexed', '1')))
     counted  = bool(int(request.args.get('counted', '1')))
@@ -116,31 +118,31 @@ def _loadChallengeResults(challengeid, load=True):
         abort(404, "Invalid or no challenge id")
     return (challenge, load and Result.getChallengeResults(challengeid) or None)
 
-@Results.route("/<int:eventid>/bracket/<int:challengeid>")
+@Results.route("/<uuid:eventid>/bracket/<int:challengeid>")
 def bracket(challengeid):
     (challenge, results) = _loadChallengeResults(challengeid, load=False)
     (coords, size) = Bracket.coords(challenge.depth)
     return render_template('/challenge/bracketbase.html', challengeid=challengeid, coords=coords, size=size)
 
-@Results.route("/<int:eventid>/bracketimg/<int:challengeid>")
+@Results.route("/<uuid:eventid>/bracketimg/<int:challengeid>")
 def bracketimg(challengeid):
     (challenge, results) = _loadChallengeResults(challengeid)
     response = make_response(Bracket.image(challenge.depth, results))
     response.headers['Content-type'] = 'image/png'
     return response
 
-@Results.route("/<int:eventid>/bracketround/<int:challengeid>/<int:round>")
+@Results.route("/<uuid:eventid>/bracketround/<int:challengeid>/<int:round>")
 def bracketround(challengeid, round):
     (challenge, results) = _loadChallengeResults(challengeid)
     roundReport = get_template_attribute('/challenge/challengemacros.html', 'roundReport')
     return roundReport(results[round])
 
-@Results.route("/<int:eventid>/challenge/<int:challengeid>")
+@Results.route("/<uuid:eventid>/challenge/<int:challengeid>")
 def challenge(challengeid):
     (challenge, results) = _loadChallengeResults(challengeid)
     return render_template('/challenge/challengereport.html', results=results, chal=challenge)
 
-@Results.route("/<int:eventid>/dialins")
+@Results.route("/<uuid:eventid>/dialins")
 def dialins():
     orderkey = request.args.get('order', 'net')
     if orderkey not in ('net', 'prodiff'):

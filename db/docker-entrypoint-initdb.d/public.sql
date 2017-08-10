@@ -98,7 +98,6 @@ COMMENT ON FUNCTION create_series(varchar, varchar) IS 'reads in series template
 -- The results table acts as a storage of calculated results and information for each series.  As enough information
 -- will exist here to supply the results set of pages, we can delete old series schema, release old unused driver
 -- information and solidify the driver information for older series (name changes, etc).
--- The name column can be champ={champ results}, info={settings,eventlist,classes,indexes}, e#={eventid results}, c#={challengeid results}
 CREATE TABLE results (
     series     TEXT        NOT NULL,
     name       TEXT        NOT NULL,
