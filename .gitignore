@@ -1,5 +1,6 @@
 __pycache__
 *.pyc
+*.db
 *.log*
 web/nwrsc/static/*.js
 web/nwrsc/static/*.css
