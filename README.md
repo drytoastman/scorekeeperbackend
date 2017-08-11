@@ -27,11 +27,14 @@ to work.
 There is also a requirement to forward ports across the VirtualBox bounary.  This is done automatically
 by the Java TrayMonitor application.  If that isn't running, you can do this with **docker-machine ssh** if a 
 decent ssh client is available on your machine.
-    docker-machine ssh default -L 80:127.0.0.1:80 -L 54329:127.0.0.1:54329 -L 127.0.0.1:5432:127.0.0.1:5432
+
+```
+docker-machine ssh default -L 80:127.0.0.1:80 -L 54329:127.0.0.1:54329 -L 127.0.0.1:6432:127.0.0.1:6432
+```
 
 - port 80 is shared with everyone for web access
 - port 54329 is shared with everyone for remote database/merge tool access
-- port 5432 is only open on 127.0.0.1 for local Java apps to connect without password
+- port 6432 is only open on 127.0.0.1 for local Java apps to connect without password
 
 
 ## Deployment

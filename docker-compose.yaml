@@ -31,7 +31,7 @@ services:
         net1:
     ports:
         - "54329:5432" # DB for external SSL connections
-        - "127.0.0.1:5432:6432" # DB for trusted localhost
+        - "127.0.0.1:6432:6432" # DB for trusted localhost
 
 networks:
   net1:
