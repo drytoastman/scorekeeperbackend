@@ -85,7 +85,6 @@ def create_app(config=None):
     })
 
     theapp.config['TEMPLATES_AUTO_RELOAD'] = theapp.config['DEBUG']
-    theapp.config['LOG_STDERR']            = theapp.config['DEBUG']
 
     # Setup basic top level URL handling followed by Blueprints for the various sections
     theapp.url_value_preprocessor(preprocessor)
@@ -138,27 +137,21 @@ def create_app(config=None):
     theapp.jinja_env.filters['msort'] = msort
     theapp.jinja_env.filters['to_json'] = to_json
 
-    # Configure our logging to use webserver.log with rotation and optionally stderr
-    if not theapp.debug:
+    # If not running in debug mode (debug details to browser), log the traceback locally instead
+    if not theapp.config['DEBUG']:
         theapp.register_error_handler(Exception, errorlog)
 
-    level = getattr(logging, theapp.config['LOG_LEVEL'], logging.INFO)
+    # Configure our logging to use stderr so container host can log as they want
+    level = getattr(logging, theapp.config['LOG_LEVEL'], logging.INFO) # turns 'INFO' string into logging.INFO int
     fmt  = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%m/%d/%Y %H:%M:%S')
+    shandler = StreamHandler()
+    shandler.setFormatter(fmt)
+    shandler.setLevel(level)
     root = logging.getLogger()
     root.setLevel(level)
-    root.handlers = []
+    root.handlers = [shandler]
 
-    fhandler = RotatingFileHandler(os.path.expanduser('~/nwrscwebserver.log'), maxBytes=1000000, backupCount=10)
-    fhandler.setFormatter(fmt)
-    fhandler.setLevel(level)
-    root.addHandler(fhandler)
     logging.getLogger('werkzeug').setLevel(logging.WARN)
-
-    if theapp.config.get('LOG_STDERR', False):
-        shandler = StreamHandler()
-        shandler.setFormatter(fmt)
-        shandler.setLevel(level)
-        root.addHandler(shandler)
 
     # Setting up WebAssets, crypto stuff, compression and profiling
     Environment(theapp)

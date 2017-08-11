@@ -4,6 +4,8 @@
 
 import sys
 import yaml
+import os
+import base64
 
 if len(sys.argv) < 2:
     print ("Usage:\n\n{} version\n".format(sys.argv[0]))
@@ -24,4 +26,5 @@ for name in ('web', 'db'):
     service['volumes']     = filter(lambda v: not (v.startswith('/') or v.startswith('.')), service.get('volumes', []))
     service['environment'] = filter(lambda e: 'DEBUG' not in e, service.get('environment', []))
 
+compose['services']['web']['environment'].append('NWRSC_SECRET="{}"'.format(base64.b64encode(os.urandom(32))))
 print yaml.safe_dump(compose)

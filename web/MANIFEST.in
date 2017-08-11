@@ -3,4 +3,4 @@ recursive-include nwrsc/static/js *
 recursive-include nwrsc/static/scss *
 recursive-include nwrsc/templates *
 include nwrsc/static/robots.txt
-include nwrsc/model/*.sql
+include nwrsc/lib/*.ttf

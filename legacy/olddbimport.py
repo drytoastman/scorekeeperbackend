@@ -28,7 +28,7 @@ def convert(sourcefile, password):
 
     # Assumes that we are running on the docker host and can access the system like the Java applications
     psycopg2.extras.register_uuid()
-    new = psycopg2.connect(host='127.0.0.1', port=5432, user='postgres', dbname='scorekeeper', application_name='oldimport', cursor_factory=psycopg2.extras.DictCursor)
+    new = psycopg2.connect(host='127.0.0.1', port=6432, user='postgres', dbname='scorekeeper', application_name='oldimport', cursor_factory=psycopg2.extras.DictCursor)
     cur = new.cursor()
 
     cur.execute("select schema_name from information_schema.schemata where schema_name=%s", (name,))

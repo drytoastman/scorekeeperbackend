@@ -9,6 +9,7 @@ from nwrsc.app import create_app
 server = None
 
 def removepid(signum, frame):
+    print("stopping server", file=sys.stderr)
     global server
     if server:
         server.stop()
@@ -35,6 +36,7 @@ if __name__ == '__main__':
     with open(pidfile, 'w') as fp:
         fp.write(str(os.getpid()))
 
+    print("starting server", file=sys.stderr)
     if theapp.debug:
         theapp.run(host='0.0.0.0', port=port, threaded=True)
     else:
