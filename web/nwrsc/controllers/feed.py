@@ -30,11 +30,11 @@ def xmlinfo():
     return xml_encode(dict(info)) # force back to base dict type
 
 
-@Json.route("/<int:eventid>")
+@Json.route("/event/<uuid:eventid>")
 def jsonevent():
     return json_raw(Result.getEventResults(g.eventid, asstring=True))
 
-@Xml.route("/<int:eventid>")
+@Xml.route("/event/<uuid:eventid>")
 def xmlevent():
     res = Result.getEventResults(g.eventid)
     for entries in res.values():
@@ -59,11 +59,11 @@ def xmlchamp():
     return xml_encode(res)
 
 
-@Json.route("/challenge/<int:challengeid>")
+@Json.route("/challenge/<uuid:challengeid>")
 def jsonchallenge(challengeid):
     return json_encode(list(Result.getChallengeResults(challengeid).values()))
 
-@Xml.route("/challenge/<int:challengeid>")
+@Xml.route("/challenge/<uuid:challengeid>")
 def xmlchallenge(challengeid):
     rounds = list(Result.getChallengeResults(challengeid).values())
     for rnd in rounds:
@@ -71,7 +71,7 @@ def xmlchallenge(challengeid):
     return xml_encode(rounds, wrapper='Rounds')
 
 
-@Xml.route("/<int:eventid>/scca")
+@Xml.route("/event/<uuid:eventid>/scca")
 def scca():
     results = Result.getEventResults(g.eventid)
     entries = list()

@@ -23,8 +23,10 @@ MAX_WAIT = 30
 @Timer.route("/<float:lasttime>")
 def timer(lasttime):
     """ Proxy this request to local data entry machine if we can """
-    # Don't hang onto the database pooled connection, don't need it
-    current_app.db_return()
+    # Don't hang onto the database connection, don't need it
+    g.db.close()
+    del g.db
+
     try :
         if current_app.config['SHOWLIVE']:
             f = urllib.request.urlopen("http://127.0.0.1:9090/timer/%0.3lf" % lasttime, timeout=MAX_WAIT);
@@ -42,12 +44,12 @@ def timer(lasttime):
 def eventlist():
     return "event list here someday"
 
-@Announcer.route("/<int:eventid>")
+@Announcer.route("/event/<uuid:eventid>")
 def index():
     g.event = Event.get(g.eventid)
     return render_template('/announcer/main.html')
 
-@Announcer.route("/<int:eventid>/next")
+@Announcer.route("/event/<uuid:eventid>/next")
 def nextresult():
     # use ceil so round off doesn't cause an infinite loop
     modified = math.ceil(float(request.args.get('modified', '0')))

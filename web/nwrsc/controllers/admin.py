@@ -48,14 +48,14 @@ def login():
 def index():
     return render_template('/admin/simple.html', text="<h2>{} Adminstration</h2>".format(g.series))
 
-@Admin.route("/<int:eventid>")
+@Admin.route("/event/<uuid:eventid>")
 def event():
     if not isauth(): return login()
     return render_template('/admin/event.html', event=Event.get(g.eventid))
 
 ## Perhaps move these to an admin like site?
 
-@Admin.route("/<int:eventid>/audit")
+@Admin.route("/event/<uuid:eventid>/audit")
 def audit():
     course = request.args.get('course', 1)
     group  = request.args.get('group', 1)
@@ -72,7 +72,7 @@ def audit():
     return render_template('/admin/audit.html', audit=audit, event=event, course=course, group=group, order=order)
 
 
-@Admin.route("/<int:eventid>/grid")
+@Admin.route("/event/<uuid:eventid>/grid")
 def grid():
     order = request.args.get('order', 'number')
     groups = RunGroups.getForEvent(g.eventid)
@@ -94,17 +94,17 @@ def grid():
     return render_template('/admin/grid.html', groups=groups, order=order, starts=[k for k in groups if k < 100])
 
 
-@Admin.route("/<int:eventid>/editevent",   endpoint='editevent')
-@Admin.route("/<int:eventid>/list",        endpoint='list')
-@Admin.route("/<int:eventid>/rungroups",   endpoint='rungroups')
-@Admin.route("/<int:eventid>/deleteevent", endpoint='deleteevent')
-@Admin.route("/<int:eventid>/printhelp",   endpoint='printhelp')
-@Admin.route("/<int:eventid>/printcards",  endpoint='printcards')
-@Admin.route("/<int:eventid>/numbers",     endpoint='numbers')
-@Admin.route("/<int:eventid>/paid",        endpoint='paid')
-@Admin.route("/<int:eventid>/paypal",      endpoint='paypal')
-@Admin.route("/<int:eventid>/contactlist", endpoint='contactlist')
-@Admin.route("/<int:eventid>/newentrants", endpoint='newentrants')
+@Admin.route("/event/<uuid:eventid>/editevent",   endpoint='editevent')
+@Admin.route("/event/<uuid:eventid>/list",        endpoint='list')
+@Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
+@Admin.route("/event/<uuid:eventid>/deleteevent", endpoint='deleteevent')
+@Admin.route("/event/<uuid:eventid>/printhelp",   endpoint='printhelp')
+@Admin.route("/event/<uuid:eventid>/printcards",  endpoint='printcards')
+@Admin.route("/event/<uuid:eventid>/numbers",     endpoint='numbers')
+@Admin.route("/event/<uuid:eventid>/paid",        endpoint='paid')
+@Admin.route("/event/<uuid:eventid>/paypal",      endpoint='paypal')
+@Admin.route("/event/<uuid:eventid>/contactlist", endpoint='contactlist')
+@Admin.route("/event/<uuid:eventid>/newentrants", endpoint='newentrants')
 def notyetdone():
     return "TBD"
 

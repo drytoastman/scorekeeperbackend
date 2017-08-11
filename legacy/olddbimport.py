@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import sys
 import os
@@ -21,7 +21,7 @@ def convert(sourcefile, password):
     remapchallenge = dict()
     challengeruns  = list()
     name = os.path.basename(sourcefile[:-3])
-    print("putting things in", name)
+    print("putting things in {}".format(name))
 
     old = sqlite3.connect(sourcefile)
     old.row_factory = sqlite3.Row

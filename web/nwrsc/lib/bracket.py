@@ -37,11 +37,7 @@ class Bracket(object):
             self.draw = None
             return 
 
-        try:
-            from PIL import Image, ImageFont, ImageDraw
-        except:
-            import Image, ImageFont, ImageDraw
-        
+        from PIL import Image, ImageFont, ImageDraw
         self.image = Image.new("L", self.imagesize, "White")
         self.draw = ImageDraw.Draw(self.image)
         self.font = ImageFont.truetype(os.path.join(os.path.dirname(__file__), 'universal.ttf'), 11)

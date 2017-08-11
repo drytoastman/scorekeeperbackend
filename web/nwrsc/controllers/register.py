@@ -113,6 +113,7 @@ def events():
     for e in events:
         decorateEvent(e, len(registered[e.eventid]))
 
+    log.warning("registered = {}".format(registered))
     return render_template('register/events.html', events=events, cars=cars, registered=registered)
 
 
@@ -121,7 +122,7 @@ def eventspost():
     if not g.driver: abort(404)
 
     try:
-        eventid = int(request.form['eventid'])
+        eventid = uuid.UUID(request.form['eventid'])
         carids  = [uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True]
         curreg  = len([r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
         event   = Event.get(eventid)
@@ -162,7 +163,7 @@ def logout():
 ####################################################################
 # Unauthenticated functions
 
-@Register.route("/<series>/view/<int:eventid>")
+@Register.route("/<series>/view/<uuid:eventid>")
 def view():
     event = Event.get(g.eventid)
     if event is None:

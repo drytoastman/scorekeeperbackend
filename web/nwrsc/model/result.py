@@ -73,6 +73,7 @@ class Result(object):
     @classmethod
     def getChallengeResults(cls, challengeid):
         if cls._needUpdate(('challengerounds', 'challengeruns'), challengeid):
+            log.warning("updating challengeresults\n\n")
             cls._updateChallengeResults(challengeid)
         ret = dict() # Have to convert back to dict as JSON can't store using ints as keys
         for rnd in cls._loadResults(challengeid, asstring=False):
@@ -670,11 +671,11 @@ class SeriesInfo(dict):
         return None
 
     def getChallengesForEvent(self, eventid):
-        return [Challenge(**c) for c in self['challenges'] if c['eventid'] == eventid]
+        return [Challenge(**c) for c in self['challenges'] if uuid.UUID(c['eventid']) == eventid]
 
     def getChallenge(self, challengeid):
         for c in self['challenges']:
-            if c['challengeid'] == challengeid:
+            if uuid.UUID(c['challengeid']) == challengeid:
                 return Challenge(**c)
         return None
 
