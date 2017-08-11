@@ -113,7 +113,6 @@ def events():
     for e in events:
         decorateEvent(e, len(registered[e.eventid]))
 
-    log.warning("registered = {}".format(registered))
     return render_template('register/events.html', events=events, cars=cars, registered=registered)
 
 
