@@ -7,8 +7,6 @@ function processData(json)
         if (announcermini) {
             $('#firste').html(json.last);
             $('#runorder').html(json.order);
-//            $('#runorder th:nth-child(2)').hide();
- //           $('#runorder td:nth-child(2)').hide();
         } else {
             $('#seconde').html($('#firste').html());
             $('#firste').html(json.last);
@@ -56,12 +54,12 @@ function timerUpdate()
 }
 
 $(document).ready(function(){
-    announcermini = (location.search.indexOf('mini') >= 0);
+    announcermini = (location.search.indexOf('mini=1') >= 0);
     announcerbase = location.protocol + '//' + location.host + location.pathname;
     lasttime = 0;
     lasttimer = "0.000";
     updateCheck();
-    if (!announermini)
+    if (!announcermini)
         setTimeout(timerUpdate, 1000);
 });
 

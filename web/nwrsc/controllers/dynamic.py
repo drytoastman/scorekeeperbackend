@@ -27,11 +27,16 @@ MAX_WAIT = 30
 def eventlist():
     return "event list here someday"
 
+def _boolarg(arg):
+    try:
+        return request.args.get(arg, '0') in ('1', 'true', 'yes')
+    except:
+        return False
 
 @Announcer.route("/event/<uuid:eventid>/")
 def index():
     g.event = Event.get(g.eventid)
-    mini = bool(request.args.get('mini', 0))
+    mini = _boolarg('mini')
     if mini:
         return render_template('/announcer/mini.html')
     else:
@@ -41,7 +46,7 @@ def index():
 def nextresult():
     # use ceil so round off doesn't cause an infinite loop
     modified = math.ceil(float(request.args.get('modified', '0')))
-    mini = bool(request.args.get('mini', 0))
+    mini = _boolarg('mini')
 
     # Long polling, hold the connection until something is actually new
     then = time.time()
