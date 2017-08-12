@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 def index():
     return render_template('results/eventlist.html', events=Result.getSeriesInfo()['events'])
 
-@Results.route("/event/<uuid:eventid>")
+@Results.route("/event/<uuid:eventid>/")
 def event():
     info    = Result.getSeriesInfo()
     results = Result.getEventResults(g.eventid)
@@ -101,7 +101,7 @@ def tt():
 
     return render_template('/results/toptimes.html', header=header, table=table)
 
-@Results.route("/champ")
+@Results.route("/champ/")
 def champ():
     info    = Result.getSeriesInfo()
     results = Result.getChampResults()
@@ -150,7 +150,7 @@ def bracketround(challengeid, round):
     roundReport = get_template_attribute('/challenge/challengemacros.html', 'roundReport')
     return roundReport(results[round])
 
-@Results.route("/challenge/<uuid:challengeid>")
+@Results.route("/challenge/<uuid:challengeid>/")
 def challenge(challengeid):
     (challenge, results) = _loadChallengeResults(challengeid)
     return render_template('/challenge/challengereport.html', results=results, chal=challenge)

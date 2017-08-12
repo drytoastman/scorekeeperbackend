@@ -17,7 +17,7 @@ from werkzeug.debug.tbtools import get_current_traceback
 from werkzeug.contrib.profiler import ProfilerMiddleware
 
 from nwrsc.controllers.admin import Admin
-from nwrsc.controllers.dynamic import Announcer, Timer
+from nwrsc.controllers.dynamic import Announcer
 from nwrsc.controllers.feed import Xml, Json
 from nwrsc.controllers.register import Register
 from nwrsc.controllers.results import Results
@@ -95,7 +95,6 @@ def create_app(config=None):
     theapp.register_blueprint(Json,      url_prefix="/json/<series>")
     theapp.register_blueprint(Register,  url_prefix="/register")
     theapp.register_blueprint(Results,   url_prefix="/results/<series>")
-    theapp.register_blueprint(Timer,     url_prefix="/timer")
     theapp.register_blueprint(Xml,       url_prefix="/xml/<series>")
 
     # Some static things that need to show up at the root level

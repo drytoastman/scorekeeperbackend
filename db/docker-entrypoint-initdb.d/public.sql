@@ -148,3 +148,12 @@ REVOKE ALL   ON mergeservers FROM public;
 GRANT  ALL   ON mergeservers TO driversaccess;
 COMMENT ON TABLE mergeservers IS 'Local state of other sevrers we are periodically merging with';
 
+
+CREATE UNLOGGED TABLE ephemeral (
+    name TEXT PRIMARY KEY,
+    data TEXT NOT NULL DEFAULT '{}'
+);
+REVOKE ALL   ON ephemeral FROM public;
+GRANT  ALL   ON ephemeral TO driversaccess;
+COMMENT ON TABLE ephemeral IS 'Local only unlogged shared state of the system that can be cleared without worry';
+

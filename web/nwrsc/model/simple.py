@@ -34,6 +34,21 @@ class Challenge(AttrBase):
         return cls.getall("select * from challenges order by challengeid")
 
 
+class Ephemeral():
+    @classmethod
+    def clearAll(cls):
+        with g.db.cursor() as cur:
+            cur.execute("DELETE from ephemeral")
+
+    @classmethod
+    def get(cls, name):
+        with g.db.cursor() as cur:
+            try:
+                cur.execute("select data from ephemeral where name=%s", (name,))
+                return cur.fetchone()[0]
+            except Exception as e:
+                return None
+
 
 class Event(AttrBase):
 

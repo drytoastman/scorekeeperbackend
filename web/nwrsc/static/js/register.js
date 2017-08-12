@@ -164,29 +164,3 @@ function loginPage()
 	});
 }
 
-/*
-$(document).ready(function() {
-
-	loginPage();
-	eventPaneSetup($('#eventsinner'));
-	eventCollapsable();
-
-	$.ajaxSetup({ cache: false });
-	$( document ).ajaxError(function(event, jqxhr, settings, exception) {
-		alert("Request Error: " + exception);
-	});
-
-	$('button.logout').button().click(function() { document.location.href=$.nwr.url_for('logout'); });
-
-	// top tabs
-	$('.tablist ul').css('display', 'none');
-	$('.tablist .tab').click(function() { $(this).parent().find('ul').toggle('blind'); });
-
-	// layout page
-	$("#tabs").tabs({active: 2});
-	$(".cartablink").click(function() { $("#tabs").tabs('option', 'active', 1); });
-
-});
-*/
-
-

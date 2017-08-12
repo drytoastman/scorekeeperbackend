@@ -4,14 +4,20 @@ function processData(json)
     if (json.modified > lasttime)
     {
         lasttime = json.modified;
-
-        $('#seconde').html($('#firste').html());
-        $('#firste').html(json.last);
-        $('#nexte').html(json.next);
-        $('#topnetcell').html(json.topnet);
-        $('#toprawcell').html(json.topraw);
-        $('#runorder').html(json.order);
-        $('a[href="#firste"]').tab('show');
+        if (announcermini) {
+            $('#firste').html(json.last);
+            $('#runorder').html(json.order);
+//            $('#runorder th:nth-child(2)').hide();
+ //           $('#runorder td:nth-child(2)').hide();
+        } else {
+            $('#seconde').html($('#firste').html());
+            $('#firste').html(json.last);
+            $('#nexte').html(json.next);
+            $('#topnetcell').html(json.topnet);
+            $('#toprawcell').html(json.topraw);
+            $('#runorder').html(json.order);
+            $('a[href="#firste"]').tab('show');
+        }
     }
 }
 
@@ -19,8 +25,8 @@ function updateCheck()
 {
     $.ajax({
             dataType: "json",
-            url: $.nwr.url_for('next'),
-            data: { modified: lasttime },
+            url: announcerbase + 'next',
+            data: { modified: lasttime, mini: announcermini?1:0 },
             success: function(data) { processData(data); updateCheck(); },
             error: function(xhr) { if (xhr.status != 403) { setTimeout(updateCheck, 3000); } }
             });
@@ -31,10 +37,14 @@ function timerUpdate()
 {
     $.ajax({
             dataType: "json",
-            url: "/timer/"+lasttimer,
+            url: announcerbase + 'timer',
+            data: { lasttimer: lasttimer },
             success: function(data) {
-                lasttimer = data.timer;
-                $('#timeroutput').text(lasttimer);
+                if ('timer' in data)
+                {
+                    lasttimer = data.timer;
+                    $('#timeroutput').text(lasttimer);
+                }
                 timerUpdate();
             },
             error: function(xhr) {
@@ -46,10 +56,13 @@ function timerUpdate()
 }
 
 $(document).ready(function(){
+    announcermini = (location.search.indexOf('mini') >= 0);
+    announcerbase = location.protocol + '//' + location.host + location.pathname;
     lasttime = 0;
     lasttimer = "0.000";
     updateCheck();
-    setTimeout(timerUpdate, 1000);
+    if (!announermini)
+        setTimeout(timerUpdate, 1000);
 });
 
 

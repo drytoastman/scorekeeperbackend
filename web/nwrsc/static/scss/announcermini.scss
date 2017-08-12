@@ -1,0 +1,71 @@
+
+body {
+    width: 100%;
+    margin: 0;
+    font-size: 85%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 5px;
+}
+
+td, th {
+    border: 1px solid #999;
+    padding: 2px;
+}
+
+tr {
+  &.header th {
+    text-align: center;
+    font-weight: bold;
+    background-color: #ccc;
+  }
+  &.titles th {
+    text-align: center;
+    font-weight: bold;
+    background-color: #ddd;
+  }
+  &.highlight td, &.improvedon, &.couldhave {
+    font-size: 110%;
+    font-weight: bold;
+  }
+  &.highlight td {
+    background: #DDD;
+  }
+  &.improvedon td {
+    background: #EEF;
+    color: #99E;
+  }
+  &.couldhave td {
+    background: #EDD;
+    color: #E77;
+  }
+}
+
+/* some hacky fixes as we are borrowing the main announcer table layout */
+table.runorder {
+    td, th {
+        &:nth-child(2), &:nth-child(3) {
+            display: none;
+        }
+    }
+}
+
+#classtable {
+    td {
+        &:nth-child(6) {
+            display: none;
+        }
+    }
+}
+
+.halfwidth, .fullwidth { 
+    border: none;
+}
+
+.halfwidth + .halfwidth {
+    display: none;
+}
+

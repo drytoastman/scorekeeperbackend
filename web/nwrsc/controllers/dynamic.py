@@ -15,72 +15,77 @@ from nwrsc.model import *
 from nwrsc.lib.misc import csvlist
 
 log = logging.getLogger(__name__)
-Timer = Blueprint("Timer", __name__)
 Announcer = Blueprint("Announcer", __name__) 
 
 MAX_WAIT = 30
 
-@Timer.route("/<float:lasttime>")
-def timer(lasttime):
-    """ Proxy this request to local data entry machine if we can """
-    # Don't hang onto the database connection, don't need it
-    g.db.close()
-    del g.db
-
-    try :
-        if current_app.config['SHOWLIVE']:
-            f = urllib.request.urlopen("http://127.0.0.1:9090/timer/%0.3lf" % lasttime, timeout=MAX_WAIT);
-            return f.read()
-        else:
-            time.sleep(1)
-            abort(403, "not an onsite server")
-
-    except EnvironmentError as e:
-        time.sleep(1) # slow down any out of control loops
-        abort(404, e)
-            
+# FINISH ME
+# do we want 'if current_app.config['SHOWLIVE']' checks for announcer?
+# Or just no link on the results page?
 
 @Announcer.route("/")
 def eventlist():
     return "event list here someday"
 
-@Announcer.route("/event/<uuid:eventid>")
+
+@Announcer.route("/event/<uuid:eventid>/")
 def index():
     g.event = Event.get(g.eventid)
-    return render_template('/announcer/main.html')
+    mini = bool(request.args.get('mini', 0))
+    if mini:
+        return render_template('/announcer/mini.html')
+    else:
+        return render_template('/announcer/main.html')
 
 @Announcer.route("/event/<uuid:eventid>/next")
 def nextresult():
     # use ceil so round off doesn't cause an infinite loop
     modified = math.ceil(float(request.args.get('modified', '0')))
+    mini = bool(request.args.get('mini', 0))
 
     # Long polling, hold the connection until something is actually new
     then = time.time()
     while True:
         result = Run.getLast(g.eventid, modified)
         if result != []:
-            data = loadAnnouncerResults(result[0].carid)
+            data = loadAnnouncerResults(result[0].carid, mini)
             data['modified'] = result[0].modified.timestamp()
             return json_encode(data)
         if time.time() > then + MAX_WAIT:  # wait max to stop forever threads
             return json_encode({})
         time.sleep(1.0)
 
-def loadAnnouncerResults(carid):
+@Announcer.route("/event/<uuid:eventid>/timer")
+def timer():
+    # Long polling, hold the connection until the timer reports different data
+    lasttimer = request.args.get('lasttimer', '0')
+    then = time.time()
+    while True:
+        result = Ephemeral.get('timer')
+        if result and result != lasttimer:
+            return json_encode({'timer': result})
+        if time.time() > then + MAX_WAIT:  # wait max to stop forever threads
+            return json_encode({})
+        time.sleep(1.0)
+ 
+def loadAnnouncerResults(carid, mini):
     settings  = Settings.get()
     classdata = ClassData.get()
     event     = Event.get(g.eventid)
     results   = Result.getEventResults(g.eventid)
-    champ     = Result.getChampResults()
     nextid    = RunOrder.getNextCarIdInOrder(carid, g.eventid)
-    tttable   = get_template_attribute('/results/ttmacros.html', 'toptimestable')
     order     = list()
+    if not mini:
+        champ     = Result.getChampResults()
+        tttable   = get_template_attribute('/results/ttmacros.html', 'toptimestable')
 
     def entrant_tables(cid):
         (group, driver) = Result.getDecoratedClassResults(settings, results, cid)
         if driver is None:
             return "No result data for carid {}".format(cid)
-        if classdata.classlist[driver['classcode']].champtrophy:
+        if mini:
+            decchamp = ""
+        elif classdata.classlist[driver['classcode']].champtrophy:
             decchamp = Result.getDecoratedChampResults(champ, driver)
         else:
             decchamp = "Not a champ class"
@@ -94,12 +99,13 @@ def loadAnnouncerResults(carid):
 
     data = {}
     data['last']   = entrant_tables(carid)
-    data['next']   = entrant_tables(nextid)
     data['order']  = render_template('/announcer/runorder.html', order=order)
-    data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True, 'counted':False}, carid=carid))
-    data['topraw'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':False, 'counted':False}, carid=carid))
-    for ii in range(1, event.segments+1):
-        ret['topseg%d'% ii] = toptimestable(Result.getTopTimesTable(classdata, results, {'seg':ii}, carid=carid))
+    if not mini:
+        data['next']   = entrant_tables(nextid)
+        data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True, 'counted':False}, carid=carid))
+        data['topraw'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':False, 'counted':False}, carid=carid))
+        for ii in range(1, event.segments+1):
+            ret['topseg%d'% ii] = toptimestable(Result.getTopTimesTable(classdata, results, {'seg':ii}, carid=carid))
 
     return data
 

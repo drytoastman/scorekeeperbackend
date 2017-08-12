@@ -1,0 +1,20 @@
+{% extends "/base.html" %}
+
+{% block headers %}
+{% assets filters="libsass,cssmin", output="announcermini.css", "scss/announcermini.scss" %}
+	<link rel="stylesheet" href="{{ASSET_URL}}" /> 
+{% endassets %}
+
+{% assets filters="rjsmin", output="announcermini.js", "js/jquery-3.2.0.js", "js/announcer.js" %}
+	<script type="text/javascript" src="{{ASSET_URL}}"></script>
+{% endassets %}
+
+{% endblock %}
+
+{% block content %}
+
+<div id='runorder'></div>
+<div id="firste" modified='0'></div>
+
+{% endblock content %}
+
