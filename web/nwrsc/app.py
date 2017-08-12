@@ -137,20 +137,26 @@ def create_app(config=None):
     theapp.jinja_env.filters['to_json'] = to_json
 
     # If not running in debug mode (debug details to browser), log the traceback locally instead
-    if not theapp.config['DEBUG']:
+    if not theapp.debug:
         theapp.register_error_handler(Exception, errorlog)
 
-    # Configure our logging to use stderr so container host can log as they want
-    level = getattr(logging, theapp.config['LOG_LEVEL'], logging.INFO) # turns 'INFO' string into logging.INFO int
-    fmt  = logging.Formatter('%(name)s %(levelname)s: %(message)s')
-    shandler = StreamHandler()
-    shandler.setFormatter(fmt)
-    shandler.setLevel(level)
+    level = getattr(logging, theapp.config['LOG_LEVEL'], logging.INFO)
+    fmt  = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S')
     root = logging.getLogger()
     root.setLevel(level)
-    root.handlers = [shandler]
+    root.handlers = []
 
+    fhandler = RotatingFileHandler(os.path.expanduser('/var/log/scweb.log'), maxBytes=1000000, backupCount=10)
+    fhandler.setFormatter(fmt)
+    fhandler.setLevel(level)
+    root.addHandler(fhandler)
     logging.getLogger('werkzeug').setLevel(logging.WARN)
+
+    if theapp.debug:
+        shandler = StreamHandler()
+        shandler.setFormatter(fmt)
+        shandler.setLevel(level)
+        root.addHandler(shandler)
 
     # Setting up WebAssets, crypto stuff, compression and profiling
     Environment(theapp)

@@ -16,6 +16,15 @@ echo "
 ssl = on
 ssl_cert_file = 'server.crt'
 ssl_key_file = 'server.key'
+log_destination = stderr
+logging_collector = on
+log_directory = '/var/log'
+log_filename = 'scdb.log'
+log_truncate_on_rotation = off
+log_rotation_size = '10MB'
+log_line_prefix = '%t %a '
+log_statement = none
+log_min_duration_statement = 250
 " >> postgresql.conf
 
 cp /docker-entrypoint-initdb.d/series.template series.sql
