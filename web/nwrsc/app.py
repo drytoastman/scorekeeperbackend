@@ -142,7 +142,7 @@ def create_app(config=None):
 
     # Configure our logging to use stderr so container host can log as they want
     level = getattr(logging, theapp.config['LOG_LEVEL'], logging.INFO) # turns 'INFO' string into logging.INFO int
-    fmt  = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%m/%d/%Y %H:%M:%S')
+    fmt  = logging.Formatter('%(name)s %(levelname)s: %(message)s')
     shandler = StreamHandler()
     shandler.setFormatter(fmt)
     shandler.setLevel(level)

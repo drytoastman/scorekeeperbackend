@@ -11,10 +11,9 @@ services:
 
   web:
     build:   "web"
-    command: "ash -c 'pip install -e /code && webserver.py'"
+    command: "ash -c 'pip install -e /code && exec webserver.py'"
     environment:
         - NWRSC_DEBUG=1
-        - TZ=America/Los_Angeles
     volumes:  
         - "dbsocket:/var/run/postgresql"
         - "./web:/code"
@@ -25,8 +24,6 @@ services:
 
   db:
     build: "db"
-    environment:
-        - TZ=America/Los_Angeles
     volumes:  
         - "database:/var/lib/postgresql/data"
         - "dbsocket:/var/run/postgresql"

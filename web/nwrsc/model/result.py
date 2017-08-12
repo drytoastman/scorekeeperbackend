@@ -73,7 +73,6 @@ class Result(object):
     @classmethod
     def getChallengeResults(cls, challengeid):
         if cls._needUpdate(('challengerounds', 'challengeruns'), challengeid):
-            log.warning("updating challengeresults\n\n")
             cls._updateChallengeResults(challengeid)
         ret = dict() # Have to convert back to dict as JSON can't store using ints as keys
         for rnd in cls._loadResults(challengeid, asstring=False):
