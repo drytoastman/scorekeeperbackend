@@ -11,7 +11,7 @@ if len(sys.argv) < 2:
     print ("Usage:\n\n{} version\n".format(sys.argv[0]))
     sys.exit(0)
 
-fp = open('docker-compose.yaml', 'r')
+fp = open(os.path.join(os.path.dirname(__file__), 'docker-compose.yaml'), 'r')
 compose = yaml.load(fp.read())
 fp.close()
 
