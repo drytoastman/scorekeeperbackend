@@ -23,7 +23,6 @@ from nwrsc.controllers.register import Register
 from nwrsc.controllers.results import Results
 from nwrsc.lib.encoding import to_json
 from nwrsc.model import Series
-from nwrsc.merge.process import MergeProcess
 
 log = logging.getLogger(__name__)
 

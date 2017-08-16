@@ -13,7 +13,7 @@ services:
     build:   "web"
     command: "ash -c 'pip install -e /code && exec webserver.py'"
     environment:
-        - NWRSC_DEBUG=1
+        - DEBUG=1
     volumes:  
         - "dbsocket:/var/run/postgresql"
         - "logs:/var/log"
@@ -35,11 +35,26 @@ services:
         - "54329:5432" # DB for external SSL connections
         - "127.0.0.1:6432:6432" # DB for trusted localhost
 
+  sync:
+    build: "sync"
+    #command: "ash -c 'pip install -e /code && exec syncserver.py'"
+    environment:
+        - DEBUG=1
+    volumes:
+        - "dbsocket:/var/run/postgresql"
+        - "logs:/var/log"
+        - "./sync:/code"
+    networks:
+        net1:
+    ports:
+        - "127.0.0.1:9099:80"  # sync UI interface for locahost
+
+
 networks:
   net1:
 
 volumes:
-  database:
-  dbsocket:
-  logs:
+  database:  # for long term storage of database/config
+  dbsocket:  # for sharing of database unix socket across containers
+  logs:      # for long term storage of logging data
 
