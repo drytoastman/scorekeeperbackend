@@ -70,15 +70,15 @@ def create_app(config=None):
     # Setup the application with default configuration
     theapp = Flask("nwrsc")
     theapp.config.update({
-        "PORT":                    int(os.environ.get('NWRSC_PORT',     80)),
-        "DEBUG":                  bool(os.environ.get('NWRSC_DEBUG',    False)),
-        "PROFILE":                bool(os.environ.get('NWRSC_PROFILE',  False)),
-        "DBHOST":                      os.environ.get('NWRSC_DBHOST',   '/var/run/postgresql'),
-        "DBPORT":                  int(os.environ.get('NWRSC_DBPORT',   5432)),
-        "DBUSER":                      os.environ.get('NWRSC_DBUSER',   'localuser'),
-        "SHOWLIVE":               bool(os.environ.get('NWRSC_SHOWLIVE', True)),
-        "LOG_LEVEL":                   os.environ.get('NWRSC_LOGLEVEL', 'INFO'),
-        "SECRET_KEY":                  os.environ.get('NWRSC_SECRET',   'secret stuff here'),
+        "PORT":                    int(os.environ.get('PORT',     80)),
+        "DEBUG":                  bool(os.environ.get('DEBUG',    False)),
+        "PROFILE":                bool(os.environ.get('PROFILE',  False)),
+        "DBHOST":                      os.environ.get('DBHOST',   '/var/run/postgresql'),
+        "DBPORT":                  int(os.environ.get('DBPORT',   5432)),
+        "DBUSER":                      os.environ.get('DBUSER',   'localuser'),
+        "SHOWLIVE":               bool(os.environ.get('SHOWLIVE', True)),
+        "LOG_LEVEL":                   os.environ.get('LOGLEVEL', 'INFO'),
+        "SECRET_KEY":                  os.environ.get('SECRET',   'replaced by environment in deployed docker-compose files'),
         "ASSETS_DEBUG":           False,
         "LOGGER_HANDLER_POLICY":  "None",
     })
