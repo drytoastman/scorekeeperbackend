@@ -162,7 +162,7 @@ def convert(sourcefile, password):
         if oldr.eventid > 0x0FFFF:
             continue
         if oldr.carid in remapcar:
-            cur.execute("insert into registered values (%s, %s, %s, now())", (remapevent[oldr.eventid], remapcar[oldr.carid], oldr.paid and True or False))
+            cur.execute("insert into registered values (%s, %s, %s, now())", (remapevent[oldr.eventid], remapcar[oldr.carid], oldr.paid and 1.0 or 0.0))
         else:
             print("skipping unknown carid {}".format(oldr.carid))
 

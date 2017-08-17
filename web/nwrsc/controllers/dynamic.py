@@ -45,8 +45,11 @@ def index():
 @Announcer.route("/event/<uuid:eventid>/next")
 def nextresult():
     # use ceil so round off doesn't cause an infinite loop
-    modified = math.ceil(float(request.args.get('modified', '0')))
-    mini = _boolarg('mini')
+    try:
+        modified = math.ceil(float(request.args.get('modified', '0')))
+        mini = _boolarg('mini')
+    except Exception as e:
+        abort(400, "Invalid parameter data: {}".format(e))
 
     # Long polling, hold the connection until something is actually new
     then = time.time()
@@ -60,13 +63,17 @@ def nextresult():
             return json_encode({})
         time.sleep(1.0)
 
-@Announcer.route("/event/<uuid:eventid>/timer")
+@Announcer.route("/timer")
 def timer():
     # Long polling, hold the connection until the timer reports different data
-    lasttimer = request.args.get('lasttimer', '0')
+    try:
+        lasttimer = float(request.args.get('lasttimer', '0'))
+    except Exception as e:
+        abort(400, "Invalid parameter data: {}".format(e))
+
     then = time.time()
     while True:
-        result = Ephemeral.get('timer')
+        result = TimerTimes.getLast()
         if result and result != lasttimer:
             return json_encode({'timer': result})
         if time.time() > then + MAX_WAIT:  # wait max to stop forever threads

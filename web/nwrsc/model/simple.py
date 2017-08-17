@@ -34,22 +34,6 @@ class Challenge(AttrBase):
         return cls.getall("select * from challenges order by challengeid")
 
 
-class Ephemeral():
-    @classmethod
-    def clearAll(cls):
-        with g.db.cursor() as cur:
-            cur.execute("DELETE from ephemeral")
-
-    @classmethod
-    def get(cls, name):
-        with g.db.cursor() as cur:
-            try:
-                cur.execute("select data from ephemeral where name=%s", (name,))
-                return cur.fetchone()[0]
-            except Exception as e:
-                return None
-
-
 class Event(AttrBase):
 
     def feedFilter(self, key, value):
@@ -157,4 +141,17 @@ class RunOrder(AttrBase):
                         ret.append(order[jj%len(order)])
                     break
             return ret
+
+
+class TimerTimes():
+
+    @classmethod
+    def getLast(cls):
+        with g.db.cursor() as cur:
+            try:
+                cur.execute("select raw from timertimes order by modified desc limit 1", ())
+                return cur.fetchone()[0]
+            except Exception as e:
+                return None
+
 

@@ -8,6 +8,7 @@ from logging.handlers import RotatingFileHandler
 from operator import attrgetter
 
 import psycopg2 
+import psycopg2.extras
 from flask import Flask, request, abort, g, current_app, render_template, send_from_directory
 from flask_compress import Compress
 from flask_assets import Environment, Bundle

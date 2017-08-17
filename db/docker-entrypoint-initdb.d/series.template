@@ -151,11 +151,23 @@ CREATE TRIGGER rununi BEFORE UPDATE ON runs FOR EACH ROW EXECUTE PROCEDURE ignor
 COMMENT ON TABLE runs IS 'The runs in this series. Attr includes reaction, sixty, segments[n] (What about net, ordering values?)';
 
 
+CREATE TABLE timertimes(
+    serverid UUID      NOT NULL,
+    raw      FLOAT     NOT NULL,
+    modified TIMESTAMP NOT NULL DEFAULT now(),
+    PRIMARY KEY (serverid, raw, modified)
+);
+REVOKE ALL ON timertimes FROM public;
+GRANT  ALL ON timertimes TO <seriesname>;
+COMMENT ON TABLE runs IS 'The list of all times received by data entry, we do not track changes as its intention is to be insert-only';
+
+
 CREATE TABLE registered (
-    eventid  UUID       NOT NULL REFERENCES events, 
-    carid    UUID       NOT NULL REFERENCES cars, 
-    paid     BOOLEAN    NOT NULL DEFAULT FALSE,
-    modified TIMESTAMP  NOT NULL DEFAULT now(),
+    eventid  UUID         NOT NULL REFERENCES events, 
+    carid    UUID         NOT NULL REFERENCES cars, 
+    paid     NUMERIC(3,2) NOT NULL DEFAULT 0.0,
+    txid     TEXT         NOT NULL DEFAULT '',
+    modified TIMESTAMP    NOT NULL DEFAULT now(),
     PRIMARY KEY (eventid, carid)
 );
 CREATE INDEX ON registered(eventid);
