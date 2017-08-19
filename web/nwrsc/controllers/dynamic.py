@@ -61,6 +61,7 @@ def nextresult():
             return json_encode(data)
         if time.time() > then + MAX_WAIT:  # wait max to stop forever threads
             return json_encode({})
+        g.db.rollback()
         time.sleep(1.0)
 
 @Announcer.route("/timer")
@@ -78,6 +79,7 @@ def timer():
             return json_encode({'timer': result})
         if time.time() > then + MAX_WAIT:  # wait max to stop forever threads
             return json_encode({})
+        g.db.rollback()
         time.sleep(1.0)
  
 def loadAnnouncerResults(carid, mini):

@@ -1,57 +1,44 @@
 #!/usr/bin/env python3
 
-import copy
-import signal
 import logging
+import logging.handlers
+import os
+import signal
 import synclogic
-import queue
-import time
-import threading
-
-log = logging.getLogger(__name__)
 
 if __name__ == '__main__':
+    level = getattr(logging, os.environ.get('LOG_LEVEL', 'INFO'), logging.INFO)
+    fmt   = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S')
+    root  = logging.getLogger()
+    root.setLevel(level)
+    root.handlers = []
 
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)-15s %(message)s')
-    log.info("starting")
+    fhandler = logging.handlers.RotatingFileHandler('/var/log/scsync.log', maxBytes=1000000, backupCount=10)
+    fhandler.setFormatter(fmt)
+    fhandler.setLevel(level)
+    root.addHandler(fhandler)
 
-    class ProtectedData():
-        def __init__(self):
-            self.lock = threading.RLock()
-            self.data = {}
-        def __enter__(self):
-            self.lock.acquire()
-            return self.data
-        def __exit__(self, etype, evalue, etraceback):
-            self.lock.release()
+    if 'DEBUG' in os.environ:
+        shandler = logging.StreamHandler()
+        shandler.setFormatter(fmt)
+        shandler.setLevel(level)
+        root.addHandler(shandler)
 
-    inqueue = queue.Queue()
-    wrappedstate = ProtectedData()
-    with wrappedstate as obj:
-        obj['z'] = 99
+    log = logging.getLogger(__name__)
+    log.info("starting main")
+    mp = synclogic.process.MergeProcess()
+    def interrupt(signum, frame):
+        log.info("Received signal {}".format(signum))
+        global mp
+        if signum == signal.SIGHUP:
+            mp.poke()
+        else:
+            mp.shutdown()
 
-    frontend = synclogic.frontend.FrontendThread(wrappedstate, inqueue)
-    frontend.start()
+    signal.signal(signal.SIGABRT, interrupt)
+    signal.signal(signal.SIGINT,  interrupt)
+    signal.signal(signal.SIGTERM, interrupt)
+    signal.signal(signal.SIGHUP,  interrupt)
 
-    done = False;
-    def shutdown(signum, frame):
-        global done
-        log.info("stopping server")
-        if frontend:
-            frontend.stop()
-            done = True
-
-    signal.signal(signal.SIGABRT, shutdown)
-    signal.signal(signal.SIGINT,  shutdown)
-    signal.signal(signal.SIGTERM, shutdown)
-
-    while not done:
-        try:
-            log.info("obj = {}".format(inqueue.get_nowait()))
-        except queue.Empty:
-            pass
-        time.sleep(0.5)
-        with wrappedstate as obj:
-            obj['time'] = time.time()
-        
+    mp.runforever()
     log.info("exiting main")

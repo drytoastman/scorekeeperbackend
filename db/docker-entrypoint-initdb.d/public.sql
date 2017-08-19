@@ -8,8 +8,9 @@ CREATE USER nulluser WITH PASSWORD 'nulluser';
 CREATE ROLE driversaccess;
 GRANT driversaccess TO localuser;
 
-REVOKE ALL ON SCHEMA public FROM public;
-GRANT  ALL ON SCHEMA public TO driversaccess;
+REVOKE ALL  ON SCHEMA public FROM public;
+GRANT  ALL  ON SCHEMA public TO driversaccess;
+GRANT USAGE ON SCHEMA public TO nulluser;
 
 -- Logs are specific to this machine
 CREATE TABLE publiclog (
@@ -140,12 +141,13 @@ COMMENT ON TABLE drivers IS 'The global list of drivers for all series';
 
 CREATE TABLE mergeservers (
     serverid   UUID       PRIMARY KEY,
-    active     BOOLEAN    NOT NULL DEFAULT FALSE,
-    lastmerge  TIMESTAMP  NOT NULL DEFAULT 'epoch',
-    attr       JSONB      NOT NULL DEFAULT '{}'
+    name       TEXT       NOT NULL DEFAULT '',
+    address    TEXT       NOT NULL DEFAULT '',
+    discovered TIMESTAMP  NOT NULL DEFAULT 'epoch',
+    mergestate JSONB      NOT NULL DEFAULT '{}'
 );
 REVOKE ALL   ON mergeservers FROM public;
 GRANT  ALL   ON mergeservers TO driversaccess;
+GRANT SELECT ON mergeservers TO nulluser;
 COMMENT ON TABLE mergeservers IS 'Local state of other sevrers we are periodically merging with, not part of merge process';
-
 

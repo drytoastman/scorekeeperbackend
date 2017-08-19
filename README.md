@@ -29,7 +29,7 @@ by the Java TrayMonitor application.  If that isn't running, you can do this wit
 decent ssh client is available on your machine.
 
 ```
-docker-machine ssh default -L 80:127.0.0.1:80 -L 54329:127.0.0.1:54329 -L 127.0.0.1:6432:127.0.0.1:6432
+docker-machine ssh default -L '*:80:127.0.0.1:80' -L '*:54329:127.0.0.1:54329' -L 127.0.0.1:6432:127.0.0.1:6432
 ```
 
 - port 80 is shared with everyone for web access

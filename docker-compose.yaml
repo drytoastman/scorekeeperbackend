@@ -37,7 +37,7 @@ services:
 
   sync:
     build: "sync"
-    #command: "ash -c 'pip install -e /code && exec syncserver.py'"
+    command: "ash -c 'pip install -e /code && exec syncserver.py'"
     environment:
         - DEBUG=1
     volumes:
@@ -46,9 +46,6 @@ services:
         - "./sync:/code"
     networks:
         net1:
-    ports:
-        - "127.0.0.1:9099:80"  # sync UI interface for locahost
-
 
 networks:
   net1:

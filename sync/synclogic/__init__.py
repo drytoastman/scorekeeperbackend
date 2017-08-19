@@ -1,1 +1,1 @@
-from synclogic import frontend
+from synclogic import process

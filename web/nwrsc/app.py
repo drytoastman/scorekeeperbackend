@@ -3,8 +3,6 @@ import os
 import datetime
 import logging
 import threading
-from logging import StreamHandler
-from logging.handlers import RotatingFileHandler
 from operator import attrgetter
 
 import psycopg2 
@@ -146,14 +144,14 @@ def create_app(config=None):
     root.setLevel(level)
     root.handlers = []
 
-    fhandler = RotatingFileHandler(os.path.expanduser('/var/log/scweb.log'), maxBytes=1000000, backupCount=10)
+    fhandler = logging.handlers.RotatingFileHandler('/var/log/scweb.log', maxBytes=1000000, backupCount=10)
     fhandler.setFormatter(fmt)
     fhandler.setLevel(level)
     root.addHandler(fhandler)
     logging.getLogger('werkzeug').setLevel(logging.WARN)
 
     if theapp.debug:
-        shandler = StreamHandler()
+        shandler = logging.StreamHandler()
         shandler.setFormatter(fmt)
         shandler.setLevel(level)
         root.addHandler(shandler)
