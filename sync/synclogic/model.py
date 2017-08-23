@@ -1,4 +1,5 @@
 
+import base64
 from collections import OrderedDict
 import datetime
 import hashlib
@@ -101,29 +102,43 @@ def getSeriesList(db):
  
 # For storage of server information 
 
-def updateServerState(db, serverid, **kwargs):
-    with db.cursor() as cur:
-        cur.execute("SELECT mergestate FROM mergeservers WHERE serverid=%s", (serverid,))
-        mergestate = cur.fetchone()[0]
+class MergeServer(object):
+
+    def __init__(self, **kwargs):
         for k, v in kwargs.items():
-            mergestate[k] = v
-        cur.execute("UPDATE mergeservers SET mergestate=%s WHERE serverid=%s", (json.dumps(mergestate), serverid))
-        db.commit()
+            setattr(self, k, v)
 
-def getLocalServerId(db):
-    with db.cursor() as cur:
-        cur.execute("SELECT serverid FROM mergeservers WHERE address='localhost' and discovered='epoch'")
-        if cur.rowcount != 1:
-            log.error("Invalid number of localhost entries in mergeservers ({})".format(cur.rowcount))
-        return cur.fetchone()[0]
+    @classmethod
+    def getUnique(cls, db, sql, args=None):
+        with db.cursor() as cur:
+            cur.execute(sql, args)
+            assert (cur.rowcount == 1) # If we get multiple, postgresql primary key indexing failed
+            return cls(**cur.fetchone())
 
-def getActiveServerIds(db):
-    with db.cursor() as cur:
-        cur.execute("SELECT serverid FROM mergeservers WHERE discovered>='2000-01-01'", ())
-        return [x[0] for x in cur.fetchall()] 
+    @classmethod
+    def getAll(cls, db, sql, args=None):
+        with db.cursor() as cur:
+            cur.execute(sql, args)
+            return [cls(**x) for x in cur.fetchall()]
 
-def getServerInfo(db, serverid):
-    with db.cursor() as cur:
-        cur.execute("SELECT * FROM mergeservers WHERE serverid=%s", (serverid,))
-        return cur.fetchone()
+    @classmethod
+    def getActive(cls, db):
+        return cls.getAll(db, "SELECT * FROM mergeservers WHERE active=true")
+
+    @classmethod
+    def getNow(cls, db):
+        return cls.getAll(db, "SELECT * FROM mergeservers WHERE mergenow=true")
+
+    @classmethod
+    def getById(cls, db, serverid):
+        return cls.getUnique(db, "SELECT * FROM mergeservers WHERE serverid=%s", (serverid,))
+
+    @classmethod
+    def getLocal(cls, db):
+        return cls.getUnique(db, "SELECT * FROM mergeservers WHERE hosttype='localhost'")
+
+    def update(self, db):
+        with db.cursor() as cur:
+            cur.execute("UPDATE mergeservers SET mergestate=%s WHERE serverid=%s", (json.dumps(self.mergestate), self.serverid))
+            db.commit()
 

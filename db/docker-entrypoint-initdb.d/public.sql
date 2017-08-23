@@ -6,10 +6,13 @@ CREATE EXTENSION hstore;
 CREATE USER localuser;
 CREATE USER nulluser WITH PASSWORD 'nulluser';
 CREATE ROLE driversaccess;
+CREATE ROLE mergeaccess;
 GRANT driversaccess TO localuser;
+GRANT mergeaccess   TO localuser;
 
 REVOKE ALL  ON SCHEMA public FROM public;
 GRANT  ALL  ON SCHEMA public TO driversaccess;
+GRANT USAGE ON SCHEMA public TO mergeaccess;
 GRANT USAGE ON SCHEMA public TO nulluser;
 
 -- Logs are specific to this machine
@@ -141,13 +144,26 @@ COMMENT ON TABLE drivers IS 'The global list of drivers for all series';
 
 CREATE TABLE mergeservers (
     serverid   UUID       PRIMARY KEY,
-    name       TEXT       NOT NULL DEFAULT '',
+    hostname   TEXT       NOT NULL DEFAULT '',
     address    TEXT       NOT NULL DEFAULT '',
+    hosttype   TEXT       NOT NULL DEFAULT 'discovered',
     discovered TIMESTAMP  NOT NULL DEFAULT 'epoch',
+    lastcheck  TIMESTAMP  NOT NULL DEFAULT 'epoch',
+    active     BOOLEAN    NOT NULL DEFAULT False,
+    mergenow   BOOLEAN    NOT NULL DEFAULT False,
     mergestate JSONB      NOT NULL DEFAULT '{}'
 );
 REVOKE ALL   ON mergeservers FROM public;
-GRANT  ALL   ON mergeservers TO driversaccess;
+GRANT  ALL   ON mergeservers TO mergeaccess;
 GRANT SELECT ON mergeservers TO nulluser;
 COMMENT ON TABLE mergeservers IS 'Local state of other sevrers we are periodically merging with, not part of merge process';
+
+
+CREATE TABLE mergepasswords (
+    series     TEXT       PRIMARY KEY,
+    password   TEXT       NOT NULL DEFAULT ''
+);
+REVOKE ALL    ON mergepasswords FROM public;
+GRANT  ALL    ON mergepasswords TO   mergeaccess;
+COMMENT ON TABLE mergepasswords IS   'Saved passwords from frontend for use in merging with other servers series';
 

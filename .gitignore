@@ -2,9 +2,9 @@ __pycache__
 *.pyc
 *.db
 *.log*
+*.egg-info
 web/nwrsc/static/*.js
 web/nwrsc/static/*.css
 web/nwrsc/static/.webassets-cache
-web/nwrsc.egg-info
 build
 dist
