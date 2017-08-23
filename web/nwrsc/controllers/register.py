@@ -203,7 +203,7 @@ def login():
         active = "reset"
         if reset.validate_on_submit():
             for d in Driver.find(reset.firstname.data, reset.lastname.data):
-                if d.email == reset.email.data:
+                if d.email.lower() == reset.email.data.lower():
                     token = current_app.usts.dumps({'request': 'reset', 'driverid': str(d.driverid)})
                     link = url_for('.reset', token=token, _external=True)
                     # FINISH ME, do email here
