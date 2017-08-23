@@ -35,9 +35,6 @@ class Class(AttrBase):
         with g.db.cursor() as cur:
             cur.execute("select distinct x.* from classlist as x, cars as c, runs as r where r.eventid=%s and r.carid=c.carid and c.classcode=x.classcode", (eventid,))
             active = [Class(**x) for x in cur.fetchall()]
-            cur.execute("select c.classcode from cars as c, runs as r where r.eventid=%s and r.carid=c.carid and c.classcode='UKNWN'", (eventid,))
-            if cur.rowcount > 0:
-                active.append(PlaceHolder())
             return sorted(active, key=lambda x:x.classcode)
 
 
@@ -48,20 +45,10 @@ class Index(AttrBase):
             cur.execute("select * from indexlist order by indexcode")
             return [Index(**x) for x in cur.fetchall()]
 
-
-class PlaceHolder(object):
-    def __init__(self):
-        self.indexcode = ""
-        self.classmultiplier = 1.0
-        self.countedruns = 0
-        self.usecarflag = False
-        self.carindexed = False
-        self.champtrophy = False
-
 class ClassData(object):
 
     def __init__(self, classdicts=[], indexdicts=[]):
-        self.classlist = defaultdict(PlaceHolder)
+        self.classlist = dict()
         self.indexlist = dict()
         for c in classdicts:
             self.classlist[c['classcode']] = Class(**c)
@@ -119,11 +106,11 @@ class ClassData(object):
                         ret -= globItem(item, fullset)
             return ret
 
-        if classcode not in self.classlist or not self.classlist[classcode].caridxrestrict:
-            return ([], [])
-        full = self.classlist[classcode].caridxrestrict.replace(" ", "")
         idxlist = list(self.indexlist.keys())
         idxlist.remove("")
+        if classcode not in self.classlist or not self.classlist[classcode].caridxrestrict:
+            return (idxlist, idxlist)
+        full = self.classlist[classcode].caridxrestrict.replace(" ", "")
         indexrestrict = processList(RINDEX.findall(full), idxlist)
         flagrestrict = processList(RFLAG.findall(full), idxlist)
         if len(indexrestrict) == len(idxlist):

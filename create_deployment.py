@@ -15,7 +15,7 @@ fp = open(os.path.join(os.path.dirname(__file__), 'docker-compose.yaml'), 'r')
 compose = yaml.load(fp.read())
 fp.close()
 
-for name in ('web', 'db'):
+for name in ('web', 'db', 'sync'):
     service = compose['services'][name]
     # Add image
     service['image'] = "drytoastman/sc{}:{}".format(name, sys.argv[1])
