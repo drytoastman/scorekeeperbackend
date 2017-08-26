@@ -57,7 +57,7 @@ class Result(object):
     @classmethod
     def getSeriesInfo(cls, asstring=False):
         name = "info"
-        if cls._needUpdate(('classlist', 'indexlist', 'events', 'settings'), name):
+        if cls._needUpdate(False, ('classlist', 'indexlist', 'events', 'settings'), name):
             cls._updateSeriesInfo(name)
         res = cls._loadResults(name, asstring)
         if asstring:
@@ -66,13 +66,13 @@ class Result(object):
 
     @classmethod
     def getEventResults(cls, eventid, asstring=False):
-        if cls._needUpdate(('classlist', 'indexlist', 'events', 'cars', 'runs'), eventid):
+        if cls._needUpdate(True, ('classlist', 'indexlist', 'events', 'cars', 'runs'), eventid):
             cls._updateEventResults(eventid)
         return cls._loadResults(eventid, asstring)
 
     @classmethod
     def getChallengeResults(cls, challengeid):
-        if cls._needUpdate(('challengerounds', 'challengeruns'), challengeid):
+        if cls._needUpdate(True, ('challengerounds', 'challengeruns'), challengeid):
             cls._updateChallengeResults(challengeid)
         ret = dict() # Have to convert back to dict as JSON can't store using ints as keys
         for rnd in cls._loadResults(challengeid, asstring=False):
@@ -83,7 +83,7 @@ class Result(object):
     def getChampResults(cls, asstring=False):
         """ returns a ChampClass list object """
         name = "champ"
-        if cls._needUpdate(('classlist', 'indexlist', 'events', 'cars', 'runs'), name):
+        if cls._needUpdate(True, ('classlist', 'indexlist', 'events', 'cars', 'runs'), name):
             cls._updateChampResults(name)
         res = cls._loadResults(name, asstring)
         if not asstring:
@@ -146,14 +146,19 @@ class Result(object):
     #### Helpers for basic results operations
 
     @classmethod
-    def _needUpdate(cls, tables, name):
+    def _needUpdate(cls, usedrivers, stables, name):
         # check if we can/need to update based on table changes
         if g.seriestype != Series.ACTIVE:
             return False
         with g.db.cursor() as cur:
-            cur.execute("select " +
-                "(select max(time) from serieslog where tablen in %s) >" +
-                "(select modified from results where series=%s and name=%s::text)", (tables, g.series, name))
+            if usedrivers:
+                cur.execute("select " +
+                    "(SELECT MAX(times.max) FROM (SELECT max(time) FROM serieslog WHERE tablen IN %s UNION ALL SELECT max(time) FROM publiclog WHERE tablen='drivers') AS times) >" +
+                    "(SELECT modified FROM results WHERE series=%s AND name=%s::text)", (stables, g.series, name))
+            else:
+                cur.execute("select " +
+                    "(SELECT max(time) FROM serieslog WHERE tablen IN %s) >" +
+                    "(SELECT modified FROM results WHERE series=%s AND name=%s::text)", (stables, g.series, name))
             mod = cur.fetchone()[0]
             if mod is None or mod: 
                 return True

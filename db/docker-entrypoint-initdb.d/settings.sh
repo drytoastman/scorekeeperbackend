@@ -24,7 +24,7 @@ log_truncate_on_rotation = off
 log_rotation_size = '10MB'
 log_line_prefix = '%t %a '
 log_statement = none
-log_min_duration_statement = 250
+log_min_duration_statement = 10
 " >> postgresql.conf
 
 cp /docker-entrypoint-initdb.d/series.template series.sql

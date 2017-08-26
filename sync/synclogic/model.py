@@ -10,7 +10,9 @@ import psycopg2.extras
 import struct
 psycopg2.extras.register_uuid()
 
-# publiclog, serieslog and mergeservers are used during merging but are never merged themselves
+log  = logging.getLogger(__name__)
+
+# publiclog, serieslog, mergeservers and mergepasswords are used during merging but are never merged themselves
 # results can be generated from tables so there is no need to merge it
 TABLES =  OrderedDict({
     'timertimes':      ['serverid', 'raw', 'modified'],
@@ -29,10 +31,12 @@ TABLES =  OrderedDict({
     'challengeruns':   ['challengeid', 'round', 'carid', 'course'],
 })
 
-log  = logging.getLogger(__name__)
 SUMPART = "sum(('x' || substring(t.rowhash, {}, 8))::bit(32)::bigint)"
 SUMS = "{}, {}, {}, {}".format(SUMPART.format(1), SUMPART.format(9), SUMPART.format(17), SUMPART.format(25))
-LOCALTIME = datetime.datetime(9999, 1, 1)
+HASHCOMMANDS = dict()
+for table, pk in TABLES.items():
+    md5cols = '||'.join("md5({}::text)".format(k) for k in pk+['modified'])
+    HASHCOMMANDS[table] = "SELECT {} FROM (SELECT MD5({}) as rowhash from {}) as t".format(SUMS, md5cols, table)
 
 LOCALARGS = {
   "cursor_factory": psycopg2.extras.DictCursor,
@@ -57,35 +61,6 @@ def connectLocal():
 def connectRemote(host, user, password):
     return psycopg2.connect(host=host, user=user, password=password, **REMOTEARGS)
 
-def setSeries(db, series):
-    with db.cursor() as cur:
-        cur.execute("set search_path=%s,%s", (series, 'public'))
-
-def loadHashes(db):
-    ret = {}
-    with db.cursor() as cur:
-        for table, pk in TABLES.items():
-            md5cols = '||'.join("md5({}::text)".format(k) for k in pk+['modified'])
-            cur.execute("SELECT {} FROM (SELECT MD5({}) as rowhash from {}) as t".format(SUMS, md5cols, table))
-            if cur.rowcount != 1:
-                raise Exception('Invalid return value for hash request')
-            tablehash = hashlib.sha1()
-            row = cur.fetchone()
-            if row[0] is None:
-                ret[table] = b''
-            else:
-                for dec in row:
-                    tablehash.update(struct.pack('d', dec))
-                ret[table] = tablehash.digest()
-
-    finalhash = hashlib.sha1()
-    for tablehash in ret.values():
-        finalhash.update(tablehash)
-    ret['all'] = finalhash.digest()
-    for name in ret:
-        ret[name] = base64.b64encode(ret[name]).decode('utf-8')
-    return ret
-
 def loadPk(db, table):
     if table not in TABLES:
         return {"error":"No such table " + table}
@@ -93,13 +68,14 @@ def loadPk(db, table):
         cur.execute("SELECT {} from {}".format(','.join(TABLES[table]+['modified']), table))
         return cur.fetchall()
 
-def getSeriesList(db):
-    ret = list()
+def loadPasswords(db):
+    ret = dict()
     with db.cursor() as cur:
-        cur.execute("SELECT schema_name FROM information_schema.schemata")
-        return [x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')]
+        cur.execute("SELECT * FROM mergepasswords")
+        for row in cur.fetchall():
+            ret[row['series']] = row['password']
     return ret
- 
+
 # For storage of server information 
 
 class MergeServer(object):
@@ -113,13 +89,13 @@ class MergeServer(object):
         with db.cursor() as cur:
             cur.execute(sql, args)
             assert (cur.rowcount == 1) # If we get multiple, postgresql primary key indexing failed
-            return cls(**cur.fetchone())
+            return cls(db=db, **cur.fetchone())
 
     @classmethod
     def getAll(cls, db, sql, args=None):
         with db.cursor() as cur:
             cur.execute(sql, args)
-            return [cls(**x) for x in cur.fetchall()]
+            return [cls(db=db, **x) for x in cur.fetchall()]
 
     @classmethod
     def getActive(cls, db):
@@ -137,8 +113,67 @@ class MergeServer(object):
     def getLocal(cls, db):
         return cls.getUnique(db, "SELECT * FROM mergeservers WHERE hosttype='localhost'")
 
-    def update(self, db):
-        with db.cursor() as cur:
-            cur.execute("UPDATE mergeservers SET mergestate=%s WHERE serverid=%s", (json.dumps(self.mergestate), self.serverid))
-            db.commit()
+    def logMerge(self):
+        with self.db.cursor() as localcur:
+            self.lastcheck = datetime.datetime.utcnow()
+            self.mergenow = False
+            localcur.execute("UPDATE mergeservers SET lastcheck=%s, mergenow=%s WHERE serverid=%s", (self.lastcheck, self.mergenow, self.serverid))
+            self.db.commit()
+
+    def updateSeriesFrom(self, scandb):
+        """ Update the mergestate dict related to deleted or added series """
+        with scandb.cursor() as cur:
+            cur.execute("SELECT schema_name FROM information_schema.schemata")
+            serieslist   = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')])
+            cachedseries = set(self.mergestate.keys())
+            if serieslist == cachedseries:
+                return
+
+        with self.db.cursor() as localcur:
+            for deleted in cachedseries - serieslist:
+                del self.mergestate[deleted]
+            for added in serieslist - cachedseries:
+                self.mergestate[added] = {'calculated':0}
+            localcur.execute("UPDATE mergeservers SET mergestate=%s WHERE serverid=%s", (json.dumps(self.mergestate), self.serverid))
+            self.db.commit()
+
+
+    def updateCacheFrom(self, scandb, series):
+        """ Do any necessary updating of hash data """
+        with scandb.cursor() as cur:
+            seriesstate = self.mergestate[series]
+            now = datetime.datetime.utcnow() # Capture early time so we don't miss any changes happening during
+            tables = {}
+
+            cur.execute("set search_path=%s,%s", (series, 'public'))
+            cur.execute("SELECT MAX(times.max) FROM (SELECT max(time) FROM serieslog UNION SELECT max(time) FROM publiclog) AS times")
+            lastlogtime = cur.fetchone()[0].timestamp()
+            log.debug("lastlog {} - calculated at {} = {}".format(lastlogtime, seriesstate['calculated'], lastlogtime-seriesstate['calculated']))
+            if lastlogtime <= seriesstate['calculated']:
+                return # No update needed
+
+            for table, command in HASHCOMMANDS.items():
+                cur.execute(command)
+                if cur.rowcount != 1:
+                    raise Exception('Invalid return value for hash request')
+                tablehash = hashlib.sha1()
+                row = cur.fetchone()
+                if row[0] is None:
+                    tables[table] = b''
+                else:
+                    for dec in row:
+                        tablehash.update(struct.pack('d', dec))
+                    tables[table] = tablehash.digest()
+
+            finalhash = hashlib.sha1()
+            for tablehash in tables.values():
+                finalhash.update(tablehash)
+            tables['all'] = finalhash.digest()
+            for name in tables:
+                seriesstate[name] = base64.b64encode(tables[name]).decode('utf-8')
+            seriesstate['calculated'] = now.timestamp()
+
+        with self.db.cursor() as localcur:
+            localcur.execute("UPDATE mergeservers SET mergestate=%s WHERE serverid=%s", (json.dumps(self.mergestate), self.serverid))
+            self.db.commit()
 
