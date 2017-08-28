@@ -1,6 +1,5 @@
 
 CREATE SCHEMA <seriesname>; 
-CREATE USER   <seriesname> PASSWORD '<seriespassword>';
 GRANT ALL   ON SCHEMA <seriesname> TO <seriesname>;
 GRANT USAGE ON SCHEMA <seriesname> TO nulluser;
 GRANT driversaccess TO <seriesname>;

@@ -10,7 +10,7 @@ class Driver(AttrBase):
     def update(self):
         with g.db.cursor() as cur:
             self.cleanAttr()
-            cur.execute("UPDATE drivers SET firstname=%s,lastname=%s,email=%s,membership=%s,attr=%s where driverid=%s",
+            cur.execute("UPDATE drivers SET firstname=%s,lastname=%s,email=%s,membership=%s,attr=%s,modified=now() where driverid=%s",
                        (self.firstname, self.lastname, self.email, self.membership, json.dumps(self.attr), self.driverid))
             g.db.commit()
 
@@ -38,7 +38,7 @@ class Driver(AttrBase):
     @classmethod
     def updatepassword(cls, driverid, username, password):
         with g.db.cursor() as cur:
-            cur.execute("UPDATE drivers SET username=%s,password=%s WHERE driverid=%s", (username, password, driverid))
+            cur.execute("UPDATE drivers SET username=%s,password=%s,modified=now() WHERE driverid=%s", (username, password, driverid))
             g.db.commit()
 
     @classmethod

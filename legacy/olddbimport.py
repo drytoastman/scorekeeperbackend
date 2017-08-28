@@ -35,7 +35,8 @@ def convert(sourcefile, password):
     if cur.rowcount > 0:
         raise Exception("{} is already an active series, not continuing".format(name))
 
-    cur.execute("select create_series(%s,%s)", (name, password))
+    cur.execute("CREATE USER %s PASSWORD %s", (name, password))
+    cur.execute("select create_series(%s)", (name))
     cur.execute("set search_path=%s,%s", (name, 'public'))
 
     #DRIVERS, add to global list and remap ids as necessary
@@ -68,7 +69,7 @@ def convert(sourcefile, password):
             remapdriver[d.id] = newd['driverid']
 
 
-    #INDEXLIST (put into its own index group)
+    #INDEXLIST 
     print("indexes")
     cur.execute("insert into indexlist values ('', 'No Index', 1.000, now())")
     for r in old.execute("select * from indexlist"):

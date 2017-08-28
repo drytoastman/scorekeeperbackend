@@ -38,6 +38,10 @@ CREATE OR REPLACE FUNCTION logmods() RETURNS TRIGGER AS $body$
 DECLARE
     audit_row publiclog;
 BEGIN
+    IF (current_setting('session_replication_role') = 'local') THEN
+        RETURN NULL;
+    END IF;
+
     audit_row = ROW(NULL, session_user::text, current_setting('application_name'), TG_TABLE_NAME::text, SUBSTRING(TG_OP,1,1), CURRENT_TIMESTAMP, '{}', '{}');
     IF (TG_OP = 'UPDATE') THEN
         IF OLD = NEW THEN
@@ -82,21 +86,20 @@ LANGUAGE plpgsql;
 COMMENT ON FUNCTION ignoreunmodified() IS 'does not update rows if only change is the modified field or less';
 
 
-CREATE OR REPLACE FUNCTION create_series(IN name varchar, IN password varchar) RETURNS boolean AS $body$
+CREATE OR REPLACE FUNCTION create_series(IN name varchar) RETURNS boolean AS $body$
 DECLARE
     cmds text[];
 BEGIN
-    SELECT regexp_split_to_array(replace(replace(replace(pg_read_file('series.sql'), '<seriesname>', name), '<seriespassword>', password), '\r\n', ''), ';') INTO cmds;
+    SELECT regexp_split_to_array(replace(replace(pg_read_file('series.sql'), '<seriesname>', name), '\r\n', ''), ';') INTO cmds;
     FOR i in 1 .. array_upper(cmds, 1)
     LOOP
-        RAISE NOTICE '%', cmds[i];
         EXECUTE cmds[i];
     END LOOP;
     RETURN TRUE;
 END;
 $body$
 LANGUAGE plpgsql;
-COMMENT ON FUNCTION create_series(varchar, varchar) IS 'reads in series template, replaces variables and executes the commands';
+COMMENT ON FUNCTION create_series(varchar) IS 'reads in series template, replaces series variable name and executes the commands, requires series user to be present';
 
 
 -- The results table acts as a storage of calculated results and information for each series.  As enough information
@@ -157,13 +160,4 @@ REVOKE ALL   ON mergeservers FROM public;
 GRANT  ALL   ON mergeservers TO mergeaccess;
 GRANT SELECT ON mergeservers TO nulluser;
 COMMENT ON TABLE mergeservers IS 'Local state of other sevrers we are periodically merging with, not part of merge process';
-
-
-CREATE TABLE mergepasswords (
-    series     TEXT       PRIMARY KEY,
-    password   TEXT       NOT NULL DEFAULT ''
-);
-REVOKE ALL    ON mergepasswords FROM public;
-GRANT  ALL    ON mergepasswords TO   mergeaccess;
-COMMENT ON TABLE mergepasswords IS   'Saved passwords from frontend for use in merging with other servers series';
 
