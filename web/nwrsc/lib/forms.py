@@ -1,7 +1,7 @@
 import logging
 from operator import attrgetter
 
-from flask import request
+from flask import request, flash
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, HiddenField, PasswordField, SelectField, StringField, SubmitField
 from wtforms.fields.html5 import EmailField, IntegerField
@@ -48,7 +48,7 @@ class MyFlaskForm(FlaskForm):
                 ret.append("</div>")
 
         ret.append("<div class='row'>")
-        ret.append("<input type='text' name='message' />")
+        ret.append("<input type='checkbox' name='confirm' />")
         ret.append("</div>")
 
         ret.append("<div class='row'>")
@@ -59,8 +59,8 @@ class MyFlaskForm(FlaskForm):
         return '\n'.join(ret)
 
     def validate(self):
-        if request.form.get('message'): # super simple bot test (advanced bots will get by this)
-            log.warning("Suspect form submission from (put IP here), ignoring")
+        if request.form.get('confirm'): # super simple bot test (advanced bots will get by this)
+            log.warning("Suspect form submission from, ignoring: (%s)", request.form)
             abort(404)
         return FlaskForm.validate(self)
 

@@ -32,9 +32,6 @@ def isauth():
 
 @Admin.route("/login", methods=['POST', 'GET'])
 def login():
-    if request.form.get('message'): # super simple bot test (advanced bots will get by this)
-        abort(404)
-
     if request.form.get('password'):
         if check_password(current_app.config['DB_HOST'], g.series, request.form.get('password').strip()):
             session[AUTHKEY][g.series] = 1

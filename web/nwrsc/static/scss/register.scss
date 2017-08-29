@@ -49,6 +49,7 @@ nav {
 
 .error {
     color: red;
+    text-align: center;
 }
 
 .modal-header {
@@ -112,7 +113,7 @@ form {
         padding: 0px;
     }
 
-    input[name=message] {
+    input[name=confirm] {
         display: none;
     }
 

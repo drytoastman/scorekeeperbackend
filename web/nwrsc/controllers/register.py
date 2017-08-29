@@ -96,6 +96,7 @@ def carspost():
             flashformerrors(carform)
 
     except Exception as e:
+        log.error("CarsPost: %s", e, exc_info=e)
         g.db.rollback()
         flash(str(e))
     return redirect(url_for('.cars'))
@@ -181,8 +182,6 @@ def ical(driverid):
 @Register.route("/login", methods=['POST', 'GET'])
 def login():
     if g.driver: return redirect_series()
-    if request.form.get('message'): # super simple bot test (advanced bots will get by this)
-        abort(404)
 
     login = PasswordForm(prefix='login')
     reset = ResetForm(prefix='reset')
