@@ -12,7 +12,7 @@ import time
 import uuid
 
 import synclogic.model as model
-from synclogic.model import MergeServer, PresentObjects, DeletedObjects
+from synclogic.model import DataInterface, PresentObject, DeletedObject, MergeServer
 
 log  = logging.getLogger(__name__)
 
@@ -40,14 +40,16 @@ class MergeProcess():
         done = False
         while not done:
             try:
-                with model.connectLocal() as localdb:
+                with DataInterface.connectLocal() as localdb:
                     # Reset our world on each loop
+                    model.initialize()
+
                     me = MergeServer.getLocal(localdb)
                     me.updateSeriesFrom(localdb)
                     for series in me.mergestate.keys():
                         me.updateCacheFrom(localdb, series)
 
-                    passwords = model.loadPasswords(localdb)
+                    passwords = DataInterface.loadPasswords(localdb)
 
                     # First merge with anyone the user told us to right away
                     for remote in MergeServer.getNow(localdb):
@@ -73,33 +75,34 @@ class MergeProcess():
     def mergeWith(self, localdb, local, remote, passwords):
         log.debug("checking %s", remote.serverid)
         address = remote.address or remote.hostname
-        with model.connectRemote(host=address, user='nulluser', password='nulluser') as remotedb:
+        with DataInterface.connectRemote(host=address, user='nulluser', password='nulluser') as remotedb:
             remote.updateSeriesFrom(remotedb)
 
         for series in remote.mergestate.keys():
-            if series == 'public':
-                continue
             if series not in passwords:
                 log.debug("No password for %s, skipping", series)
                 continue
 
             try:
-                with model.connectRemote(host=address, user=series, password=passwords[series]) as remotedb:
+                with DataInterface.connectRemote(host=address, user=series, password=passwords[series]) as remotedb:
                     assert series in local.mergestate, "series was not created in local database yet"
-                    remote.updateCacheFrom(remotedb, 'public')
                     remote.updateCacheFrom(remotedb, series)
 
                     if remote.mergestate[series]['totalhash'] != local.mergestate[series]['totalhash']:
                         log.debug("Need to merge %s:", series)
 
                         # Obtain a merge lock on both sides and start the merge
-                        with model.mergelocks(local, localdb, remote, remotedb):
-                            ltables = local.mergestate[series]['hashes']
-                            rtables = remote.mergestate[series]['hashes']
-                            self.mergeTables(localdb, remotedb, set([k for k in ltables if ltables[k] != rtables[k]]))
+                        with DataInterface.mergelocks(local, localdb, remote, remotedb):
+                            # Shortcut for fresh download, just copy it all
+                            if local.mergestate[series]['totalhash'] == '':
+                                for t in model.TABLE_ORDER:
+                                    DataInterface.copyTable(remotedb, localdb, series, t)
+                            else:
+                                ltables = local.mergestate[series]['hashes']
+                                rtables = remote.mergestate[series]['hashes']
+                                self.mergeTables(localdb, remotedb, set([k for k in ltables if ltables[k] != rtables[k]]))
 
                         # Rescan the tables to verify we are at the same state
-                        remote.updateCacheFrom(remotedb, 'public')
                         remote.updateCacheFrom(remotedb, series)
                         local.updateCacheFrom(localdb, series)
                         remote.mergestate[series].pop('error', None)
@@ -111,66 +114,71 @@ class MergeProcess():
 
 
     def mergeTables(self, localdb, remotedb, tables):
-        localmod    = {}
-        localinsert = defaultdict(set)
-        localupdate = defaultdict(set)
-        localdelete = defaultdict(set)
+        localinsert = defaultdict(list)
+        localupdate = defaultdict(list)
+        localdelete = defaultdict(list)
 
-        remotemod    = {}
-        remoteinsert = defaultdict(set)
-        remoteupdate = defaultdict(set)
-        remotedelete = defaultdict(set)
+        remoteinsert = defaultdict(list)
+        remoteupdate = defaultdict(list)
+        remotedelete = defaultdict(list)
 
         for t in tables:
-            # Load pk/mod information from both databases
-            localmod[t]  = PresentObjects.loadPresent(localdb, t)
-            remotemod[t] = PresentObjects.loadPresent(remotedb, t)
-            l = localmod[t].keyset()
-            r = remotemod[t].keyset()
+            # Load data from both databases, load it all in one go to be more efficient in updates later
+            localobj  = PresentObject.loadPresent(localdb, t)
+            remoteobj = PresentObject.loadPresent(remotedb, t)
+            l = set(localobj.keys())
+            r = set(remoteobj.keys())
 
             # Keys in both databases
-            for k in l & r:
-                if localmod[t][k] == remotemod[t][k]:
+            for pk in l & r:
+                if localobj[pk].modified == remoteobj[pk].modified:
                     # Same keys, same modification time, filter out now, no need to further process
-                    del localmod[t][k]
-                    del remotemod[t][k]
+                    del localobj[pk]
+                    del remoteobj[pk]
                     continue
-                if localmod[t][k] > remotemod[t][k]:
-                    remoteupdate[t].add(k)
+                if localobj[pk].modified > remoteobj[pk].modified:
+                    remoteupdate[t].append(localobj[pk])
                 else:
-                    localupdate[t].add(k)
+                    localupdate[t].append(remoteobj[pk])
 
             # Recalc as we probably removed alot of stuff in the previous step
-            l = localmod[t].keyset()
-            r = remotemod[t].keyset()
+            l = set(localobj.keys())
+            r = set(remoteobj.keys())
 
             # Only need to know about things deleted so far back in time based on mod times in other database
-            ldeleted = DeletedObjects.deletedSince(localdb, t, remotemod[t].minmodtime())
-            rdeleted = DeletedObjects.deletedSince(remotedb, t, localmod[t].minmodtime())
+            ldeleted = DeletedObject.deletedSince( localdb, t,  PresentObject.minmodtime(remoteobj))
+            rdeleted = DeletedObject.deletedSince(remotedb, t,  PresentObject.minmodtime(localobj))
 
             # pk only in local database
             for pk in l - r:
-                if rdeleted.contains(pk):
-                    localdelete[t].add(pk)
+                if pk in rdeleted:
+                    localdelete[t].append(rdeleted[pk])
                 else:
-                    remoteinsert[t].add(pk)
+                    remoteinsert[t].append(localobj[pk])
 
             # pk only in remote database
             for pk in r - l:
-                if ldeleted.contains(pk):
-                    remotedelete[t].add(pk)
+                if pk in ldeleted:
+                    remotedelete[t].append(ldeleted[pk])
                 else:
-                    localinsert[t].add(pk)
+                    localinsert[t].append(remoteobj[pk])
 
-            log.debug("{}\n{}\n{}\n".format(localupdate, localinsert, localdelete))
+            log.debug("{}  local {} {} {}".format(t,  len(localinsert[t]),  len(localupdate[t]),  len(localdelete[t])))
+            log.debug("{} remote {} {} {}".format(t, len(remoteinsert[t]), len(remoteupdate[t]), len(remotedelete[t])))
 
-        # Disable USER triggers
+        # Have to insert data starting from the top of any foreign key links
+        # And then update/delete from the bottom of the same links
 
-        for t in model.SERIES_TABLES.keys():  # Insert order first
-            pass
-        for t in reversed(model.SERIES_TABLES.keys()):  # Update/Delete order next
-            pass
+        # Insert order first (top down)
+        for t in model.TABLE_ORDER:
+            DataInterface.insert(localdb,  localinsert[t])
+            DataInterface.insert(remotedb, remoteinsert[t])
 
-        # Renable USER triggers
+        # Update/delete order next (bottom up)
+        for t in reversed(model.TABLE_ORDER):
+            DataInterface.update(localdb,  localupdate[t])
+            DataInterface.update(remotedb, remoteupdate[t])
 
+            DataInterface.delete(localdb,  localdelete[t])
+            DataInterface.delete(remotedb, remotedelete[t])
 

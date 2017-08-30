@@ -38,10 +38,6 @@ CREATE OR REPLACE FUNCTION logmods() RETURNS TRIGGER AS $body$
 DECLARE
     audit_row publiclog;
 BEGIN
-    IF (current_setting('session_replication_role') = 'local') THEN
-        RETURN NULL;
-    END IF;
-
     audit_row = ROW(NULL, session_user::text, current_setting('application_name'), TG_TABLE_NAME::text, SUBSTRING(TG_OP,1,1), CURRENT_TIMESTAMP, '{}', '{}');
     IF (TG_OP = 'UPDATE') THEN
         IF OLD = NEW THEN
@@ -49,12 +45,14 @@ BEGIN
         END IF;
         audit_row.olddata = to_jsonb(OLD.*);
         audit_row.newdata = to_jsonb(NEW.*);
+        audit_row.time = NEW.modified;
     ELSIF (TG_OP = 'DELETE') THEN
         audit_row.olddata = to_jsonb(OLD.*);
         audit_row.newdata = '{}';
     ELSIF (TG_OP = 'INSERT') THEN
         audit_row.olddata = '{}';
         audit_row.newdata = to_jsonb(NEW.*);
+        audit_row.time = NEW.modified;
     ELSE
         RETURN NULL;
     END IF;
