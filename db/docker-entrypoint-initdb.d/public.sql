@@ -59,6 +59,7 @@ BEGIN
 
     audit_row.logid = NEXTVAL(TG_ARGV[0] || '_logid_seq');
     EXECUTE format('INSERT INTO %I VALUES (($1).*)', quote_ident(TG_ARGV[0])) USING audit_row;
+    EXECUTE pg_notify('datachange', TG_TABLE_NAME);
     RETURN NULL;
 END;
 $body$
@@ -66,10 +67,31 @@ LANGUAGE plpgsql;
 COMMENT ON FUNCTION logmods() IS 'Function to log details of any insert, delete or update to a log table specified in first trigger arg';
 
 
-CREATE OR REPLACE FUNCTION ignoreunmodified() RETURNS TRIGGER AS $body$
+CREATE OR REPLACE FUNCTION notifymods() RETURNS TRIGGER AS $body$
 DECLARE
 BEGIN
     IF (TG_OP = 'UPDATE') THEN
+        IF (OLD = NEW) THEN
+            RETURN NULL;
+        END IF;
+    END IF;
+    EXECUTE pg_notify('datachange', TG_TABLE_NAME);
+    RETURN NULL;
+END;
+$body$
+LANGUAGE plpgsql;
+COMMENT ON FUNCTION notifymods() IS 'Send a notification when there are changes, no logging';
+
+
+CREATE OR REPLACE FUNCTION ignoreunmodified() RETURNS TRIGGER AS $body$
+DECLARE
+    app text;
+BEGIN
+    IF (TG_OP = 'UPDATE') THEN
+        app = current_setting('application_name');
+        IF ((app = 'synclocal') OR (app = 'syncremote')) THEN
+            RETURN NEW;
+        END IF;
         IF (OLD = NEW) THEN
             RETURN NULL;
         END IF;
@@ -81,7 +103,7 @@ BEGIN
 END;
 $body$
 LANGUAGE plpgsql;
-COMMENT ON FUNCTION ignoreunmodified() IS 'does not update rows if only change is the modified field or less';
+COMMENT ON FUNCTION ignoreunmodified() IS 'does not update rows if only change is the modified field or less (and not syncing)';
 
 
 CREATE OR REPLACE FUNCTION create_series(IN name varchar) RETURNS boolean AS $body$
@@ -157,5 +179,6 @@ CREATE TABLE mergeservers (
 REVOKE ALL   ON mergeservers FROM public;
 GRANT  ALL   ON mergeservers TO mergeaccess;
 GRANT SELECT ON mergeservers TO nulluser;
+CREATE TRIGGER  mergemod AFTER INSERT OR UPDATE OR DELETE ON mergeservers FOR EACH ROW EXECUTE PROCEDURE notifymods();
 COMMENT ON TABLE mergeservers IS 'Local state of other sevrers we are periodically merging with, not part of merge process';
 

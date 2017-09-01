@@ -182,3 +182,6 @@ class MergeProcess():
             DataInterface.delete(localdb,  localdelete[t])
             DataInterface.delete(remotedb, remotedelete[t])
 
+        localdb.commit()
+        remotedb.commit()
+
