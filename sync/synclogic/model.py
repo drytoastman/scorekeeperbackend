@@ -65,6 +65,9 @@ def initialize():
             # Need to set a valid series so we can inspect the format
             cur.execute("SELECT schema_name FROM information_schema.schemata")
             serieslist = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')])
+            if not len(serieslist):
+                return False
+
             cur.execute("set search_path=%s,%s", (serieslist.pop(), 'public'))
 
             # Determing the primary keys for each table
@@ -82,6 +85,8 @@ def initialize():
     for table, pk in PRIMARY_KEYS.items():
         md5cols = '||'.join("md5({}::text)".format(k) for k in pk+['modified'])
         HASH_COMMANDS[table] = "SELECT {} FROM (SELECT MD5({}) as rowhash from {}) as t".format(SUMS, md5cols, table)
+
+    return True
 
 
 class DataInterface(object):

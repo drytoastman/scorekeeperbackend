@@ -42,24 +42,23 @@ class MergeProcess():
             try:
                 with DataInterface.connectLocal() as localdb:
                     # Reset our world on each loop
-                    model.initialize()
+                    if model.initialize():
+                        me = MergeServer.getLocal(localdb)
+                        me.updateSeriesFrom(localdb)
+                        for series in me.mergestate.keys():
+                            me.updateCacheFrom(localdb, series)
 
-                    me = MergeServer.getLocal(localdb)
-                    me.updateSeriesFrom(localdb)
-                    for series in me.mergestate.keys():
-                        me.updateCacheFrom(localdb, series)
+                        passwords = DataInterface.loadPasswords(localdb)
 
-                    passwords = DataInterface.loadPasswords(localdb)
-
-                    # First merge with anyone the user told us to right away
-                    for remote in MergeServer.getNow(localdb):
-                        self.mergeWith(localdb, me, remote, passwords)
-
-                    # Then check if there are any timeouts for local servers to merge with
-                    for remote in MergeServer.getActive(localdb):
-                        timeleft = (remote.lastcheck + self.waittime()) - datetime.datetime.utcnow()
-                        if timeleft.total_seconds() < 0:
+                        # First merge with anyone the user told us to right away
+                        for remote in MergeServer.getNow(localdb):
                             self.mergeWith(localdb, me, remote, passwords)
+
+                        # Then check if there are any timeouts for local servers to merge with
+                        for remote in MergeServer.getActive(localdb):
+                            timeleft = (remote.lastcheck + self.waittime()) - datetime.datetime.utcnow()
+                            if timeleft.total_seconds() < 0:
+                                self.mergeWith(localdb, me, remote, passwords)
 
                     localdb.rollback() # Don't hang out in idle transaction from selects
             except Exception as e:
