@@ -89,11 +89,11 @@ DECLARE
 BEGIN
     IF (TG_OP = 'UPDATE') THEN
         app = current_setting('application_name');
-        IF ((app = 'synclocal') OR (app = 'syncremote')) THEN
-            RETURN NEW;
-        END IF;
         IF (OLD = NEW) THEN
             RETURN NULL;
+        END IF;
+        IF ((app = 'synclocal') OR (app = 'syncremote')) THEN
+            RETURN NEW;
         END IF;
         IF akeys(hstore(NEW) - hstore(OLD)) = ARRAY['modified'] THEN
             RETURN NULL;
@@ -103,7 +103,7 @@ BEGIN
 END;
 $body$
 LANGUAGE plpgsql;
-COMMENT ON FUNCTION ignoreunmodified() IS 'does not update rows if only change is the modified field or less (and not syncing)';
+COMMENT ON FUNCTION ignoreunmodified() IS 'do not update rows if there are no changes or the only change is the modified field (except when syncing)';
 
 
 CREATE OR REPLACE FUNCTION create_series(IN name varchar) RETURNS boolean AS $body$
@@ -169,16 +169,15 @@ CREATE TABLE mergeservers (
     serverid   UUID       PRIMARY KEY,
     hostname   TEXT       NOT NULL DEFAULT '',
     address    TEXT       NOT NULL DEFAULT '',
-    hosttype   TEXT       NOT NULL DEFAULT 'discovered',
-    discovered TIMESTAMP  NOT NULL DEFAULT 'epoch',
     lastcheck  TIMESTAMP  NOT NULL DEFAULT 'epoch',
+    nextcheck  TIMESTAMP  NOT NULL DEFAULT 'epoch',
+    waittime   INTEGER    NOT NULL DEFAULT 60,
     active     BOOLEAN    NOT NULL DEFAULT False,
-    mergenow   BOOLEAN    NOT NULL DEFAULT False,
+    oneshot    BOOLEAN    NOT NULL DEFAULT False,
     mergestate JSONB      NOT NULL DEFAULT '{}'
 );
 REVOKE ALL   ON mergeservers FROM public;
 GRANT  ALL   ON mergeservers TO mergeaccess;
-GRANT SELECT ON mergeservers TO nulluser;
 CREATE TRIGGER  mergemod AFTER INSERT OR UPDATE OR DELETE ON mergeservers FOR EACH ROW EXECUTE PROCEDURE notifymods();
 COMMENT ON TABLE mergeservers IS 'Local state of other sevrers we are periodically merging with, not part of merge process';
 

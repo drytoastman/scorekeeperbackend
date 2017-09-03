@@ -8,6 +8,7 @@ import json
 import logging
 import psycopg2
 import psycopg2.extras
+import random
 import struct
 import time
 import uuid
@@ -43,8 +44,8 @@ HASH_COMMANDS = dict()
 
 LOCALARGS = {
   "cursor_factory": psycopg2.extras.DictCursor,
-            "host": "/var/run/postgresql",
-            #"host": "127.0.0.1", "port": 6432,
+            #"host": "/var/run/postgresql",
+            "host": "127.0.0.1", "port": 6432,
             "user": "postgres",  # Need to be able to create users, schema, etc.
           "dbname": "scorekeeper",
 "application_name": "synclocal"
@@ -58,42 +59,56 @@ REMOTEARGS = {
    # Must specify host, user and password
 }
 
-def initialize():
-    """ A little introspection to load the schema from database so we don't have to keep a local copy in this file """
-    with DataInterface.connectLocal() as db:
-        with db.cursor() as cur:
-            # Need to set a valid series so we can inspect the format
-            cur.execute("SELECT schema_name FROM information_schema.schemata")
-            serieslist = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')])
-            if not len(serieslist):
-                return False
 
-            cur.execute("set search_path=%s,%s", (serieslist.pop(), 'public'))
+class SyncException(Exception):
+    pass
 
-            # Determing the primary keys for each table
-            for table in TABLE_ORDER:
-                cur.execute("SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)" \
-                            "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
-                PRIMARY_KEYS[table] = [row[0] for row in cur.fetchall()]
+class NoDatabaseException(SyncException):
+    pass
 
-                cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name='{}'".format(table))
-                COLUMNS[table] = [row[0] for row in cur.fetchall()]
-                NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
+class NoSeriesException(SyncException):
+    pass
 
-    SUMPART = "sum(('x' || substring(t.rowhash, {}, 8))::bit(32)::bigint)"
-    SUMS = "{}, {}, {}, {}".format(SUMPART.format(1), SUMPART.format(9), SUMPART.format(17), SUMPART.format(25))
-    for table, pk in PRIMARY_KEYS.items():
-        md5cols = '||'.join("md5({}::text)".format(k) for k in pk+['modified'])
-        HASH_COMMANDS[table] = "SELECT {} FROM (SELECT MD5({}) as rowhash from {}) as t".format(SUMS, md5cols, table)
-
-    return True
+class NoLocalHostServer(SyncException):
+    pass
 
 
 class DataInterface(object):
 
+    def initialize():
+        """ A little introspection to load the schema from database so we don't have to keep a local copy in this file """
+        with DataInterface.connectLocal() as db:
+            with db.cursor() as cur:
+                # Need to set a valid series so we can inspect the format
+                cur.execute("SELECT schema_name FROM information_schema.schemata")
+                serieslist = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')])
+                if not len(serieslist):
+                    raise NoSeriesException()
+
+                cur.execute("set search_path=%s,%s", (serieslist.pop(), 'public'))
+
+                # Determing the primary keys for each table
+                for table in TABLE_ORDER:
+                    cur.execute("SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)" \
+                                "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
+                    PRIMARY_KEYS[table] = [row[0] for row in cur.fetchall()]
+
+                    cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name='{}'".format(table))
+                    COLUMNS[table] = [row[0] for row in cur.fetchall()]
+                    NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
+
+        SUMPART = "sum(('x' || substring(t.rowhash, {}, 8))::bit(32)::bigint)"
+        SUMS = "{}, {}, {}, {}".format(SUMPART.format(1), SUMPART.format(9), SUMPART.format(17), SUMPART.format(25))
+        for table, pk in PRIMARY_KEYS.items():
+            md5cols = '||'.join("md5({}::text)".format(k) for k in pk+['modified'])
+            HASH_COMMANDS[table] = "SELECT {} FROM (SELECT MD5({}) as rowhash from {}) as t".format(SUMS, md5cols, table)
+
     @classmethod
     def connectLocal(cls):
-        return psycopg2.connect(**LOCALARGS)
+        try:
+            return psycopg2.connect(**LOCALARGS)
+        except Exception as e:
+            raise NoDatabaseException(e)
 
     @classmethod
     def connectRemote(cls, host, user, password):
@@ -255,13 +270,6 @@ class MergeServer(object):
             setattr(self, k, v)
 
     @classmethod
-    def getUnique(cls, db, sql, args=None):
-        with db.cursor() as cur:
-            cur.execute(sql, args)
-            assert (cur.rowcount == 1) # If we get multiple, postgresql primary key indexing failed
-            return cls(cur.fetchone(), db)
-
-    @classmethod
     def getAll(cls, db, sql, args=None):
         with db.cursor() as cur:
             cur.execute(sql, args)
@@ -272,25 +280,42 @@ class MergeServer(object):
         return cls.getAll(db, "SELECT * FROM mergeservers WHERE active=true")
 
     @classmethod
-    def getNow(cls, db):
-        return cls.getAll(db, "SELECT * FROM mergeservers WHERE mergenow=true")
-
-    @classmethod
     def getLocal(cls, db):
-        return cls.getUnique(db, "SELECT * FROM mergeservers WHERE hosttype='localhost'")
+        with db.cursor() as cur:
+            cur.execute("SELECT * FROM mergeservers WHERE serverid='00000000-0000-0000-0000-000000000000'")
+            if cur.rowcount == 0:
+                raise NoLocalHostServer()
+            elif cur.rowcount > 1:
+                log.warning("Multiple localhost entries in the database")
+            return cls(cur.fetchone(), db)
 
-    def logSeriesError(self, series, error):
-        if "password authentication failed" in error: 
-            self.mergestate[series]['error'] = "Password Incorrect"
+    def seriesStart(self, series):
+        self.mergestate[series]['syncing'] = True
+        self._updateMergeState()
+
+    def seriesDone(self, series, error):
+        if error is None:
+            self.mergestate[series].pop('error', None)
         else:
-            self.mergestate[series]['error'] = error
+            if "password authentication failed" in error: 
+                self.mergestate[series]['error'] = "Password Incorrect"
+            else:
+                self.mergestate[series]['error'] = error
+        self.mergestate[series].pop('syncing', None)
         self._updateMergeState()
     
-    def logMerge(self):
+    def mergeDone(self):
         with self.db.cursor() as localcur:
+            if self.oneshot:
+                self.oneshot = False
+                self.active  = False
             self.lastcheck = datetime.datetime.utcnow()
-            self.mergenow = False
-            localcur.execute("UPDATE mergeservers SET lastcheck=%s, mergenow=%s, mergestate=%s WHERE serverid=%s", (self.lastcheck, self.mergenow, json.dumps(self.mergestate), self.serverid))
+            if self.active:
+                self.nextcheck = self.lastcheck + datetime.timedelta(seconds=(self.waittime + random.uniform(-5, +5)))
+            else:
+                self.nextcheck = datetime.datetime.utcfromtimestamp(0)
+            localcur.execute("UPDATE mergeservers SET lastcheck=%s, nextcheck=%s, active=%s, oneshot=%s, mergestate=%s WHERE serverid=%s",
+                                    (self.lastcheck, self.nextcheck, self.active, self.oneshot, json.dumps(self.mergestate), self.serverid))
             self.db.commit()
 
     def updateSeriesFrom(self, scandb):
@@ -322,12 +347,13 @@ class MergeServer(object):
                 lastlogtime = 1 # initial timestamp is 0, force a blank cache creation
             else:
                 lastlogtime = result.timestamp()
-            log.debug("lastlog {} - latest at {} = {}".format(lastlogtime, seriesstate['latest'], lastlogtime-seriesstate['latest']))
 
             # If there is no need to recalculate hashes or update local cache, skip out now
             if lastlogtime <= seriesstate['latest']:
+                log.debug("%s %s lastlog time shortcut", scandb.dsn.split()[0], series)
                 return 
 
+            log.debug("%s %s perform hash computations", scandb.dsn.split()[0], series)
             # Something has changed, run through the process of caclulating hashes of the PK,modtime combos for each table and combining them together
             for table, command in HASH_COMMANDS.items():
                 cur.execute(command)
@@ -356,7 +382,6 @@ class MergeServer(object):
             seriesstate['latest'] = lastlogtime
 
         self._updateMergeState()
-
 
     def _updateMergeState(self):
         # Record changes in the mergeservers table

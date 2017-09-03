@@ -7,28 +7,22 @@ import logging
 import psycopg2
 import psycopg2.extras
 import queue
-import random
 import time
 import uuid
 
-import synclogic.model as model
-from synclogic.model import DataInterface, PresentObject, DeletedObject, MergeServer
+from synclogic.model import *
 
 log  = logging.getLogger(__name__)
 
-SCANTIME = 10
-WAITTIME = 30
+
+class SkipThisRound(Exception):
+    pass
 
 class MergeProcess():
-    # If we have the greater serverid, I am the leader and should be doing the work
-    # Still fall back and try a merge ourselves if the leader isn't doing anything
 
     def __init__(self):
         psycopg2.extras.register_uuid()
         self.wakequeue = queue.Queue()
-
-    def waittime(self):
-        return datetime.timedelta(seconds=(WAITTIME + random.uniform(-5, +5)))
 
     def shutdown(self):
         self.wakequeue.put(True)
@@ -42,38 +36,37 @@ class MergeProcess():
             try:
                 with DataInterface.connectLocal() as localdb:
                     # Reset our world on each loop
-                    if model.initialize():
-                        me = MergeServer.getLocal(localdb)
-                        me.updateSeriesFrom(localdb)
-                        for series in me.mergestate.keys():
-                            me.updateCacheFrom(localdb, series)
+                    DataInterface.initialize()
+                    me = MergeServer.getLocal(localdb)
+                    me.updateSeriesFrom(localdb)
+                    for series in me.mergestate.keys():
+                        me.updateCacheFrom(localdb, series)
 
-                        passwords = DataInterface.loadPasswords(localdb)
+                    passwords = DataInterface.loadPasswords(localdb)
 
-                        # First merge with anyone the user told us to right away
-                        for remote in MergeServer.getNow(localdb):
+                    # Check if there are any timeouts for servers to merge with
+                    for remote in MergeServer.getActive(localdb):
+                        if remote.nextcheck < datetime.datetime.utcnow():
                             self.mergeWith(localdb, me, remote, passwords)
 
-                        # Then check if there are any timeouts for local servers to merge with
-                        for remote in MergeServer.getActive(localdb):
-                            timeleft = (remote.lastcheck + self.waittime()) - datetime.datetime.utcnow()
-                            if timeleft.total_seconds() < 0:
-                                self.mergeWith(localdb, me, remote, passwords)
-
                     localdb.rollback() # Don't hang out in idle transaction from selects
+
+            except (NoDatabaseException, NoSeriesException, NoLocalHostServer):
+                pass
+
             except Exception as e:
                 log.error("Caught exception in main loop: {}".format(e), exc_info=e)
 
-            # Wait for SCANTIME seconds before rescanning.  Wake immediately if something is dropped in the queue
+            # Wait for 10 seconds before rescanning.  Wake immediately if something is dropped in the queue
             try:
-                done = self.wakequeue.get(timeout=SCANTIME)
+                done = self.wakequeue.get(timeout=10)
             except:
                 pass
 
 
     def mergeWith(self, localdb, local, remote, passwords):
-        log.debug("checking %s", remote.serverid)
         address = remote.address or remote.hostname
+        log.debug("checking %s", address)
         with DataInterface.connectRemote(host=address, user='nulluser', password='nulluser') as remotedb:
             remote.updateSeriesFrom(remotedb)
 
@@ -81,10 +74,12 @@ class MergeProcess():
             if series not in passwords:
                 log.debug("No password for %s, skipping", series)
                 continue
+            assert series in local.mergestate, "series was not created in local database yet"
+            remote.seriesStart(series)
+            error = None
 
             try:
                 with DataInterface.connectRemote(host=address, user=series, password=passwords[series]) as remotedb:
-                    assert series in local.mergestate, "series was not created in local database yet"
                     remote.updateCacheFrom(remotedb, series)
 
                     if remote.mergestate[series]['totalhash'] != local.mergestate[series]['totalhash']:
@@ -94,7 +89,7 @@ class MergeProcess():
                         with DataInterface.mergelocks(local, localdb, remote, remotedb):
                             # Shortcut for fresh download, just copy it all
                             if local.mergestate[series]['totalhash'] == '':
-                                for t in model.TABLE_ORDER:
+                                for t in TABLE_ORDER:
                                     DataInterface.copyTable(remotedb, localdb, series, t)
                             else:
                                 ltables = local.mergestate[series]['hashes']
@@ -106,10 +101,11 @@ class MergeProcess():
                         local.updateCacheFrom(localdb, series)
                         remote.mergestate[series].pop('error', None)
             except Exception as e:
-                remote.logSeriesError(series, str(e))
+                error = str(e)
                 log.warning("Merge with %s/%s failed: %s", remote.serverid, series, e, exc_info=e)
 
-        remote.logMerge()
+            remote.seriesDone(series, error)
+        remote.mergeDone()
 
 
     def mergeTables(self, localdb, remotedb, tables):
@@ -169,12 +165,12 @@ class MergeProcess():
         # And then update/delete from the bottom of the same links
 
         # Insert order first (top down)
-        for t in model.TABLE_ORDER:
+        for t in TABLE_ORDER:
             DataInterface.insert(localdb,  localinsert[t])
             DataInterface.insert(remotedb, remoteinsert[t])
 
         # Update/delete order next (bottom up)
-        for t in reversed(model.TABLE_ORDER):
+        for t in reversed(TABLE_ORDER):
             DataInterface.update(localdb,  localupdate[t])
             DataInterface.update(remotedb, remoteupdate[t])
 
