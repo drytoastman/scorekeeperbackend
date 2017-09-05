@@ -21,6 +21,10 @@ def flashformerrors(form):
     for field,msg in form.errors.items():
         flash("{}: {}".format(field, msg[0]))
 
+def none2Blank(val):
+    if val is None: return ''
+    return str(val)
+
 class MyStringField(StringField):
     def __call__(self, **kwargs):
         return StringField.__call__(self, **addlengthfields(self, kwargs))
@@ -85,13 +89,6 @@ def attrBaseIntoForm(base, form):
             getattr(form, k).data = base.attr[k]
 
 
-"""
-class ResetPasswordForm(MyFlaskForm):
-    username = MyStringField(  'Username', [Length(min=6, max=32)])
-    password = MyPasswordField('Password', [Length(min=6, max=32)])
-    submit   = SubmitField(    'Reset')
-"""
-
 class PasswordForm(MyFlaskForm):
     gotoseries = HiddenField(    'gotoseries')
     username   = MyStringField(  'Username', [Length(min=6, max=32)])
@@ -135,7 +132,7 @@ class CarForm(MyFlaskForm):
     model       = MyStringField('Model', [Length(max=16)])
     color       = MyStringField('Color', [Length(max=16)])
     classcode   = SelectField(  'Class', [Required()])
-    indexcode   = SelectField(  'Index')
+    indexcode   = SelectField(  'Index', coerce=none2Blank)
     useclsmult  = BooleanField( 'MultFlag')
     number      = IntegerField( 'Number', [Required()])
     submit      = SubmitField(  'Update')

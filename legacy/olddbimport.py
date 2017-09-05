@@ -35,8 +35,8 @@ def convert(sourcefile, password):
     if cur.rowcount > 0:
         raise Exception("{} is already an active series, not continuing".format(name))
 
-    cur.execute("CREATE USER %s PASSWORD %s", (name, password))
-    cur.execute("select create_series(%s)", (name))
+    cur.execute("select verify_user(%s, %s)", (name, password))
+    cur.execute("select verify_series(%s)", (name,))
     cur.execute("set search_path=%s,%s", (name, 'public'))
 
     #DRIVERS, add to global list and remap ids as necessary

@@ -80,6 +80,7 @@ BEGIN
     RETURN NULL;
 END;
 $body$
+LANGUAGE plpgsql;
 COMMENT ON FUNCTION notifymods() IS 'Send a notification when there are changes, no logging';
 
 
