@@ -12,15 +12,16 @@ CREATE TABLE serieslog (
     app     TEXT      NOT NULL DEFAULT '',
     tablen  TEXT      NOT NULL,
     action  CHAR(1)   NOT NULL CHECK (action IN ('I', 'D', 'U')),
-    time    TIMESTAMP NOT NULL,
+    otime   TIMESTAMP NOT NULL,
+    ltime   TIMESTAMP NOT NULL,
     olddata JSONB     NOT NULL,
     newdata JSONB     NOT NULL
 );
 REVOKE ALL ON serieslog FROM public;
 GRANT  ALL ON serieslog TO <seriesname>;
 GRANT  ALL ON serieslog_logid_seq TO <seriesname>;
-CREATE INDEX ON serieslog(logid);
-CREATE INDEX ON serieslog(time);
+CREATE INDEX ON serieslog(otime);
+CREATE INDEX ON serieslog(ltime);
 COMMENT ON TABLE serieslog is 'Change logs that are specific to this local database';
  
 CREATE TABLE settings (

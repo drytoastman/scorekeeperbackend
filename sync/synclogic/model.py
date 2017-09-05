@@ -10,7 +10,6 @@ import psycopg2
 import psycopg2.extras
 import random
 import struct
-import time
 import uuid
 psycopg2.extras.register_uuid()
 psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
@@ -85,7 +84,8 @@ class DataInterface(object):
                 if not len(serieslist):
                     raise NoSeriesException()
 
-                cur.execute("set search_path=%s,%s", (serieslist.pop(), 'public'))
+                testseries = (serieslist.pop(), 'public')
+                cur.execute("set search_path=%s,%s", testseries)
 
                 # Determing the primary keys for each table
                 for table in TABLE_ORDER:
@@ -93,7 +93,7 @@ class DataInterface(object):
                                 "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
                     PRIMARY_KEYS[table] = [row[0] for row in cur.fetchall()]
 
-                    cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name='{}'".format(table))
+                    cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s and table_schema in %s", (table, testseries))
                     COLUMNS[table] = [row[0] for row in cur.fetchall()]
                     NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
 
@@ -147,7 +147,7 @@ class DataInterface(object):
         """
         if len(objs) == 0: return
         stmt = "DELETE FROM {} WHERE {}".format(objs[0].table, " AND ".join("{}=%({})s".format(k,k) for k in PRIMARY_KEYS[objs[0].table]))
-        logu = "UPDATE {} SET time=%s WHERE time=CURRENT_TIMESTAMP".format((objs[0].table=='drivers') and 'publiclog' or 'serieslog')
+        logu = "UPDATE {} SET otime=%s WHERE otime=CURRENT_TIMESTAMP".format((objs[0].table=='drivers') and 'publiclog' or 'serieslog')
         with db.cursor() as cur:
             for obj in objs:
                 cur.execute(stmt, obj.data)
@@ -167,15 +167,14 @@ class DataInterface(object):
 
     @classmethod
     @contextlib.contextmanager
-    def mergelocks(cls, local, localdb, remote, remotedb):
+    def mergelocks(cls, local, localdb, remote, remotedb, series):
         """
             Context manager to acquire/release advisory locks on both servers.
             It will throw assertion error if it can't get both.  The logic for
             first lock to obtain is there to help dynamic merging systems in
             obtaining locks in the same order to reduce distributed lock race
             conditions.  The current order is lower serverid first.
-            Also sets replication role to local which signals our triggers to
-            not log changes as we need to create the log entries ourselves.
+            Also sets the series schema path so its all nicely tied away here.
         """
         lock1 = False
         lock2 = False
@@ -186,13 +185,16 @@ class DataInterface(object):
             else:
                 cur1 = remotedb.cursor()
                 cur2 = localdb.cursor()
+
+            cur1.execute("SET search_path=%s,%s", (series, 'public'))
+            cur2.execute("SET search_path=%s,%s", (series, 'public'))
             
             cur1.execute("SELECT pg_try_advisory_lock(42)")
             lock1 = cur1.fetchone()[0]
             if lock1:
                 cur2.execute("SELECT pg_try_advisory_lock(42)")
                 lock2 = cur2.fetchone()[0]
-            assert lock1 and lock2, "Unable to obtain both locks, will try again later"
+            assert lock1 and lock2, "Unable to obtain locks, will try again later"
             log.debug("Acquired both locks")
             yield
         finally:
@@ -254,10 +256,10 @@ class DeletedObject():
 
         with db.cursor() as cur:
             log = (table=='drivers') and 'publiclog' or 'serieslog';
-            cur.execute("SELECT time, olddata FROM {} WHERE action='D' AND tablen=%s AND time>%s".format(log), (table, when,))
+            cur.execute("SELECT otime, olddata FROM {} WHERE action='D' AND tablen=%s AND otime>%s".format(log), (table, when,))
             for row in cur.fetchall():
                 pk = tuple([lift_value(row['olddata'][k]) for k in PRIMARY_KEYS[table]])
-                ret[pk] = cls(table, pk, row['olddata'], row['time'])
+                ret[pk] = cls(table, pk, row['olddata'], row['otime'])
         return ret
 
 
@@ -290,6 +292,7 @@ class MergeServer(object):
             return cls(cur.fetchone(), db)
 
     def seriesStart(self, series):
+        self.mergestate[series].pop('error', None)
         self.mergestate[series]['syncing'] = True
         self._updateMergeState()
 
@@ -330,7 +333,7 @@ class MergeServer(object):
         for deleted in cachedseries - serieslist:
             del self.mergestate[deleted]
         for added in serieslist - cachedseries:
-            self.mergestate[added] = {'latest':0, 'totalhash':'', 'hashes':{}}
+            self.mergestate[added] = {'lastchange':0, 'totalhash':'', 'hashes':{}}
         self._updateMergeState()
 
     def updateCacheFrom(self, scandb, series):
@@ -341,15 +344,12 @@ class MergeServer(object):
         with scandb.cursor() as cur:
             # Do a sanity check on the log tables to see if anyting actually changed since our last check
             cur.execute("SET search_path=%s,%s", (series, 'public'))
-            cur.execute("SELECT MAX(times.max) FROM (SELECT max(time) FROM serieslog UNION SELECT max(time) FROM publiclog) AS times")
+            cur.execute("SELECT MAX(times.max) FROM (SELECT max(ltime) FROM serieslog UNION SELECT max(ltime) FROM publiclog) AS times")
             result = cur.fetchone()[0]
-            if result is None: # brand new database without any data to speak of
-                lastlogtime = 1 # initial timestamp is 0, force a blank cache creation
-            else:
-                lastlogtime = result.timestamp()
+            lastchange = result and result.timestamp() or 1  # 1 forces initial check on blank database
 
             # If there is no need to recalculate hashes or update local cache, skip out now
-            if lastlogtime <= seriesstate['latest']:
+            if lastchange == seriesstate['lastchange']:
                 log.debug("%s %s lastlog time shortcut", scandb.dsn.split()[0], series)
                 return 
 
@@ -379,7 +379,8 @@ class MergeServer(object):
                 for tablehash in tables.values():
                     totalhash.update(tablehash)
                 seriesstate['totalhash'] = base64.b64encode(totalhash.digest()).decode('utf-8')
-            seriesstate['latest'] = lastlogtime
+            if lastchange is not None:
+                seriesstate['lastchange'] = lastchange
 
         self._updateMergeState()
 

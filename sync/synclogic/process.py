@@ -7,13 +7,12 @@ import logging
 import psycopg2
 import psycopg2.extras
 import queue
-import time
 import uuid
 
 from synclogic.model import *
 
 log  = logging.getLogger(__name__)
-
+signalled = False
 
 class SkipThisRound(Exception):
     pass
@@ -25,15 +24,21 @@ class MergeProcess():
         self.wakequeue = queue.Queue()
 
     def shutdown(self):
+        global signalled
+        signalled = True
         self.wakequeue.put(True)
 
     def poke(self):
+        global signalled
+        signalled = True
         self.wakequeue.put(False)
 
     def runforever(self):
         done = False
         while not done:
             try:
+                global signalled
+                signalled = False
                 with DataInterface.connectLocal() as localdb:
                     # Reset our world on each loop
                     DataInterface.initialize()
@@ -51,7 +56,8 @@ class MergeProcess():
 
                     localdb.rollback() # Don't hang out in idle transaction from selects
 
-            except (NoDatabaseException, NoSeriesException, NoLocalHostServer):
+            except (NoDatabaseException, NoSeriesException, NoLocalHostServer) as ie:
+                log.debug(type(ie).__name__)
                 pass
 
             except Exception as e:
@@ -65,20 +71,23 @@ class MergeProcess():
 
 
     def mergeWith(self, localdb, local, remote, passwords):
+        global signalled
+
         address = remote.address or remote.hostname
         log.debug("checking %s", address)
         with DataInterface.connectRemote(host=address, user='nulluser', password='nulluser') as remotedb:
             remote.updateSeriesFrom(remotedb)
 
         for series in remote.mergestate.keys():
+            error = None
             if series not in passwords:
                 log.debug("No password for %s, skipping", series)
                 continue
-            assert series in local.mergestate, "series was not created in local database yet"
-            remote.seriesStart(series)
-            error = None
 
             try:
+                assert not signalled, "Quit signal received"
+                assert series in local.mergestate, "series was not created in local database yet"
+                remote.seriesStart(series)
                 with DataInterface.connectRemote(host=address, user=series, password=passwords[series]) as remotedb:
                     remote.updateCacheFrom(remotedb, series)
 
@@ -86,7 +95,7 @@ class MergeProcess():
                         log.debug("Need to merge %s:", series)
 
                         # Obtain a merge lock on both sides and start the merge
-                        with DataInterface.mergelocks(local, localdb, remote, remotedb):
+                        with DataInterface.mergelocks(local, localdb, remote, remotedb, series):
                             # Shortcut for fresh download, just copy it all
                             if local.mergestate[series]['totalhash'] == '':
                                 for t in TABLE_ORDER:
@@ -109,6 +118,7 @@ class MergeProcess():
 
 
     def mergeTables(self, localdb, remotedb, tables):
+        global signalled
         localinsert = defaultdict(list)
         localupdate = defaultdict(list)
         localdelete = defaultdict(list)
@@ -118,6 +128,9 @@ class MergeProcess():
         remotedelete = defaultdict(list)
 
         for t in tables:
+            assert not signalled, "Quit signal received"
+            log.debug("{}  collection".format(t))
+
             # Load data from both databases, load it all in one go to be more efficient in updates later
             localobj  = PresentObject.loadPresent(localdb, t)
             remoteobj = PresentObject.loadPresent(remotedb, t)
@@ -166,11 +179,16 @@ class MergeProcess():
 
         # Insert order first (top down)
         for t in TABLE_ORDER:
+            assert not signalled, "Quit signal received"
+            log.debug("%s insert", t)
             DataInterface.insert(localdb,  localinsert[t])
             DataInterface.insert(remotedb, remoteinsert[t])
 
         # Update/delete order next (bottom up)
+        log.debug("Performing updates/deletes")
         for t in reversed(TABLE_ORDER):
+            assert not signalled, "Quit signal received"
+            log.debug("%s update/delete", t)
             DataInterface.update(localdb,  localupdate[t])
             DataInterface.update(remotedb, remoteupdate[t])
 
