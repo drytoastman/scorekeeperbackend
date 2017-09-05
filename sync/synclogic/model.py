@@ -344,7 +344,7 @@ class MergeServer(object):
         with scandb.cursor() as cur:
             # Do a sanity check on the log tables to see if anyting actually changed since our last check
             cur.execute("SET search_path=%s,%s", (series, 'public'))
-            cur.execute("SELECT MAX(times.max) FROM (SELECT max(ltime) FROM serieslog UNION SELECT max(ltime) FROM publiclog) AS times")
+            cur.execute("SELECT MAX(times.max) FROM (SELECT max(ltime) FROM serieslog UNION ALL SELECT max(ltime) FROM publiclog) AS times")
             result = cur.fetchone()[0]
             lastchange = result and result.timestamp() or 1  # 1 forces initial check on blank database
 

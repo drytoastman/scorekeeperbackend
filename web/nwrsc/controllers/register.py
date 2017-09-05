@@ -273,7 +273,7 @@ def getAllUpcoming(driverid):
     upcoming = defaultdict(lambda: defaultdict(list))
     for s in Series.active():
         for r in Registration.getForSeries(s, driverid):
-            if r.date >= datetime.date.today():
+            if r.date >= datetime.datetime.utcnow():
                 upcoming[r.date][s, r.name].append(r)
     return upcoming
  

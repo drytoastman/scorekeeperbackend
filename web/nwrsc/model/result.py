@@ -153,11 +153,11 @@ class Result(object):
         with g.db.cursor() as cur:
             if usedrivers:
                 cur.execute("select " +
-                    "(SELECT MAX(times.max) FROM (SELECT max(time) FROM serieslog WHERE tablen IN %s UNION ALL SELECT max(time) FROM publiclog WHERE tablen='drivers') AS times) >" +
+                    "(SELECT MAX(times.max) FROM (SELECT max(ltime) FROM serieslog WHERE tablen IN %s UNION ALL SELECT max(ltime) FROM publiclog WHERE tablen='drivers') AS times) >" +
                     "(SELECT modified FROM results WHERE series=%s AND name=%s::text)", (stables, g.series, name))
             else:
                 cur.execute("select " +
-                    "(SELECT max(time) FROM serieslog WHERE tablen IN %s) >" +
+                    "(SELECT max(ltime) FROM serieslog WHERE tablen IN %s) >" +
                     "(SELECT modified FROM results WHERE series=%s AND name=%s::text)", (stables, g.series, name))
             mod = cur.fetchone()[0]
             if mod is None or mod: 
@@ -529,7 +529,7 @@ class Result(object):
         store = defaultdict(lambda : defaultdict(ChampEntrant))
         for event in events:
             if event.ispractice: continue
-            if datetime.date.today() >= event.date:
+            if datetime.date.utcnow() >= event.date:
                 completed += 1
 
             eventresults = cls.getEventResults(event.eventid)

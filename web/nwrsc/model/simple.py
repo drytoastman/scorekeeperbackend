@@ -47,8 +47,8 @@ class Event(AttrBase):
             return 999
         return ret
 
-    def hasOpened(self): return datetime.now() > self.regopened
-    def hasClosed(self): return datetime.now() > self.regclosed
+    def hasOpened(self): return datetime.utcnow() > self.regopened
+    def hasClosed(self): return datetime.utcnow() > self.regclosed
     def isOpen(self):    return self.hasOpened() and not self.hasClosed()
     def getCount(self):  return self.getval("SELECT count(carid) FROM registered WHERE eventid=%s", (self.eventid,))
     def getDriverCount(self): return self.getval("SELECT count(distinct(c.driverid)) FROM registered r JOIN cars c ON r.carid=c.carid WHERE r.eventid=%s", (self.eventid,))

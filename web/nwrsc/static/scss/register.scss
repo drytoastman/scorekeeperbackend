@@ -8,8 +8,8 @@ $bordercolor: #BBB;
 $bootstrapblue: #0275d8;
 $bootstrapitem: rgba(255, 255, 255, 0.75);
 
-@import "font-awesome/font-awesome.scss";
-@import "bootstrap.scss";
+@import "../extern/font-awesome/font-awesome.scss";
+@import "../extern/bootstrap.scss";
 
 /* Things for all pages */
 ul {
