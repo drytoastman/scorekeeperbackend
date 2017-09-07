@@ -43,8 +43,8 @@ HASH_COMMANDS = dict()
 
 LOCALARGS = {
   "cursor_factory": psycopg2.extras.DictCursor,
-            #"host": "/var/run/postgresql",
-            "host": "127.0.0.1", "port": 6432,
+            "host": "/var/run/postgresql",
+            #"host": "127.0.0.1", "port": 6432,
             "user": "postgres",  # Need to be able to create users, schema, etc.
           "dbname": "scorekeeper",
 "application_name": "synclocal"
