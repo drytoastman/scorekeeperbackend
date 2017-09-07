@@ -5,6 +5,8 @@ import logging.handlers
 import os
 import signal
 import synclogic
+import time
+import threading
 
 if __name__ == '__main__':
     level = getattr(logging, os.environ.get('LOG_LEVEL', 'INFO'), logging.INFO)
@@ -40,5 +42,8 @@ if __name__ == '__main__':
     signal.signal(signal.SIGTERM, interrupt)
     signal.signal(signal.SIGHUP,  interrupt)
 
-    mp.runforever()
+    t = threading.Thread(target=mp.runforever)
+    t.start()
+    while True:
+        time.sleep(10)
     log.info("exiting main")
