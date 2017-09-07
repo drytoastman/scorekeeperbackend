@@ -29,13 +29,16 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     log.info("starting main")
     mp = synclogic.process.MergeProcess()
+    done = False
+
     def interrupt(signum, frame):
         log.info("Received signal {}".format(signum))
-        global mp
+        global mp, done
         if signum == signal.SIGHUP:
             mp.poke()
         else:
             mp.shutdown()
+            done = True
 
     signal.signal(signal.SIGABRT, interrupt)
     signal.signal(signal.SIGINT,  interrupt)
@@ -44,6 +47,6 @@ if __name__ == '__main__':
 
     t = threading.Thread(target=mp.runforever)
     t.start()
-    while True:
-        time.sleep(10)
+    while not done:
+        time.sleep(1)
     log.info("exiting main")

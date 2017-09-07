@@ -145,13 +145,24 @@ class DataInterface(object):
             Delete as well as fix up log as delete trigger has no timestamp to reference and therefore defaults to CURRENT_TIMESTAMP 
             which is correct in the local access case but wrong in the merge case
         """
-        if len(objs) == 0: return
+        undelete = list()
+        if len(objs) == 0: 
+            return undelete
         stmt = "DELETE FROM {} WHERE {}".format(objs[0].table, " AND ".join("{}=%({})s".format(k,k) for k in PRIMARY_KEYS[objs[0].table]))
         logu = "UPDATE {} SET otime=%s WHERE otime=CURRENT_TIMESTAMP".format((objs[0].table=='drivers') and 'publiclog' or 'serieslog')
         with db.cursor() as cur:
+            cur.execute("SAVEPOINT delete_savepoint")
             for obj in objs:
-                cur.execute(stmt, obj.data)
-                cur.execute(logu, (obj.deletedat,))
+                try:
+                    cur.execute(stmt, obj.data)
+                    cur.execute(logu, (obj.deletedat,))
+                except psycopg2.IntegrityError as e:
+                    if e.pgcode == '23503':  # Foreign Key constraint, need to add the data back to the other side and restart the sync
+                        undelete.append(obj)
+                        cur.execute("ROLLBACK TO SAVEPOINT delete_savepoint")
+                    else:
+                        raise e
+        return undelete 
 
     @classmethod
     def copyTable(cls, srcdb, dstdb, series, table):
@@ -198,6 +209,9 @@ class DataInterface(object):
             log.debug("Acquired both locks")
             yield
         finally:
+            # In case we get thrown here by exception, rollback.  We commit successful work before this happens
+            remotedb.rollback()
+            localdb.rollback()
             log.debug("Releasing locks (%s, %s)", lock1, lock2)
             if lock2:
                 cur2.execute("SELECT pg_advisory_unlock(42)")

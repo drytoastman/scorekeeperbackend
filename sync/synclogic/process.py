@@ -105,27 +105,41 @@ class MergeProcess():
                                 rtables = remote.mergestate[series]['hashes']
                                 self.mergeTables(localdb, remotedb, set([k for k in ltables if ltables[k] != rtables[k]]))
 
+                            remotedb.commit()
+                            localdb.commit()
+
                         # Rescan the tables to verify we are at the same state
                         remote.updateCacheFrom(remotedb, series)
                         local.updateCacheFrom(localdb, series)
                         remote.mergestate[series].pop('error', None)
+
             except Exception as e:
                 error = str(e)
-                log.warning("Merge with %s/%s failed: %s", remote.serverid, series, e, exc_info=e)
+                log.warning("Merge with %s/%s failed: %s", remote.hostname, series, e, exc_info=e)
 
             remote.seriesDone(series, error)
         remote.mergeDone()
 
 
     def mergeTables(self, localdb, remotedb, tables):
+        count = 0
+        for ii in range(5):
+            if len(tables) <= 0: return
+            tables = self._mergeTablesInternal(localdb, remotedb, tables)
+            log.debug("unfinished tables = %s", tables)
+        log.error("Ran merge tables 5 times.  Quitting")
+
+    def _mergeTablesInternal(self, localdb, remotedb, tables):
         global signalled
         localinsert = defaultdict(list)
         localupdate = defaultdict(list)
         localdelete = defaultdict(list)
+        localundelete = defaultdict(list)
 
         remoteinsert = defaultdict(list)
         remoteupdate = defaultdict(list)
         remotedelete = defaultdict(list)
+        remoteundelete = defaultdict(list)
 
         for t in tables:
             assert not signalled, "Quit signal received"
@@ -192,9 +206,20 @@ class MergeProcess():
             DataInterface.update(localdb,  localupdate[t])
             DataInterface.update(remotedb, remoteupdate[t])
 
-            DataInterface.delete(localdb,  localdelete[t])
-            DataInterface.delete(remotedb, remotedelete[t])
+            remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
+            localundelete[t].extend(DataInterface.delete(remotedb, remotedelete[t]))
 
-        localdb.commit()
-        remotedb.commit()
+        # If we have foreign key violations trying to delete, we need to readd those back to the opposite site and redo the merge
+        # The only time this should ever occur is with the drivers table as its shared between series
+        unfinished = set()
+        for t in remoteundelete:
+            if len(remoteundelete[t]) > 0:
+                unfinished.add(t)
+                DataInterface.insert(remotedb, remoteundelete[t])
+        for t in localundelete:
+            if len(localundelete[t]) > 0:
+                unfinished.add(t)
+                DataInterface.insert(localdb, localundelete[t])
+
+        return unfinished
 
