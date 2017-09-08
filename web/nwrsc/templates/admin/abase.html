@@ -4,9 +4,56 @@
 <link rel="stylesheet" href="{{ASSET_URL}}" /> 
 {%- endassets -%}
 
-{% assets output="admin.js", "js/jquery-3.2.0.js", "js/jquery.validate-1.16.js", "js/tether.js", "js/bootstrap-4a6.js",
+{% assets output="admin.js", "extern/jquery-3.2.0.js", "extern/jquery.validate-1.16.js", "extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js",
 								"js/careditor.js", "js/admin.js" %}
 	<script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
-
 {% endblock %}
+
+{% block content %}
+<ul id='adminmenu' class='sf-menu'>
+<li id='titlebutton'><a>{{series}}</a></li>
+<li><a href='javascript:void(0);'>Event Admin</a>
+	<ul>
+	{%for event in events|sort(attribute='date') %}
+		<li><a href='{{url_for('.event', eventid=event.eventid)}}'>{{event.name}}</a></li>
+	{% endfor  %}
+	</ul>
+</li>
+<li><a href='javascript:void(0);'>Series Admin</a>
+    {#
+	<ul>
+	<li><a href='{{url_for('.createevent')}}'>New Event</a></li>
+	<li><a href='{{url_for(eventid='s', action='classlist')}}'>Classes</a></li>
+	<li><a href='{{url_for(eventid='s', action='indexlist')}}'>Indexes</a></li>
+	<li><a href='{{url_for(eventid='s', action='seriessettings')}}'>Settings</a></li>
+	<li><a href='{{url_for(eventid='s', action='passwords')}}'>Passwords</a></li>
+	<li><a href='{{url_for(eventid='s', action='invalidcars')}}'>Invalid Cars</a></li>
+	<li><a href='{{url_for(eventid='s', action='fieldlist')}}'>Driver Fields</a></li>
+	<li><a href='{{url_for(eventid='s', action='drivers')}}'>Driver/Car Editor</a></li>
+	<li><a href='{{url_for(eventid='s', action='recalc')}}'>Recalculate Results</a></li>
+	<li><a href='{{url_for(eventid='s', action='purge')}}'>Purge Tool</a></li>
+	</ul>
+    #}
+</li>
+<li><a href='javascript:void(0);'>Reports</a>
+    {#
+	<ul>
+	<li><a href='{{url_for(eventid='s', action='newentrants')}}' target='_blank'>Event Fees/New Entrants</a></li>
+	<li><a href='{{url_for(eventid='s', action='contactlist')}}'>Series Contact List</a></li>
+	<li><a href='{{url_for(eventid='s', action='weekend')}}'>Weekend Entries</a></li>
+	</ul>
+    #}
+</li>
+<li><a href='javascript:void(0);'>Other</a>
+    {#
+	<ul>
+	<li><a href='{{url_for(eventid='s', action='copyseries')}}'>Create Series From Current</a></li>
+	</ul>
+    #}
+</li>
+</ul>
+<br clear='all'/>
+</div>
+{% endblock content %}
+

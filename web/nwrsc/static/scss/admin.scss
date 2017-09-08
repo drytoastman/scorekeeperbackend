@@ -5,8 +5,7 @@ $widgetStateHoverBackground: #00A;
 $widgetStateActiveBackground: #0AA;
 $widgetStateActiveColor: #AAA;
 
-@import "anytimec.scss";
-@import "superfish.scss";
+@import "../extern/bootstrap-4.0.0b.scss";
 
 input[name=confirm] {
     display: none;

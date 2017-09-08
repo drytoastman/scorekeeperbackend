@@ -1,7 +1,9 @@
 
+import csv
 import re
 import json
 import icalendar
+import io
 from flask import escape, make_response
 
 def xml_encode(data, wrapper=None):
@@ -27,6 +29,15 @@ def json_raw(data):
 def to_json(obj):
     return JSONEncoder().encode(obj)
 
+def csv_encode(filename, fields, data):
+    buf = io.StringIO()
+    csvw = csv.DictWriter(buf, fields, extrasaction='ignore')
+    csvw.writeheader()
+    csvw.writerows(data)
+    response = make_response(buf.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename={}.csv".format(filename)
+    response.headers["Content-Type"] = "text/csv"
+    return response
 
 class ICalEncoder():
     def encodeevents(self, data):

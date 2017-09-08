@@ -1,5 +1,6 @@
 import logging
 import operator
+import psycopg2
 import re
 import io
 
@@ -12,7 +13,6 @@ from datetime import datetime, timedelta
 from flask import Blueprint, current_app, g, redirect, request, render_template, session, url_for
 
 from nwrsc.model import *
-from nwrsc.lib.postgresql import check_password
 
 log = logging.getLogger(__name__)
 
@@ -30,20 +30,30 @@ def setup():
 def isauth():
     return g.series in session[AUTHKEY]
 
+def check_password(user, password):
+    """ Assumes container db is named as such but it works, can't use config/unix socket as it implicitly trusts any user declaration """
+    try:
+        pg = psycopg2.connect(host='db', port=5432, user=user, password=password, dbname='scorekeeper')
+        pg.close()
+        return True
+    except Exception:
+        return False
+
 @Admin.route("/login", methods=['POST', 'GET'])
 def login():
     if request.form.get('password'):
-        if check_password(current_app.config['DB_HOST'], g.series, request.form.get('password').strip()):
+        if check_password(g.series, request.form.get('password').strip()):
             session[AUTHKEY][g.series] = 1
             session.modified = True
             return redirect(url_for(".index"))
 
-    return render_template('/admin/login.html')
+    log.debug("returning to adming page")
+    return render_template('/admin/login.html', series=g.series)
     
-
 @Admin.route("/")
 def index():
-    return render_template('/admin/simple.html', text="<h2>{} Adminstration</h2>".format(g.series))
+    events  = Event.byDate()
+    return render_template('/admin/abase.html', series=g.series, events=Event.byDate())
 
 @Admin.route("/event/<uuid:eventid>")
 def event():
@@ -91,12 +101,12 @@ def grid():
     return render_template('/admin/grid.html', groups=groups, order=order, starts=[k for k in groups if k < 100])
 
 
+
 @Admin.route("/event/<uuid:eventid>/editevent",   endpoint='editevent')
 @Admin.route("/event/<uuid:eventid>/list",        endpoint='list')
 @Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
 @Admin.route("/event/<uuid:eventid>/deleteevent", endpoint='deleteevent')
 @Admin.route("/event/<uuid:eventid>/printhelp",   endpoint='printhelp')
-@Admin.route("/event/<uuid:eventid>/printcards",  endpoint='printcards')
 @Admin.route("/event/<uuid:eventid>/numbers",     endpoint='numbers')
 @Admin.route("/event/<uuid:eventid>/paid",        endpoint='paid')
 @Admin.route("/event/<uuid:eventid>/paypal",      endpoint='paypal')
@@ -106,9 +116,7 @@ def notyetdone():
     return "TBD"
 
 
-
 #####################################################################################################
-
 
 class AdminController(): #BaseController, EntrantEditor, ObjectEditor, CardPrinting, PurgeCopy):
 

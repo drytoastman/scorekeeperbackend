@@ -68,7 +68,7 @@ class Registration(AttrBase):
     @classmethod
     def getForEvent(cls, eventid):
         with g.db.cursor() as cur:
-            cur.execute("SELECT d.*,c.*,r.* FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s ORDER BY c.number", (eventid,))
+            cur.execute("SELECT d.*,c.*,r.*,d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s ORDER BY c.number", (eventid,))
             return [Entrant(**x) for x in cur.fetchall()]
 
     @classmethod

@@ -1,12 +1,10 @@
 {% extends "/admin/abase.html" %}
 
 {% block content %}
-Menu here?
+<h3>Enter the password for {{series}}</h3>
 <form action='{{url_for('.login')}}' method='POST'>
 <label for='password'>Password</label><input type='password' name='password'/>
-<input type='text' name='message' />
+<input type='checkbox' name='confirm' />
 <input type='Submit' name='Submit' value='Submit'>
 </form>
-{{session}}
 {% endblock content %}
-
