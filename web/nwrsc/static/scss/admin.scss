@@ -6,6 +6,7 @@ $widgetStateActiveBackground: #0AA;
 $widgetStateActiveColor: #AAA;
 
 @import "../extern/bootstrap-4.0.0b.scss";
+@import "commonnav.scss";
 
 input[name=confirm] {
     display: none;

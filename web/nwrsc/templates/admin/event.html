@@ -1,6 +1,7 @@
 {% extends "/admin/abase.html" %}
 
 {% block content %}
+{{super()}}
 
 <div class='emenu'>
 <h2 style='margin-bottom:5px;'>{{event.name}} - {{event.date.strftime('%B %d, %Y')}}</h2>
@@ -48,14 +49,13 @@
 <h3>Reports</h3>
 <ul class='cleanlist'>
 <li><a href='{{url_for('.numbers')}}' target='_blank'>Used Car Number List</a></li>
-<li><a href='{{url_for('.paid')}}' target='_blank'>List of Fess Already Paid</a></li>
-<li><a href='{{url_for('.paypal')}}' target='_blank'>Paypal Transaction List</a></li>
-<li><a href='{{url_for('.contactlist')}}'>Contact List</a></li>
+<li><a href='{{url_for('.eventpaid')}}' target='_blank'>List of Fess Already Paid</a></li>
+<li><a href='{{url_for('.eventcontactlist')}}'>Contact List</a></li>
 </ul>
 
 <h3>After The Event</h3>
 <ul class='cleanlist'>
-<li><a href='{{url_for('.newentrants')}}' target='_blank'>Collected Fee List</a></li>
+<li><a href='{{url_for('.eventnewentrants')}}' target='_blank'>Collected Fee List</a></li>
 </ul>
 
 </div>

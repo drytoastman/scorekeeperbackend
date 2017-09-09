@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block headers %}
-{%- assets filters="libsass", output="admin.css", "scss/admin.scss" -%}
+{%- assets filters="libsass", depends="scss/*.scss", output="admin.css", "scss/admin.scss" -%}
 <link rel="stylesheet" href="{{ASSET_URL}}" /> 
 {%- endassets -%}
 
@@ -11,49 +11,63 @@
 {% endblock %}
 
 {% block content %}
-<ul id='adminmenu' class='sf-menu'>
-<li id='titlebutton'><a>{{series}}</a></li>
-<li><a href='javascript:void(0);'>Event Admin</a>
-	<ul>
-	{%for event in events|sort(attribute='date') %}
-		<li><a href='{{url_for('.event', eventid=event.eventid)}}'>{{event.name}}</a></li>
-	{% endfor  %}
-	</ul>
-</li>
-<li><a href='javascript:void(0);'>Series Admin</a>
-    {#
-	<ul>
-	<li><a href='{{url_for('.createevent')}}'>New Event</a></li>
-	<li><a href='{{url_for(eventid='s', action='classlist')}}'>Classes</a></li>
-	<li><a href='{{url_for(eventid='s', action='indexlist')}}'>Indexes</a></li>
-	<li><a href='{{url_for(eventid='s', action='seriessettings')}}'>Settings</a></li>
-	<li><a href='{{url_for(eventid='s', action='passwords')}}'>Passwords</a></li>
-	<li><a href='{{url_for(eventid='s', action='invalidcars')}}'>Invalid Cars</a></li>
-	<li><a href='{{url_for(eventid='s', action='fieldlist')}}'>Driver Fields</a></li>
-	<li><a href='{{url_for(eventid='s', action='drivers')}}'>Driver/Car Editor</a></li>
-	<li><a href='{{url_for(eventid='s', action='recalc')}}'>Recalculate Results</a></li>
-	<li><a href='{{url_for(eventid='s', action='purge')}}'>Purge Tool</a></li>
-	</ul>
-    #}
-</li>
-<li><a href='javascript:void(0);'>Reports</a>
-    {#
-	<ul>
-	<li><a href='{{url_for(eventid='s', action='newentrants')}}' target='_blank'>Event Fees/New Entrants</a></li>
-	<li><a href='{{url_for(eventid='s', action='contactlist')}}'>Series Contact List</a></li>
-	<li><a href='{{url_for(eventid='s', action='weekend')}}'>Weekend Entries</a></li>
-	</ul>
-    #}
-</li>
-<li><a href='javascript:void(0);'>Other</a>
-    {#
-	<ul>
-	<li><a href='{{url_for(eventid='s', action='copyseries')}}'>Create Series From Current</a></li>
-	</ul>
-    #}
-</li>
-</ul>
-<br clear='all'/>
-</div>
+<nav class="navbar navbar-expand-md navbar-dark bg-success">
+  <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class='navbar-brand'><img src='/static/images/cone.png'/>Scorekeeper Admin {{g.series}}</div>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+
+        <li id="seriesdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="seriesdropdownlink" data-toggle="dropdown">Series</a>
+          <div class="dropdown-menu">
+          {% for s in g.activeseries %}
+              <a class="dropdown-item" href="{{url_for(".index", series=s)}}">{{s}}</a>
+          {% endfor %}
+          </div>
+        </li>
+
+        <li id="eventdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="eventdropdownlink" data-toggle="dropdown">Events</a>
+          <div class="dropdown-menu">
+          {%for event in g.events|sort(attribute='date') %}
+              <a class="dropdown-item" href='{{url_for('.event', eventid=event.eventid)}}'>{{event.name}}</a>
+          {% endfor  %}
+          </div>
+        </li>
+
+        <li id="settingsdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="settingsdropdownlink" data-toggle="dropdown">Settings</a>
+          <div class="dropdown-menu">
+            <a class='dropdown-item' href='{{url_for('.createevent')}}'>New Event</a>
+            <a class='dropdown-item' href='{{url_for('.classlist')}}'>Classes</a>
+            <a class='dropdown-item' href='{{url_for('.indexlist')}}'>Indexes</a>
+            <a class='dropdown-item' href='{{url_for('.settings')}}'>Settings</a>
+            <a class='dropdown-item' href='{{url_for('.drivers')}}'>Driver/Car Editor</a>
+            <a class='dropdown-item' href='{{url_for('.recalc')}}'>Recalculate Results</a>
+            <a class='dropdown-item' href='{{url_for('.purge')}}'>Purge Tool</a>
+	      </div>
+        </li>
+
+        <li id="reportsdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="reportsdropdownlink" data-toggle="dropdown">Settings</a>
+          <div class="dropdown-menu">
+            <a class='dropdown-item' href='{{url_for('.newentrants')}}'>Event Fees/New Entrants</a>
+            <a class='dropdown-item' href='{{url_for('.contactlist')}}'>Series Contact List</a>
+            <a class='dropdown-item' href='{{url_for('.weekend')}}'>Weekend Entries</a>
+	      </div>
+        </li>
+
+        <li id="otherdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="otherdropdownlink" data-toggle="dropdown">Settings</a>
+          <div class="dropdown-menu">
+            <a class='dropdown-item' href='{{url_for('.copyseries')}}'>Create Series From Current</a>
+	      </div>
+        </li>
+
+    </ul>
+  </div>
+</nav>
 {% endblock content %}
 

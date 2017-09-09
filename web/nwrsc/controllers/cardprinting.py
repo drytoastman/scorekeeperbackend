@@ -41,6 +41,9 @@ def printcards():
         registered = [None]
     else:
         registered = Registration.getForEvent(g.eventid)
+        for r in registered:
+            r.__dict__.update(r.dattr)
+            r.__dict__.update(r.cattr)
         if type == 'lastname':
             registered.sort(key=operator.attrgetter('firstname'))
             registered.sort(key=operator.attrgetter('lastname'))
@@ -52,11 +55,7 @@ def printcards():
             # CSV data, just use a template and return
             objects = list()
             for r in registered:
-                o = dict(r.__dict__)
-                o.update(r.dattr)
-                o.update(r.cattr)
-                objects.append(o)
-            
+                objects.append(dict(r.__dict__))
             titles = ['driverid', 'lastname', 'firstname', 'email', 'address', 'city', 'state', 'zip', 'phone', 'sponsor', 'brag',
                                     'carid', 'year', 'make', 'model', 'color', 'number', 'classcode', 'indexcode']
             return csv_encode("cards", titles, objects)
@@ -128,7 +127,7 @@ def stringLimit(c, txt, font, size, limit):
         w = c.stringWidth(txt, font, size)
     return txt
 
-def code39Right(c, x, y, code, height=20, baseline=3.0):
+def code39Right(c, x, y, code, height=20, baseline=2.5):
     wide = baseline
     narrow = baseline / 2.5
     gap = narrow
@@ -138,6 +137,7 @@ def code39Right(c, x, y, code, height=20, baseline=3.0):
     for char in codestr[::-1]:
         seq = barChar.get(char, None)
         if seq is None:
+            log.debug("skipping {}".format(char))
             continue
 
         for bar in range(8, -1, -1):
@@ -240,31 +240,29 @@ def drawCard(c, event, entrant, image, **kwargs):
     c.drawCentredString(MIDDLE, 337, "%s" % (event.name))
     c.setFont('Helvetica-Bold', 11)
     c.drawCentredString(MIDDLE, 320, "%s %d, %d" % (months[event.date.month], event.date.day, event.date.year))
-    # c.setFont('Helvetica-Bold', 12)
-    # c.drawAlignedString(MIDDLE, 313, "Sponsored by: %s" % (event.sponsor), ':')
+    #c.setFont('Helvetica-Bold', 12)
+    #c.drawAlignedString(MIDDLE, 313, "Sponsored by: {}".format(event.attr.get('sponsor', '')), ':')
     if entrant is None:
         return
 
-    dattr = entrant.dattr
-    cattr = entrant.cattr
     c.setFont('Courier', 10)
     x = 70
     y = 187
-    c.drawString(x, y, stringLimit(c, dattr.get('sponsor', ' '), 'Courier', 10, 200) or ""); y += 21
-    c.drawString(x, y, entrant.email or ""); y += 21
-    c.drawString(x, y, dattr.get('phone','')); y += 21
-    c.drawString(x, y, "%s, %s %s" % (dattr.get('city',''), dattr.get('state', ''), dattr.get('zip', ''))); y += 21
-    c.drawString(x, y, dattr.get('address', '')); y += 21
+    c.drawString(x, y, stringLimit(c, entrant.sponsor, 'Courier', 10, 200) or ""); y += 21
+    c.drawString(x, y, entrant.email); y += 21
+    c.drawString(x, y, entrant.phone); y += 21
+    c.drawString(x, y, "%s, %s %s" % (entrant.city, entrant.state, entrant.zip)); y += 21
+    c.drawString(x, y, entrant.address); y += 21
     c.drawString(x, y, "%s %s" % (entrant.firstname, entrant.lastname)); y += 21
 
     x = 337
     y = 187
-    c.drawString(x, y, stringLimit(c, dattr.get('brag',' '),   'Courier', 10, 200)); y += 21
+    c.drawString(x, y, stringLimit(c, entrant.brag,   'Courier', 10, 200)); y += 21
     c.drawString(x, y, entrant.membership or ""); y += 21
-    c.drawString(x, y, stringLimit(c, cattr.get('color', ' '), 'Courier', 10, 85)); y += 21
-    c.drawString(x, y, stringLimit(c, cattr.get('model', ' '), 'Courier', 10, 85)); y += 21
-    c.drawString(x, y, stringLimit(c, cattr.get('make', ' '),  'Courier', 10, 85)); y += 21
-    c.drawString(x, y, stringLimit(c, cattr.get('year', ' '),  'Courier', 10, 85)); y += 21
+    c.drawString(x, y, stringLimit(c, entrant.color, 'Courier', 10, 85)); y += 21
+    c.drawString(x, y, stringLimit(c, entrant.model, 'Courier', 10, 85)); y += 21
+    c.drawString(x, y, stringLimit(c, entrant.make,  'Courier', 10, 85)); y += 21
+    c.drawString(x, y, stringLimit(c, entrant.year,  'Courier', 10, 85)); y += 21
 
     x = 490
     y = 187 + (4*21)
@@ -274,5 +272,5 @@ def drawCard(c, event, entrant, image, **kwargs):
     else:
         c.drawString(x, y, entrant.classcode); y += 21
 
-    code39Right(c, 558, 314, str(entrant.carid))
+    code39Right(c, 558, 316, str(entrant.carid.fields[0]))
 

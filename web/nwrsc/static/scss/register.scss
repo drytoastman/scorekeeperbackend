@@ -9,7 +9,8 @@ $bootstrapblue: #0275d8;
 $bootstrapitem: rgba(255, 255, 255, 0.75);
 
 @import "../extern/font-awesome/font-awesome.scss";
-@import "../extern/bootstrap.scss";
+@import "../extern/bootstrap-4.0.0b.scss";
+@import "commonnav.scss";
 
 /* Things for all pages */
 ul {
@@ -17,24 +18,6 @@ ul {
     margin: 0;
     padding: 0;
 }
-
-nav {
-    ul {
-        margin-bottom: 1px !important;
-    }
-}
-
-.navbar {
-    padding: 0px;
-  
-    .nav-item > a:hover  {
-        color: white !important;
-    }
-    .navbar-toggler {
-        margin-top: 9px;
-    }
-}
-
 
 .title {
     font-size: 1.4rem;

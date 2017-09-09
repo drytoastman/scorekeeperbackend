@@ -7,5 +7,5 @@ from .result import Result
 from .rungroups import RunGroups
 from .series import Series
 from .settings import Settings
-from .simple import Audit, Challenge, Event, Registration, Run, RunOrder, TimerTimes
+from .simple import Audit, Challenge, Event, NumberEntry, Registration, Run, RunOrder, TimerTimes
 

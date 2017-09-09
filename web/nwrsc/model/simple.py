@@ -62,6 +62,13 @@ class Event(AttrBase):
         return cls.getall("select * from events order by date")
 
 
+class NumberEntry(AttrBase):
+    @classmethod
+    def allNumbers(cls):
+        with g.db.cursor() as cur:
+            cur.execute("SELECT d.firstname, d.lastname, c.classcode, c.number FROM drivers d JOIN cars c ON c.driverid=d.driverid")
+            return [cls(**x) for x in cur.fetchall()]
+
 
 class Registration(AttrBase):
 
@@ -153,5 +160,4 @@ class TimerTimes():
                 return cur.fetchone()[0]
             except Exception as e:
                 return None
-
 

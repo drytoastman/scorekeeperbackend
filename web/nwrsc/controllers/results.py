@@ -6,7 +6,7 @@ from operator import itemgetter
 import logging
 
 from flask import Blueprint, request, abort, render_template, get_template_attribute, make_response, g
-from nwrsc.model import Result
+from nwrsc.model import Audit, Event, Registration, Result, RunGroups
 from nwrsc.lib.bracket import Bracket
 from nwrsc.lib.misc import csvlist
 
@@ -154,4 +154,41 @@ def bracketround(challengeid, round):
 def challenge(challengeid):
     (challenge, results) = _loadChallengeResults(challengeid)
     return render_template('/challenge/challengereport.html', results=results, chal=challenge)
+
+@Results.route("/event/<uuid:eventid>/audit")
+def audit():
+    course = request.args.get('course', 1)
+    group  = request.args.get('group', 1)
+    order  = request.args.get('order', 'runorder')
+    event  = Event.get(g.eventid)
+    audit  = Audit.audit(event, course, group)
+
+    if order in ['firstname', 'lastname']:
+        audit.sort(key=lambda obj: str.lower(str(getattr(obj, order))))
+    else:
+        order = 'runorder'
+        audit.sort(key=lambda obj: obj.row)
+
+    return render_template('/results/audit.html', audit=audit, event=event, course=course, group=group, order=order)
+
+@Results.route("/event/<uuid:eventid>/grid")
+def grid():
+    order = request.args.get('order', 'number')
+    groups = RunGroups.getForEvent(g.eventid)
+
+    # Create a list of entrants in order of rungroup, classorder and [net/number]
+    if order == 'position': 
+        for l in Result.getEventResults(g.eventid).values():
+            for d in l:
+                groups.put(Entrant(**d))
+    else: # number
+        for e in Registration.getForEvent(g.eventid):
+            groups.put(e)
+
+    groups.sort(order)
+    for go in groups.values():
+        go.pad()
+        go.number()
+
+    return render_template('/results/grid.html', groups=groups, order=order, starts=[k for k in groups if k < 100])
 

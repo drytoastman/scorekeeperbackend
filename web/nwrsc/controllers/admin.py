@@ -1,105 +1,77 @@
+from collections import defaultdict
+from datetime import datetime, timedelta
 import logging
 import operator
 import psycopg2
 import re
 import io
 
-from datetime import datetime, timedelta
-
-#from nwrsc.controllers.lib.entranteditor import EntrantEditor
-#from nwrsc.controllers.lib.objecteditors import ObjectEditor
-#from nwrsc.controllers.lib.cardprinting import CardPrinting
-#from nwrsc.controllers.lib.purgecopy import PurgeCopy
 from flask import Blueprint, current_app, g, redirect, request, render_template, session, url_for
 
 from nwrsc.model import *
 
-log = logging.getLogger(__name__)
-
-Admin = Blueprint("Admin", __name__)
-
+log     = logging.getLogger(__name__)
+Admin   = Blueprint("Admin", __name__)
 AUTHKEY = 'adminauth'
+PATHKEY = 'origpath'
+
+def recordpath():
+    if PATHKEY not in session[AUTHKEY]:
+        session[AUTHKEY][PATHKEY] = request.path
+        session.modified = True
+
+def clearpath():
+    if PATHKEY in session[AUTHKEY]:
+        del session[AUTHKEY][PATHKEY]
+        session.modified = True
 
 @Admin.before_request
 def setup():
+    """ Every page underneath here requires a password """
     g.title = 'Scorekeeper Admin'
-    g.activeseries = Series.active()
+    log.debug("session is %s", session)
     if AUTHKEY not in session:
         session[AUTHKEY] = {}
+    if not g.series in session[AUTHKEY]:
+        recordpath()
+        return login()
+    
+    clearpath()
+    g.activeseries = Series.active()
+    g.events  = Event.byDate()
 
-def isauth():
-    return g.series in session[AUTHKEY]
-
-def check_password(user, password):
-    """ Assumes container db is named as such but it works, can't use config/unix socket as it implicitly trusts any user declaration """
-    try:
-        pg = psycopg2.connect(host='db', port=5432, user=user, password=password, dbname='scorekeeper')
-        pg.close()
-        return True
-    except Exception:
-        return False
 
 @Admin.route("/login", methods=['POST', 'GET'])
 def login():
+    """ Assumes container db is named as such but it works, can't use config/unix socket as it implicitly trusts any user declaration """
     if request.form.get('password'):
-        if check_password(g.series, request.form.get('password').strip()):
+        try:
+            password = request.form.get('password')[:16].strip()
+            psycopg2.connect(host='db', port=5432, user=g.series, password=password, dbname='scorekeeper').close()
             session[AUTHKEY][g.series] = 1
             session.modified = True
-            return redirect(url_for(".index"))
-
-    log.debug("returning to adming page")
-    return render_template('/admin/login.html', series=g.series)
+            return redirect(session[AUTHKEY][PATHKEY])
+        except Exception as e:
+            log.error("Login failure: %s", e, exc_info=e)
+    return render_template('/admin/login.html')
     
 @Admin.route("/")
 def index():
-    events  = Event.byDate()
-    return render_template('/admin/abase.html', series=g.series, events=Event.byDate())
+    return render_template('/admin/status.html')
 
 @Admin.route("/event/<uuid:eventid>")
 def event():
-    if not isauth(): return login()
     return render_template('/admin/event.html', event=Event.get(g.eventid))
 
-## Perhaps move these to an admin like site?
-
-@Admin.route("/event/<uuid:eventid>/audit")
-def audit():
-    course = request.args.get('course', 1)
-    group  = request.args.get('group', 1)
-    order  = request.args.get('order', 'runorder')
-    event  = Event.get(g.eventid)
-    audit  = Audit.audit(event, course, group)
-
-    if order in ['firstname', 'lastname']:
-        audit.sort(key=lambda obj: str.lower(str(getattr(obj, order))))
-    else:
-        order = 'runorder'
-        audit.sort(key=lambda obj: obj.row)
-
-    return render_template('/admin/audit.html', audit=audit, event=event, course=course, group=group, order=order)
-
-
-@Admin.route("/event/<uuid:eventid>/grid")
-def grid():
-    order = request.args.get('order', 'number')
-    groups = RunGroups.getForEvent(g.eventid)
-
-    # Create a list of entrants in order of rungroup, classorder and [net/number]
-    if order == 'position': 
-        for l in Result.getEventResults(g.eventid).values():
-            for d in l:
-                groups.put(Entrant(**d))
-    else: # number
-        for e in Registration.getForEvent(g.eventid):
-            groups.put(e)
-
-    groups.sort(order)
-    for go in groups.values():
-        go.pad()
-        go.number()
-
-    return render_template('/admin/grid.html', groups=groups, order=order, starts=[k for k in groups if k < 100])
-
+@Admin.route("/event/<uuid:eventid>/numbers")
+def numbers():
+    numbers = defaultdict(lambda: defaultdict(set))
+    settings = Settings.get()
+    for res in NumberEntry.allNumbers():
+        if settings.superuniquenumbers:
+            res.code = "All"
+        numbers[res.classcode][res.number].add(res.firstname+" "+res.lastname)
+    return render_template('/admin/numberlist.html', numbers=numbers)
 
 
 @Admin.route("/event/<uuid:eventid>/editevent",   endpoint='editevent')
@@ -107,13 +79,22 @@ def grid():
 @Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
 @Admin.route("/event/<uuid:eventid>/deleteevent", endpoint='deleteevent')
 @Admin.route("/event/<uuid:eventid>/printhelp",   endpoint='printhelp')
-@Admin.route("/event/<uuid:eventid>/numbers",     endpoint='numbers')
-@Admin.route("/event/<uuid:eventid>/paid",        endpoint='paid')
-@Admin.route("/event/<uuid:eventid>/paypal",      endpoint='paypal')
-@Admin.route("/event/<uuid:eventid>/contactlist", endpoint='contactlist')
-@Admin.route("/event/<uuid:eventid>/newentrants", endpoint='newentrants')
+@Admin.route("/event/<uuid:eventid>/paid",        endpoint='eventpaid')
+@Admin.route("/event/<uuid:eventid>/contactlist", endpoint='eventcontactlist')
+@Admin.route("/event/<uuid:eventid>/newentrants", endpoint='eventnewentrants')
+@Admin.route("/createevent", endpoint='createevent')
+@Admin.route("/classlist",   endpoint='classlist')
+@Admin.route("/indexlist",   endpoint='indexlist')
+@Admin.route("/settings",    endpoint='settings')
+@Admin.route("/drivers",     endpoint='drivers')
+@Admin.route("/recalc",      endpoint='recalc')
+@Admin.route("/purge",       endpoint='purge')
+@Admin.route("/newentrants", endpoint='newentrants')
+@Admin.route("/contactlist", endpoint='contactlist')
+@Admin.route("/weekend",     endpoint='weekend')
+@Admin.route("/copyseries",  endpoint='copyseries')
 def notyetdone():
-    return "TBD"
+    return render_template('/admin/simple.html', text='This is TBD')
 
 
 #####################################################################################################
@@ -344,23 +325,6 @@ class AdminController(): #BaseController, EntrantEditor, ObjectEditor, CardPrint
 
     def restricthelp(self):
         return render_template('/admin/restricthelp.html')
-
-
-    def numbers(self):
-        # As with other places, one big query followed by mangling in python is faster (and clearer)
-        c.numbers = {}
-        for res in self.session.query(Driver.firstname, Driver.lastname, Car.classcode, Car.number).join('cars'):
-            if self.settings.superuniquenumbers:
-                code = "All"
-            else:
-                code = res[2]
-            num = res[3]
-            name = res[0]+" "+res[1]
-            if code not in c.numbers:
-                c.numbers[code] = {}
-            c.numbers[code].setdefault(num, set()).add(name)
-
-        return render_template('/admin/numberlist.html')
 
     def paid(self):
         """ Return the list of fees paid before this event """

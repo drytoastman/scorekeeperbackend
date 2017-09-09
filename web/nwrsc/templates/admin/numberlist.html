@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Used Number List</h2>
+<ul>
+{% for code,subdict in numbers|dictsort %}
+	<li>{{code}}<ul>
+    {% for num,names in subdict|dictsort %}
+        <li>{{num}}: {{names|join(', ')}}</li>
+    {% endfor %}
+    </ul>
+    </li>
+{% endfor %}
+</table>
+{% endblock content %}
+

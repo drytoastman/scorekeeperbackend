@@ -42,4 +42,3 @@ class Car(AttrBase):
                 cur.execute("select distinct number from cars where classcode=%s and number not in (select number from cars where classcode=%s and driverid=%s)", (classcode, classcode, driverid))
             return [x[0] for x in cur.fetchall()]
 
-

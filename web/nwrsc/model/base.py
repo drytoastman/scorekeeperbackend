@@ -71,5 +71,8 @@ class AttrBase(object):
 class Entrant(AttrBase):
     """ Generic holder for some subset of driver and car entry data """
     def __repr__(self):
-        return "Entrant ({} {})".format(getattr(self, 'firstname', 'Missing'), getattr(self, 'lastname', 'Missing'))
+        return "Entrant ({} {})".format(self.firstname or 'Missing', self.lastname or 'Missing')
+
+    def __getattr__(self, k):
+        return " "
 
