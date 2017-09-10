@@ -1,0 +1,21 @@
+{% extends "/admin/abase.html" %}
+
+{% block headers %}
+{{super()}}
+<script>
+$(document).ready(function(){
+	$("#pospointlist").parent().toggle({{settings.usepospoints and "true" or "false"}});
+	$("input[name=usepospoints]").click(function() { $("#pospointlist").parent().toggle(this.checked); });
+});
+</script>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h3 class='text-center'>General Settings</h3>
+{{ settingsform.html('settingsform', url_for('.settings'), 'post', 'btn-success', 'col-md-4', 'col-md-7') | safe }}
+<span>FINISH ME Templates Stylesheet and Timing Cards</span>
+</div>
+{% endblock content %}
+

@@ -4,8 +4,8 @@ from operator import attrgetter
 from flask import request, flash
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, HiddenField, PasswordField, SelectField, StringField, SubmitField
-from wtforms.fields.html5 import EmailField, IntegerField
-from wtforms.validators import Length, Email, Required
+from wtforms.fields.html5 import EmailField, IntegerField, URLField
+from wtforms.validators import InputRequired, Length, Email, Required
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class MyEmailField(EmailField):
 
 class MyFlaskForm(FlaskForm):
 
-    def html(self, idx, action, method, labelcol='col-md-3', inputcol='col-md-9'):
+    def html(self, idx, action, method, btnclass='btn-primary', labelcol='col-md-3', inputcol='col-md-9'):
         ret = list()
         ret.append("<form id='{}' action='{}' method='{}'>".format(idx, action, method))
         for f in self:
@@ -57,7 +57,7 @@ class MyFlaskForm(FlaskForm):
 
         ret.append("<div class='row'>")
         ret.append("<div class='{}'></div>".format(labelcol))
-        ret.append(self.submit(class_="{} btn btn-primary".format(inputcol)))
+        ret.append(self.submit(class_="{} btn {}".format(inputcol, btnclass)))
         ret.append("</div>")
         ret.append("</form>")
         return '\n'.join(ret)
@@ -141,4 +141,18 @@ class CarForm(MyFlaskForm):
         MyFlaskForm.__init__(self)
         self.classcode.choices = [(c.classcode, "%s - %s" % (c.classcode, c.descrip)) for c in sorted(classdata.classlist.values(), key=attrgetter('classcode')) if c.classcode != 'HOLD']
         self.indexcode.choices = [(i.indexcode, "%s - %s" % (i.indexcode, i.descrip)) for i in sorted(classdata.indexlist.values(), key=attrgetter('indexcode'))]
+
+class SettingsForm(MyFlaskForm):
+    seriesname          = MyStringField('Series Name',        [Length(min=2, max=32)])
+    largestcarnumber    = IntegerField( 'Largest Car Number', [Required()])
+    minevents           = IntegerField( 'Min Events',         [InputRequired()])
+    dropevents          = IntegerField( 'Drop X Events',      [InputRequired()])
+    sponsorlink         = URLField(     'Sponsor Link')
+    classinglink        = URLField(     'Classing Help Link')
+    champsorting        = MyStringField('Championship Tie Breakers')
+    usepospoints        = BooleanField( 'Use Position For Points')
+    pospointlist        = MyStringField('Position Points')
+    indexafterpenalties = BooleanField( 'Index After Penalties')
+    superuniquenumbers  = BooleanField( 'Series Wide Unique Numbers')
+    submit              = SubmitField(  'Update')
 

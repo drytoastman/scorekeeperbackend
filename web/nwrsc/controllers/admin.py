@@ -8,6 +8,7 @@ import io
 
 from flask import Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
 
+from nwrsc.lib.forms import flashformerrors, formIntoAttrBase, SettingsForm
 from nwrsc.model import *
 
 log     = logging.getLogger(__name__)
@@ -100,7 +101,7 @@ def classlist():
             flash("Exception processing classlist: {}".format(e))
             log.error("General exception processing classlist", exc_info=e)
         finally:
-            g.db.rollback()
+            redirect(url_for('.classlist'))
 
     classdata = ClassData.get()
     classdata.classlist.pop('HOLD', None)
@@ -119,11 +120,29 @@ def indexlist():
             flash("Exception processing indexlist: {}".format(e))
             log.error("General exception processing indexlist", exc_info=e)
         finally:
-            g.db.rollback()
+            redirect(url_for('.indexlist'))
 
     classdata = ClassData.get()
     classdata.indexlist.pop("", None)
     return render_template('/admin/indexlist.html', classdata=classdata)
+
+
+@Admin.route("/settings", methods=['POST', 'GET'])
+def settings():
+    settingsform = SettingsForm()
+    if request.form:
+        if settingsform.validate():
+            """ Process settings form submission """
+            log.debug(settingsform)
+            settings = Settings.fromForm(settingsform)
+            settings.save()
+        else:
+            flashformerrors(settingsform)
+        redirect(url_for('.settings'))
+
+    settings = Settings.get()
+    settingsform = SettingsForm(obj=settings)
+    return render_template('/admin/settings.html', settings=settings, settingsform=settingsform)
 
 
 
@@ -135,7 +154,6 @@ def indexlist():
 @Admin.route("/event/<uuid:eventid>/contactlist", endpoint='eventcontactlist')
 @Admin.route("/event/<uuid:eventid>/newentrants", endpoint='eventnewentrants')
 @Admin.route("/createevent", endpoint='createevent')
-@Admin.route("/settings",    endpoint='settings')
 @Admin.route("/drivers",     endpoint='drivers')
 @Admin.route("/recalc",      endpoint='recalc')
 @Admin.route("/purge",       endpoint='purge')
@@ -225,12 +243,6 @@ class AdminController(): #BaseController, EntrantEditor, ObjectEditor, CardPrint
         self.session.commit()
         redirect(url_for(action='index'))
 
-
-    def forceunlock(self):
-        self.settings.locked = False
-        self.settings.save(self.session)
-        self.session.commit()
-        redirect(url_for(action=request.GET.get('next', '')))
 
     def contactlist(self):
         c.classlist = self.session.query(Class).order_by(Class.code).all()

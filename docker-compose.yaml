@@ -15,6 +15,7 @@ services:
     environment:
         - DEBUG=1
         - LOG_LEVEL=DEBUG
+        - WERKZEUG_DEBUG_PIN=off
     volumes:  
         - "dbsocket:/var/run/postgresql"
         - "logs:/var/log"

@@ -36,9 +36,17 @@ $(document).ready(function(){
 {% endfor %}
 </table>
 
-<button class='btn btn-outline-success addbutton'>Add</button>
+<button class='btn btn-outline-success addbutton'>Add Row</button>
+<span class="dropdown">
+  <button class="btn btn-outline-success dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Generate From
+  </button>
+  <div class="dropdown-menu">
+    <a class="dropdown-item">2017 PAX/RTP</a>
+    <a class="dropdown-item">2016 PAX/RTP</a>
+  </div>
+</span>
 <input  class='btn btn-success' type='submit' value="Save">
-</form>
 
 <table style='display:none' id='indexlisttemplate'>
 {{dorow('xxxxx')}}

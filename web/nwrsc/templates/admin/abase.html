@@ -40,10 +40,9 @@
         <li id="settingsdropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="settingsdropdownlink" data-toggle="dropdown">Settings</a>
           <div class="dropdown-menu">
-            <a class='dropdown-item' href='{{url_for('.createevent')}}'>New Event</a>
+            <a class='dropdown-item' href='{{url_for('.settings')}}'>General</a>
             <a class='dropdown-item' href='{{url_for('.classlist')}}'>Classes</a>
             <a class='dropdown-item' href='{{url_for('.indexlist')}}'>Indexes</a>
-            <a class='dropdown-item' href='{{url_for('.settings')}}'>Settings</a>
             <a class='dropdown-item' href='{{url_for('.drivers')}}'>Driver/Car Editor</a>
             <a class='dropdown-item' href='{{url_for('.recalc')}}'>Recalculate Results</a>
             <a class='dropdown-item' href='{{url_for('.purge')}}'>Purge Tool</a>
@@ -51,7 +50,7 @@
         </li>
 
         <li id="reportsdropdown" class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="reportsdropdownlink" data-toggle="dropdown">Settings</a>
+          <a class="nav-link dropdown-toggle" href="#" id="reportsdropdownlink" data-toggle="dropdown">Reports</a>
           <div class="dropdown-menu">
             <a class='dropdown-item' href='{{url_for('.newentrants')}}'>Event Fees/New Entrants</a>
             <a class='dropdown-item' href='{{url_for('.contactlist')}}'>Series Contact List</a>
@@ -59,10 +58,11 @@
 	      </div>
         </li>
 
-        <li id="otherdropdown" class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="otherdropdownlink" data-toggle="dropdown">Other</a>
+        <li id="createdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="createdropdownlink" data-toggle="dropdown">Create</a>
           <div class="dropdown-menu">
-            <a class='dropdown-item' href='{{url_for('.copyseries')}}'>Create Series From Current</a>
+            <a class='dropdown-item' href='{{url_for('.createevent')}}'>New Event</a>
+            <a class='dropdown-item' href='{{url_for('.copyseries')}}'>New Series From Current</a>
 	      </div>
         </li>
 

@@ -21,6 +21,12 @@ $widgetStateActiveColor: #AAA;
     }
 }
 
+#settingsform {
+    input[type=checkbox] {
+        flex: 0 0 2rem;
+    }
+}
+
 table {
   &.input th {
     text-align: right;
