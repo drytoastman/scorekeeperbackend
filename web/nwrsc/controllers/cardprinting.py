@@ -38,7 +38,7 @@ def printcards():
     type = request.args.get('type', 'blank')
 
     if type == 'blank':
-        registered = [None]
+        registered = []
     else:
         registered = Registration.getForEvent(g.eventid)
         for r in registered:
@@ -52,13 +52,13 @@ def printcards():
             registered.sort(key=operator.attrgetter('classcode'))
     
     if page == 'csv':
-            # CSV data, just use a template and return
-            objects = list()
-            for r in registered:
-                objects.append(dict(r.__dict__))
-            titles = ['driverid', 'lastname', 'firstname', 'email', 'address', 'city', 'state', 'zip', 'phone', 'sponsor', 'brag',
-                                    'carid', 'year', 'make', 'model', 'color', 'number', 'classcode', 'indexcode']
-            return csv_encode("cards", titles, objects)
+        # CSV data, just use a template and return
+        objects = list()
+        for r in registered:
+            objects.append(dict(r.__dict__))
+        titles = ['driverid', 'lastname', 'firstname', 'email', 'address', 'city', 'state', 'zip', 'phone', 'sponsor', 'brag',
+                                'carid', 'year', 'make', 'model', 'color', 'number', 'classcode', 'indexcode']
+        return csv_encode("cards", titles, objects)
 
 
     # Otherwise we are are PDF
@@ -66,6 +66,9 @@ def printcards():
         size = (8*inch, 11*inch)
     else:
         size = (8*inch, 5*inch)
+
+    if type == 'blank':
+        registered.append(None)
 
     if page == 'letter' and len(registered)%2 != 0:
         registered.append(None) # Pages are always two cards per so make it divisible by 2

@@ -19,6 +19,22 @@ class Class(AttrBase):
             return self.countedruns
 
     @classmethod
+    def fromForm(cls, data):
+        ret = cls()
+        ret.classcode       = data['classcode'] # This one MUST be there
+        ret.descrip         =       data.get('descrip', '')
+        ret.indexcode       =       data.get('indexcode', '')
+        ret.caridxrestrict  =       data.get('caridxrestrict', '')
+        ret.classmultiplier = float(data.get('classmultiplier', 1.0) or 1.0)
+        ret.carindexed      =  bool(data.get('carindexed',  False))
+        ret.usecarflag      =  bool(data.get('usecarflag',  False))
+        ret.eventtrophy     =  bool(data.get('eventtrophy', False))
+        ret.champtrophy     =  bool(data.get('champtrophy', False))
+        ret.secondruns      =  bool(data.get('secondruns',  False))
+        ret.countedruns     =   int(data.get('countedruns', 0) or 0)
+        return ret
+    
+    @classmethod
     def get(cls, code):
         with g.db.cursor() as cur:
             cur.execute("select * from classlist where classcode=%s", (code,))
@@ -45,6 +61,7 @@ class Index(AttrBase):
             cur.execute("select * from indexlist order by indexcode")
             return [Index(**x) for x in cur.fetchall()]
 
+
 class ClassData(object):
 
     def __init__(self, classdicts=[], indexdicts=[]):
@@ -70,6 +87,32 @@ class ClassData(object):
                 ret.indexlist[i.indexcode] = i
         return ret
 
+
+    def updateClassesTo(self, newclasses):
+        """
+            Delete and reinsert make it look like everything changed (modified times), so we make sure to only insert/delete what
+            actually needs to happen.  Updates that don't change anything will get filtered at the plpgsql level
+        """
+        newcodes = set(newclasses.keys())
+        oldcodes = set(self.classlist.keys())
+        ignore   = set(['HOLD'])
+        insert = newcodes - oldcodes - ignore
+        update = newcodes & oldcodes - ignore
+        delete = oldcodes - newcodes - ignore
+
+        log.debug("%s %s %s", insert, update, delete)
+        with g.db.cursor() as cur:
+            for k in delete:
+                cur.execute("DELETE from classlist where classcode=%s", (k,))
+            for k in update:
+                u = newclasses[k]
+                cur.execute("UPDATE classlist SET descrip=%s, indexcode=%s, caridxrestrict=%s, classmultiplier=%s, carindexed=%s, usecarflag=%s, eventtrophy=%s, champtrophy=%s, secondruns=%s, countedruns=%s, modified=now() WHERE classcode=%s",
+                                               (u.descrip,  u.indexcode,  u.caridxrestrict,  u.classmultiplier,  u.carindexed,  u.usecarflag,  u.eventtrophy,  u.champtrophy,  u.secondruns,  u.countedruns,  u.classcode))
+            for k in insert:
+                i = newclasses[k]
+                cur.execute("INSERT INTO classlist (classcode, descrip, indexcode, caridxrestrict, classmultiplier, carindexed, usecarflag, eventtrophy, champtrophy, secondruns, countedruns, modified) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())",
+                                              (i.classcode, i.descrip, i.indexcode, i.caridxrestrict, i.classmultiplier, i.carindexed, i.usecarflag, i.eventtrophy, i.champtrophy, i.secondruns, i.countedruns))
+        g.db.commit()
 
     def indexes(self):
         ret = list(self.indexlist.keys())
@@ -106,9 +149,11 @@ class ClassData(object):
                         ret -= globItem(item, fullset)
             return ret
 
+        if classcode not in self.classlist or not self.classlist[classcode].carindexed:
+            return ([], [])
         idxlist = list(self.indexlist.keys())
         idxlist.remove("")
-        if classcode not in self.classlist or not self.classlist[classcode].caridxrestrict:
+        if not self.classlist[classcode].caridxrestrict:
             return (idxlist, idxlist)
         full = self.classlist[classcode].caridxrestrict.replace(" ", "")
         indexrestrict = processList(RINDEX.findall(full), idxlist)

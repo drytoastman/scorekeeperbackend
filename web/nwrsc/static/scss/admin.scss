@@ -6,17 +6,20 @@ $widgetStateActiveBackground: #0AA;
 $widgetStateActiveColor: #AAA;
 
 @import "../extern/bootstrap-4.0.0b.scss";
-@import "commonnav.scss";
+@import "common.scss";
 
-input[name=confirm] {
-    display: none;
+@media (max-width: 768px) {
+    .form-group {
+        margin-bottom: 0;
+    }
+    .spaceholder {
+        display: none;
+    }
+    input[type=submit] {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
 }
-
-.body {
-  margin-left: 15px;
-  color: #337
-}
-
 
 table {
   &.input th {
@@ -32,29 +35,6 @@ table {
     }
   }
 }
-
-.passwordform {
-	margin-left: 10px;
-
-	table {
-		margin-bottom: 10px;
-	}
-
-	td {
-		text-align: right;
-	}
-
-	label {
-		font-weight: bold;
-		font-size: 1.0em;
-
-		&.series {
-			font-size: 1.3em;
-			padding-bottom: 20px;
-		}
-	}
-}
-	
 
 table.editor {
   border-collapse: collapse;
@@ -104,7 +84,7 @@ div.editor {
 
 
 button.small {
-  font-size: 0.7em !important;
+  font-size: 0.6rem;
 }
 
 
@@ -192,6 +172,7 @@ ul.invalidlist {
 		&.multcol, &.flagcol {
 			border-top: 1px solid #cccccc;
 		}
+        white-space:nowrap;
 	}
 
 	tr:last-child td {

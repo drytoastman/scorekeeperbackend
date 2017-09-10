@@ -10,7 +10,7 @@ $bootstrapitem: rgba(255, 255, 255, 0.75);
 
 @import "../extern/font-awesome/font-awesome.scss";
 @import "../extern/bootstrap-4.0.0b.scss";
-@import "commonnav.scss";
+@import "common.scss";
 
 /* Things for all pages */
 ul {
@@ -28,11 +28,6 @@ ul {
         font-size: 1.0rem;
         vertical-align: sub;
     }
-}
-
-.error {
-    color: red;
-    text-align: center;
 }
 
 .modal-header {
@@ -94,10 +89,6 @@ form {
         height: 2.0rem;
         margin-top: 0.8rem;
         padding: 0px;
-    }
-
-    input[name=confirm] {
-        display: none;
     }
 
     input[type=checkbox] {

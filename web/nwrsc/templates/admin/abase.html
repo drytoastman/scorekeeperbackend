@@ -60,7 +60,7 @@
         </li>
 
         <li id="otherdropdown" class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="otherdropdownlink" data-toggle="dropdown">Settings</a>
+          <a class="nav-link dropdown-toggle" href="#" id="otherdropdownlink" data-toggle="dropdown">Other</a>
           <div class="dropdown-menu">
             <a class='dropdown-item' href='{{url_for('.copyseries')}}'>Create Series From Current</a>
 	      </div>
@@ -69,5 +69,11 @@
     </ul>
   </div>
 </nav>
-{% endblock content %}
 
+<div class='formerror'>
+{% for msg in get_flashed_messages() %}
+<div class='error'>{{msg}}</div>
+{% endfor %}
+</div>
+
+{% endblock content %}

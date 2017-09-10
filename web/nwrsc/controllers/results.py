@@ -22,6 +22,8 @@ def index():
 @Results.route("/event/<uuid:eventid>/")
 def event():
     info    = Result.getSeriesInfo()
+    if not info.getEvent(g.eventid):
+        abort(404, "No such event")
     results = Result.getEventResults(g.eventid)
     active  = results.keys()
     event   = info.getEvent(g.eventid)

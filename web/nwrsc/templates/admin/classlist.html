@@ -1,62 +1,63 @@
-<%inherit file="base.mako" />
-<%  from nwrsc.model import Class %>
+{% extends "/admin/abase.html" %}
 
-<%
-	def restrictformat(cls):
-		r = cls.restrictedIndexes()
-		return "indexdisallow(%s)  flagdisallow(%s)" % ((', '.join(sorted(r[0]))), (', '.join(sorted(r[1]))))
+{% block headers %}
+{{super()}}
+<script>
+$(document).ready(function(){
+	$('.deleterow').click(function() { $(this).closest('tr').remove(); return false; });
+	$('#classlistform .addbutton').click(function() {
+        newCountedRow('#classlistform', '#classlisttemplate');
+        return false;
+    });
+});
+</script>
+{% endblock headers %}
 
-	def singleline(text):
-		return text.replace('\n', '') 
-%>
 
-<%def name="dorow(ii, cls)" filter="singleline">
-<tr data-counter="${ii}">
-<td>
-	<input type="text" name="clslist-${ii}.code" value="${cls.code}" size="6" />
-</td>
-<td>
-	<input type="text" name="clslist-${ii}.descrip" value="${cls.descrip}" size="50" />
-</td>
-<td title="Receives trophies at events">
-	<input type="checkbox" name="clslist-${ii}.eventtrophy" ${cls.eventtrophy and 'checked="checked"' or ''|n} />
-</td>
-<td title="Receives trophies for the series">
-	<input type="checkbox" name="clslist-${ii}.champtrophy" ${cls.champtrophy and 'checked="checked"' or ''|n} />
-</td>
-<td title="Cars are individually indexed by index value">
-	<input type="checkbox" name="clslist-${ii}.carindexed" ${cls.carindexed and 'checked="checked"' or ''|n} />
-</td>
+{% macro restrictformat(cls) %}
+    {% set res = classdata.restrictedIndexes(cls.classcode) %}
+    Classes {{res[0]|sort}}
+    Flags {{res[1]|sort}}
+    {#"indexdisallow(%s)  flagdisallow(%s)" % ((', '.join(sorted(r[0]))), (', '.join(sorted(r[1])))) #}
+{% endmacro %}
+
+{% macro textbox(index, name, size, obj) %}
+ <input type="text" name="clslist-{{index}}.{{name}}" value="{{obj[name]}}" size="{{size}}" />
+{% endmacro %}
+
+{% macro checkbox(index, name, obj) %}
+ <input type="checkbox" name="clslist-{{index}}.{{name}}" {{obj[name] and 'checked' or ''}} />
+{% endmacro %}
+
+{% macro dorow(ii, cls=None) %}
+<tr data-counter="{{ii}}">
+<td title="Required classcode">{{textbox(ii, 'classcode', 6, cls)}}</td>
+<td title="A user description">{{textbox(ii, 'descrip', 50, cls)}}</td>
+<td title="Receives trophies at events">{{checkbox(ii, 'eventtrophy', cls)}}</td>
+<td title="Receives trophies for the series">{{checkbox(ii, 'champtrophy', cls)}}</td>
+<td title="Cars are individually indexed by index value">{{checkbox(ii, 'carindexed', cls)}}</td>
 <td class='clsindexcol' title="Entire class is indexed by this index code">
-	<select name="clslist-${ii}.classindex">
-	%for code in sorted(c.indexlist):
-		<option value="${code}" ${cls.classindex==code and "selected" or ""}>${code}</option>
-	%endfor
+	<select name="clslist-{{ii}}.indexcode">
+	{% for code in classdata.indexlist.keys()|sort %}
+		<option value="{{code}}" {{cls.indexcode==code and "selected" or ""}}>{{code}}</option>
+	{% endfor %}
 	</select>
 </td>
-<td class="multcol" title="This multiplier is applied to entire class, i.e. street tire factor">
-	<input type="text" name="clslist-${ii}.classmultiplier" value="${"%0.3f" % (cls.classmultiplier or 1.000)}" size="5" />
-</td>
-<td class="flagcol" title="Require that the car flag is checked for the additional multiplier to be applied">
-	<input type="checkbox" name="clslist-${ii}.usecarflag" ${cls.usecarflag and 'checked="checked"' or ''|n} />
-</td>
-<td title="${restrictformat(cls)}">
-	<input type="text" name="clslist-${ii}.caridxrestrict" value="${cls.caridxrestrict}" size="20"/>
-</td>
-<td class='limitcol' title="Limit number of counted runs for this class">
-	<input type="text" name="clslist-${ii}.countedruns" value="${cls.countedruns or 0}" size="3" />
-</td>
-<td>
-	<button class="small deleterow">Del</button>
-</td>
-<td>
-	<input type="hidden" name="clslist-${ii}.numorder" value="${cls.numorder}" />
-</td>
-<td>
-</td>
+<td class="multcol" title="This multiplier is applied to entire class, i.e. street tire factor">{{textbox(ii, 'classmultiplier', 5, cls)}}</td>
+<td class="flagcol" title="Require that the car flag is checked for the additional multiplier to be applied">{{checkbox(ii, 'usecarflag', cls)}}</td>
+<td title="{{restrictformat(cls)}}">{{textbox(ii, 'caridxrestrict', 20, cls)}}</td>
+<td class='limitcol' title="Limit number of counted runs for this class">{{textbox(ii, 'countedruns', 3, cls)}}</td>
+<td><button class="btn btn-outline-success small deleterow">Del</button></td>
+<td><input type="hidden" name="clslist-{{ii}}.numorder" value="{{cls.numorder}}" /></td>
+<td></td>
 </tr>
-</%def>
+{% endmacro %}
 
+
+{% block content %}
+{{super()}}
+
+<div class='container'>
 <h2>Class Editor</h2>
 
 <p>
@@ -75,7 +76,7 @@ Each class has a short code and a full string description.  The description is o
 
 </p>
 
-<form action="${c.action}" method="post" id='classlistform'>
+<form action="{{url_for(".classlist")}}" method="post" id='classlistform'>
 <table class='classtable'>
 <tr>
 <th>Code</th>
@@ -90,26 +91,20 @@ Each class has a short code and a full string description.  The description is o
 <th>Counted<br/>Runs</th>
 </tr>
 
-%for ii, cls in enumerate(c.classlist):
-${dorow(ii, cls)}
-%endfor
+{% for code, cls in classdata.classlist | dictsort %}
+{{dorow(loop.index, cls)}}
+{% endfor %}
 
 
 </table>
-<button class='addbutton'>Add</button>
-<input type='submit' value="Save">
+<button class='btn btn-outline-success addbutton'>Add Row</button>
+<input  class='btn btn-success' type='submit' value="Save">
 </form>
 
-<table class='ui-helper-hidden' id='classlisttemplate'>
-${dorow('xxxxx', Class())}
+<table style='display:none' id='classlisttemplate'>
+{{dorow('xxxxx')}}
 </table>
+</div>
 
-<script>
-$(document).ready(function(){
-	$('.deleterow').click(function() { $(this).closest('tr').remove(); return false; });
-	$('#classlistform .addbutton').click(function() {
-        newCountedRow('#classlistform', '#classlisttemplate');
-        return false;
-    });
-});
-</script>
+{% endblock content %}
+

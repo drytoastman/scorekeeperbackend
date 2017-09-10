@@ -6,7 +6,7 @@ import psycopg2
 import re
 import io
 
-from flask import Blueprint, current_app, g, redirect, request, render_template, session, url_for
+from flask import Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
 
 from nwrsc.model import *
 
@@ -73,17 +73,44 @@ def numbers():
         numbers[res.classcode][res.number].add(res.firstname+" "+res.lastname)
     return render_template('/admin/numberlist.html', numbers=numbers)
 
+@Admin.route("/printhelp")
+def printhelp():
+    return render_template("/admin/printhelp.html")
+
+
+@Admin.route("/classlist", methods=['POST', 'GET'])
+def classlist():
+    if request.form:
+        try:
+            objs = defaultdict(dict)
+            for field, value in request.form.items():
+                # clslist-17.eventtrophy on
+                header, num, key = re.split('-|\.', field)
+                if header != 'clslist': continue
+                objs[num][key] = value
+            classes = {d['classcode']:Class.fromForm(d) for d in objs.values()}
+            ClassData.get().updateClassesTo(classes)
+        except psycopg2.IntegrityError as ie:
+            flash("Unable to delete as class still in use: {}".format(ie.diag.message_detail))
+        except Exception as e:
+            flash("Exception processing classlist: {}".format(e))
+            log.error("General exception processing classlist", exc_info=e)
+        finally:
+            g.db.rollback()
+
+    classdata = ClassData.get()
+    classdata.classlist.pop('HOLD', None)
+    return render_template('/admin/classlist.html', classdata=classdata)
+ 
 
 @Admin.route("/event/<uuid:eventid>/editevent",   endpoint='editevent')
 @Admin.route("/event/<uuid:eventid>/list",        endpoint='list')
 @Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
 @Admin.route("/event/<uuid:eventid>/deleteevent", endpoint='deleteevent')
-@Admin.route("/event/<uuid:eventid>/printhelp",   endpoint='printhelp')
 @Admin.route("/event/<uuid:eventid>/paid",        endpoint='eventpaid')
 @Admin.route("/event/<uuid:eventid>/contactlist", endpoint='eventcontactlist')
 @Admin.route("/event/<uuid:eventid>/newentrants", endpoint='eventnewentrants')
 @Admin.route("/createevent", endpoint='createevent')
-@Admin.route("/classlist",   endpoint='classlist')
 @Admin.route("/indexlist",   endpoint='indexlist')
 @Admin.route("/settings",    endpoint='settings')
 @Admin.route("/drivers",     endpoint='drivers')
@@ -476,25 +503,8 @@ class AdminController(): #BaseController, EntrantEditor, ObjectEditor, CardPrint
         redirect(url_for(action='fieldlist'))
 
 
-    def classlist(self):
-        c.action = 'processClassList'
-        c.classlist = self.session.query(Class).order_by(Class.code).all()
-        c.indexlist = [""] + [x[0] for x in self.session.query(Index.code).order_by(Index.code)]
-        return render_template('/admin/classlist.html')
 
-
-    #@validate(schema=ClassListSchema(), form='classlist')
-    def processClassList(self):
-        data = self.form_result['clslist']
-        if len(data) > 0:
-            # delete classes, then add new submitted ones
-            for cls in self.session.query(Class):
-                self.session.delete(cls)
-            for obj in data:
-                self.session.add(Class(**obj))
-        self.session.commit()
-        redirect(url_for(action='classlist'))
-        
+       
 
     def indexlist(self):
         c.action = 'processIndexList'

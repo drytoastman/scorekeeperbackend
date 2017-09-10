@@ -1,6 +1,17 @@
 
+.container {
+    margin-bottom: 1rem;
+}
+
+.error {
+    color: red;
+    text-align: center;
+}
+
 .navbar {
     padding: 0.2rem;
+    margin-bottom: 0.5rem;
+
     .nav-item > a:hover  {
         color: white !important;
     }
@@ -10,4 +21,8 @@
     }
 }
 
+
+input[name=confirm] {
+    display: none;
+}
 
