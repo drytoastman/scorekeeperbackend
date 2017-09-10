@@ -1,0 +1,15 @@
+{% macro restrictformat(classdata, cls) %}
+    {% set res = classdata.restrictedIndexes(cls.classcode) %}
+    Classes {{res[0]|sort}}
+    Flags {{res[1]|sort}}
+    {#"indexdisallow(%s)  flagdisallow(%s)" % ((', '.join(sorted(r[0]))), (', '.join(sorted(r[1])))) #}
+{% endmacro %}
+
+{% macro textbox(index, name, size, obj) %}
+ <input type="text" name="clslist-{{index}}.{{name}}" value="{{obj[name]}}" size="{{size}}" />
+{% endmacro %}
+
+{% macro checkbox(index, name, obj) %}
+ <input type="checkbox" name="clslist-{{index}}.{{name}}" {{obj[name] and 'checked' or ''}} />
+{% endmacro %}
+

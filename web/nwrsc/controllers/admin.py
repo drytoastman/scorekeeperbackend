@@ -78,16 +78,20 @@ def printhelp():
     return render_template("/admin/printhelp.html")
 
 
+def _multidecode(prefix):
+    """ Decode form input of {prefix}-{index}.{key} = {value} array """
+    objs = defaultdict(dict)
+    for field, value in request.form.items():
+        pre, idx, key = re.split('-|\.', field)
+        if pre != prefix: continue
+        objs[idx][key] = value
+    return objs
+
 @Admin.route("/classlist", methods=['POST', 'GET'])
 def classlist():
     if request.form:
         try:
-            objs = defaultdict(dict)
-            for field, value in request.form.items():
-                # clslist-17.eventtrophy on
-                header, num, key = re.split('-|\.', field)
-                if header != 'clslist': continue
-                objs[num][key] = value
+            objs = _multidecode('clslist')
             classes = {d['classcode']:Class.fromForm(d) for d in objs.values()}
             ClassData.get().updateClassesTo(classes)
         except psycopg2.IntegrityError as ie:
@@ -102,6 +106,26 @@ def classlist():
     classdata.classlist.pop('HOLD', None)
     return render_template('/admin/classlist.html', classdata=classdata)
  
+@Admin.route("/indexlist", methods=['POST', 'GET'])
+def indexlist():
+    if request.form:
+        try:
+            objs = _multidecode('clslist')
+            indexes = {d['indexcode']:Index.fromForm(d) for d in objs.values()}
+            ClassData.get().updateIndexesTo(indexes)
+        except psycopg2.IntegrityError as ie:
+            flash("Unable to delete as index still in use: {}".format(ie.diag.message_detail))
+        except Exception as e:
+            flash("Exception processing indexlist: {}".format(e))
+            log.error("General exception processing indexlist", exc_info=e)
+        finally:
+            g.db.rollback()
+
+    classdata = ClassData.get()
+    classdata.indexlist.pop("", None)
+    return render_template('/admin/indexlist.html', classdata=classdata)
+
+
 
 @Admin.route("/event/<uuid:eventid>/editevent",   endpoint='editevent')
 @Admin.route("/event/<uuid:eventid>/list",        endpoint='list')
@@ -111,7 +135,6 @@ def classlist():
 @Admin.route("/event/<uuid:eventid>/contactlist", endpoint='eventcontactlist')
 @Admin.route("/event/<uuid:eventid>/newentrants", endpoint='eventnewentrants')
 @Admin.route("/createevent", endpoint='createevent')
-@Admin.route("/indexlist",   endpoint='indexlist')
 @Admin.route("/settings",    endpoint='settings')
 @Admin.route("/drivers",     endpoint='drivers')
 @Admin.route("/recalc",      endpoint='recalc')
@@ -505,24 +528,6 @@ class AdminController(): #BaseController, EntrantEditor, ObjectEditor, CardPrint
 
 
        
-
-    def indexlist(self):
-        c.action = 'processIndexList'
-        c.indexlist = self.session.query(Index).order_by(Index.code).all()
-        return render_template('/admin/indexlist.html')
-
-    #@validate(schema=IndexListSchema(), form='indexlist')
-    def processIndexList(self):
-        data = self.form_result['idxlist']
-        if len(data) > 0:
-            # delete indexes, then add new submitted ones
-            for idx in self.session.query(Index):
-                self.session.delete(idx)
-            for obj in data:
-                self.session.add(Index(**obj))
-        self.session.commit()
-        redirect(url_for(action='indexlist'))
-
 
     def invalidcars(self):
         c.classdata = ClassData(self.session)

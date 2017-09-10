@@ -55,6 +55,15 @@ class Class(AttrBase):
 
 
 class Index(AttrBase):
+
+    @classmethod
+    def fromForm(cls, data):
+        ret = cls()
+        ret.indexcode = data['indexcode'] # This one MUST be there
+        ret.descrip = data.get('descrip', '')
+        ret.value = float(data.get('value', 1.0) or 1.0)
+        return ret
+
     @classmethod
     def getAll(cls):
         with g.db.cursor() as cur:
@@ -113,6 +122,29 @@ class ClassData(object):
                 cur.execute("INSERT INTO classlist (classcode, descrip, indexcode, caridxrestrict, classmultiplier, carindexed, usecarflag, eventtrophy, champtrophy, secondruns, countedruns, modified) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())",
                                               (i.classcode, i.descrip, i.indexcode, i.caridxrestrict, i.classmultiplier, i.carindexed, i.usecarflag, i.eventtrophy, i.champtrophy, i.secondruns, i.countedruns))
         g.db.commit()
+
+
+    def updateIndexesTo(self, newindexes):
+        """ Same deal as updateClassesTo but with Indexes instead """
+        newcodes = set(newindexes.keys())
+        oldcodes = set(self.indexlist.keys())
+        ignore   = set([''])
+        insert = newcodes - oldcodes - ignore
+        update = newcodes & oldcodes - ignore
+        delete = oldcodes - newcodes - ignore
+
+        log.debug("%s %s %s", insert, update, delete)
+        with g.db.cursor() as cur:
+            for k in delete:
+                cur.execute("DELETE from indexlist where indexcode=%s", (k,))
+            for k in update:
+                u = newindexes[k]
+                cur.execute("UPDATE indexlist SET descrip=%s, value=%s, modified=now() WHERE indexcode=%s", (u.descrip,  u.value, u.indexcode))
+            for k in insert:
+                i = newindexes[k]
+                cur.execute("INSERT INTO indexlist (indexcode, descrip, value, modified) VALUES (%s, %s, %s, now())", (i.indexcode, i.descrip, i.value))
+        g.db.commit()
+
 
     def indexes(self):
         ret = list(self.indexlist.keys())

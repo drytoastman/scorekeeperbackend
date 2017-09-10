@@ -1,4 +1,5 @@
 {% extends "/admin/abase.html" %}
+{% import "/admin/macros.html" as m %}
 
 {% block headers %}
 {{super()}}
@@ -13,29 +14,13 @@ $(document).ready(function(){
 </script>
 {% endblock headers %}
 
-
-{% macro restrictformat(cls) %}
-    {% set res = classdata.restrictedIndexes(cls.classcode) %}
-    Classes {{res[0]|sort}}
-    Flags {{res[1]|sort}}
-    {#"indexdisallow(%s)  flagdisallow(%s)" % ((', '.join(sorted(r[0]))), (', '.join(sorted(r[1])))) #}
-{% endmacro %}
-
-{% macro textbox(index, name, size, obj) %}
- <input type="text" name="clslist-{{index}}.{{name}}" value="{{obj[name]}}" size="{{size}}" />
-{% endmacro %}
-
-{% macro checkbox(index, name, obj) %}
- <input type="checkbox" name="clslist-{{index}}.{{name}}" {{obj[name] and 'checked' or ''}} />
-{% endmacro %}
-
 {% macro dorow(ii, cls=None) %}
 <tr data-counter="{{ii}}">
-<td title="Required classcode">{{textbox(ii, 'classcode', 6, cls)}}</td>
-<td title="A user description">{{textbox(ii, 'descrip', 50, cls)}}</td>
-<td title="Receives trophies at events">{{checkbox(ii, 'eventtrophy', cls)}}</td>
-<td title="Receives trophies for the series">{{checkbox(ii, 'champtrophy', cls)}}</td>
-<td title="Cars are individually indexed by index value">{{checkbox(ii, 'carindexed', cls)}}</td>
+<td title="Required classcode">{{m.textbox(ii, 'classcode', 6, cls)}}</td>
+<td title="A user description">{{m.textbox(ii, 'descrip', 50, cls)}}</td>
+<td title="Receives trophies at events">{{m.checkbox(ii, 'eventtrophy', cls)}}</td>
+<td title="Receives trophies for the series">{{m.checkbox(ii, 'champtrophy', cls)}}</td>
+<td title="Cars are individually indexed by index value">{{m.checkbox(ii, 'carindexed', cls)}}</td>
 <td class='clsindexcol' title="Entire class is indexed by this index code">
 	<select name="clslist-{{ii}}.indexcode">
 	{% for code in classdata.indexlist.keys()|sort %}
@@ -43,10 +28,10 @@ $(document).ready(function(){
 	{% endfor %}
 	</select>
 </td>
-<td class="multcol" title="This multiplier is applied to entire class, i.e. street tire factor">{{textbox(ii, 'classmultiplier', 5, cls)}}</td>
-<td class="flagcol" title="Require that the car flag is checked for the additional multiplier to be applied">{{checkbox(ii, 'usecarflag', cls)}}</td>
-<td title="{{restrictformat(cls)}}">{{textbox(ii, 'caridxrestrict', 20, cls)}}</td>
-<td class='limitcol' title="Limit number of counted runs for this class">{{textbox(ii, 'countedruns', 3, cls)}}</td>
+<td class="multcol" title="This multiplier is applied to entire class, i.e. street tire factor">{{m.textbox(ii, 'classmultiplier', 5, cls)}}</td>
+<td class="flagcol" title="Require that the car flag is checked for the additional multiplier to be applied">{{m.checkbox(ii, 'usecarflag', cls)}}</td>
+<td title="{{m.restrictformat(classdata, cls)}}">{{m.textbox(ii, 'caridxrestrict', 20, cls)}}</td>
+<td class='limitcol' title="Limit number of counted runs for this class">{{m.textbox(ii, 'countedruns', 3, cls)}}</td>
 <td><button class="btn btn-outline-success small deleterow">Del</button></td>
 <td><input type="hidden" name="clslist-{{ii}}.numorder" value="{{cls.numorder}}" /></td>
 <td></td>

@@ -1,0 +1,49 @@
+{% extends "/admin/abase.html" %}
+{% import "/admin/macros.html" as m %}
+
+{% block headers %}
+{{super()}}
+<script>
+$(document).ready(function(){
+	$('.deleterow').click(function() { $(this).closest('tr').remove(); return false; });
+	$('#indexlistform .addbutton').click(function() {
+        newCountedRow('#indexlistform', '#indexlisttemplate');
+        return false;
+    });
+});
+</script>
+{% endblock headers %}
+
+{% macro dorow(ii, idx=None) %}
+<tr data-counter="{{ii}}">
+<td>{{m.textbox(ii, 'indexcode', 6, idx)}}</td>
+<td>{{m.textbox(ii, 'descrip',  50, idx)}}</td>
+<td>{{m.textbox(ii, 'value',     5, idx)}}</td>
+<td><button class="btn btn-outline-success small deleterow">Del</button></td>
+</tr>
+{% endmacro %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h2>Index Editor</h2>
+
+<form action="{{url_for('.indexlist')}}" method="post" id='indexlistform'>
+<table class='indextable'>
+<tr><th>Code</th><th>Description</th><th>Value</th></tr>
+{% for code,obj in classdata.indexlist | dictsort %}
+{{dorow(loop.index, obj)}}
+{% endfor %}
+</table>
+
+<button class='btn btn-outline-success addbutton'>Add</button>
+<input  class='btn btn-success' type='submit' value="Save">
+</form>
+
+<table style='display:none' id='indexlisttemplate'>
+{{dorow('xxxxx')}}
+</table>
+</div>
+
+{% endblock content %}
+
