@@ -1,4 +1,5 @@
-<%inherit file="/base.mako" />
+{% extends "base.html" %}
+{% block content %}
 
 The restricted index is interpreted based on the following values:
 <ul>
@@ -20,4 +21,4 @@ Examples:
 <li>+(S*,A*)-(ST*) means only indexes that start with S and A but NOT ST can be selected as an index</li>
 </ol>
 
-
+{% endblock content %}

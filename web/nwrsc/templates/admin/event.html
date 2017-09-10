@@ -13,6 +13,7 @@
 <li><a href='{{url_for('.editevent')}}'>Edit Event Details</a></li>
 <li><a href='{{url_for('.list')}}'>Entry Admin</a></li>
 <li><a href='{{url_for('.rungroups')}}'>Grid Order</a></li>
+<li><a href='{{url_for('.previousattend')}}' target='_blank'>Previously Attended in Series</a></li>
 <li><a href='{{url_for('.deleteevent')}}' onclick='return confirm("Do you really want to delete this event and and its registered entries?");'>Delete Event</a></li>
 </ul>
 
@@ -44,15 +45,6 @@
   </div>
  </div>
 </form>
-
-<h4>Reports</h4>
-<ul class='list-unstyled'>
-<li><a href='{{url_for('.numbers')}}' target='_blank'>Used Car Number List</a></li>
-<li><a href='{{url_for('.eventpaid')}}' target='_blank'>List of Fess Already Paid</a></li>
-<li><a href='{{url_for('.eventcontactlist')}}'>Contact List</a></li>
-<li><a href='{{url_for('.eventnewentrants')}}' target='_blank'>Collected Fee List</a></li>
-</ul>
-
 </div>
 
 {% endblock content %}

@@ -64,7 +64,7 @@ def index():
 def event():
     return render_template('/admin/event.html', event=Event.get(g.eventid))
 
-@Admin.route("/event/<uuid:eventid>/numbers")
+@Admin.route("/numbers")
 def numbers():
     numbers = defaultdict(lambda: defaultdict(set))
     settings = Settings.get()
@@ -78,6 +78,9 @@ def numbers():
 def printhelp():
     return render_template("/admin/printhelp.html")
 
+@Admin.route("/restricthelp")
+def restricthelp():
+    return render_template('/admin/restricthelp.html')
 
 def _multidecode(prefix):
     """ Decode form input of {prefix}-{index}.{key} = {value} array """
@@ -150,16 +153,12 @@ def settings():
 @Admin.route("/event/<uuid:eventid>/list",        endpoint='list')
 @Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
 @Admin.route("/event/<uuid:eventid>/deleteevent", endpoint='deleteevent')
-@Admin.route("/event/<uuid:eventid>/paid",        endpoint='eventpaid')
-@Admin.route("/event/<uuid:eventid>/contactlist", endpoint='eventcontactlist')
-@Admin.route("/event/<uuid:eventid>/newentrants", endpoint='eventnewentrants')
+@Admin.route("/event/<uuid:eventid>/previousattend", endpoint='previousattend')
 @Admin.route("/createevent", endpoint='createevent')
 @Admin.route("/drivers",     endpoint='drivers')
-@Admin.route("/recalc",      endpoint='recalc')
 @Admin.route("/purge",       endpoint='purge')
 @Admin.route("/newentrants", endpoint='newentrants')
 @Admin.route("/contactlist", endpoint='contactlist')
-@Admin.route("/weekend",     endpoint='weekend')
 @Admin.route("/copyseries",  endpoint='copyseries')
 def notyetdone():
     return render_template('/admin/simple.html', text='This is TBD')
@@ -167,83 +166,18 @@ def notyetdone():
 
 #####################################################################################################
 
-class AdminController(): #BaseController, EntrantEditor, ObjectEditor, CardPrinting, PurgeCopy):
+class AdminController():
 
-    def __before__(self):
-        c.stylesheets = ['/css/admin.css']
-        c.javascript = ['/js/admin.js']
-
-        if self.database is not None:
-            c.events = self.session.query(Event).all()
-            c.seriesname = self.database
-        self.eventid = self.routingargs.get('eventid', None)
-        self.action = self.routingargs.get('action', '')
-
-        c.isLocked = self.settings.locked
-        c.settings = self.settings
-        c.event = None
-        if self.eventid and self.eventid.isdigit():
-            c.event = self.session.query(Event).get(self.eventid)
-
-        if c.event is None and self.eventid not in (None, 's'):
-            c.text = "<h3>No such event for %s</h3>" % self.eventid
-            raise BeforePage(render_template('/admin/simple.html'))
-
-        if self.database is None or (self.action == 'index' and c.event is None):
-            return
-
-        self._checkauth(c.event)
-
-        if self.settings.locked:
-            if self.action not in ('index', 'printcards', 'paid', 'numbers', 'paypal', 'newentrants', 'printhelp', 'forceunlock'):
-                c.seriesname = self.settings.seriesname
-                c.next = self.action
-                raise BeforePage(render_template('/admin/locked.html'))
-
-
-    def _checkauth(self, event):
-        if self.srcip == '127.0.0.1':
-            c.isAdmin = True
-            return
-
+    def _validateNumber(self, num):
         try:
-            digestinfo = session.setdefault(('digest', self.srcip), {})
-            pwdict = Password.load(self.session)
-            passwords = { "admin" : pwdict["series"] }
-            if event is not None and str(event.id) in pwdict:
-                passwords["event"] = pwdict[str(event.id)]
-
-            authname = authCheck(digestinfo, self.database, passwords, request)
-            if authname == "admin":
-                c.isAdmin = True
-        finally:
-            session.save()
-        
-
-        def _validateNumber(self, num):
-            try:
-                    nummatch = re.compile('(\d{6}_\d)|(\d{6})')
-                    obj = nummatch.search(num)
-            except:
-                    raise Exception("_validateNumber failed on the value '%s'" % num)
-            if obj is not None:
-                    return obj.group(1) or obj.group(2)
-            raise IndexError("nothing found")
-        
-    def passwords(self):
-        c.action = 'setpasswords'
-        return render_template("/admin/passwords.html")
-
-    def setpasswords(self):
-        passwords = Password.load(self.session)
-        for k, v in request.POST.iteritems():
-            if v.strip() != '':
-                passwords[k] = v
-        Password.save(self.session, passwords)
-        self.session.commit()
-        redirect(url_for(action='index'))
-
-
+            nummatch = re.compile('(\d{6}_\d)|(\d{6})')
+            obj = nummatch.search(num)
+        except:
+            raise Exception("_validateNumber failed on the value '%s'" % num)
+        if obj is not None:
+            return obj.group(1) or obj.group(2)
+        raise IndexError("nothing found")
+    
     def contactlist(self):
         c.classlist = self.session.query(Class).order_by(Class.code).all()
         c.indexlist = [""] + [x[0] for x in self.session.query(Index.code).order_by(Index.code)]
@@ -272,80 +206,12 @@ class AdminController(): #BaseController, EntrantEditor, ObjectEditor, CardPrint
 
         return render_template('/admin/contactlist.html')
 
-
     def downloadcontacts(self):
         """ Process settings form submission """
         idlist = request.POST['ids'].split(',')
         drivers = self.session.query(Driver).filter(Driver.id.in_(idlist)).all()
         cols = ['id', 'firstname', 'lastname', 'email', 'address', 'city', 'state', 'zip', 'phone', 'membership', 'brag', 'sponsor']
         return self.csv("ContactList", cols, drivers)
-
-
-
-    def weekend(self):
-        """ Create a weekend report reporting unique entrants and their information """
-        bins = defaultdict(list)
-        events = self.session.query(Event).order_by(Event.date).all()
-        for e in events:
-            wed = e.date + timedelta(-(e.date.weekday()+5)%7)   # convert M-F(0-7) to Wed-Tues(0-7), formerly (2-6,0-1)
-            bins[wed].append(e)
-
-        c.weeks = dict()
-        for wed in sorted(bins):
-            eventids = [e.id for e in bins[wed]]
-            report = WeekendReport()
-            c.weeks[wed] = report
-
-            report.events = bins[wed]
-            report.drivers = self.session.query(Driver).join('cars', 'runs').filter(Run.eventid.in_(eventids)).distinct().all()
-            report.membership = list()
-            report.invalid = list()
-            for d in report.drivers:
-                if d.membership is None:
-                    d.membership = ""
-                try:
-                    report.membership.append(self._validateNumber(d.membership) or "")
-                except IndexError:
-                    report.invalid.append(d.membership or " ")
-
-            report.membership.sort()  # TODO: should we take into account first letters and go totally numeric?
-            report.invalid.sort()
-
-        return render_template('/admin/weekend.html')
-
-
-    ### Settings table editor ###
-    def seriessettings(self):
-        c.settings = self.settings
-        c.parentlist = self.lineage(self.settings.parentseries)
-        c.action = 'updatesettings'
-        c.button = 'Update'
-        return render_template('/admin/seriessettings.html')
-
-
-    #@validate(schema=SettingsSchema(), form='seriessettings', prefix_error=False)
-    def updatesettings(self):
-        """ Process settings form submission """
-        self.settings.set(self.form_result)
-        self.settings.save(self.session)
-
-        for key, fileobj in self.form_result.iteritems():
-            if hasattr(fileobj, 'filename') and fileobj.type.startswith("image/"):
-                Data.set(self.session, key, fileobj.value, fileobj.type)
-
-            if key.startswith('blank'):
-                try:
-                    from PIL import Image
-                except:
-                    import Image
-                output = io.BytesIO()
-                Image.new('RGB', (4,4), (255,255,255)).save(output, "PNG")
-                Data.set(self.session, key[5:], output.getvalue(), 'image/png')
-                output.close()
-
-        self.session.commit()
-        redirect(url_for(action='seriessettings'))
-
 
     ### Data editor ###
     def editor(self):
@@ -365,28 +231,6 @@ class AdminController(): #BaseController, EntrantEditor, ObjectEditor, CardPrint
             Data.set(self.session, name, data)
             self.session.commit()
             redirect(url_for(action='editor', name=name))
-
-
-    def cleanup(self):
-        Registration.updateFromRuns(self.session)
-        c.text = "<h3>Cleaned</h3>"
-        return render_template('/admin/simple.html')
-
-
-    def recalc(self):
-        return render_template('/admin/recalc.html')
-        
-    def dorecalc(self):
-        from nwrsc.lib.resultscalc import RecalculateResults
-        response.content_type = 'text/plain'
-        return RecalculateResults(self.session, self.settings)
-
-
-    def printhelp(self):
-        return render_template('/admin/printhelp.html')
-
-    def restricthelp(self):
-        return render_template('/admin/restricthelp.html')
 
     def paid(self):
         """ Return the list of fees paid before this event """
@@ -517,59 +361,4 @@ class AdminController(): #BaseController, EntrantEditor, ObjectEditor, CardPrint
                 self.session.commit()
         redirect(url_for(action='list'))
     
-
-    #### Class and Index Editors ####
-
-    def fieldlist(self):
-        c.action = 'processFieldList'
-        c.fieldlist = self.session.query(DriverField).all()
-        return render_template('/admin/fieldlist.html')
-
-    #@validate(schema=DriverFieldListSchema(), form='fieldlist')
-    def processFieldList(self):
-        data = self.form_result['fieldlist']
-        if len(data) > 0:
-            # delete fields, then add new submitted ones
-            for fld in self.session.query(DriverField):
-                self.session.delete(fld)
-            for obj in data:
-                self.session.add(DriverField(**obj))
-        self.session.commit()
-        redirect(url_for(action='fieldlist'))
-
-
-
-       
-
-    def invalidcars(self):
-        c.classdata = ClassData(self.session)
-        c.invalidnumber = []
-        c.invalidclass = []
-        c.invalidindex = []
-        c.unindexedclass = []
-        c.restrictedindex = []
-
-        for car in self.session.query(Car):
-            if car.number is None:
-                c.invalidnumber.append(car)
-
-            if not car.classcode or car.classcode not in c.classdata.classlist:
-                c.invalidclass.append(car)
-
-            if c.classdata.classlist[car.classcode].carindexed:
-                if not car.indexcode or car.indexcode not in c.classdata.indexlist:
-                    c.invalidindex.append(car)
-
-            if not c.classdata.classlist[car.classcode].carindexed:
-                if car.indexcode:
-                    c.unindexedclass.append(car)
-
-            if car.classcode:
-                restrict = c.classdata.classlist[car.classcode].restrictedIndexes()
-                if car.indexcode in restrict[0]:
-                    c.restrictedindex.append(car)
-                if car.indexcode in restrict[1] and car.tireindexed:
-                    c.restrictedindex.append(car)
-
-        return render_template('/admin/invalidcars.html')
 

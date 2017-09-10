@@ -1,5 +1,5 @@
 
-.container {
+.container, .container-fluid {
     margin-bottom: 1rem;
 }
 
@@ -29,13 +29,7 @@ form {
         padding: 0;
     }
 
-    input, select {
-        margin: 0.2rem 0px;
-        height: 1.8rem;
-        padding-left: 0.5rem !important;
-        width: 100%;
-    }
-    
+   
     label.error {
         color: red;
         margin-left: auto;
@@ -45,14 +39,23 @@ form {
         background: rgba(255, 0, 0, 0.1);
     }
 
-    input[type=submit] {
-        height: 2.0rem;
-        margin-top: 0.8rem;
-        padding: 0px;
-    }
+    /* just for our flask form bootstrap layout */
+    .row {
+        input, select {
+            margin: 0.2rem 0px;
+            height: 1.8rem;
+            padding-left: 0.5rem !important;
+            width: 100%;
+        }
+         input[type=submit] {
+            height: 2.0rem;
+            margin-top: 0.8rem;
+            padding: 0px;
+        } 
 
-    input[type=checkbox] {
-        flex: initial;
+        input[type=checkbox] {
+            flex: initial;
+        }
     }
 }
 
