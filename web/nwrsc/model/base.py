@@ -1,7 +1,6 @@
 import json
 from flask import g
 
-
 class AttrBase(object):
 
     def __init__(self, **kwargs):

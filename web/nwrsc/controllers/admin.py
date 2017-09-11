@@ -8,7 +8,7 @@ import io
 
 from flask import Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
 
-from nwrsc.lib.forms import flashformerrors, formIntoAttrBase, SettingsForm
+from nwrsc.lib.forms import *
 from nwrsc.model import *
 
 log     = logging.getLogger(__name__)
@@ -132,24 +132,37 @@ def indexlist():
 
 @Admin.route("/settings", methods=['POST', 'GET'])
 def settings():
-    settingsform = SettingsForm()
+    form = SettingsForm()
     if request.form:
-        if settingsform.validate():
-            """ Process settings form submission """
-            log.debug(settingsform)
-            settings = Settings.fromForm(settingsform)
+        if form.validate():
+            settings = Settings.fromForm(form)
             settings.save()
         else:
-            flashformerrors(settingsform)
+            flashformerrors(form)
         redirect(url_for('.settings'))
 
     settings = Settings.get()
-    settingsform = SettingsForm(obj=settings)
-    return render_template('/admin/settings.html', settings=settings, settingsform=settingsform)
+    form = SettingsForm(obj=settings)
+    return render_template('/admin/settings.html', settings=settings, form=form)
 
 
+@Admin.route("/event/<uuid:eventid>/edit", methods=['POST','GET'])
+def eventedit():
+    """ Process edit event form submission """
+    form = EventSettingsForm()
+    if request.form:
+        if form.validate():
+            event = Event()
+            formIntoAttrBase(form, event)
+            event.update()
+        else:
+            flashformerrors(form)
+        redirect(url_for('.eventedit'))
 
-@Admin.route("/event/<uuid:eventid>/editevent",   endpoint='editevent')
+    form = EventSettingsForm(obj=Event.get(g.eventid))
+    return render_template('/admin/eventedit.html', form=form)
+
+
 @Admin.route("/event/<uuid:eventid>/list",        endpoint='list')
 @Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
 @Admin.route("/event/<uuid:eventid>/deleteevent", endpoint='deleteevent')
@@ -288,20 +301,6 @@ class AdminController():
             self.session.rollback()
         redirect(url_for(action='rungroups'))
         
-
-    ### other ###
-    def editevent(self):
-        """ Present form to edit event details """
-        c.action = 'updateevent'
-        c.button = 'Update'
-        return render_template('/admin/eventedit.html')
-
-    #@validate(schema=EventSchema(), form='editevent', prefix_error=False)
-    def updateevent(self):
-        """ Process edit event form submission """
-        c.event.merge(**self.form_result)
-        self.session.commit()
-        redirect(url_for(action='editevent'))
 
     def createevent(self):
         """ Present form to create a new event """

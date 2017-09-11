@@ -11,9 +11,10 @@ from operator import attrgetter, itemgetter
 
 from .base import AttrBase, Entrant
 from .classlist import ClassData
+from .event import Event
 from .series import Series
 from .settings import Settings
-from .simple import Challenge, Event , Run
+from .simple import Challenge, Run
 from nwrsc.lib.misc import csvlist
 from nwrsc.lib.encoding import JSONEncoder
 

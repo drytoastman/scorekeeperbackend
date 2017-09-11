@@ -66,6 +66,7 @@ def create_app(config=None):
 
     # setup uuid for postgresql
     psycopg2.extras.register_uuid()
+    psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
 
     # Setup the application with default configuration
     theapp = Flask("nwrsc")

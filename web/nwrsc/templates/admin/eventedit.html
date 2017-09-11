@@ -1,0 +1,25 @@
+{% extends "/admin/abase.html" %}
+
+{% block headers %}
+{{super()}}
+<script>
+$(document).ready(function(){
+	$("#formdate").AnyTime_picker( { format: "%m/%d/%Y" } );
+    $("#formregopened").AnyTime_picker( { format: "%m/%d/%Y %H:%i" } );
+    $("#formregclosed").AnyTime_picker( { format: "%m/%d/%Y %H:%i" } );
+    $("#eventform .showall").click(function() { $("#eventform .advanced").show(); $("#eventform .showall").hide(); return false; });
+    $("#eventform .hideadv").click(function() { $("#eventform .advanced").hide(); $("#eventform .showall").show(); return false; }).click();
+});
+</script>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h3 class='text-center'>Event Settings</h3>
+{{ form.html('eventform', url_for('.eventedit'), 'post', 'btn-success', 'col-md-4', 'col-md-7') | safe }}
+<button class='showall'>Show All Options</button>
+<button class='hideadv advanced'>Hide Extra Options</button>
+</div>
+{% endblock content %}
+

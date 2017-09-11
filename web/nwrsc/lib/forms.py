@@ -3,7 +3,7 @@ from operator import attrgetter
 
 from flask import request, flash
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, HiddenField, PasswordField, SelectField, StringField, SubmitField
+from wtforms import BooleanField, DateField, DateTimeField, FloatField, HiddenField, PasswordField, SelectField, StringField, SubmitField
 from wtforms.fields.html5 import EmailField, IntegerField, URLField
 from wtforms.validators import InputRequired, Length, Email, Required
 
@@ -155,4 +155,29 @@ class SettingsForm(MyFlaskForm):
     indexafterpenalties = BooleanField( 'Index After Penalties')
     superuniquenumbers  = BooleanField( 'Series Wide Unique Numbers')
     submit              = SubmitField(  'Update')
+
+class EventSettingsForm(MyFlaskForm):
+    name          = MyStringField('Event Name',  [Length(min=4, max=32)])
+    date          = DateField('Event Date')  
+    regopened     = DateTimeField('Registration Opens')
+    regclosed     = DateTimeField('Registration Closes')
+    courses       = IntegerField('Course Count')
+    runs          = IntegerField('Run Count')    
+    countedruns   = IntegerField('Runs Counted')
+    segments      = IntegerField('Segment Count')
+    perlimit      = IntegerField('Per Driver Entry Limit')
+    sinlimit      = IntegerField('Single Driver Entry Limit')
+    totlimit      = IntegerField('Total Entry Limit')
+    conepen       = FloatField('Cone Penalty')
+    gatepen       = FloatField('Gate Penalty')
+    ispro         = BooleanField('Is A ProSolo') 
+    ispractice    = BooleanField('Is A Practice')
+    location      = MyStringField('Location')
+    sponsor       = MyStringField('Sponsor')
+    host          = MyStringField('Host')
+    chair         = MyStringField('Chair')
+    cost          = FloatField('Cost')
+    payments      = MyStringField('Payment Account')
+    notes         = MyStringField('Notes')
+    submit        = SubmitField(  'Update')
 
