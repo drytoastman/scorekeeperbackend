@@ -21,7 +21,7 @@ $widgetStateActiveColor: #AAA;
     }
 }
 
-#settingsform {
+#eventform, #settingsform {
     input[type=checkbox] {
         flex: 0 0 2rem;
     }

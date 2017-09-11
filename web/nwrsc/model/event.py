@@ -7,8 +7,7 @@ from .base import AttrBase
 log = logging.getLogger(__name__)
 
 class Event(AttrBase):
-    toplevel = ['eventid', 'name', 'date', 'regopened', 'regclosed', 'courses', 'runs', 'countedruns', 'segments', 'perlimit',
-                'sinlimit', 'totlimit', 'conepen', 'gatepen', 'ispro', 'ispractice']
+    TABLENAME = "events"
 
     def feedFilter(self, key, value):
         if key in ('payments', 'snail'):
@@ -20,14 +19,6 @@ class Event(AttrBase):
         if ret <= 0:
             return 999
         return ret
-
-    def update(self):
-        with g.db.cursor() as cur:
-            self.cleanAttr()
-            stmt = "UPDATE events SET {},attr=%(attr)s,modified=now() where eventid=%(eventid)s".format(",".join(["{}=%({})s".format(x,x) for x in Event.toplevel]))
-            log.debug(stmt)
-            cur.execute(stmt, self.__dict__)
-            g.db.commit()
 
     def hasOpened(self): return datetime.utcnow() > self.regopened
     def hasClosed(self): return datetime.utcnow() > self.regclosed

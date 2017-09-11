@@ -5,14 +5,7 @@ from flask import g
 from .base import AttrBase
 
 class Driver(AttrBase):
-    toplevel = ['driverid', 'firstname', 'lastname', 'email', 'username', 'password', 'membership']
-
-    def update(self):
-        with g.db.cursor() as cur:
-            self.cleanAttr()
-            cur.execute("UPDATE drivers SET firstname=%s,lastname=%s,email=%s,membership=%s,attr=%s,modified=now() where driverid=%s",
-                       (self.firstname, self.lastname, self.email, self.membership, json.dumps(self.attr), self.driverid))
-            g.db.commit()
+    TABLENAME = "drivers"
 
     @classmethod
     def get(cls, driverid):

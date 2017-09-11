@@ -61,6 +61,7 @@ class Registration(AttrBase):
     @classmethod
     def update(cls, eventid, carids, verifyid):
         with g.db.cursor() as cur:
+            # FINISH ME, do a little more to only update/delete what is necessary to preclude unncessary changes in the logs
             cur.execute("DELETE from registered where eventid=%s and carid in (select carid from cars where driverid=%s)", (eventid, verifyid))
             for cid in carids:
                 # FINISH ME, what is a one-liner to insert only if car with carid has driverid=verifyid

@@ -22,7 +22,7 @@ from nwrsc.controllers.feed import Xml, Json
 from nwrsc.controllers.register import Register
 from nwrsc.controllers.results import Results
 from nwrsc.lib.encoding import to_json
-from nwrsc.model import Series
+from nwrsc.model import AttrBase, Series
 
 log = logging.getLogger(__name__)
 
@@ -165,6 +165,12 @@ def create_app(config=None):
         theapp.wsgi_app = ProfilerMiddleware(theapp.wsgi_app, restrictions=[30])
     theapp.hasher = Bcrypt(theapp)
     theapp.usts = URLSafeTimedSerializer(theapp.config["SECRET_KEY"])
+
+    # Database introspection
+    with theapp.app_context():
+        onrequest()
+        AttrBase.initialize()
+        teardown()
 
     log.info("Scorekeeper App created")
     return theapp

@@ -87,9 +87,9 @@ def carspost():
             car = Car()
             formIntoAttrBase(carform, car)
             if action == 'Update':
-                car.update(g.driver.driverid)
+                car.updateWCheck(g.driver.driverid)
             elif action == 'Create':
-                car.new(g.driver.driverid)
+                car.newWCheck(g.driver.driverid)
             else:
                 flash("Invalid request ({})".format(action))
         else:

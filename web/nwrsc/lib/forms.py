@@ -5,7 +5,7 @@ from flask import request, flash
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, DateField, DateTimeField, FloatField, HiddenField, PasswordField, SelectField, StringField, SubmitField
 from wtforms.fields.html5 import EmailField, IntegerField, URLField
-from wtforms.validators import InputRequired, Length, Email, Required
+from wtforms.validators import Email, InputRequired, Length, Optional, Required
 
 log = logging.getLogger(__name__)
 
@@ -71,17 +71,17 @@ class MyFlaskForm(FlaskForm):
 
 def formIntoAttrBase(form, base):
     """ Take form data and put into an AttrBase object """
-    for k in base.toplevel:
+    for k in base.columns:
         if hasattr(form, k):
             setattr(base, k, getattr(form, k).data)
     # leftover fields that aren't in the top level object
-    ignore = set(base.toplevel + ['csrf_token', 'submit'])
+    ignore = set(base.columns + ['csrf_token', 'submit'])
     for k in set(form._fields) - ignore:
         base.attr[k] = getattr(form, k).data
 
 def attrBaseIntoForm(base, form):
     """ Take AttrBase data and place it in form data """
-    for k in base.toplevel:
+    for k in base.columns:
         if hasattr(form, k):
             getattr(form, k).data = getattr(base, k)
     for k in base.attr:
@@ -157,6 +157,7 @@ class SettingsForm(MyFlaskForm):
     submit              = SubmitField(  'Update')
 
 class EventSettingsForm(MyFlaskForm):
+    eventid       = HiddenField(  'eventid')
     name          = MyStringField('Event Name',  [Length(min=4, max=32)])
     date          = DateField('Event Date')  
     regopened     = DateTimeField('Registration Opens')
@@ -176,7 +177,7 @@ class EventSettingsForm(MyFlaskForm):
     sponsor       = MyStringField('Sponsor')
     host          = MyStringField('Host')
     chair         = MyStringField('Chair')
-    cost          = FloatField('Cost')
+    cost          = FloatField('Cost', [Optional()])
     payments      = MyStringField('Payment Account')
     notes         = MyStringField('Notes')
     submit        = SubmitField(  'Update')

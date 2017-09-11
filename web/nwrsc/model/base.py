@@ -1,11 +1,62 @@
 import json
 from flask import g
 
+TABLES = ['drivers', 'cars', 'events']
+COLUMNS       = dict()
+PRIMARY_KEYS  = dict()
+NONPRIMARY    = dict()
+UPDATES       = dict()
+INSERTS       = dict()
+
 class AttrBase(object):
+
+    @classmethod
+    def initialize(cls):
+        """ A little introspection to load the schema from database """
+        with g.db.cursor() as cur:
+            # Need to set a valid series so we can inspect the format
+            cur.execute("SELECT schema_name FROM information_schema.schemata")
+            serieslist = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')])
+            if not len(serieslist):
+                raise Exception("No valid series yet, need to get this to restart somehow")
+
+            testseries = (serieslist.pop(), 'public')
+            cur.execute("set search_path=%s,%s", testseries)
+
+            # Determing the primary keys for each table
+            for table in TABLES:
+                cur.execute("SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)" \
+                            "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
+                PRIMARY_KEYS[table] = [row[0] for row in cur.fetchall()]
+
+                cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s and table_schema in %s", (table, testseries))
+                COLUMNS[table] = [row[0] for row in cur.fetchall()]
+                COLUMNS[table].remove('modified')
+                NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
+
+                UPDATES[table] = "UPDATE {} SET {},modified=now() WHERE {}".format(table, ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[table]), " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[table]))
+                INSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now())".format(table, ",".join(COLUMNS[table]), ",".join(["%({})s".format(x) for x in COLUMNS[table]]))
+ 
 
     def __init__(self, **kwargs):
         self.attr = dict()
         self._merge(**kwargs)
+
+    def insert(self):
+        with g.db.cursor() as cur:
+            self.cleanAttr()
+            cur.execute(INSERTS[self.TABLENAME], self.__dict__)
+            g.db.commit()
+
+    def update(self):
+        with g.db.cursor() as cur:
+            self.cleanAttr()
+            cur.execute(UPDATES[self.TABLENAME], self.__dict__)
+            g.db.commit()
+
+    @property
+    def columns(self):
+        return COLUMNS[self.TABLENAME]
 
     @classmethod
     def getval(cls, sql, args=None):
@@ -55,7 +106,7 @@ class AttrBase(object):
         d = dict()
         self.cleanAttr()
         for k,v in {**self.__dict__, **self.attr}.items():
-            if k[0] == '_' or k == 'attr' or k == 'toplevel':
+            if k[0] == '_' or k == 'attr':
                 continue
             v = self.feedFilter(k, v)
             if v is None:

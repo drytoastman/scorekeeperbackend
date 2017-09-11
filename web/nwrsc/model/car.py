@@ -5,9 +5,10 @@ from flask import g
 from .base import AttrBase
 
 class Car(AttrBase):
-    toplevel = ['carid', 'driverid', 'classcode', 'indexcode', 'number', 'useclsmult']
+    TABLENAME = "cars"
 
-    def new(self, driverid):
+    def newWCheck(self, driverid):
+        """ Insert with verification that the car belongs to the logged in user """
         with g.db.cursor() as cur:
             newid = uuid.uuid1()
             self.cleanAttr()
@@ -15,7 +16,8 @@ class Car(AttrBase):
                         (newid, driverid, self.classcode, self.indexcode, self.number, self.useclsmult, json.dumps(self.attr)))
             g.db.commit()
 
-    def update(self, verifyid):
+    def updateWCheck(self, verifyid):
+        """ Update with verification that the car belongs to the logged in user """
         with g.db.cursor() as cur:
             self.cleanAttr()
             cur.execute("UPDATE cars SET classcode=%s,indexcode=%s,number=%s,useclsmult=%s,attr=%s,modified=now() where carid=%s and driverid=%s",
