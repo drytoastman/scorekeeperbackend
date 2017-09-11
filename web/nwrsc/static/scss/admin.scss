@@ -5,8 +5,12 @@ $widgetStateHoverBackground: #00A;
 $widgetStateActiveBackground: #0AA;
 $widgetStateActiveColor: #AAA;
 
+$bootstrapGreen: #28a745;
+
 @import "../extern/bootstrap-4.0.0b.scss";
+@import "../extern/flatpickr_green.scss";
 @import "common.scss";
+
 
 @media (max-width: 768px) {
     .form-group {
