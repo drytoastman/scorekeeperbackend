@@ -76,6 +76,16 @@ ul {
             margin-right: 0.3rem;
         }
         dd {
+            word-wrap: break-word;
+            &:after {
+                content:'';
+                display: block;
+            }
+        }
+        dd.ddhtml {
+            margin-left: 3.0rem;
+        }
+        dd:not(.ddhtml) {
             margin-left: 0.3rem;
             display: inline;
             > * {
@@ -83,10 +93,6 @@ ul {
                 vertical-align: middle;
                 margin-left: -0.3rem;
             }
-        }
-        dd:after {
-            content:'';
-            display: block;
         }
     }
 }

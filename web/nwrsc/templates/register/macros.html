@@ -161,7 +161,7 @@
     {%- endif %}
 
     {%- if not ev.hasClosed() and ev.attr.notes %}
-    <dt>Notes</dt><dd>{{ev.attr.notes|safe}}</dd>
+    <dt>Notes</dt><dd {{ev.attr.notes is htmlstr and "class='ddhtml'"|safe or ""}}>{{ev.attr.notes|safe}}</dd>
     {%- endif %}
     </dl>
     </div>

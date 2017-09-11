@@ -1,7 +1,8 @@
-import sys
-import os
 import datetime
+import os
 import logging
+import re
+import sys
 import threading
 from operator import attrgetter
 
@@ -25,6 +26,7 @@ from nwrsc.lib.encoding import to_json
 from nwrsc.model import AttrBase, Series
 
 log = logging.getLogger(__name__)
+HASHTML = re.compile(r'(<!--.*?-->|<[^>]*>)')
 
 def create_app(config=None):
     """ Setup the application for the WSGI server """
@@ -63,6 +65,9 @@ def create_app(config=None):
         ret = list(val)
         ret.sort(key=attrgetter(*attr))
         return ret
+
+    def hashtml(val):
+        return HASHTML.search(val) is not None
 
     # setup uuid for postgresql
     psycopg2.extras.register_uuid()
@@ -135,6 +140,7 @@ def create_app(config=None):
     theapp.jinja_env.filters['t3'] = t3
     theapp.jinja_env.filters['msort'] = msort
     theapp.jinja_env.filters['to_json'] = to_json
+    theapp.jinja_env.tests['htmlstr'] = hashtml
 
     # If not running in debug mode (debug details to browser), log the traceback locally instead
     if not theapp.debug:
