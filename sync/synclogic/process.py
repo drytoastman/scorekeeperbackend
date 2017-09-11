@@ -24,13 +24,13 @@ class MergeProcess():
         self.wakequeue = queue.Queue()
 
     def shutdown(self):
+        """ Interrupt what we are doing and quite """
         global signalled
         signalled = True
         self.wakequeue.put(True)
 
     def poke(self):
-        global signalled
-        signalled = True
+        """ Just wake the queue wait, don't interrupt current work """
         self.wakequeue.put(False)
 
     def runforever(self):
