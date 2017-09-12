@@ -3,16 +3,23 @@ var saveids = Array();
 var cars = Array();
 var drivers = Array();
 
-function newCountedRow(listform, listtemplate)
+function newCountedRow(listform)
 {
-	var ii = $(listform + ' tr:last').data('counter') + 1 || 1;
-    var rowelem = $(listtemplate + ' tr').clone();
-	rowelem.data('counter', ii);
-    rowelem.find("input,select").attr("name", function(i, val) { return val.replace(/xxxxx/g, ii); });
-    rowelem.find(".deleterow").click(function () { rowelem.remove(); return false; });
-    rowelem.appendTo(listform + ' tbody');
+    var lastrow = $(listform + ' tr:last');
+	var oldcount = lastrow.data('counter');
+    var newrow = lastrow.clone();
+    var newcount = oldcount+1;
+	newrow.data('counter', newcount);
+    newrow.find("input,select").attr("id", function(ix, val) { return val.replace(""+oldcount, ""+newcount); })
+    newrow.find("input,select").attr("name", function(ix, val) { return val.replace(""+oldcount, ""+newcount); })
+    newrow.find("input,select").val("");
+    newrow.find("input[type=checkbox]").attr("checked", true);
+    newrow.find("input[type=number]").val(0);
+    newrow.find(".deleterow").click(function () { rowelem.remove(); return false; });
+    newrow.appendTo(listform + ' tbody');
     return false;
 }
+
 
 function buildselect(json)
 {

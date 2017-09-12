@@ -36,7 +36,7 @@ def setup():
     if not g.series in session[AUTHKEY]:
         recordpath()
         return login()
-    
+
     clearpath()
     g.activeseries = Series.active()
     g.events  = Event.byDate()
@@ -59,7 +59,7 @@ def login():
         except Exception as e:
             log.error("Login failure: %s", e, exc_info=e)
     return render_template('/admin/login.html')
-    
+
 @Admin.route("/")
 def index():
     return render_template('/admin/status.html')
@@ -86,56 +86,60 @@ def printhelp():
 def restricthelp():
     return render_template('/admin/restricthelp.html')
 
-def _multidecode(prefix):
-    """ Decode form input of {prefix}-{index}.{key} = {value} array """
-    objs = defaultdict(dict)
-    for field, value in request.form.items():
-        pre, idx, key = re.split('-|\.', field)
-        if pre != prefix: continue
-        objs[idx][key] = value
-    return objs
 
 @Admin.route("/classlist", methods=['POST', 'GET'])
 def classlist():
-    if request.form:
-        try:
-            objs = _multidecode('clslist')
-            classes = {d['classcode']:Class.fromForm(d) for d in objs.values()}
-            ClassData.get().updateClassesTo(classes)
-            return redirect(url_for('.classlist'))
-        except psycopg2.IntegrityError as ie:
-            flash("Unable to delete as class still in use: {}".format(ie.diag.message_detail))
-        except Exception as e:
-            flash("Exception processing classlist: {}".format(e))
-            log.error("General exception processing classlist", exc_info=e)
-
     classdata = ClassData.get()
-    classdata.classlist.pop('HOLD', None)
-    return render_template('/admin/classlist.html', classdata=classdata)
- 
+    ClassListForm.setIndexes(classdata.indexlist)
+    form = ClassListForm()
+    if request.form:
+        if form.validate():
+            try:
+                log.debug(request.form)
+                ClassData.get().updateClassesTo({k.data['classcode']:Class.fromForm(k.data) for k in form.classlist})
+                return redirect(url_for('.classlist'))
+            except psycopg2.IntegrityError as ie:
+                flash("Unable to update classes: {}".format(ie))
+            except Exception as e:
+                flash("Exception processing classlist: {}".format(e))
+                log.error("General exception processing classlist", exc_info=e)
+        else:
+            flashformerrors(form)
+    else:
+        classdata = ClassData.get()
+        classdata.classlist.pop('HOLD', None)
+        for key, cls in sorted(classdata.classlist.items()):
+            form.classlist.append_entry(cls)
+
+    return render_template('/admin/classlist.html', form=form)
+
 
 @Admin.route("/indexlist", methods=['POST', 'GET'])
 def indexlist():
+    form = IndexListForm()
     if request.form:
-        try:
-            objs = _multidecode('clslist')
-            indexes = {d['indexcode']:Index.fromForm(d) for d in objs.values()}
-            ClassData.get().updateIndexesTo(indexes)
-            return redirect(url_for('.indexlist'))
-        except psycopg2.IntegrityError as ie:
-            flash("Unable to delete as index still in use: {}".format(ie.diag.message_detail))
-        except Exception as e:
-            flash("Exception processing indexlist: {}".format(e))
-            log.error("General exception processing indexlist", exc_info=e)
+        if form.validate():
+            try:
+                ClassData.get().updateIndexesTo({k.data['indexcode']:Index.fromForm(k.data) for k in form.indexlist})
+                return redirect(url_for('.indexlist'))
+            except psycopg2.IntegrityError as ie:
+                flash("Unable to update indexes: {}".format(ie))
+            except Exception as e:
+                flash("Exception processing indexlist: {}".format(e))
+                log.error("General exception processing indexlist", exc_info=e)
+        else:
+            flashformerrors(form)
+    else:
+        classdata = ClassData.get()
+        classdata.indexlist.pop("", None)
+        for key, idx in sorted(classdata.indexlist.items()):
+            form.indexlist.append_entry(idx)
 
-    classdata = ClassData.get()
-    classdata.indexlist.pop("", None)
-    return render_template('/admin/indexlist.html', classdata=classdata)
+    return render_template('/admin/indexlist.html', form=form)
 
 
 @Admin.route("/settings", methods=['POST', 'GET'])
 def settings():
-    log.debug("settings here {}".format(request.method))
     form = SettingsForm()
     if request.form:
         if form.validate():

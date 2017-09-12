@@ -22,16 +22,16 @@ class Class(AttrBase):
     def fromForm(cls, data):
         ret = cls()
         ret.classcode       = data['classcode'] # This one MUST be there
-        ret.descrip         =       data.get('descrip', '')
-        ret.indexcode       =       data.get('indexcode', '')
-        ret.caridxrestrict  =       data.get('caridxrestrict', '')
-        ret.classmultiplier = float(data.get('classmultiplier', 1.0) or 1.0)
-        ret.carindexed      =  bool(data.get('carindexed',  False))
-        ret.usecarflag      =  bool(data.get('usecarflag',  False))
-        ret.eventtrophy     =  bool(data.get('eventtrophy', False))
-        ret.champtrophy     =  bool(data.get('champtrophy', False))
-        ret.secondruns      =  bool(data.get('secondruns',  False))
-        ret.countedruns     =   int(data.get('countedruns', 0) or 0)
+        ret.descrip         = data.get('descrip', '')
+        ret.indexcode       = data.get('indexcode', '')
+        ret.caridxrestrict  = data.get('caridxrestrict', '')
+        ret.classmultiplier = data.get('classmultiplier', 1.0)
+        ret.carindexed      = data.get('carindexed',  False)
+        ret.usecarflag      = data.get('usecarflag',  False)
+        ret.eventtrophy     = data.get('eventtrophy', False)
+        ret.champtrophy     = data.get('champtrophy', False)
+        ret.secondruns      = data.get('secondruns',  False)
+        ret.countedruns     = data.get('countedruns', 0)
         return ret
     
     @classmethod
@@ -61,7 +61,7 @@ class Index(AttrBase):
         ret = cls()
         ret.indexcode = data['indexcode'] # This one MUST be there
         ret.descrip = data.get('descrip', '')
-        ret.value = float(data.get('value', 1.0) or 1.0)
+        ret.value = data.get('value', 1.0)
         return ret
 
     @classmethod

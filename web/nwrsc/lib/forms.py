@@ -1,11 +1,13 @@
+from functools import partial
 import logging
 from operator import attrgetter
 
 from flask import request, flash
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, DateField, DateTimeField, FloatField, HiddenField, PasswordField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms import BooleanField, DateField, DateTimeField, FieldList, FloatField, Form, FormField, HiddenField, PasswordField, SelectField, StringField, SubmitField, TextAreaField
 from wtforms.fields.html5 import EmailField, IntegerField, URLField
 from wtforms.validators import Email, InputRequired, Length, Optional, Required
+from wtforms.widgets import TextInput
 
 log = logging.getLogger(__name__)
 
@@ -109,7 +111,7 @@ class RegisterForm(MyFlaskForm):
     username  = MyStringField('  Username',  [Length(min=6, max=32)])
     password  = MyPasswordField('Password',  [Length(min=6, max=32)])
     submit    = SubmitField(  '  Register')
-    
+
 class ProfileForm(MyFlaskForm):
     firstname = MyStringField('First Name', [Length(min=2, max=32)])
     lastname  = MyStringField('Last Name',  [Length(min=2, max=32)])
@@ -141,6 +143,41 @@ class CarForm(MyFlaskForm):
         MyFlaskForm.__init__(self)
         self.classcode.choices = [(c.classcode, "%s - %s" % (c.classcode, c.descrip)) for c in sorted(classdata.classlist.values(), key=attrgetter('classcode')) if c.classcode != 'HOLD']
         self.indexcode.choices = [(i.indexcode, "%s - %s" % (i.indexcode, i.descrip)) for i in sorted(classdata.indexlist.values(), key=attrgetter('indexcode'))]
+
+
+class IndexForm(Form):
+    indexcode   = MyStringField('IndexCode', [Length(min=2,max=8)], render_kw={'size':6})
+    descrip     = MyStringField('Description',                      render_kw={'size':50})
+    value       = FloatField(   'Value',                            render_kw={'size':5})
+
+class IndexListForm(FlaskForm):
+    indexlist   = FieldList(FormField(IndexForm))
+
+
+class ClassForm(Form):
+    classcode       = MyStringField('ClassCode', [Length(min=2,max=8)], render_kw={'title':"Required classcode", 'size':6})
+    descrip         = MyStringField('Description',                      render_kw={'title':"A user description", 'size':50})
+    eventtrophy     = BooleanField( 'Event Trophies',                   render_kw={'title':"Receives trophies at events"})
+    champtrophy     = BooleanField( 'Champ Trophies',                   render_kw={'title':"Receives trophies for the series"})
+    carindexed      = BooleanField( 'Cars Are Indexed',                 render_kw={'title':"Cars are individually indexed by index value"})
+    secondruns      = BooleanField( 'Second Runs',                      render_kw={'title':"This class represents second entries for the day"})
+    indexcode       = SelectField(  'ClassIndex',                       render_kw={'title':"Entire class is indexed by this index code"})
+    classmultiplier = FloatField(   'ClassMultiplier',                  render_kw={'title':"This multiplier is applied to entire class, i.e. street tire factor", "size":3})
+    usecarflag      = BooleanField( 'Use Car Flag',                     render_kw={'title':"Require that the car flag is checked for the additional multiplier to be applied"})
+    caridxrestrict  = MyStringField('Restricted Index String',          render_kw={'title':"{{m.restrictformat(classdata, cls)}}"})
+    countedruns     = IntegerField( 'Counted Runs', widget=TextInput(), render_kw={'title':"Limit number of counted runs for this class", "size":2})
+
+    def __init__(self, indexlist, *args, **kwargs):
+        Form.__init__(self, *args, **kwargs)
+        self.indexcode.choices = [(i.indexcode, i.indexcode) for i in sorted(indexlist.values(), key=attrgetter('indexcode'))]
+
+class ClassListForm(MyFlaskForm):
+    @classmethod
+    def setIndexes(cls, indexoptions):
+        """ This is ugly as **** but its the only what I can get my choices to the internal form field, MAJOR reentry problems """
+        """ At least its only used when administering classes so multiple use _should_ be limited """
+        cls.classlist = FieldList(FormField(partial(ClassForm, indexoptions)))
+
 
 class SettingsForm(MyFlaskForm):
     seriesname          = MyStringField('Series Name',        [Length(min=2, max=32)])

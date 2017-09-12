@@ -7,33 +7,27 @@
 $(document).ready(function(){
 	$('.deleterow').click(function() { $(this).closest('tr').remove(); return false; });
 	$('#classlistform .addbutton').click(function() {
-        newCountedRow('#classlistform', '#classlisttemplate');
+        newCountedRow('#classlistform');
         return false;
     });
 });
 </script>
 {% endblock headers %}
 
-{% macro dorow(ii, cls=None) %}
+{% macro dorow(ii, field) %}
 <tr data-counter="{{ii}}">
-<td title="Required classcode">{{m.textbox(ii, 'classcode', 6, cls)}}</td>
-<td title="A user description">{{m.textbox(ii, 'descrip', 50, cls)}}</td>
-<td title="Receives trophies at events">{{m.checkbox(ii, 'eventtrophy', cls)}}</td>
-<td title="Receives trophies for the series">{{m.checkbox(ii, 'champtrophy', cls)}}</td>
-<td title="Cars are individually indexed by index value">{{m.checkbox(ii, 'carindexed', cls)}}</td>
-<td class='clsindexcol' title="Entire class is indexed by this index code">
-	<select name="clslist-{{ii}}.indexcode">
-	{% for code in classdata.indexlist.keys()|sort %}
-		<option value="{{code}}" {{cls.indexcode==code and "selected" or ""}}>{{code}}</option>
-	{% endfor %}
-	</select>
-</td>
-<td class="multcol" title="This multiplier is applied to entire class, i.e. street tire factor">{{m.textbox(ii, 'classmultiplier', 5, cls)}}</td>
-<td class="flagcol" title="Require that the car flag is checked for the additional multiplier to be applied">{{m.checkbox(ii, 'usecarflag', cls)}}</td>
-<td title="{{m.restrictformat(classdata, cls)}}">{{m.textbox(ii, 'caridxrestrict', 20, cls)}}</td>
-<td class='limitcol' title="Limit number of counted runs for this class">{{m.textbox(ii, 'countedruns', 3, cls)}}</td>
+<td>{{field['classcode']}}</td>
+<td>{{field['descrip']}}</td>
+<td>{{field['eventtrophy']}}</td>
+<td>{{field['champtrophy']}}</td>
+<td>{{field['carindexed']}}</td>
+<td>{{field['secondruns']}}</td>
+<td class='clsindexcol'>{{field['indexcode']}}</td>
+<td class='multcol'>{{field['classmultiplier']}}</td>
+<td class='flagcol'>{{field['usecarflag']}}</td>
+<td>{{field['caridxrestrict']}}</td>
+<td class='limitcol'>{{field['countedruns']}}</td>
 <td><button class="btn btn-outline-success small deleterow">Del</button></td>
-<td><input type="hidden" name="clslist-{{ii}}.numorder" value="{{cls.numorder}}" /></td>
 <td></td>
 </tr>
 {% endmacro %}
@@ -69,6 +63,7 @@ Each class has a short code and a full string description.  The description is o
 <th>Event<br/>Trophy</th>
 <th>Champ<br/>Trophy</th>
 <th>Cars<br/>Indexed</th>
+<th>Second<br/>Runs</th>
 <th>Class<br/>Indexed</th>
 <th class='multcol'>Addl<br/>Multiplier</th>
 <th class='flagcol'>Require<br/>Car Flag</th>
@@ -76,19 +71,16 @@ Each class has a short code and a full string description.  The description is o
 <th>Counted<br/>Runs</th>
 </tr>
 
-{% for code, cls in classdata.classlist | dictsort %}
-{{dorow(loop.index, cls)}}
+{% for field in form.classlist %}
+{{dorow(loop.index0, field)}}
 {% endfor %}
 
-
 </table>
+{{form.csrf_token()}}
 <button class='btn btn-outline-success addbutton'>Add Row</button>
 <input  class='btn btn-success' type='submit' value="Save">
 </form>
 
-<table style='display:none' id='classlisttemplate'>
-{{dorow('xxxxx')}}
-</table>
 </div>
 
 {% endblock content %}

@@ -14,11 +14,11 @@ $(document).ready(function(){
 </script>
 {% endblock headers %}
 
-{% macro dorow(ii, idx=None) %}
+{% macro dorow(ii, field) %}
 <tr data-counter="{{ii}}">
-<td>{{m.textbox(ii, 'indexcode', 6, idx)}}</td>
-<td>{{m.textbox(ii, 'descrip',  50, idx)}}</td>
-<td>{{m.textbox(ii, 'value',     5, idx)}}</td>
+<td>{{field['indexcode']}}</td>
+<td>{{field['descrip']}}</td>
+<td>{{field['value']}}</td>
 <td><button class="btn btn-outline-success small deleterow">Del</button></td>
 </tr>
 {% endmacro %}
@@ -31,8 +31,8 @@ $(document).ready(function(){
 <form action="{{url_for('.indexlist')}}" method="post" id='indexlistform'>
 <table class='indextable'>
 <tr><th>Code</th><th>Description</th><th>Value</th></tr>
-{% for code,obj in classdata.indexlist | dictsort %}
-{{dorow(loop.index, obj)}}
+{% for field in form.indexlist %}
+{{dorow(loop.index0, field)}}
 {% endfor %}
 </table>
 
@@ -46,11 +46,9 @@ $(document).ready(function(){
     <a class="dropdown-item">2016 PAX/RTP</a>
   </div>
 </span>
+{{form.csrf_token()}}
 <input  class='btn btn-success' type='submit' value="Save">
-
-<table style='display:none' id='indexlisttemplate'>
-{{dorow('xxxxx')}}
-</table>
+</form>
 </div>
 
 {% endblock content %}
