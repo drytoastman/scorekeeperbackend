@@ -1,12 +1,12 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
+import io
 import logging
 import operator
 import psycopg2
 import re
-import io
 
-from flask import Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
+from flask import abort, Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
 
 from nwrsc.lib.forms import *
 from nwrsc.model import *
@@ -40,6 +40,10 @@ def setup():
     clearpath()
     g.activeseries = Series.active()
     g.events  = Event.byDate()
+    if g.eventid:
+        g.event=Event.get(g.eventid)
+        if g.event is None:
+            abort(404, "No such event")
 
 
 @Admin.route("/login", methods=['POST', 'GET'])
@@ -62,7 +66,7 @@ def index():
 
 @Admin.route("/event/<uuid:eventid>")
 def event():
-    return render_template('/admin/event.html', event=Event.get(g.eventid))
+    return render_template('/admin/event.html', event=g.event)
 
 @Admin.route("/numbers")
 def numbers():
@@ -98,18 +102,18 @@ def classlist():
             objs = _multidecode('clslist')
             classes = {d['classcode']:Class.fromForm(d) for d in objs.values()}
             ClassData.get().updateClassesTo(classes)
+            return redirect(url_for('.classlist'))
         except psycopg2.IntegrityError as ie:
             flash("Unable to delete as class still in use: {}".format(ie.diag.message_detail))
         except Exception as e:
             flash("Exception processing classlist: {}".format(e))
             log.error("General exception processing classlist", exc_info=e)
-        finally:
-            redirect(url_for('.classlist'))
 
     classdata = ClassData.get()
     classdata.classlist.pop('HOLD', None)
     return render_template('/admin/classlist.html', classdata=classdata)
  
+
 @Admin.route("/indexlist", methods=['POST', 'GET'])
 def indexlist():
     if request.form:
@@ -117,13 +121,12 @@ def indexlist():
             objs = _multidecode('clslist')
             indexes = {d['indexcode']:Index.fromForm(d) for d in objs.values()}
             ClassData.get().updateIndexesTo(indexes)
+            return redirect(url_for('.indexlist'))
         except psycopg2.IntegrityError as ie:
             flash("Unable to delete as index still in use: {}".format(ie.diag.message_detail))
         except Exception as e:
             flash("Exception processing indexlist: {}".format(e))
             log.error("General exception processing indexlist", exc_info=e)
-        finally:
-            redirect(url_for('.indexlist'))
 
     classdata = ClassData.get()
     classdata.indexlist.pop("", None)
@@ -132,17 +135,18 @@ def indexlist():
 
 @Admin.route("/settings", methods=['POST', 'GET'])
 def settings():
+    log.debug("settings here {}".format(request.method))
     form = SettingsForm()
     if request.form:
         if form.validate():
-            settings = Settings.fromForm(form)
-            settings.save()
+            newsettings = Settings.fromForm(form)
+            newsettings.save()
+            return redirect(url_for('.settings'))
         else:
             flashformerrors(form)
-        redirect(url_for('.settings'))
+    else:
+        form.process(obj=Settings.get())
 
-    settings = Settings.get()
-    form = SettingsForm(obj=settings)
     return render_template('/admin/settings.html', settings=settings, form=form)
 
 
@@ -152,22 +156,50 @@ def eventedit():
     form = EventSettingsForm()
     if request.form:
         if form.validate():
-            event = Event()
-            formIntoAttrBase(form, event)
-            event.update()
+            newevent = Event()
+            formIntoAttrBase(form, newevent)
+            newevent.update()
+            return redirect(url_for('.eventedit'))
         else:
             flashformerrors(form)
-        redirect(url_for('.eventedit'))
+    else:
+        attrBaseIntoForm(g.event, form)
 
-    form = EventSettingsForm(obj=Event.get(g.eventid))
-    return render_template('/admin/eventedit.html', form=form)
+    return render_template('/admin/eventedit.html', form=form, url=url_for('.eventedit'))
+
+
+@Admin.route("/createevent", methods=['POST','GET'])
+def createevent():
+    """ Present form to create a new event """
+    form = EventSettingsForm()
+    if request.form:
+        if form.validate():
+            newevent = Event()
+            formIntoAttrBase(form, newevent)
+            newevent.insert()
+            return redirect(url_for('.index'))
+        else:
+            flashformerrors(form)
+    else:
+        attrBaseIntoForm(Event.new(), form)
+
+    return render_template('/admin/eventedit.html', form=form, url=url_for('.createevent'))
+
+
+@Admin.route("/event/<uuid:eventid>/deleteevent")
+def deleteevent():
+    """ Request to delete an event, verify if we can first, then do it """
+    try:
+        g.event.delete()
+        return redirect(url_for(".index"))
+    except psycopg2.IntegrityError as ie:
+        flash("Unable to delete event as its still referenced: {}".format(ie.diag.message_detail))
+        return redirect(url_for(".event"))
 
 
 @Admin.route("/event/<uuid:eventid>/list",        endpoint='list')
 @Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
-@Admin.route("/event/<uuid:eventid>/deleteevent", endpoint='deleteevent')
 @Admin.route("/event/<uuid:eventid>/previousattend", endpoint='previousattend')
-@Admin.route("/createevent", endpoint='createevent')
 @Admin.route("/drivers",     endpoint='drivers')
 @Admin.route("/purge",       endpoint='purge')
 @Admin.route("/newentrants", endpoint='newentrants')
@@ -181,16 +213,6 @@ def notyetdone():
 
 class AdminController():
 
-    def _validateNumber(self, num):
-        try:
-            nummatch = re.compile('(\d{6}_\d)|(\d{6})')
-            obj = nummatch.search(num)
-        except:
-            raise Exception("_validateNumber failed on the value '%s'" % num)
-        if obj is not None:
-            return obj.group(1) or obj.group(2)
-        raise IndexError("nothing found")
-    
     def contactlist(self):
         c.classlist = self.session.query(Class).order_by(Class.code).all()
         c.indexlist = [""] + [x[0] for x in self.session.query(Index.code).order_by(Index.code)]
@@ -243,7 +265,7 @@ class AdminController():
         if name is not None:
             Data.set(self.session, name, data)
             self.session.commit()
-            redirect(url_for(action='editor', name=name))
+            return redirect(url_for(action='editor', name=name))
 
     def paid(self):
         """ Return the list of fees paid before this event """
@@ -299,25 +321,8 @@ class AdminController():
         except Exception as e:
             log.error("setRunGroups failed: %s" % e)
             self.session.rollback()
-        redirect(url_for(action='rungroups'))
+        return redirect(url_for(action='rungroups'))
         
-
-    def createevent(self):
-        """ Present form to create a new event """
-        c.action = 'newevent'
-        c.button = 'New'
-        c.event = Event()
-        c.event.conepen = 2.0
-        c.event.gatepen = 10.0
-        c.event.courses = 1
-        c.event.runs = 4
-        c.event.perlimit = 2
-        c.event.totlimit = 0
-        c.event.doublespecial = False
-        c.event.date = datetime.today()
-        c.event.regopened = datetime.today()
-        c.event.regclosed = datetime.today()
-        return render_template('/admin/eventedit.html')
 
     #@validate(schema=EventSchema(), form='createevent', prefix_error=False)
     def newevent(self):
@@ -325,20 +330,7 @@ class AdminController():
         ev = Event(**self.form_result)
         self.session.add(ev)
         self.session.commit()
-        redirect(url_for(eventid=ev.id, action=''))
-
-
-    def deleteevent(self):
-        """ Request to delete an event, verify if we can first, then do it """
-        if self.session.query(Run).filter(Run.eventid==self.eventid).count() > 0:
-            c.text = "<h3>%s has runs assigned to it, you cannot delete it</h3>" % (c.event.name)
-            raise BeforePage(render_template('/admin/simple.html'))
-
-        # no runs, kill it
-        self.session.query(Registration).filter(Registration.eventid==self.eventid).delete()
-        self.session.query(Event).filter(Event.id==self.eventid).delete()
-        self.session.commit()
-        redirect(url_for(eventid='s', action=''))
+        return redirect(url_for(eventid=ev.id, action=''))
 
 
     def list(self):
@@ -358,6 +350,6 @@ class AdminController():
             if reg:
                 self.session.delete(reg)
                 self.session.commit()
-        redirect(url_for(action='list'))
+        return redirect(url_for(action='list'))
     
 

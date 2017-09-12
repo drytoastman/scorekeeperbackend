@@ -3,10 +3,16 @@
 {% block headers %}
 {{super()}}
 <script>
-$(document).ready(function(){
-	$("input[name=date]").flatpickr();
+$(document).ready(function() {
     $("input[name=regopened]").flatpickr( { enableTime: true, minuteIncrement: 30 } );
     $("input[name=regclosed]").flatpickr( { enableTime: true, minuteIncrement: 30 } );
+	$("input[name=date]").flatpickr( { onChange: function(dateObj, dateStr) { 
+        d = new Date(dateObj[0]); 
+        d.setDate(d.getDate() - 2);
+        d.setHours(18);
+        d.setMinutes(0);
+        $("input[name=regclosed]").get(0)._flatpickr.setDate(d);
+    }});
 });
 </script>
 {% endblock headers %}
@@ -15,7 +21,7 @@ $(document).ready(function(){
 {{super()}}
 <div class='container'>
 <h3 class='text-center'>Event Settings</h3>
-{{ form.html('eventform', url_for('.eventedit'), 'post', 'btn-success', 'col-md-4', 'col-md-7') | safe }}
+{{ form.html('eventform', url, 'post', 'btn-success', 'col-md-4', 'col-md-7') | safe }}
 </div>
 {% endblock content %}
 
