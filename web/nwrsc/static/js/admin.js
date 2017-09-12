@@ -11,10 +11,9 @@ function newCountedRow(listform)
     var newcount = oldcount+1;
 	newrow.data('counter', newcount);
     newrow.find("input,select").attr("id", function(ix, val) { return val.replace(""+oldcount, ""+newcount); })
-    newrow.find("input,select").attr("name", function(ix, val) { return val.replace(""+oldcount, ""+newcount); })
-    newrow.find("input,select").val("");
-    newrow.find("input[type=checkbox]").attr("checked", true);
-    newrow.find("input[type=number]").val(0);
+                               .attr("name", function(ix, val) { return val.replace(""+oldcount, ""+newcount); })
+                               .val("");
+    newrow.find("input[type=checkbox]").attr("value","y"); // I don't understand why but this is necessary
     newrow.find(".deleterow").click(function () { rowelem.remove(); return false; });
     newrow.appendTo(listform + ' tbody');
     return false;

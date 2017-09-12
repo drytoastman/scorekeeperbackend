@@ -95,7 +95,6 @@ def classlist():
     if request.form:
         if form.validate():
             try:
-                log.debug(request.form)
                 ClassData.get().updateClassesTo({k.data['classcode']:Class.fromForm(k.data) for k in form.classlist})
                 return redirect(url_for('.classlist'))
             except psycopg2.IntegrityError as ie:
