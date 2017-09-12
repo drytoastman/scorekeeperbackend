@@ -31,6 +31,13 @@ $bootstrapGreen: #28a745;
     }
 }
 
+#classlistform {
+    input[type=checkbox] {
+        height: 1.5rem;
+        width: 1.5rem;
+    }
+}
+
 table {
   &.input th {
     text-align: right;

@@ -200,12 +200,33 @@ def deleteevent():
         return redirect(url_for(".event"))
 
 
+@Admin.route("/seriesattend")
+def seriesattend():
+    """ Return the list of fees paid before this event """
+    e = Event()
+    e.name = "All Events"
+    e.drivers = Attendance.getAll()
+    return render_template('/admin/attendance.html', title='Series Attendance', events=[e])
+
+@Admin.route("/eventattend")
+def eventattend():
+    """ Return the list of entrants attending each event """
+    for e in g.events:
+        e.drivers = Attendance.forEvent(e)
+    return render_template('/admin/attendance.html', title='Event Attendance', events=g.events)
+
+@Admin.route("/uniqueattend")
+def uniqueattend():
+    """ Return the list of new entrantsa attending each event """
+    for e in g.events:
+        e.drivers = Attendance.newForEvent(e)
+    return render_template('/admin/attendance.html', title='Unique Attendance', events=g.events)
+
+
 @Admin.route("/event/<uuid:eventid>/list",        endpoint='list')
 @Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
-@Admin.route("/event/<uuid:eventid>/previousattend", endpoint='previousattend')
 @Admin.route("/drivers",     endpoint='drivers')
 @Admin.route("/purge",       endpoint='purge')
-@Admin.route("/newentrants", endpoint='newentrants')
 @Admin.route("/contactlist", endpoint='contactlist')
 @Admin.route("/copyseries",  endpoint='copyseries')
 def notyetdone():
@@ -269,21 +290,6 @@ class AdminController():
             Data.set(self.session, name, data)
             self.session.commit()
             return redirect(url_for(action='editor', name=name))
-
-    def paid(self):
-        """ Return the list of fees paid before this event """
-        c.header = '<h2>Fees Collected Before %s</h2>' % c.event.name
-        c.beforelist = FeeList.get(self.session, self.eventid)[-1].before
-        return render_template('/admin/feelist.html')
-
-    def newentrants(self):
-        """ Return the list of new entrants/fees collected by event or for the series """
-        if self.eventid == 's':
-            c.feelists = FeeList.getAll(self.session)
-            return render_template('/admin/newentrants.html')
-        else:
-            c.feelists = FeeList.get(self.session, self.eventid)
-            return render_template('/admin/newentrants.html')
 
     def paypal(self):
         """ Return a list of paypal transactions for the current event """

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block headers %}
+{{super()}}
+<style type="text/css">
+ul {
+    list-style: none;
+}
+li > ul {
+    columns: 3;
+}
+.ename, .count {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+.name {
+    display: inline-block;
+    width: 10rem;
+}
+</style>
+{% endblock headers %}
+
+{% block content %}
+<h2>{{title}}</h2>
+<ul>
+{% for event in events %}
+    <li><span class='ename'>{{event.name}}</span> 
+    {% if event.date %}- <span class='edate'>{{event.date.strftime('%a %b %d, %Y')}}</span>{% endif %}
+    (<span class='count'>{{event.drivers|length}}</span>)<ul>
+    {% for driver in event.drivers -%}
+        <li><span class='name'>{{driver.lastname.title()}}, {{driver.firstname.title()}}</span> - <span class='membership'>{{driver.membership}}</span></li>
+    {% endfor %}
+    </ul>
+    </li>
+{% endfor %}
+</ul>
+{% endblock content %}

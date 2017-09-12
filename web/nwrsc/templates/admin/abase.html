@@ -51,7 +51,10 @@
         <li id="reportsdropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="reportsdropdownlink" data-toggle="dropdown">Reports</a>
           <div class="dropdown-menu">
-            <a class='dropdown-item' href='{{url_for('.newentrants')}}'>Event Fees/New Entrants</a>
+            <a class='dropdown-item' href='{{url_for('.seriesattend')}}'>Series Attendance</a>
+            <a class='dropdown-item' href='{{url_for('.eventattend')}}'>Events Attendance</a>
+            <a class='dropdown-item' href='{{url_for('.uniqueattend')}}'>Unique Attendance</a>
+            <div class="dropdown-divider"></div>
             <a class='dropdown-item' href='{{url_for('.contactlist')}}'>Series Contact List</a>
             <a class='dropdown-item' href='{{url_for('.numbers')}}' target='_blank'>Used Car Number List</a>
 	      </div>

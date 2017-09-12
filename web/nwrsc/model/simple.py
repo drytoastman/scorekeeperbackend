@@ -5,6 +5,32 @@ import json
 from flask import g
 from .base import AttrBase, Entrant
 
+class Attendance(object):
+
+    @classmethod
+    def getAll(cls):
+        with g.db.cursor() as cur:
+            cur.execute("SELECT distinct(d.driverid), lower(d.firstname) AS firstname, lower(d.lastname) AS lastname, d.membership FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid "+
+                        " ORDER BY lower(d.lastname), lower(d.firstname)")
+            return [Entrant(**x) for x in cur.fetchall()]
+
+    @classmethod
+    def forEvent(cls, event):
+        with g.db.cursor() as cur:
+            cur.execute("SELECT distinct(d.driverid), lower(d.firstname) AS firstname, lower(d.lastname) AS lastname, d.membership FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid " +
+                        "WHERE r.eventid=%s " +
+                        "ORDER BY lower(d.lastname), lower(d.firstname)", (event.eventid,))
+            return [Entrant(**x) for x in cur.fetchall()]
+
+    @classmethod
+    def newForEvent(cls, event):
+        with g.db.cursor() as cur:
+            cur.execute("SELECT distinct(d.driverid), lower(d.firstname) AS firstname, lower(d.lastname) AS lastname, d.membership FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid " +
+                        "WHERE r.eventid=%s AND d.driverid NOT IN (SELECT d.driverid FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid WHERE r.eventid IN "+
+                                                                       "(SELECT eventid from events where date < %s)) ORDER BY lower(d.lastname), lower(d.firstname)", (event.eventid, event.date))
+            return [Entrant(**x) for x in cur.fetchall()]
+
+
 class Audit(object):
 
     @classmethod
