@@ -62,6 +62,8 @@ class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         if hasattr(o, 'getPublicFeed'):
             return o.getPublicFeed()
+        elif isinstance(o, set):
+            return list(o)
         else:
             return str(o)
 

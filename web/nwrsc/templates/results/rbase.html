@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "common/base.html" %}
 {% block headers %}
 {%- assets filters="libsass,cssmin", output="results.css", "scss/results.scss" -%}
 <link rel="stylesheet" href="{{ASSET_URL}}" /> 

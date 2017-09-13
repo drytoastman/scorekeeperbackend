@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 import uuid
 import json
@@ -29,6 +30,20 @@ class Attendance(object):
                         "WHERE r.eventid=%s AND d.driverid NOT IN (SELECT d.driverid FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid WHERE r.eventid IN "+
                                                                        "(SELECT eventid from events where date < %s)) ORDER BY lower(d.lastname), lower(d.firstname)", (event.eventid, event.date))
             return [Entrant(**x) for x in cur.fetchall()]
+
+    @classmethod
+    def getActivity(cls):
+        ret = defaultdict(Entrant)
+        with g.db.cursor() as cur:
+            cur.execute("SELECT distinct(d.driverid), d.firstname, d.lastname, d.email, d.membership, r.eventid FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid")
+            for row in cur.fetchall():
+                e = ret.setdefault(row['driverid'], Entrant(**row, runs=set(), reg=set()))
+                e.runs.add(row['eventid'])
+            cur.execute("SELECT distinct(d.driverid), d.firstname, d.lastname, d.email, d.membership, r.eventid FROM registered r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid")
+            for row in cur.fetchall():
+                e = ret.setdefault(row['driverid'], Entrant(**row, runs=set(), reg=set()))
+                e.reg.add(row['eventid'])
+        return ret
 
 
 class Audit(object):
@@ -64,7 +79,7 @@ class NumberEntry(AttrBase):
     @classmethod
     def allNumbers(cls):
         with g.db.cursor() as cur:
-            cur.execute("SELECT d.firstname, d.lastname, c.classcode, c.number FROM drivers d JOIN cars c ON c.driverid=d.driverid")
+            cur.execute("SELECT d.firstname, d.lastname, c.classcode, c.number FROM drivers d JOIN cars c ON c.driverid=d.driverid WHERE c.classcode!='HOLD'")
             return [cls(**x) for x in cur.fetchall()]
 
 

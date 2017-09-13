@@ -12,6 +12,10 @@ class Driver(AttrBase):
         return cls.getunique("SELECT * FROM drivers WHERE driverid=%s", (driverid,))
 
     @classmethod
+    def getAll(cls):
+        return cls.getall("SELECT * FROM drivers")
+
+    @classmethod
     def byusername(cls, username):
         return cls.getunique("SELECT * FROM drivers WHERE username=%s", (username.strip(),))
 

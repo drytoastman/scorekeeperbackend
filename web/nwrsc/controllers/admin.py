@@ -8,6 +8,7 @@ import re
 
 from flask import abort, Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
 
+from nwrsc.lib.encoding import json_encode
 from nwrsc.lib.forms import *
 from nwrsc.model import *
 
@@ -223,11 +224,20 @@ def uniqueattend():
     return render_template('/admin/attendance.html', title='Unique Attendance', events=g.events)
 
 
+@Admin.route("/contactlist")
+def contactlist():
+    return render_template('/admin/contactlist.html', events=g.events)
+
+@Admin.route("/activitylist")
+def activitylist():
+    activity = Attendance.getActivity()
+    return json_encode(list(activity.values()))
+
+
 @Admin.route("/event/<uuid:eventid>/list",        endpoint='list')
 @Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
 @Admin.route("/drivers",     endpoint='drivers')
 @Admin.route("/purge",       endpoint='purge')
-@Admin.route("/contactlist", endpoint='contactlist')
 @Admin.route("/copyseries",  endpoint='copyseries')
 def notyetdone():
     return render_template('/admin/simple.html', text='This is TBD')
@@ -236,41 +246,6 @@ def notyetdone():
 #####################################################################################################
 
 class AdminController():
-
-    def contactlist(self):
-        c.classlist = self.session.query(Class).order_by(Class.code).all()
-        c.indexlist = [""] + [x[0] for x in self.session.query(Index.code).order_by(Index.code)]
-        c.preselect = request.GET.get('preselect', "").split(',')
-
-        c.drivers = dict()
-        for (dr, car, reg) in self.session.query(Driver, Car, Registration).join('cars', 'registration'):
-            if self.eventid.isdigit() and reg.eventid != int(self.eventid): 
-                continue
-
-            if dr.id not in c.drivers:
-                dr.events = set([reg.eventid])
-                dr.classes = set([car.classcode])
-                c.drivers[dr.id] = dr
-            else:
-                dr = c.drivers[dr.id]
-                dr.events.add(reg.eventid)
-                dr.classes.add(car.classcode)
-
-        if self.eventid.isdigit():
-            c.title = c.event.name
-            c.showevents = False
-        else:
-            c.title = "Series"
-            c.showevents = True
-
-        return render_template('/admin/contactlist.html')
-
-    def downloadcontacts(self):
-        """ Process settings form submission """
-        idlist = request.POST['ids'].split(',')
-        drivers = self.session.query(Driver).filter(Driver.id.in_(idlist)).all()
-        cols = ['id', 'firstname', 'lastname', 'email', 'address', 'city', 'state', 'zip', 'phone', 'membership', 'brag', 'sponsor']
-        return self.csv("ContactList", cols, drivers)
 
     ### Data editor ###
     def editor(self):

@@ -5,10 +5,13 @@ $widgetStateHoverBackground: #00A;
 $widgetStateActiveBackground: #0AA;
 $widgetStateActiveColor: #AAA;
 
-$bootstrapGreen: #28a745;
+$bootstrapcolor: #28a745;
+$bootstrapitem: rgba(255, 255, 255, 0.75);
 
+@import "../extern/font-awesome/font-awesome.scss";
 @import "../extern/bootstrap-4.0.0b.scss";
-@import "../extern/flatpickr_green.scss";
+@import "../extern/datatables-1.10.16-bootstrap4.scss";
+@import "../extern/flatpickr.scss";
 @import "common.scss";
 
 

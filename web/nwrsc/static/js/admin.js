@@ -129,28 +129,6 @@ function titlecasecar(cid)
 	});
 }
 
-function downloadfull()
-{
-    rows = $('#contacttable').dataTable()._('tr', {"filter":"applied"});
-    ids = Array();
-    for (var ii = 0; ii < rows.length; ii++) {
-        ids.push(rows[ii][0]);
-    }
-    $("input[name=ids]").attr('value', ids);
-}
-
-function copyemail()
-{
-    rows = $('#contacttable').dataTable()._('tr', {"filter":"applied"});
-    email = Array();
-    for (var ii = 0; ii < rows.length; ii++) {
-        if (rows[ii][3].indexOf("@") > 1)  // dumb but still useful filter
-            email.push(rows[ii][3]);
-    }
-    prompt("Copy the follow string to your clipboard", email);
-    return false;
-}
-
 function collectgroups(frm)
 {
     for (var ii = 0; ii < 3; ii++)

@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "common/base.html" %}
 {% block headers %}
 {%- assets filters="libsass", depends="scss/*.scss", output="admin.css", "scss/admin.scss" -%}
 <link rel="stylesheet" href="{{ASSET_URL}}" /> 
 {%- endassets -%}
 
-{% assets output="admin.js", "extern/jquery-3.2.0.js", "extern/jquery.validate-1.16.js", "extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js", "extern/flatpickr.js",
+{% assets output="admin.js", "extern/jquery-3.2.0.js", "extern/jquery.validate-1.16.js", "extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js", "extern/flatpickr.js", "extern/datatables-1.10.15.js",
 								"js/careditor.js", "js/admin.js" %}
 	<script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
@@ -55,8 +55,8 @@
             <a class='dropdown-item' href='{{url_for('.eventattend')}}'>Events Attendance</a>
             <a class='dropdown-item' href='{{url_for('.uniqueattend')}}'>Unique Attendance</a>
             <div class="dropdown-divider"></div>
-            <a class='dropdown-item' href='{{url_for('.contactlist')}}'>Series Contact List</a>
-            <a class='dropdown-item' href='{{url_for('.numbers')}}' target='_blank'>Used Car Number List</a>
+            <a class='dropdown-item' href='{{url_for('.contactlist')}}'>Contact List</a>
+            <a class='dropdown-item' href='{{url_for('.numbers')}}'>Used Car Number List</a>
 	      </div>
         </li>
 

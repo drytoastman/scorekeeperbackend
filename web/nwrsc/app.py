@@ -108,7 +108,7 @@ def create_app(config=None):
     @theapp.route('/robots.txt')
     def robots(): return send_from_directory('static', 'robots.txt')
     @theapp.route('/<subapp>/')
-    def serieslist(subapp): return render_template('serieslist.html', subapp=subapp, serieslist=Series.list())
+    def serieslist(subapp): return render_template('common/serieslist.html', subapp=subapp, serieslist=Series.list())
 
     # Attach some handlers to the app
     @theapp.before_request

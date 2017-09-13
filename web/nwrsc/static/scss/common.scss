@@ -21,6 +21,20 @@
     }
 }
 
+.modal-header {
+    padding: 0.5rem 1.0rem;
+    background: $bootstrapcolor;
+    color: white;
+    border-bottom: 1px solid darken($bootstrapcolor, 10%);
+    button span {
+        color: white;
+    }
+    h1 {
+        font-size: 1.4rem;
+    }
+}
+
+
 form {
     label {
         text-align: right;

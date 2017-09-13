@@ -1,0 +1,32 @@
+{% macro errordisplay() %}
+<div class='formerror'>
+{% for msg in get_flashed_messages() %}
+<div class='error'>{{msg}}</div>
+{% endfor %}
+</div>
+{% endmacro %}
+
+
+{% macro modal(id, title, body) %}
+<div class='modal fade' id='{{id}}' tabindex=-1 role='dialog'>
+<div class='modal-dialog' role='document'>
+<div class='modal-content' style='overflow:hidden'>
+
+<div class='modal-header'>
+<h1 class='modal-title text-center'>{{title}}</h1>
+<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+</div> {# modal-header #}
+
+<div class='modal-body'>
+<div class='container-fluid'>
+<div class='modal-error'></div>
+{{ body|safe }}
+{{caller() if caller}}
+</div> {# container-fluid #}
+</div> {# modal-body #}
+
+</div> {# modal-content #}
+</div> {# modal-dialog #}
+</div> {# modal #}
+{% endmacro %}
+

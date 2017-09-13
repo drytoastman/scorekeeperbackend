@@ -107,7 +107,7 @@
   border-bottom-color: rgba(72,72,72,0.2);
 }
 .flatpickr-calendar.arrowTop:after {
-  border-bottom-color: $bootstrapGreen;
+  border-bottom-color: $bootstrapcolor;
 }
 .flatpickr-calendar.arrowBottom:before,
 .flatpickr-calendar.arrowBottom:after {
@@ -117,7 +117,7 @@
   border-top-color: rgba(72,72,72,0.2);
 }
 .flatpickr-calendar.arrowBottom:after {
-  border-top-color: $bootstrapGreen;
+  border-top-color: $bootstrapcolor;
 }
 .flatpickr-calendar:focus {
   outline: 0;
@@ -128,7 +128,7 @@
 }
 .flatpickr-month {
   border-radius: 5px 5px 0 0;
-  background: $bootstrapGreen;
+  background: $bootstrapcolor;
   color: #fff;
   fill: #fff;
   height: 28px;
@@ -363,7 +363,7 @@
   pointer-events: none;
 }
 .flatpickr-weekdays {
-  background: $bootstrapGreen;
+  background: $bootstrapcolor;
   text-align: center;
   overflow: hidden;
   width: 100%;
@@ -380,7 +380,7 @@
 span.flatpickr-weekday {
   cursor: default;
   font-size: 90%;
-  background: $bootstrapGreen;
+  background: $bootstrapcolor;
   color: rgba(0,0,0,0.54);
   line-height: 1;
   margin: 0;
@@ -526,11 +526,11 @@ span.flatpickr-weekday {
 .flatpickr-day.selected.nextMonthDay,
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
-  background: $bootstrapGreen;
+  background: $bootstrapcolor;
   -webkit-box-shadow: none;
           box-shadow: none;
   color: #fff;
-  border-color: $bootstrapGreen;
+  border-color: $bootstrapcolor;
 }
 .flatpickr-day.selected.startRange,
 .flatpickr-day.startRange.startRange,
@@ -545,8 +545,8 @@ span.flatpickr-weekday {
 .flatpickr-day.selected.startRange + .endRange,
 .flatpickr-day.startRange.startRange + .endRange,
 .flatpickr-day.endRange.startRange + .endRange {
-  -webkit-box-shadow: -10px 0 0 $bootstrapGreen;
-          box-shadow: -10px 0 0 $bootstrapGreen;
+  -webkit-box-shadow: -10px 0 0 $bootstrapcolor;
+          box-shadow: -10px 0 0 $bootstrapcolor;
 }
 .flatpickr-day.selected.startRange.endRange,
 .flatpickr-day.startRange.startRange.endRange,
@@ -576,8 +576,8 @@ span.flatpickr-weekday {
 }
 .flatpickr-day.week.selected {
   border-radius: 0;
-  -webkit-box-shadow: -5px 0 0 $bootstrapGreen, 5px 0 0 $bootstrapGreen;
-          box-shadow: -5px 0 0 $bootstrapGreen, 5px 0 0 $bootstrapGreen;
+  -webkit-box-shadow: -5px 0 0 $bootstrapcolor, 5px 0 0 $bootstrapcolor;
+          box-shadow: -5px 0 0 $bootstrapcolor, 5px 0 0 $bootstrapcolor;
 }
 .rangeMode .flatpickr-day {
   margin-top: 1px;
