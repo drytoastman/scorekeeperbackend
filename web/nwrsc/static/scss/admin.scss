@@ -41,6 +41,27 @@ $bootstrapitem: rgba(255, 255, 255, 0.75);
     }
 }
 
+// Datatable touch ups
+.dataTables_wrapper {
+    display: block !important;
+
+    .dtheader div {
+        display: inline-block;
+    }
+    .validwrapper {
+        margin-left: 1rem;
+    }
+    .dataTable {
+        margin: auto;
+    }
+    th {
+        height: 2.5rem;
+    }
+}
+
+
+/*** Need to figure out what is needed below here *****/
+
 table {
   &.input th {
     text-align: right;
@@ -104,7 +125,8 @@ div.editor {
 
 
 button.small {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.70rem;
 }
 
 
@@ -114,7 +136,7 @@ button.small {
 	tr.even td, .odd td {
 	  border-bottom: 1px solid #dddddd;
 	}
-	
+
 	tr.even:hover, tr.odd:hover {
 	  background: #ddd;
 	}
@@ -132,7 +154,7 @@ button.small {
 		margin: 2px;
 	}
 
-	
+
 	.DataTables_sort_icon {
 		float: right;
 	}

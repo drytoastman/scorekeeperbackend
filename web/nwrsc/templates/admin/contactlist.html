@@ -4,24 +4,7 @@
 {% block headers %}
 {{super()}}
 <style type="text/css">
-
-.dataTables_wrapper {
-    display: block;
-}
-.dtheader div {
-    display: inline-block;
-}
-.validwrapper {
-    margin-left: 1rem;
-}
-.dataTable {
-    margin: auto;
-}
-th {
-    height: 2.5rem;
-}
 textarea {
-    width: 60rem;
     height: 30rem;
 }
 ul {
@@ -123,7 +106,7 @@ Ran in
 </table>
 </div>
 
-{% call m.modal('contactmodal', 'Email List', '') %}
+{% call m.modal('contactmodal', 'Email List', '', 'modal-lg') %}
 <div class='row'>
 <textarea class='col'>
 </textarea>

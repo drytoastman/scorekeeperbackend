@@ -5,6 +5,7 @@ import logging
 import operator
 import psycopg2
 import re
+import uuid
 
 from flask import abort, Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
 
@@ -234,7 +235,24 @@ def activitylist():
     return json_encode(list(activity.values()))
 
 
-@Admin.route("/event/<uuid:eventid>/list",        endpoint='list')
+@Admin.route("/event/<uuid:eventid>/entryadmin")
+def entryadmin():
+    return render_template('/admin/entryadmin.html', event=g.event)
+
+@Admin.route("/event/<uuid:eventid>/registered")
+def registered():
+    ret = Registration.getForEvent(g.eventid)
+    for r in ret:
+        r.cdesc = ' '.join(filter(None, [r.cattr.get(k, None) for k in ('year', 'make', 'model', 'color')]))
+    return json_encode(ret)
+
+@Admin.route("/event/<uuid:eventid>/delreg", methods=['POST'])
+def delreg():
+    carid = uuid.UUID(request.form.get('carid', None))
+    Registration.delete(g.eventid, carid)
+    return ""
+
+
 @Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
 @Admin.route("/drivers",     endpoint='drivers')
 @Admin.route("/purge",       endpoint='purge')
@@ -265,12 +283,6 @@ class AdminController():
             Data.set(self.session, name, data)
             self.session.commit()
             return redirect(url_for(action='editor', name=name))
-
-    def paypal(self):
-        """ Return a list of paypal transactions for the current event """
-        c.payments = self.session.query(Payment).filter(Payment.eventid==self.eventid).all()
-        c.payments.sort(key=lambda obj: obj.driver.lastname)
-        return render_template('/admin/paypal.html')    
 
     ### RunGroup Editor ###
     def rungroups(self):
@@ -315,25 +327,3 @@ class AdminController():
         self.session.add(ev)
         self.session.commit()
         return redirect(url_for(eventid=ev.id, action=''))
-
-
-    def list(self):
-        query = self.session.query(Driver,Car,Registration).join('cars', 'registration').filter(Registration.eventid==self.eventid)
-        c.classdata = ClassData(self.session)
-        c.registered = {}
-        for (driver, car, reg) in query.all():
-            if car.classcode not in c.registered:
-                c.registered[car.classcode] = []
-            c.registered[car.classcode].append(RegObj(driver, car, reg))
-        return render_template('/admin/entrylist.html')
-
-    def delreg(self):
-        regid = request.POST.get('regid', None)
-        if regid:
-            reg = self.session.query(Registration).filter(Registration.id==regid).first()
-            if reg:
-                self.session.delete(reg)
-                self.session.commit()
-        return redirect(url_for(action='list'))
-    
-

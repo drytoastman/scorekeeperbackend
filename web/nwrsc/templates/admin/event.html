@@ -1,26 +1,35 @@
 {% extends "/admin/abase.html" %}
 
+{% block headers %}
+{{super()}}
+<style type='text/css'>
+@media (min-width: 768px) {
+    .form-group { margin-bottom: 0; }
+    div.submit  { margin-top: 1rem; }
+}
+</style>
+{% endblock headers %}
+
 {% block content %}
 {{super()}}
 
 <div class='container'>
 
-<h3>{{event.name}} - {{event.date.strftime('%a %b %d, %Y')}}</h3>
+<h4>{{event.name}} - {{event.date.strftime('%a %b %d, %Y')}}</h4>
 
-<h4>General</h4>
+<h5>General</h5>
 <ul class='list-unstyled'>
 <li><a href='{{url_for('.eventedit')}}'>Edit Event Details</a></li>
-<li><a href='{{url_for('.list')}}'>Entry Admin</a></li>
+<li><a href='{{url_for('.entryadmin')}}'>Entry Admin</a></li>
 <li><a href='{{url_for('.rungroups')}}'>Grid Order</a></li>
 <li><a href='{{url_for('.deleteevent')}}' onclick='return confirm("Do you really want to delete this event and and its registered entries?");'>Delete Event</a></li>
 </ul>
 
-<h4>Timing Cards <small class="text-muted">(<a href='{{url_for('.printhelp')}}' target='_blank'>Printing Help</a>)</small></h4>
+<h5>Timing Cards <small class="text-muted">(<a href='{{url_for('.printhelp')}}' target='_blank'>Printing Help</a>)</small></h5>
 
 <form action='{{url_for('.printcards')}}' method='get'>
- <div class="form-row">
-  <div class='form-group col-md-4'>
-  <label for="typeselection" class="col-form-label">Data Order</label>
+  <div class='form-group col-md-5'>
+  <label for="typeselection" class="col-form-label">Data/Order</label>
   <select id="typeselection" name="type" class="form-control">
     <option value="lastname">Lastname then Firstname</option>
     <option value="classnumber">Class then Number</option>
@@ -28,7 +37,7 @@
   </select>
   </div>
 
-  <div class='form-group col-md-4'>
+  <div class='form-group col-md-5'>
   <label for="pageselection" class="col-form-label">Output Format</label>
   <select id="pageselection" name="page" class="form-control">
     <option value="card">8x5 Index Cards</option>
@@ -37,11 +46,9 @@
   </select>
   </div>
 
-  <div class='form-group col-md-2'>
-  <label class="col-form-label spaceholder">&nbsp;</label>
+  <div class='form-group col-md-5 submit'>
   <input class="btn btn-outline-success form-control" type="submit" value="Download"/>
   </div>
- </div>
 </form>
 </div>
 

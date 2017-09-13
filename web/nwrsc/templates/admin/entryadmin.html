@@ -1,0 +1,61 @@
+{% extends "/admin/abase.html" %}
+
+{% block headers %}
+{{super()}}
+<script>
+$(document).ready(function(){
+    var table = $('#regtable').DataTable({
+        ajax: { url:"{{url_for(".registered")}}", dataSrc: ''},
+        lengthMenu: [[-1], ["All"]],
+        DisplayLength: -1,
+        columns: [
+            { data: 'firstname' },
+            { data: 'lastname'  },
+            { data: 'email'     },
+            { data: 'classcode' },
+            { data: 'number' },
+            { data: 'cdesc' },
+            { data: null, "defaultContent": "<button class='btn btn-success small'>Unregister</button>" }
+        ],
+        sDom: '<"dtheader"fi>rt<"clear">'
+    });
+
+    $('#regtable tbody').on('click', 'button', function() {
+        var row = table.row($(this).parents('tr'));
+        var data = row.data();
+        $.post('{{url_for('.delreg')}}', {carid: data.carid}, function ( data ) {
+            row.remove();
+            table.draw();
+        }).fail(function(xhr, textStatus, errorThrown) {
+            alert(xhr.responseText);
+        });
+    });
+});
+</script>
+{% endblock headers %}
+
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h3>{{event.name}} Entrants</h3>
+
+<input type='hidden' name='regid' value='-1'/>
+<table id='regtable' class='table-striped table-bordered' cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>First</th>
+<th>Last</th>
+<th>Email</th>
+<th>Class</th>
+<th>Num</th>
+<th>Car</th>
+<th></th>
+</tr>
+</thead>
+</tbody>
+</table>
+</div>
+
+{%endblock content %}
+

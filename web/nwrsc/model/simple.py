@@ -109,6 +109,12 @@ class Registration(AttrBase):
                 cur.execute("INSERT INTO registered (eventid, carid) VALUES (%s, %s)", (eventid, cid))
             g.db.commit()
 
+    @classmethod
+    def delete(cls, eventid, carid):
+        with g.db.cursor() as cur:
+            cur.execute("DELETE from registered where eventid=%s and carid=%s", (eventid, carid))
+            g.db.commit()
+
 
 class Run(AttrBase):
 
