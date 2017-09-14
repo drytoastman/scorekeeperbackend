@@ -1,0 +1,65 @@
+{% extends "/admin/abase.html" %}
+<%namespace file="/forms/carform.mako" import="carform"/>
+<%namespace file="/forms/driverform.mako" import="driverform"/>
+
+{% block headers %}
+{{super()}}
+<style type='text/css'>
+select { width: 100%; }
+</style>
+
+<script>
+$(document).ready(function(){
+    thetable = $('#drivertable').DataTable({ 
+        ajax: { url:"{{url_for(".getdrivers")}}", dataSrc: ''},
+        //lengthMenu: [[20, -1], ["50", "All"]],
+        //iDisplayLength: 20,
+        paging: false,
+        scrollY: "400px",
+        autoWidth: false,
+        select: {
+            style: 'os',
+        },
+        columns: [
+            { data: 'firstname' },
+            { data: 'lastname' },
+        ],
+        sDom: '<"dtheader"f>rt<"clear">'
+    });
+
+    $('.dataTables_scrollBody').css('height', $(window).height() - ($('body').height() - $('.dataTables_scrollBody').height())- 20);
+});
+</script>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h2>Driver Editor</h2>
+
+<ul>
+<li>Select a single driver from the list to edit their information or merge cars
+<li>Select multiple drivers from the list to merge the drivers together
+<li>Enter text above the driver list to filter the visible list
+</ul>
+
+<div class='row'>
+<div class='col-5'>
+<table id='drivertable' class='table-striped table-bordered' cellspacing="0" width="100%">
+<thead>
+<tr><th>First</th><th>Last</th></tr>
+</thead>
+</table>
+</div>
+
+<div id='driverinfo' class='col-7'>
+</div>
+</div>
+
+{#
+${driverform(allowalias=True)}
+${carform(False)}
+#}
+
+{% endblock content %}
+

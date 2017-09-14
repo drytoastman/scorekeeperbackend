@@ -252,78 +252,13 @@ def delreg():
     Registration.delete(g.eventid, carid)
     return ""
 
+@Admin.route("/event/<uuid:eventid>/rungroups")
+def rungroups():
+    groups = RunGroups.getForEvent(g.eventid)
+    #return render_template('/admin/editrungroups.html')
+    return render_template('/admin/simple.html', text='This is TBD {}'.format(groups))
 
-@Admin.route("/event/<uuid:eventid>/rungroups",   endpoint='rungroups')
-@Admin.route("/drivers",     endpoint='drivers')
-@Admin.route("/purge",       endpoint='purge')
-@Admin.route("/copyseries",  endpoint='copyseries')
-def notyetdone():
+@Admin.route("/newseries",  endpoint='newseries')
+def newseries():
     return render_template('/admin/simple.html', text='This is TBD')
 
-
-#####################################################################################################
-
-class AdminController():
-
-    ### Data editor ###
-    def editor(self):
-        if 'name' not in request.GET:
-            return "Missing name"
-        c.name = request.GET['name']
-        c.data = ""
-        data = self.session.query(Data).get(c.name)
-        if data is not None:
-            c.data = data.data
-        return render_template('/admin/editor.html')
-
-    def savecode(self):
-        name = str(request.POST.get('name', None))
-        data = str(request.POST.get('data', ''))
-        if name is not None:
-            Data.set(self.session, name, data)
-            self.session.commit()
-            return redirect(url_for(action='editor', name=name))
-
-    ### RunGroup Editor ###
-    def rungroups(self):
-        c.action = 'setRunGroups'
-        c.groups = {0:[]}
-        allcodes = set([res[0] for res in self.session.query(Class.code)])
-        for group in self.session.query(RunGroup).order_by(RunGroup.rungroup, RunGroup.gorder).filter(RunGroup.eventid==self.eventid).all():
-            c.groups.setdefault(group.rungroup, list()).append(group.classcode)
-            allcodes.discard(group.classcode)
-        for code in sorted(allcodes):
-            c.groups[0].append(code)
-        return render_template('/admin/editrungroups.html')
-
-
-    def setRunGroups(self):
-        try:
-            for group in self.session.query(RunGroup).filter(RunGroup.eventid==self.eventid):
-                self.session.delete(group)
-            self.session.flush()
-            for k in request.POST:
-                if k[:5] == 'group':
-                    if int(k[5]) == 0:  # not recorded means group 0
-                        continue
-                    for ii, code in enumerate(request.POST[k].split(',')):
-                        g = RunGroup()
-                        g.eventid = self.eventid
-                        g.rungroup = int(k[5])
-                        g.classcode = str(code)
-                        g.gorder = ii
-                        self.session.add(g)
-            self.session.commit()
-        except Exception as e:
-            log.error("setRunGroups failed: %s" % e)
-            self.session.rollback()
-        return redirect(url_for(action='rungroups'))
-        
-
-    #@validate(schema=EventSchema(), form='createevent', prefix_error=False)
-    def newevent(self):
-        """ Process new event form submission """
-        ev = Event(**self.form_result)
-        self.session.add(ev)
-        self.session.commit()
-        return redirect(url_for(eventid=ev.id, action=''))

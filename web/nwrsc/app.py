@@ -17,7 +17,8 @@ from werkzeug.debug.tbtools import get_current_traceback
 from werkzeug.contrib.profiler import ProfilerMiddleware
 
 from nwrsc.controllers.admin import Admin
-from nwrsc.controllers.cardprinting import printcards
+from nwrsc.controllers.cardprinting import printcards # loads routes
+from nwrsc.controllers.entranteditor import drivers # loads routes
 from nwrsc.controllers.dynamic import Announcer
 from nwrsc.controllers.feed import Xml, Json
 from nwrsc.controllers.register import Register

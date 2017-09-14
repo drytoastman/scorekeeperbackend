@@ -20,48 +20,6 @@ function newCountedRow(listform)
 }
 
 
-function buildselect(json)
-{
-	var select = $('#driverlist');
-	if (select.prop) {
-		var options = select.prop('options');
-	} else {
-		var options = select.attr('options');
-	}
-
-	$('option', select).remove();
-
-	for (idx in json.data)
-	{
-		var dr = json.data[idx]
-		options[idx] = new Option(dr[1] + " " + dr[2], dr[0]);
-	}
-
-	if (saveids.length > 0) {
-		select.val(saveids);
-		select.change();
-	} else {
-		$("#driverinfo").html("");
-	}
-
-	filterlist();
-}
-
-
-function filterlist()
-{
-	var v = $('#driverregex').val().toLowerCase();
-
-	$("#driverlist option").each( function()
-	{
-		if ((v == '') || ($(this).text().toLowerCase().indexOf(v) >= 0)) {
-			$(this).show();
-		} else {
-			$(this).hide();
-		}
-	});
-}
-
 
 function editdriver(did)
 {
@@ -141,33 +99,3 @@ function collectgroups(frm)
     }
 }
 
-/*
-$(window).load(function(){
-    // wait until image loads before updating text info for series settings
-    $(".imageinfo").each(function() {
-        var img = $(this).siblings('img');
-        if (img.width() > 0) {
-            $(this).text(img.width() + "w x " + img.height() + "h");
-        }
-    });
-});
-
-
-$(document).ready(function(){
-	$.ajaxSetup({ cache: false });
-	$("ul.sf-menu").supersubs({
-		minWidth:    10,
-		maxWidth:    100,
-		extraWidth:  5
-	}).superfish({
-		disableHI: true,
-		animation:   {height:'show'},
-		speed: 'fast',
-		autoArrows: false,
-		delay: 200
-	}).width('100%');
-
-	$(':submit').button();
-});
-*/
-		
