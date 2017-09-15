@@ -1,5 +1,6 @@
 import logging
 import re
+import uuid
 
 from flask import g, make_response, render_template, request
 
@@ -33,36 +34,16 @@ class DriverInfo(object):
 
 @Admin.route("/drivers")
 def drivers():
-    #c.classdata = ClassData(self.session)
     return render_template('/admin/drivers.html')
 
 @Admin.route("/getdrivers")
 def getdrivers():
     return json_encode(Driver.getAll())
 
-@Admin.route("/getitems")
-def getitems(self):
-    c.items = list()
-    c.fields = self.session.query(DriverField).all()
-    c.classdata = ClassData(self.session)
-    for drid in map(int, request.GET.get('driverids', "").split(',')):
-        dr = self.session.query(Driver).filter(Driver.id==drid).first();
-        cars = self.session.query(Car).filter(Car.driverid==drid).all();
-
-        # This just gets the number of runs for the car for all events
-        for car in cars:
-            car.runcount = len(self.session.query(Run.eventid).distinct().filter(Run.carid==car.id).filter(Run.eventid<100).all())
-
-        # Preload the extra fields
-        if dr is not None:
-            for field in c.fields:
-                setattr(dr, field.name, dr.getExtra(field.name))
-
-        c.items.append(self.DriverInfo(dr, cars))
-
-    return {'data': str(render_template('/admin/driverinfo.mako'))}
-
-
+@Admin.route("/getitems/<uuid:driverid>")
+def getitems(driverid):
+    cars = Car.getForDriver(driverid)
+    return json_encode(cars)
 
 def mergedriver(self):
     try:

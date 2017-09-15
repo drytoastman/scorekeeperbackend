@@ -1,8 +1,9 @@
 {% extends "register/rbase.html" %}
-{% import '/register/macros.html' as m %}
+{% import 'common/macros.html' as m %}
+{% import 'register/macros.html' as rm %}
 
 {% block content %}
-{{m.navbar('profile')}}
+{{rm.navbar('profile')}}
 
 <div id='profileouter' class='container'>
 
@@ -16,7 +17,7 @@
 
 <div class='col-md-6'>
 <div class='title'>Scorekeeper Profile</div>
-{{m.driverDisplay(g.driver)}}
+{{rm.driverDisplay(g.driver)}}
 <button class='editprofile btn btn-outline-primary' title='Edit Profile' data-toggle='modal' data-target='#profilemodal'>Edit Profile</button>
 </div>
 
@@ -38,7 +39,7 @@
 <span class='name'>{{name}}</span>
 <ol>
 {% for e in entries %}
-<li>{{m.carDisplay(e)}}</li>
+<li>{{rm.carDisplay(e)}}</li>
 {% endfor %}
 </ol>
 {% endfor %}

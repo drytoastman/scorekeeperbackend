@@ -1,5 +1,6 @@
 {% extends "register/rbase.html" %}
-{% import '/register/macros.html' as m %}
+{% import 'common/macros.html' as m %}
+{% import 'register/macros.html' as rm %}
 
 {% block headers %}
 {{super()}}
@@ -38,7 +39,7 @@ gIndexes['{{i.indexcode}}'] = "{{i.descrip}}";
 
 
 {% block content %}
-{{m.navbar('cars')}}
+{{rm.navbar('cars')}}
 
 <div id='carscontainer'>
 {{m.errordisplay()}}
@@ -56,7 +57,7 @@ gIndexes['{{i.indexcode}}'] = "{{i.descrip}}";
         <button class='deletecar btn btn-outline-primary fa fa-trash' title='Delete Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'></button>
     {% endif %}
     </td>
-    <td class='cardisplay'>{{m.carDisplay(car)}}</td></tr>
+    <td class='cardisplay'>{{rm.carDisplay(car)}}</td></tr>
 {% endfor %}
 <tr><td colspan=3 class='button'><button class='newcar btn btn-outline-primary' title='Create Car' data-toggle='modal' data-target='#carmodal'>Create New Entry</button></td></tr>
 </table>
