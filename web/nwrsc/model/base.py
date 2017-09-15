@@ -62,7 +62,9 @@ class AttrBase(object):
     def getval(cls, sql, args=None):
         with g.db.cursor() as cur:
             cur.execute(sql, args)
-            return cur.rowcount == 1 and cur.fetchone()[0] or None
+            if cur.rowcount == 1:
+                return cur.fetchone()[0]
+            return None
 
     @classmethod
     def getunique(cls, sql, args=None):

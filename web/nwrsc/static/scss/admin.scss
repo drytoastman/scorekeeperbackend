@@ -29,6 +29,11 @@ $bootstrapitem: rgba(255, 255, 255, 0.75);
     }
 }
 
+button.small {
+  font-size: 0.75rem;
+  padding: 0.4rem 0.70rem;
+}
+
 #eventform, #settingsform {
     input[type=checkbox] {
         flex: 0 0 2rem;
@@ -58,136 +63,6 @@ $bootstrapitem: rgba(255, 255, 255, 0.75);
     th {
         height: 2.5rem;
     }
-}
-
-
-/*** Need to figure out what is needed below here *****/
-
-table {
-  &.input th {
-    text-align: right;
-    padding-right: 10px;
-  }
-  &.form {
-    th, td {
-      padding: 2px 2px 4px 2px;
-    }
-    th {
-      text-align: right;
-    }
-  }
-}
-
-table.editor {
-  border-collapse: collapse;
-  td {
-    border: 1px solid #999999;
-    height: 20px;
-  }
-  th {
-    border: 1px solid #999999;
-    height: 20px;
-    text-align: right;
-    padding-right: 5px;
-    width: 100px;
-    + td {
-      width: 600px;
-    }
-  }
-}
-
-button {
-  &.editor {
-    font-size: 11px !important;
-    margin-bottom: 3px;
-  }
-  &.ceditor {
-    font-size: 9px !important;
-    margin-bottom: 3px;
-    margin-top: 2px;
-  }
-}
-
-div.editor {
-  margin-left: 10px;
-  margin-bottom: 15px;
-  width: 650px;
-}
-
-#driverregex {
-  display: block;
-  margin-bottom: 10px;
-  width: 97%;
-}
-
-#driverlist {
-  width: 100;
-}
-
-
-button.small {
-  font-size: 0.75rem;
-  padding: 0.4rem 0.70rem;
-}
-
-
-.dataTables_wrapper {
-	display: inline-block;
-
-	tr.even td, .odd td {
-	  border-bottom: 1px solid #dddddd;
-	}
-
-	tr.even:hover, tr.odd:hover {
-	  background: #ddd;
-	}
-
-	label {
-		text-align: right;
-		margin-right: 10px;
-	}
-
-	.dataTables_length, .dataTables_filter, .dataTables_info {
-		margin: 6px;
-	}
-
-	.fg-button {
-		margin: 2px;
-	}
-
-
-	.DataTables_sort_icon {
-		float: right;
-	}
-}
-
-
-
-
-#titlebutton a {
-  color: rgb(240,240,240);
-  &:hover {
-  	background: $widgetHeaderBackground;
-  }
-}
-
-.cleanlist {
-	padding-left: 20px;
-
-	li  {
-		margin-top:2px;
-	}
-	ul {
-		list-style: none;
-		padding-left: 10px;
-	}
-	a {
-		text-decoration: none;
-	}
-}
-
-ul.invalidlist {
-	list-style: none;
 }
 
 .indextable, .classtable {
@@ -244,7 +119,6 @@ ul.invalidlist {
 	}
 }
 
-
 .doctable {
 	th {
 		white-space: nowrap;
@@ -252,22 +126,34 @@ ul.invalidlist {
 		padding-right: 5px;
 		vertical-align: top;
 	}
-
-	ol {
-		margin: 0;
-		padding-left: 14px;
-	}
-
-	li {
-		padding-top: 2px;
-		font-style: italic;
-		color: rgb(50,100,200);
-		span {
-			font-weight: bold;
-			font-size: 1.1em;
-			color: rgb(25,50,100);
-		}
-	}
 }
 
+.drivertable {
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    width: 100%;
 
+    th {
+        text-align: right;
+    }
+    th, td {
+        border: 1px solid #ccc;
+        padding: 0.15rem 0.6rem;
+    }
+    td.buttons {
+        border: none;
+    }
+    button {
+        padding: 0.1rem 0.6rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.1rem;
+        &:disabled {
+            border-color: gray;
+            color: gray;
+        }
+    }
+    .carrow {
+        button.small {
+        }
+    }
+}

@@ -2,7 +2,7 @@ import logging
 import re
 import uuid
 
-from flask import g, make_response, render_template, request
+from flask import abort, g, make_response, render_template, request
 
 from nwrsc.controllers.admin import Admin
 from nwrsc.lib.encoding import json_encode
@@ -40,10 +40,28 @@ def drivers():
 def getdrivers():
     return json_encode(Driver.getAll())
 
-@Admin.route("/getitems/<uuid:driverid>")
-def getitems(driverid):
-    cars = Car.getForDriver(driverid)
-    return json_encode(cars)
+@Admin.route("/getitems")
+def getitems():
+    ret = dict()
+    for did in request.args['driverids'].split(','):
+        ret[did] = Car.getForDriver(did)
+        for c in ret[did]:
+            c.loadActivity()
+    return json_encode(ret)
+
+@Admin.route("/deleteitem", methods=['POST'])
+def deleteitem():
+    try:
+        if 'carid' in request.form:
+            Car.delete(uuid.UUID(request.form['carid']))
+        elif 'driverid' in request.form:
+            Driver.delete(uuid.UUID(request.form['driverid']))
+        else:
+            abort(400, "No carid or driverid given")
+    except Exception as e:
+        return str(e), 500
+    return "";
+
 
 def mergedriver(self):
     try:

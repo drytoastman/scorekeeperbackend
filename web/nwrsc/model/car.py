@@ -1,8 +1,11 @@
-import uuid
 import json
+import logging
+import uuid
 
 from flask import g
 from .base import AttrBase
+
+log = logging.getLogger(__name__)
 
 class Car(AttrBase):
     TABLENAME = "cars"
@@ -25,8 +28,17 @@ class Car(AttrBase):
                         self.carid, verifyid))
             g.db.commit()
 
+    def loadActivity(self):
+        self.activity = Car.getval("SELECT COUNT(ids) FROM (SELECT distinct(eventid) FROM registered WHERE carid=%s UNION SELECT distinct(eventid) FROM runs WHERE carid=%s) AS ids ", (self.carid, self.carid))
+
     @classmethod
-    def delete(cls, carid, verifyid):
+    def delete(cls, carid):
+        with g.db.cursor() as cur:
+            cur.execute("DELETE FROM cars WHERE carid=%s", (carid,))
+            g.db.commit()
+
+    @classmethod
+    def deleteWCheck(cls, carid, verifyid):
         with g.db.cursor() as cur:
             cur.execute("DELETE FROM cars WHERE carid=%s and driverid=%s", (carid, verifyid))
             g.db.commit()

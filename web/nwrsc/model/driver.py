@@ -33,6 +33,12 @@ class Driver(AttrBase):
             return newid
 
     @classmethod
+    def delete(cls, driverid):
+        with g.db.cursor() as cur:
+            cur.execute("DELETE FROM drivers WHERE driverid=%s", (driverid,))
+            g.db.commit()
+
+    @classmethod
     def updatepassword(cls, driverid, username, password):
         with g.db.cursor() as cur:
             cur.execute("UPDATE drivers SET username=%s,password=%s,modified=now() WHERE driverid=%s", (username, password, driverid))

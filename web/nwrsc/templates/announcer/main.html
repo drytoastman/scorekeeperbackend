@@ -1,11 +1,11 @@
-{% extends "/base.html" %}
+{% extends "common/base.html" %}
 
 {% block headers %}
 {% assets filters="libsass,cssmin", output="announcer.css", "scss/announcer.scss" %}
 	<link rel="stylesheet" href="{{ASSET_URL}}" /> 
 {% endassets %}
 
-{% assets filters="rjsmin", output="announcer.js", "extern/jquery-3.2.0.js", "extern/tether-1.3.3.js", "extern/bootstrap-4.0.0a6.js", "js/announcer.js" %}
+{% assets filters="rjsmin", output="announcer.js", "extern/jquery-3.2.0.js", "extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js", "js/announcer.js" %}
 	<script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
 

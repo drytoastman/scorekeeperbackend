@@ -9,6 +9,22 @@ function add_collapse_icons(cid)
     i.addClass(c.hasClass("show") ? "fa-minus-square-o" : "fa-plus-square-o");
 }
 
+String.prototype.format = function() {
+    var formatted = this;
+    for(var arg in arguments) {
+        var val = arguments[arg];
+        if (val == undefined) val = "";
+        formatted = formatted.replace("{"+arg+"}", val);
+    }
+    return formatted;
+};
+
+
+$.validator.addMethod("notinused", function( value, element ) {
+    var used = $(element).data("usednumbers") || [];
+    return ($.inArray(parseInt(value), used) < 0);
+},  "that number is already in use");
+
 (function ($) {
 
 	var methods = {
@@ -149,9 +165,4 @@ function add_collapse_icons(cid)
 
 }) (jQuery);
 
-
-$.validator.addMethod("notinused", function( value, element ) {
-    var used = $(element).data("usednumbers") || [];
-    return ($.inArray(parseInt(value), used) < 0);
-},  "that number is already in use");
 

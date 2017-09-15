@@ -530,7 +530,7 @@ class Result(object):
         store = defaultdict(lambda : defaultdict(ChampEntrant))
         for event in events:
             if event.ispractice: continue
-            if datetime.date.utcnow() >= event.date:
+            if datetime.datetime.utcnow().date() >= event.date:
                 completed += 1
 
             eventresults = cls.getEventResults(event.eventid)

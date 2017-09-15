@@ -31,7 +31,7 @@ $(document).ready(function() {
             data: form.serialize(),
             method: 'POST',
             success: function(data) { targetdiv.html(data); },
-            error: function(xhr, stat, error) { targetdiv.html('<div class="error">'+error+'</div>'); },
+            error: function(xhr, stat, error) { targetdiv.html('<div class="error">'+xhr.responseText+'</div>'); },
             complete: function(xhr) { targetdiv.height('auto'); }
             });
     });
