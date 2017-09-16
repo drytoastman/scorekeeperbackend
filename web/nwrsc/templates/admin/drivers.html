@@ -1,11 +1,16 @@
 {% extends "/admin/abase.html" %}
-<%namespace file="/forms/carform.mako" import="carform"/>
-<%namespace file="/forms/driverform.mako" import="driverform"/>
+{% import 'common/macros.html' as m %}
 
 {% block headers %}
 {{super()}}
 <script>
 
+{% set cda = classdata.getJSONArrays() %}
+var thetable = Object();
+var currentcars = Object();
+var gClasses = {{cda[0]|safe}};
+var gIndexes = {{cda[1]|safe}};
+ 
 const EDIT  = 1
 const DEL   = 2
 const MERGE = 3
@@ -34,25 +39,37 @@ function baction(atype, atarget, arg, disable)
         switch (atype) {
             case MERGE:
                 var driverids = selecteddrivers(arg);
-                alert("Merge " + driverids + " into " + arg);
+                $.ajax({
+                    url: "{{url_for('.mergedrivers')}}",
+                    data: { dest:arg, src:driverids },
+                    method: 'POST',
+                    success: function(data) { 
+                        thetable.rows('#'+driverids.split(',').join(',#')).remove().draw();
+                        thetable.row('#'+arg).select();
+                    },
+                    error: function(xhr, stat, error) { alert(xhr.responseText); },
+                });
                 break;
-                
+                 
             case DEL:
                 $.ajax({
                     url: "{{url_for('.deleteitem')}}",
                     data: (atarget == DRV) ? {driverid:arg} : {carid:arg},
                     method: 'POST',
-                    success: function(data) { thetable.rows('#'+arg).deselect(), $('#'+arg).remove(); },
+                    success: function(data) { thetable.row('#'+arg).deselect(), $('#'+arg).remove(); },
                     error: function(xhr, stat, error) { alert(xhr.responseText); },
                 });
-                 
                 break;
+
             case EDIT: 
-                if (atarget == DRV)
-                    alert("edit driver " + arg);
-                else
-                    alert("edit car " + arg);
-            break;
+                if (atarget == DRV) {
+                    load_driver_form($('#profileform'), thetable.row('#'+arg).data());
+                    $('#profilemodal').modal('show');
+                } else {
+                    $('#carform').CarEdit('initform', currentcars[arg]);
+                    $('#carmodal').modal('show');
+                }
+                break;
         }
     });
 }
@@ -88,15 +105,44 @@ function rebuildInfoContainer()
             method: 'GET',
             success: function(data) { 
                 var count = 0;
+                currentcars = Object();
                 for (driverid in data) { count += 1; }
                 for (driverid in data) {
                     driver = thetable.row('#'+driverid).data();
+                    for (var idx in data[driverid]) {
+                        var c = data[driverid][idx];
+                        currentcars[c.carid] = c;
+                    }
                     targetdiv.append(buildEntrantTable(driver, data[driverid], count>1));
                 }
             },
-            error: function(xhr, stat, error) { targetdiv.html('<div class="error">'+xhr.responseText+'</div>'); },
-            });
+            error: function(xhr, stat, error) {
+                targetdiv.html('<div class="error">'+xhr.responseText+'</div>');
+            },
+        });
     } 
+}
+
+// Override the standard form submit to ajax
+function modalupdate(e) {
+    e.preventDefault();
+    var form = $(this)
+    var isdriver = form.find('input[name=firstname]').length > 0;
+    var driverid = form.find('input[name=driverid]').val()
+
+    $.ajax({
+        url: form.prop('action'),
+        method: form.prop('method'),
+        data: form.serialize(),
+        success: function(data) { 
+            form.closest('.modal').modal('hide') 
+            if (isdriver) thetable.row('#'+driverid).data(form.serializeArray().reduce(function(m,o) { m[o.name] = o.value; return m; }, {}));
+            rebuildInfoContainer();
+        },
+        error: function(xhr) { 
+            alert(xhr.responseText);
+        },
+    });
 }
  
 $(document).ready(function(){
@@ -119,6 +165,7 @@ $(document).ready(function(){
 
 	resizescroll();
 	$( window ).resize(function() { resizescroll(); });
+    $('#profileform, #carform').submit(modalupdate);
 });
 </script>
 {% endblock headers %}
@@ -127,7 +174,7 @@ $(document).ready(function(){
 {{super()}}
 <div class='container'>
 <h2>Driver Editor</h2>
-<p class='small'>With great power comes great responsibility. Cars are from {{g.series}} but drivers are shared amongst series.</p>
+<p class='small'>Cars are from {{g.series}} but drivers are shared amongst series. Don't be a dick.</p>
 <div class='row'>
 <div class='col-5'>
 <table id='drivertable' class='table-striped table-bordered stripe hover' cellspacing="0" width="100%">
@@ -138,11 +185,11 @@ $(document).ready(function(){
 </div>
 
 <div id='driverinfo' class='col-7'>
-{#{{driverform()}}
-{{carform()}} #}
 </div>
 </div>
 
+{{m.modal('profilemodal', 'Profile Editor', driverform.html('profileform', url_for('.edititem'), 'post', 'btn-success'))}}
+{{m.modal('carmodal',     'Car Editor',     carform.html(   'carform',     url_for('.edititem'), 'post', 'btn-success'))}}
 
 {% endblock content %}
 

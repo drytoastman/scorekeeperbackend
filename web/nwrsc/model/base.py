@@ -1,4 +1,5 @@
 import json
+import logging
 from flask import g
 
 TABLES = ['drivers', 'cars', 'events']
@@ -7,6 +8,8 @@ PRIMARY_KEYS  = dict()
 NONPRIMARY    = dict()
 UPDATES       = dict()
 INSERTS       = dict()
+
+log = logging.getLogger(__name__)
 
 class AttrBase(object):
 
@@ -29,14 +32,13 @@ class AttrBase(object):
                             "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
                 PRIMARY_KEYS[table] = [row[0] for row in cur.fetchall()]
 
-                cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s and table_schema in %s", (table, testseries))
+                cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s AND table_schema IN %s AND column_name NOT IN ('modified', 'username', 'password')", (table, testseries))
                 COLUMNS[table] = [row[0] for row in cur.fetchall()]
-                COLUMNS[table].remove('modified')
                 NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
 
                 UPDATES[table] = "UPDATE {} SET {},modified=now() WHERE {}".format(table, ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[table]), " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[table]))
                 INSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now())".format(table, ",".join(COLUMNS[table]), ",".join(["%({})s".format(x) for x in COLUMNS[table]]))
- 
+
 
     def __init__(self, **kwargs):
         self.attr = dict()

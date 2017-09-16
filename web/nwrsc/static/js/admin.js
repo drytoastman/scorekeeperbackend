@@ -15,7 +15,6 @@ function newCountedRow(listform)
     return false;
 }
 
-
 function titlecasedriver(did)
 {
 	$.post($.nwr.url_for('titlecasedriver'), { driverid: did }, function() {

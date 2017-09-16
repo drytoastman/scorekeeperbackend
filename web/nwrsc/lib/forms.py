@@ -112,7 +112,8 @@ class RegisterForm(MyFlaskForm):
     password  = MyPasswordField('Password',  [Length(min=6, max=32)])
     submit    = SubmitField(  '  Register')
 
-class ProfileForm(MyFlaskForm):
+class DriverForm(MyFlaskForm):
+    driverid  = HiddenField(  'driverid')
     firstname = MyStringField('First Name', [Length(min=2, max=32)])
     lastname  = MyStringField('Last Name',  [Length(min=2, max=32)])
     email     = MyEmailField( 'Email',      [Email()])

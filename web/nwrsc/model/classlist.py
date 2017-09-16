@@ -1,11 +1,13 @@
 from collections import defaultdict
 import logging
-import sys
+import operator
 import re
+import sys
 
 from flask import g
 
 from .base import AttrBase
+from nwrsc.lib.encoding import to_json
 from nwrsc.lib.misc import csvlist
 
 log = logging.getLogger(__name__)
@@ -236,4 +238,14 @@ class ClassData(object):
 
         return indexval
 
+
+    def getJSONArrays(self):
+        classes = dict()
+        indexes = dict()
+        for k, v in sorted(self.classlist.items()):
+            r = self.restrictedIndexes(k)
+            classes[k] = { 'isindexed': v.carindexed, 'usecarflag': v.usecarflag, 'idxrestrict': r[0], 'flagrestrict': r[1] }
+        for k, v in sorted(self.indexlist.items()):
+            indexes[k] = v.descrip
+        return to_json(classes), to_json(indexes)
 

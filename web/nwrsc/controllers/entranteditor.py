@@ -6,35 +6,17 @@ from flask import abort, g, make_response, render_template, request
 
 from nwrsc.controllers.admin import Admin
 from nwrsc.lib.encoding import json_encode
+from nwrsc.lib.forms import *
 from nwrsc.model import *
 
 log = logging.getLogger(__name__)
 
-DIRECTIONS = re.compile(r'\s(Ne|Se|Sw|Nw)')
-
-def titlecase(text, key):
-    if key == 'state' and len(text) < 3:
-        return text.upper()
-    if key == 'address':
-        return DIRECTIONS.sub(lambda pat: " " + pat.group(1).upper(), string.capwords(text))
-    return string.capwords(text)
-
-class DriverInfo(object):
-    def __init__(self, d, c):
-        self.driver = d
-        self.cars = c
-        # Make no values into blank strings
-        for k, v in self.driver.__dict__.iteritems(): 
-            if v is None:
-                setattr(self.driver, k, "")
-        for car in self.cars:
-            for k, v in car.__dict__.iteritems(): 
-                if v is None:
-                    setattr(car, k, "")
-
 @Admin.route("/drivers")
 def drivers():
-    return render_template('/admin/drivers.html')
+    classdata = ClassData.get()
+    carform = CarForm(classdata)
+    driverform = DriverForm()
+    return render_template('/admin/drivers.html', classdata=classdata, driverform=driverform, carform=carform)
 
 @Admin.route("/getdrivers")
 def getdrivers():
@@ -49,6 +31,10 @@ def getitems():
             c.loadActivity()
     return json_encode(ret)
 
+@Admin.route("/usednumbers")
+def usednumbers():
+    return json_encode(sorted(list(Car.usedNumbers(request.args['driverid'], request.args['classcode'], Settings.get().superuniquenumbers))))
+
 @Admin.route("/deleteitem", methods=['POST'])
 def deleteitem():
     try:
@@ -62,69 +48,35 @@ def deleteitem():
         return str(e), 500
     return "";
 
+@Admin.route("/edititem", methods=['POST'])
+def edititem():
+    form = None
+    if 'membership' in request.form:
+        form = DriverForm()
+        if form.validate():
+            d = Driver()
+            formIntoAttrBase(form, d)
+            d.update()
+    elif 'classcode' in request.form:
+        classdata = ClassData.get()
+        form = CarForm(classdata)
+        if form.validate():
+            c = Car()
+            formIntoAttrBase(form, c)
+            c.update()
 
-def mergedriver(self):
+    if form and len(form.errors) > 0:
+        return "\n".join(["{}: {}".format(f, m[0]) for (f, m) in form.errors.items()]), 400
+    return ""
+
+@Admin.route("/mergedrivers", methods=['POST'])
+def mergedrivers():
     try:
-        driverid = int(request.POST.get('driverid', None))
-        allids = map(int, request.POST.get('allids', '').split(','))
-        allids.remove(driverid)
-        for tomerge in allids:
-            log.info("merge %s into %s" % (tomerge, driverid))
-            # update car id maps
-            for car in self.session.query(Car).filter(Car.driverid==tomerge):
-                car.driverid = driverid 
-            # delete old driver
-            dr = self.session.query(Driver).filter(Driver.id==tomerge).first()
-            self.session.delete(dr)
-            
-        self.session.commit()
-        return "";
+        dest = uuid.UUID(request.form['dest'])
+        srcs = [uuid.UUID(x) for x in request.form['src'].split(',')]
+        Driver.merge(srcs, dest)
+        return ""
     except Exception as e:
-        log.info('merge driver failed: %s' % e)
-        abort(400);
-
-
-def deletedriver(self):
-    try:
-        driverid = request.POST.get('driverid', None)
-        log.info('request to delete driver %s' % driverid)
-        for car in self.session.query(Car).filter(Car.driverid==driverid):
-            if len(self.session.query(Run.eventid).distinct().filter(Run.carid==car.id).all()) > 0:
-                raise Exception("driver car has runs")
-            self.session.delete(car)
-        dr = self.session.query(Driver).filter(Driver.id==driverid).first()
-        self.session.delete(dr)
-        self.session.commit()
-        return "";
-    except Exception as e:
-        log.info('delete driver failed: %s' % e)
-        abort(400);
-
-
-def titlecasedriver(self):
-    try:
-        driverid = request.POST.get('driverid', None)
-        log.info('request to titlecase driver %s' % driverid)
-        dr = self.session.query(Driver).get(driverid)
-        for attr in ('firstname', 'lastname', 'address', 'city', 'state'):
-            setattr(dr, attr, titlecase(getattr(dr, attr), attr))
-        self.session.commit()
-        return "";
-    except Exception as e:
-        log.info('title case driver failed: %s' % e)
-        abort(400);
-
-def titlecasecar(self):
-    try:
-        carid = request.POST.get('carid', None)
-        log.info('request to titlecase car %s' % carid)
-        car = self.session.query(Car).get(carid)
-        for attr in ('make', 'model', 'color'):
-            setattr(car, attr, titlecase(getattr(car, attr), attr))
-        self.session.commit()
-        return "";
-    except Exception as e:
-        log.info('title case car failed: %s' % e)
-        abort(400);
-
+        return str(e), 500
+    return "";
 

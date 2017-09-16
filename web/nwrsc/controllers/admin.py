@@ -32,7 +32,6 @@ def clearpath():
 def setup():
     """ Every page underneath here requires a password """
     g.title = 'Scorekeeper Admin'
-    log.debug("session is %s", session)
     if AUTHKEY not in session:
         session[AUTHKEY] = {}
     if not g.series in session[AUTHKEY]:

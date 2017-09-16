@@ -19,6 +19,14 @@ String.prototype.format = function() {
     return formatted;
 };
 
+const DRIVERFIELDS = ["driverid", "firstname", "lastname", "email", "membership", "address", "city", "state", "zip", "phone", "brag", "sponsor"];
+function load_driver_form(form, dr)
+{
+    for (idx in DRIVERFIELDS) {
+        var f = DRIVERFIELDS[idx];
+        form.find('[name='+f+']').val(dr[f]);
+    }
+}
 
 $.validator.addMethod("notinused", function( value, element ) {
     var used = $(element).data("usednumbers") || [];
@@ -54,6 +62,7 @@ $.validator.addMethod("notinused", function( value, element ) {
 				
 				indexselect.find("option").remove();
                 indexselect.append(new Option("", "", false, false));
+                restrict.sort();
    				for (var ii = 0; ii < restrict.length; ii++) {
                     indexselect.append(new Option(restrict[ii] + " - " + gIndexes[restrict[ii]], restrict[ii], false, false));
                 }
@@ -74,9 +83,10 @@ $.validator.addMethod("notinused", function( value, element ) {
             $("#usedwrapper a").toggle(true);
             $("#usedwrapper span.label").text(" Unavailable Numbers in " + code);
             var ul = $("#usedwrapper ul").html("loading...");
+            var driverid = myform.find('[name=driverid]').val(); // only used by admin, register verifies with logged in id
 
             // Actually make a request for the list and update the UL
-            $.get("usednumbers", {'classcode': code}, function (data) {
+            $.get("usednumbers", {'classcode': code, 'driverid': driverid }, function (data) {
                 numobj.data('usednumbers', data);
                 ul.empty();
                 $.each(data, function(ii, num) {

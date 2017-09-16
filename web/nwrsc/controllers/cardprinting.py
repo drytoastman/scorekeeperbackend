@@ -140,7 +140,6 @@ def code39Right(c, x, y, code, height=20, baseline=2.5):
     for char in codestr[::-1]:
         seq = barChar.get(char, None)
         if seq is None:
-            log.debug("skipping {}".format(char))
             continue
 
         for bar in range(8, -1, -1):

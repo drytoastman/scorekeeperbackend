@@ -13,7 +13,7 @@ class Driver(AttrBase):
 
     @classmethod
     def getAll(cls):
-        return cls.getall("SELECT * FROM drivers")
+        return cls.getall("SELECT * FROM drivers order by lower(lastname), lower(firstname)")
 
     @classmethod
     def byusername(cls, username):
@@ -33,8 +33,17 @@ class Driver(AttrBase):
             return newid
 
     @classmethod
+    def merge(cls, oldids, destid):
+        with g.db.cursor() as cur:
+            for srcid in oldids:
+                cur.execute("UPDATE cars SET driverid=%s WHERE driverid=%s", (destid, srcid))
+                cur.execute("DELETE FROM drivers WHERE driverid=%s", (srcid,))
+            g.db.commit()
+
+    @classmethod
     def delete(cls, driverid):
         with g.db.cursor() as cur:
+            cur.execute("DELETE FROM cars WHERE driverid=%s", (driverid,))
             cur.execute("DELETE FROM drivers WHERE driverid=%s", (driverid,))
             g.db.commit()
 

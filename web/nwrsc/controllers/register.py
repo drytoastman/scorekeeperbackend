@@ -46,7 +46,7 @@ def series():
 @Register.route("/<series>/profile")
 def profile():
     if not g.driver: return login()
-    form        = ProfileForm()
+    form        = DriverForm()
     upcoming    = getAllUpcoming(g.driver.driverid)
     attrBaseIntoForm(g.driver, form)
     return render_template('register/profile.html', form=form, upcoming=upcoming)
@@ -54,7 +54,7 @@ def profile():
 @Register.route("/profilepost", methods=['POST'])
 @Register.route("/<series>/profilepost", methods=['POST'])
 def profilepost():
-    form = ProfileForm()
+    form = DriverForm()
     if form.validate_on_submit():
         formIntoAttrBase(form, g.driver)
         g.driver.update()
@@ -82,7 +82,7 @@ def carspost():
     try:
         action = request.form.get('submit')
         if action == 'Delete':
-            Car.delete(request.form.get('carid', ''), g.driver.driverid)
+            Car.deleteWCheck(request.form.get('carid', ''), g.driver.driverid)
         elif carform.validate():
             car = Car()
             formIntoAttrBase(carform, car)

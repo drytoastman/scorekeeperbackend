@@ -21,19 +21,14 @@ $(document).ready(function() {
         }
     });
 });
+{% set cda = g.classdata.getJSONArrays() %}
+var gClasses = {{cda[0]|safe}};
+var gIndexes = {{cda[1]|safe}};
+
 var gCars = Array();
-var gClasses = Array();
-var gIndexes = Array();
 {% for c in cars.values()|msort('classcode', 'number') %}
 gCars['{{c.carid}}'] = {{c|to_json|safe}};
 {%- endfor %}
-{% for c in g.classdata.classlist.values()|msort('classcode') -%}
-{% set restrict = g.classdata.restrictedIndexes(c.classcode) %}
-gClasses['{{c.classcode}}'] = { 'isindexed': {{'true' if c.carindexed else 'false'}}, 'usecarflag': {{'true' if c.usecarflag else 'false'}}, 'idxrestrict': {{restrict[0]|sort|safe}}, 'flagrestrict': {{restrict[1]|sort|safe}} };
-{%- endfor %}
-{% for i in g.classdata.indexlist.values()|msort('indexcode') -%}
-gIndexes['{{i.indexcode}}'] = "{{i.descrip}}";
-{% endfor %}
 </script>
 {% endblock headers %}
 
