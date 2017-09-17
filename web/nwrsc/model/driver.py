@@ -16,9 +16,14 @@ class Driver(AttrBase):
         return cls.getall("SELECT * FROM drivers order by lower(lastname), lower(firstname)")
 
     @classmethod
-    def byusername(cls, username):
+    def byUsername(cls, username):
         return cls.getunique("SELECT * FROM drivers WHERE username=%s", (username.strip(),))
-
+    
+    @classmethod
+    def byNameEmail(cls, first, last, email):
+        return cls.getunique("SELECT * FROM drivers WHERE lower(firstname)=%s AND lower(lastname)=%s AND lower(email)=%s",
+                                    (first.lower().strip(), last.lower().strip(), email.lower().strip()))
+    
     @classmethod
     def find(cls, first, last):
         return cls.getall("SELECT * FROM drivers WHERE lower(firstname)=%s and lower(lastname)=%s", (first.strip().lower(), last.strip().lower()))

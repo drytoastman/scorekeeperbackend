@@ -190,13 +190,13 @@ def login():
 
     if login.submit.data:
         if login.validate_on_submit():
-            user = Driver.byusername(login.username.data)
+            user = Driver.byUsername(login.username.data)
             if user and user.password == login.password.data:
                 session['driverid'] = user.driverid
                 return redirect_series(login.gotoseries.data)
             flash("Invalid username/password")
         else:
-            flashformerrors(login.errors)
+            flashformerrors(login)
 
     elif reset.submit.data:
         active = "reset"
@@ -206,23 +206,25 @@ def login():
                     token = current_app.usts.dumps({'request': 'reset', 'driverid': str(d.driverid)})
                     link = url_for('.reset', token=token, _external=True)
                     # FINISH ME, do email here
-                    return render_template("simple.html", content="An email as been sent with a link to reset your username/password. (%s)" % link)
+                    return render_template("common/simple.html", content="An email as been sent with a link to reset your username/password. (%s)" % link)
             flash("No user could be found with those parameters")
         else:
-            flashformerrors(reset.errors)
+            flashformerrors(reset)
 
     elif register.submit.data:
         active = "register"
         # FINISH ME, some kind of CAPTCHA here
         if register.validate_on_submit():
-            if Driver.byusername(register.username.data) != None:
+            if Driver.byNameEmail(register.firstname.data, register.lastname.data, register.email.data):
+                flash("That combination of name/email already exists, please use the reset tab instead")
+            elif Driver.byUsername(register.username.data) != None:
                 flash("That username is already taken")
             else:
                 session['driverid'] = Driver.new(register.firstname.data.strip(), register.lastname.data.strip(), register.email.data.strip(),
                                             register.username.data.strip(), register.password.data.strip())
                 return redirect_series(register.gotoseries.data)
         else:
-            flashformerrors(register.errors)
+            flashformerrors(register)
 
     login.gotoseries.data = g.series
     register.gotoseries.data = g.series
@@ -240,14 +242,14 @@ def reset():
 
     elif request.method == 'GET':
         if 'token' not in request.args:
-            return render_template("simple.html", header="Reset Error", content="This URL is meant to be loaded from a link with a reset token")
+            return render_template("common/simple.html", header="Reset Error", content="This URL is meant to be loaded from a link with a reset token")
             
         token = request.args.get('token', '')
         req   = {}
         try:
             req = current_app.usts.loads(token, max_age=3600) # 1 hour expiry
         except itsdangerous.SignatureExpired as e:
-            return render_template("simple.html", header="Confirmation Error", content="Sorry, this confirmation token has expired (%s)" % e.args[0])
+            return render_template("common/simple.html", header="Confirmation Error", content="Sorry, this confirmation token has expired (%s)" % e.args[0])
         except Exception as e:
             abort(400, e)
     

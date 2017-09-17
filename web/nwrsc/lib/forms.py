@@ -104,13 +104,13 @@ class ResetForm(MyFlaskForm):
     submit    = SubmitField(  'Send Reset Information')
 
 class RegisterForm(MyFlaskForm):
-    gotoseries = HiddenField( '  gotoseries')
-    firstname = MyStringField('  First Name', [Length(min=2, max=32)])
-    lastname  = MyStringField('  Last Name',  [Length(min=2, max=32)])
-    email     = MyEmailField( '  Email',     [Email()])
-    username  = MyStringField('  Username',  [Length(min=6, max=32)])
+    gotoseries = HiddenField(   'gotoseries')
+    firstname = MyStringField(  'First Name', [Length(min=2, max=32)])
+    lastname  = MyStringField(  'Last Name',  [Length(min=2, max=32)])
+    email     = MyEmailField(   'Email',     [Email()])
+    username  = MyStringField(  'Username',  [Length(min=6, max=32)])
     password  = MyPasswordField('Password',  [Length(min=6, max=32)])
-    submit    = SubmitField(  '  Register')
+    submit    = SubmitField(    'Create New Profile')
 
 class DriverForm(MyFlaskForm):
     driverid  = HiddenField(  'driverid')
