@@ -46,7 +46,7 @@ def convert(sourcefile, password):
 
         cur.execute("select * from drivers where lower(firstname)=%s and lower(lastname)=%s and lower(email)=%s", 
                     (d.firstname.strip().lower(), d.lastname.strip().lower(), d.email.strip().lower()))
-        if cur.rowcount > 0 and d.email.strip().lower():
+        if cur.rowcount > 0: # and d.email.strip().lower():
             match = cur.fetchone()
             remapdriver[d.id] = match['driverid']
             print('match %s %s %s' % (d.firstname, d.lastname, d.email))

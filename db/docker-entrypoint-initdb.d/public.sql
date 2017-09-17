@@ -176,6 +176,7 @@ CREATE TABLE drivers (
 );
 CREATE INDEX ON drivers(lower(firstname));
 CREATE INDEX ON drivers(lower(lastname));
+CREATE UNIQUE INDEX uniqueper ON drivers(lower(firstname), lower(lastname), lower(email));
 REVOKE ALL   ON drivers FROM public;
 GRANT  ALL   ON drivers TO driversaccess;
 CREATE TRIGGER driversmod AFTER INSERT OR UPDATE OR DELETE ON drivers FOR EACH ROW EXECUTE PROCEDURE logmods('publiclog');
