@@ -1,4 +1,4 @@
-{% extends "/admin/abase.html" %}
+{% extends "admin/bluebase.html" %}
 
 {% block headers %}
 {{super()}}
@@ -15,7 +15,7 @@ $(document).ready(function(){
             { data: 'classcode' },
             { data: 'number' },
             { data: 'cdesc' },
-            { data: null, "defaultContent": "<button class='btn btn-success small'>Unregister</button>" }
+            { data: null, "defaultContent": "<button class='btn btn-admin small'>Unregister</button>" }
         ],
         sDom: '<"dtheader"fi>rt<"clear">'
     });

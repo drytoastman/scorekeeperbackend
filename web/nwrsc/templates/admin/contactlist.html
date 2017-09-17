@@ -1,4 +1,4 @@
-{% extends "admin/abase.html" %}
+{% extends "admin/bluebase.html" %}
 {% import "common/macros.html" as m %}
 
 {% block headers %}
@@ -67,7 +67,7 @@ $(document).ready(function(){
         sDom: '<"dtheader"fi>rt<"clear">'
     });
 
-    $('.dtheader').append("<div class='validwrapper'><button class='btn btn-outline-success' onclick='copyemail()'>Copy Valid Email</button></div>");
+    $('.dtheader').append("<div class='validwrapper'><button class='btn btn-outline-admin' onclick='copyemail()'>Copy Valid Email</button></div>");
 
     $('input[type=checkbox]').change(function () {
         matchrun = $('ul input[data-type="run"]:checked').map(function () { return $(this).data('event'); });

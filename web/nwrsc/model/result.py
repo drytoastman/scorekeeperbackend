@@ -84,7 +84,7 @@ class Result(object):
     def getChampResults(cls, asstring=False):
         """ returns a ChampClass list object """
         name = "champ"
-        if cls._needUpdate(True, ('classlist', 'indexlist', 'events', 'cars', 'runs'), name):
+        if cls._needUpdate(True, ('settings', 'classlist', 'indexlist', 'events', 'cars', 'runs'), name):
             cls._updateChampResults(name)
         res = cls._loadResults(name, asstring)
         if not asstring:
@@ -672,7 +672,9 @@ class SeriesInfo(dict):
     def getEvent(self, eventid):
         for e in self['events']:
             if uuid.UUID(e['eventid']) == eventid:
-                return Event(**e)
+                newe = Event(**e)
+                newe.date = datetime.datetime.strptime(newe.date, "%Y-%m-%d")
+                return newe
         return None
 
     def getChallengesForEvent(self, eventid):
@@ -691,7 +693,7 @@ class TopTimesList(list):
         self.title = title
         self.cols = cols
         self.fields = fields
-        
+
 
 class TopTimeEntry(object):
     """ A row entry in the TopTimesList """

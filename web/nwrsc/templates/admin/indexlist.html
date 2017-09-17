@@ -1,5 +1,5 @@
-{% extends "/admin/abase.html" %}
-{% import "/admin/macros.html" as m %}
+{% extends "admin/bluebase.html" %}
+{% import "admin/macros.html" as m %}
 
 {% block headers %}
 {{super()}}
@@ -19,7 +19,7 @@ $(document).ready(function(){
 <td>{{field['indexcode']}}</td>
 <td>{{field['descrip']}}</td>
 <td>{{field['value']}}</td>
-<td><button class="btn btn-outline-success small deleterow">Del</button></td>
+<td><button class="btn btn-outline-admin small deleterow">Del</button></td>
 </tr>
 {% endmacro %}
 
@@ -36,9 +36,9 @@ $(document).ready(function(){
 {% endfor %}
 </table>
 
-<button class='btn btn-outline-success addbutton'>Add Row</button>
+<button class='btn btn-outline-admin addbutton'>Add Row</button>
 <span class="dropdown">
-  <button class="btn btn-outline-success dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+  <button class="btn btn-outline-admin dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     Generate From
   </button>
   <div class="dropdown-menu">
@@ -47,7 +47,7 @@ $(document).ready(function(){
   </div>
 </span>
 {{form.csrf_token()}}
-<input  class='btn btn-success' type='submit' value="Save">
+<input  class='btn btn-admin' type='submit' value="Save">
 </form>
 </div>
 

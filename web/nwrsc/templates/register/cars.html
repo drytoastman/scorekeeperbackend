@@ -1,4 +1,4 @@
-{% extends "register/rbase.html" %}
+{% extends "register/bluebase.html" %}
 {% import 'common/macros.html' as m %}
 {% import 'register/macros.html' as rm %}
 
@@ -34,10 +34,9 @@ gCars['{{c.carid}}'] = {{c|to_json|safe}};
 
 
 {% block content %}
-{{rm.navbar('cars')}}
+{{super()}}
 
 <div id='carscontainer'>
-{{m.errordisplay()}}
 
 <table>
 <tr><td colspan=3 class='title'>Cars in {{g.series}}</td></tr>
@@ -48,17 +47,17 @@ gCars['{{c.carid}}'] = {{c|to_json|safe}};
         <button class='btn btn-outline-secondary disabled fa fa-pencil' title='Cars registered or in use cannot be edited or deleted'></button>
         <button class='btn btn-outline-secondary disabled fa fa-trash' title='Cars registered or in use cannot be edited or deleted'></button>
     {% else %}
-        <button class='editcar   btn btn-outline-primary fa fa-pencil' title='Edit Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'></button>
-        <button class='deletecar btn btn-outline-primary fa fa-trash' title='Delete Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'></button>
+        <button class='editcar   btn btn-outline-register fa fa-pencil' title='Edit Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'></button>
+        <button class='deletecar btn btn-outline-register fa fa-trash' title='Delete Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'></button>
     {% endif %}
     </td>
     <td class='cardisplay'>{{rm.carDisplay(car)}}</td></tr>
 {% endfor %}
-<tr><td colspan=3 class='button'><button class='newcar btn btn-outline-primary' title='Create Car' data-toggle='modal' data-target='#carmodal'>Create New Entry</button></td></tr>
+<tr><td colspan=3 class='button'><button class='newcar btn btn-outline-register' title='Create Car' data-toggle='modal' data-target='#carmodal'>Create New Entry</button></td></tr>
 </table>
 
 </div> {# container #}
 
-{{m.modal('carmodal', 'Car Editor', carform.html('carform', url_for('.carspost'), 'post', 'btn-primary', 'col-md-3', 'col-md-9'))}}
+{{m.modal('carmodal', 'Car Editor', carform.html('carform', url_for('.carspost'), 'post', 'btn-register', 'col-md-3', 'col-md-9'))}}
 
 {% endblock content %}

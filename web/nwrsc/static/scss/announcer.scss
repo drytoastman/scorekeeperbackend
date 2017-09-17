@@ -1,9 +1,9 @@
-$bootstrapblue: #0275d8;
-$headerfill: $bootstrapblue;
-$titlesfill: lighten( $bootstrapblue, 10% );
-$tabcolor: darken( $bootstrapblue, 10% );
+$basecolor: #3f75a2;
+$headerfill: $basecolor;
+$titlesfill: lighten( $basecolor, 10% );
+$tabcolor: darken( $basecolor, 10% );
 
-@import "../extern/bootstrap.scss";
+@import "../extern/bootstrap-4.0.0b.scss";
 
 .layout {
   font-size: 0.9rem;
@@ -18,6 +18,9 @@ $tabcolor: darken( $bootstrapblue, 10% );
   }
 }
 
+a {
+    color: $tabcolor; 
+}
 
 .nav-link.active {
   background-color: $tabcolor !important;
@@ -52,7 +55,6 @@ div.halffiller {
   text-align: center;
 }
 
-
 .layout {
     table {
         td, th {
@@ -85,19 +87,19 @@ span.status {
 }
 
 tr {
-  &.header th {
+  &.head th {
     text-align: center;
     font-weight: bold;
     background-color: $headerfill;
     border-color: $headerfill;
-    color: #fff;
+    color: white;
   }
-  &.titles th {
+  &.subhead th {
     text-align: center;
     font-weight: bold;
     background-color: $titlesfill;
     border-color: $titlesfill;
-    color: #fff;
+    color: white;
   }
   &.highlight td, &.improvedon, &.couldhave {
     font-size: 110%;

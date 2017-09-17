@@ -1,7 +1,7 @@
 
 {% macro roundReport(round) %}
 	<table class='challengeround'>
-	<tr><th>Entrant<th><th>Reaction<th>Sixty<th>Time<th>Diff<th>Total<th>NewDial</tr>
+	<tr class='head'><th>Entrant<th><th>Reaction<th>Sixty<th>Time<th>Diff<th>Total<th>NewDial</tr>
 	<tr{{round.winner == 1 and " class='winner'"|safe or ""}}>
 	{{driverCell(round.e1)}}
 	<td>L</td>
@@ -29,8 +29,8 @@
 {%- macro driverCell(e) -%}
 	<td class='entrant' rowspan=2>
 	{% if e.firstname %}
-	<span class='name'>{{e.firstname}}</span><span class='dial'>{{e.dial}}</span><br/>
-	<span class='class'>{{e.classcode}}</span><span class='index'>({{e.indexcode}})</span>
+	<span class='name'>{{e.firstname}} {{e.lastname}}</span> <span class='dial'>{{e.dial|t3}}</span><br/>
+	<span class='class'>{{e.classcode}}</span> <span class='index'>({{e.indexcode}})</span>
 	{% endif %}
 	</td>
 {%- endmacro -%}

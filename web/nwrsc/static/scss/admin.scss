@@ -1,12 +1,4 @@
-$widgetFontFamily: Lucida Grande, Lucida Sans, Arial, sans-serif;
-$widgetHeaderBackground: #00F;
-$widgetHeaderColor: #FFF;
-$widgetStateHoverBackground: #00A;
-$widgetStateActiveBackground: #0AA;
-$widgetStateActiveColor: #AAA;
-
-$bootstrapcolor: #28a745;
-$bootstrapitem: rgba(255, 255, 255, 0.75);
+$basecolor : #28a745;
 
 @import "../extern/font-awesome/font-awesome.scss";
 @import "../extern/bootstrap-4.0.0b.scss";
@@ -15,6 +7,7 @@ $bootstrapitem: rgba(255, 255, 255, 0.75);
 @import "../extern/flatpickr.scss";
 @import "common.scss";
 
+@include bootstraptheme("admin", $basecolor);
 
 @media (max-width: 768px) {
     .form-group {
@@ -32,12 +25,6 @@ $bootstrapitem: rgba(255, 255, 255, 0.75);
 button.small {
   font-size: 0.75rem;
   padding: 0.4rem 0.70rem;
-}
-
-#eventform, #settingsform {
-    input[type=checkbox] {
-        flex: 0 0 2rem;
-    }
 }
 
 #classlistform {

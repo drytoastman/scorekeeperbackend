@@ -1,13 +1,15 @@
-
+import logging
 from flask import g
+
+log = logging.getLogger(__name__)
 
 class Settings(object):
 
     BOOLS  = ["superuniquenumbers", "indexafterpenalties", "usepospoints"]
     INTS   = ["largestcarnumber", "dropevents", "minevents"]
-    STRS   = ["pospointlist", "champsorting", "seriesname", "sponsorlink", "classinglink"]
+    STRS   = ["pospointlist", "champsorting", "seriesname", "customheader", "classinglink"]
  
-    def __init__(self):
+    def __init__(self, initial=None):
         self.superuniquenumbers = False
         self.indexafterpenalties = False
         self.usepospoints = False
@@ -19,8 +21,11 @@ class Settings(object):
         self.pospointlist = "20,16,13,11,9,7,6,5,4,3,2,1"
         self.champsorting = ""
         self.seriesname = ""
-        self.sponsorlink = ""
+        self.customheader = ""
         self.classinglink = ""
+
+        if initial:
+            self.__dict__.update(initial)
 
     def _obj2db(self, key, val):
         """ Convert from local data type to text column """
@@ -37,7 +42,8 @@ class Settings(object):
     def save(self):
         with g.db.cursor() as cur:
             for k, v in self.getPublicFeed().items():
-                cur.execute("update settings set val=%s,modified=now() where name=%s", (self._obj2db(k, v), k))
+                strval = self._obj2db(k, v)
+                cur.execute("INSERT INTO settings (name, val) VALUES (%s, %s) ON CONFLICT (name) DO UPDATE SET val=%s,modified=now()", (k, strval, strval))
         g.db.commit()
 
     @classmethod

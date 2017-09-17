@@ -1,4 +1,4 @@
-{% extends "/admin/abase.html" %}
+{% extends "admin/bluebase.html" %}
 {% import 'common/macros.html' as m %}
 
 {% block headers %}
@@ -35,7 +35,7 @@ function baction(atype, atarget, arg, disable)
         case MERGE: text = "Merge Into This"; break;
     }
 
-    return $('<button/>').addClass('btn btn-outline-success small').text(text).prop('disabled', disable).click(function() {
+    return $('<button/>').addClass('btn btn-outline-admin small').text(text).prop('disabled', disable).click(function() {
         switch (atype) {
             case MERGE:
                 var driverids = selecteddrivers(arg);
@@ -188,8 +188,8 @@ $(document).ready(function(){
 </div>
 </div>
 
-{{m.modal('profilemodal', 'Profile Editor', driverform.html('profileform', url_for('.edititem'), 'post', 'btn-success'))}}
-{{m.modal('carmodal',     'Car Editor',     carform.html(   'carform',     url_for('.edititem'), 'post', 'btn-success'))}}
+{{m.modal('profilemodal', 'Profile Editor', driverform.html('profileform', url_for('.edititem'), 'post', 'btn-admin'))}}
+{{m.modal('carmodal',     'Car Editor',     carform.html(   'carform',     url_for('.edititem'), 'post', 'btn-admin'))}}
 
 {% endblock content %}
 

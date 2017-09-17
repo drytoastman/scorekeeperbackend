@@ -1,119 +1,102 @@
-{% extends "/results/rbase.html" %}
+{% extends "results/bluebase.html" %}
 
 {% block headers %}
 {{ super() }}
-
 <style type="text/css">
-ul, ol, h3, h2 { text-align: left; }
-h3 { color: #111; margin-bottom: 0px; }
-ul { margin-top: 0px; list-style: none; }
-a { color: #44A; text-decoration: none; }
-
-ul.classlist {
-margin: 0;
-margin-left: 40px;
-padding: 0;
-list-style: none;
-width: 350px;
+h5 {
+    text-align: left !important;
 }
-
-ul.classlist li {
-float: left;
-width: 70px;
-margin: 0;
-padding: 0;
+ul {
+    list-style: none;
 }
-
-
-.matrix {
-	margin: 20px;
-	border-collapse: collapse;
+ul.wrap {
+    column-count: 4;
+    white-space: nowrap;
 }
-.matrix td, .matrix th {
-	padding: 4px;
-	text-align: center;
-	border: 1px solid grey;
-	background: none;
-}
-
 </style>
-
 {% endblock headers %}
-
 
 {% block content %}
 {{ super() }}
 
-<h2>Results for {{event.name}}</h2>
-
-<h3>Active Classes</h3>
-<ul class='classlist'>
-{% for code in active|sort %}
-	<li><a href='{{url_for('.byclass', list=code)}}'>{{code}}</a></li>
-{% endfor %}
-</ul>
-<br style='clear:both;'/>
-
-<h3>Classes By Run Group</h3>
-<ul class='classlist'>
-{% for ii in range(1,5) %}
-	<li><a href='{{url_for('.bygroup', list=ii)}}'>R{{ii}}</a></li>
-{% endfor %}
-</ul>
-<br style='clear:both;'/>
-
-{%if event.ispro %}
-	{%for ch in challenges %}
-		<h3>{{ch.name}}</h3>
-		<ul class='classlist'>
-		<li><a href='{{url_for('.bracket', challengeid=ch.challengeid)}}'>Bracket</a></li>
-		<li><a href='{{url_for('.challenge', challengeid=ch.challengeid)}}'>Details</a></li>
-		</ul>
-		<br style='clear:both'/>
-	{%else%}
-        <!-- No challenges created yet. -->
-    {%endfor%}
-{%endif%}
-
-<h3>Top Times Lists</h3>
-<table class='matrix'>
-<tr>
-	<th></th>
-	<th>Counted Runs</th>
-	<th>All Runs</th>
-</tr>
-<tr>
-	<th>Indexed</th>
-	<td><a href='{{url_for('.tt', indexed=1, counted=1)}}'>List</a></td>
-	<td><a href='{{url_for('.tt', indexed=1, counted=0)}}'>List</a></td>
-</tr>
-<tr>
-	<th>Unindexed</th>
-	<td><a href='{{url_for('.tt', indexed=0, counted=1)}}'>List</a></td>
-	<td><a href='{{url_for('.tt', indexed=0, counted=0)}}'>List</a></td>
-</tr>
-{%if event.segments > 1 %}
-<tr>
-	<th>Segments</th>
-	<td colspan=2><a href='{{url_for('.tt', indexed=0, counted=0, segments=1)}}'>List</a></td>
-</tr>
+{% if event.ispro %}
+{% set cols = 6 %}
+{% set colm = 6 %}
+{% set coll = 3 %}
+{% else %}
+{% set cols = 6 %}
+{% set colm = 6 %}
+{% set coll = 4 %}
 {% endif %}
-</table>
 
-<h3>Other</h3>
+<div class='container'>
+<h3>Results for {{event.name}}</h3>
+
+<div class='row'>
+
+<div class='col-{{cols}} col-md-{{colm}} col-lg-{{coll}}'>
+<h5>Results</h5>
 <ul>
+<li><a href='{{url_for('.post')}}'>Event Results</a></li>
+<li><a href='{{url_for('.champ')}}'>Championship</a></li>
 {%if config.SHOWLIVE %}
 {# FINISH ME <li><a href="{{url_for('Live.index')}}">Mobile Live Page</a></li> #}
 <li><a href="{{url_for('Announcer.index')}}">Announcer Panel</a></li>
 {% endif %}
-<li><a href='{{url_for('.post')}}'>Event Results</a></li>
-<li><a href='{{url_for('.champ')}}'>Championship</a></li>
 <li><a href='{{url_for('Xml.scca')}}'>SCCA Report</a></li>
+</ul>
+</div>
 
-{%if event.ispro %}
+<div class='col-{{cols}} col-md-{{colm}} col-lg-{{coll}}'>
+<h5>RunGroup</h5>
+<ul>
+{% for ii in range(1,5) %}
+	<li><a href='{{url_for('.bygroup', list=ii)}}'>R{{ii}}</a></li>
+{% endfor %}
+</ul>
+</div>
+
+<div class='col-{{cols}} col-md-{{colm}} col-lg-{{coll}}'>
+<h5>Top Times Lists</h5>
+<ul>
+	<li><a href='{{url_for('.tt', counted=1)}}'>Counted Runs</a></li>
+	<li><a href='{{url_for('.tt', counted=0)}}'>All Runs</a></li>
+</ul>
+{%if event.segments > 1 %}
+    Segments?  Need to implement this stuff now.
+{% endif %}
+</div>
+
+{% if event.ispro %}
+<div class='col-12 col-md-{{colm}} col-lg-{{coll}}'>
+<h5>ProSolo</h5>
+	<ul>
 	<li><a href='{{url_for('.dialins', order='net')}}'>Dialins By Net Time</a></li>
 	<li><a href='{{url_for('.dialins', order='prodiff')}}'>Dialins By Class Diff</a></li>
+	{%for ch in challenges %}
+		<li><a href='{{url_for('.bracket', challengeid=ch.challengeid)}}'>{{ch.name}} Bracket</a></li>
+		<li><a href='{{url_for('.challenge', challengeid=ch.challengeid)}}'>{{ch.name}} Details</a></li>
+	{%else%}
+        <!-- No challenges created yet. -->
+    {%endfor%}
+	</ul>
+</div>
 {% endif %}
+
+</div> {# row #}
+
+<div class='row'>
+<div class='col'>
+<h5>Active Classes</h5>
+<ul class='wrap'>
+{% for code in active|sort %}
+	<li><a href='{{url_for('.byclass', list=code)}}'>{{code}}</a></li>
+{% endfor %}
 </ul>
+</div>
+</div>
+
+</div> {# container #}
 
 {% endblock content %}
+

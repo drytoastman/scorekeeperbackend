@@ -1,0 +1,51 @@
+{% extends "common/base.html" %}
+{% import 'common/macros.html' as m %}
+
+
+{% block headers %}
+{%- assets filters="libsass,cssmin", depends="scss/*.scss", output="register.css", "scss/register.scss" -%}
+<link rel="stylesheet" href="{{ASSET_URL}}" /> 
+{%- endassets -%}
+{% assets filters="rjsmin", output="register.js", "jquery", "bootstrap", "js/common.js", "js/register.js" %}
+	<script type="text/javascript" src="{{ASSET_URL}}"></script>
+{% endassets %}
+
+<script type="text/javascript">
+$(document).ready(function(){ {% if not g.series %}shownavmenu('#navbarNav', '#seriesdropdownlink');{% endif %} });
+</script>
+{% endblock %}
+
+
+{% block content %}
+<nav class="navbar navbar-expand-sm navbar-dark bg-register">
+  <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class='navbar-brand'><img src='/static/images/cone.png'/>Scorekeeper Reg</div>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+        <li id="seriesdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="seriesdropdownlink" data-toggle="dropdown">{{g.series or "Select a Series"}}</a>
+          <div class="dropdown-menu">
+          {% for s in g.activeseries %}
+              <a class="dropdown-item" href="{{url_for(g.selection, series=s)}}">{{s}}</a>
+          {% endfor %}
+          </div>
+        </li>
+        {% if g.series  %}
+        <li class="nav-item {{'active' if g.selection.endswith('profile')}}"><a class="nav-link" href="{{url_for(".profile")}}">Profile</a></li>
+        <li class="nav-item {{'active' if g.selection.endswith('cars')}}"><a class="nav-link" href="{{url_for(".cars")}}">Cars</a></li>
+        <li class="nav-item {{'active' if g.selection.endswith('events')}}"><a class="nav-link" href="{{url_for(".events")}}">Events</a></li>
+        {% endif %}
+        <li class="nav-item"><a class="nav-link" href="{{url_for(".logout")}}">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class='row justify-content-center'>
+<div class='col text-center'>
+<div>{{ m.errordisplay() }}</div>
+</div>
+</div>
+
+{% endblock content %}

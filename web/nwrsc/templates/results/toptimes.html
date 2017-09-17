@@ -1,8 +1,10 @@
-{% extends "/results/rbase.html" %}
-{% import '/results/ttmacros.html' as tt %}
+{% extends "results/bluebase.html" %}
+{% import "results/ttmacros.html" as tt %}
 
 {% block content %}
+<div class='container'>
 <h3>{{header}}</h3>
 {{tt.toptimestable(table)}}
+</div>
 {% endblock content %}
 

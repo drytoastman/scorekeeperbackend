@@ -33,7 +33,7 @@ def setup():
 def index():
     if not g.driver: return login()
     g.selection = 'Register.events'
-    return render_template('register/serieslist.html', subapp='register', serieslist=Series.active())
+    return render_template('register/bluebase.html')
 
 @Register.route("/<series>/")
 def series():

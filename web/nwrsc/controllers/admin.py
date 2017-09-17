@@ -32,6 +32,10 @@ def clearpath():
 def setup():
     """ Every page underneath here requires a password """
     g.title = 'Scorekeeper Admin'
+    g.activeseries = Series.active()
+    if not g.series:
+        return render_template('/admin/bluebase.html')
+
     if AUTHKEY not in session:
         session[AUTHKEY] = {}
     if not g.series in session[AUTHKEY]:
@@ -39,7 +43,6 @@ def setup():
         return login()
 
     clearpath()
-    g.activeseries = Series.active()
     g.events  = Event.byDate()
     if g.eventid:
         g.event=Event.get(g.eventid)
@@ -61,6 +64,7 @@ def login():
             log.error("Login failure: %s", e, exc_info=e)
     return render_template('/admin/login.html')
 
+@Admin.endpoint("Admin.base")
 @Admin.route("/")
 def index():
     return render_template('/admin/status.html')

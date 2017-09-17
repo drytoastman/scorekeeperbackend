@@ -1,4 +1,4 @@
-{% extends "results/rbase.html" %}
+{% extends "results/bluebase.html" %}
 
 {% block headers %}
 {{super()}}
@@ -15,7 +15,7 @@ table.challengeround { margin: 0px; width: auto; }
 table.challengeround td.entrant { width: auto; }
 </style>
 
-{% assets filters="rjsmin", output="bracket.js", "extern/jquery-3.2.0.js" %}
+{% assets filters="rjsmin", output="bracket.js", "jquery" %}
 	<script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
 <script type="text/javascript">
@@ -32,6 +32,7 @@ function mousein(ev, rnd)
 {% endblock headers %}
 
 {% block content %}
+<div class='container'>
 <img src="{{url_for('.bracketimg', challengeid=challengeid)}}" alt="loading bracket image..." width='{{size[0]}}' height='{{size[1]}}' usemap="#bracketmap"/>
 <map name="bracketmap" id="bracketmap">
 {% for rnd, coord in coords %}
@@ -39,4 +40,5 @@ function mousein(ev, rnd)
 {% endfor %}
 </map>
 <div id='popup' onclick='style.display="none";'></div>
+</div>
 {% endblock content %}

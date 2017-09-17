@@ -1,16 +1,11 @@
-$basefont: Lucida Grande, Lucida Sans, Arial, sans-serif;
-$grayborder: 1px solid #bbb;
-$eventsborder: 1px solid #ccc;
-$containerborder: 1px solid #aaa;
-$linkblue: rgb(40,40,255);
+$basecolor: #3771ce;
 $bordercolor: #BBB;
-
-$bootstrapcolor: #0275d8;
-$bootstrapitem: rgba(255, 255, 255, 0.75);
 
 @import "../extern/font-awesome/font-awesome.scss";
 @import "../extern/bootstrap-4.0.0b.scss";
 @import "common.scss";
+
+@include bootstraptheme("register", $basecolor);
 
 /* Things for all pages */
 ul {
@@ -44,15 +39,6 @@ ul {
 }
 
 /* Some adjustments when bootstrap adjusts at the sm boundary */
-
-@media (max-width: 768px) {
-    #seriesdropdown {
-        .dropdown-menu, .dropdown-item {
-            color: $bootstrapitem;
-            background-color: $bootstrapcolor;
-        }
-    }
-}
 
 @media (min-width: 768px) {
     .detailscontainer {
@@ -177,7 +163,7 @@ ul {
         }
 
         &.eventopen a {
-            color: $linkblue;
+            color: #2828ff;
         }
 
         &.eventclosed span {
@@ -268,8 +254,6 @@ ul {
     input[type=checkbox] {
         margin: 0.5rem;
         margin-left: auto;
-        height: 2rem;
-        width: 2rem;
     }
 }
 

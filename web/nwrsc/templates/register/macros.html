@@ -1,38 +1,4 @@
 
-{% macro navbar(current) %}
-<nav class="navbar navbar-expand-sm navbar-dark bg-primary">
-  <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class='navbar-brand'><img src='/static/images/cone.png'/>Scorekeeper Reg</div>
-  <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav">
-        <li class="nav-item {{'active' if current=='profile'}}"><a class="nav-link" href="{{url_for(".profile")}}">Profile</a></li>
-        <li id="seriesdropdown" class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown">Series {{g.series or "<no series>"}}</a>
-          <div class="dropdown-menu">
-          {% for s in g.activeseries %}
-            {% if s != g.series %}
-                <a class="dropdown-item" href="{{url_for(g.selection, series=s)}}">{{s}}</a>
-            {% endif %}
-          {% endfor %}
-          </div>
-        </li>
-        {% if not g.series  %}
-        <li class="nav-item"><a class="nav-link disabled">Cars</a></li>
-        <li class="nav-item"><a class="nav-link disabled">Events</a></li>
-        {% else %}
-        <li class="nav-item {{'active' if current=='cars'}}"><a class="nav-link" href="{{url_for(".cars")}}">Cars</a></li>
-        <li class="nav-item {{'active' if current=='events'}}"><a class="nav-link" href="{{url_for(".events")}}">Events</a></li>
-        {% endif %}
-        <li class="nav-item"><a class="nav-link" href="{{url_for(".logout")}}">Logout</a></li>
-    </ul>
-  </div>
-</nav>
-{% endmacro %}
-
-
-
 {% macro driverDisplay(driver) %}
 {% set basic = ('address', 'city', 'state', 'zip', 'phone', 'brag', 'sponsor') %}
 
@@ -145,7 +111,7 @@
 
         {%- if ev.isOpen() %}
             {%- if ev.mylimit > 0 or registered|length > 0 %}
-            <button class='register btn btn-outline-primary' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
+            <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
             {%- endif %}
 
             {%- if registered|length >= ev.mylimit and ev.limitmessage %}

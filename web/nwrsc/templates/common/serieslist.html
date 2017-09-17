@@ -1,22 +1,37 @@
 {% extends "common/base.html" %}
 
 {% block headers %}
+{{super()}}
 <style type='text/css'>
-ul.selectorlist { list-style: none;  display:block; float: left; height: 220px; }
+h4 {
+    text-align: left !important;
+}
+ul.selectorlist { 
+    list-style: none;  
+    column-count: 1;
+    white-space: nowrap;
+    padding-left: 0.2rem;
+}
 </style>
 
 {% endblock headers %}
 
 {% block content %}
+{{super()}}
+<div class='container'>
+<div class='row'>
 {%for year in serieslist %}
+<div class='col'>
+<h4>{{year}}</h4>
 <ul class='selectorlist'>
-	<h4>{{year}}</h4>
 	{% for series in serieslist[year] %}
 	    <li><a href='/{{subapp}}/{{series}}/'>{{series}}</a></li>
 	{% endfor %}
 </ul>
+</div>
 {% endfor %}
+</div>
+</div>
 
-<br style='clear:all;'/>
 {% endblock content %}
 

@@ -1,44 +1,38 @@
-{% extends "/results/rbase.html" %}
-{% import '/results/ttmacros.html' as tt %}
+{% extends "results/bluebase.html" %}
+{% import "results/ttmacros.html" as tt %}
 {% if g.event.ispro %}
-{% import '/results/promacros.html' as res %}
+{% import "results/promacros.html" as res %}
 {% else %}
-{% import '/results/macros.html' as res %}
+{% import "results/macros.html" as res %}
 {% endif %}
 
 {% block content %}
 {% if not ispost %}
 
-<h2>{{g.title}}</h2>
+<div class='container'>
+<h4>{{g.title}}</h4>
 {{res.classtables(results)}}
+</div>
 
 {% else %}
 
-<!-- Series info -->
-<div id='seriescustom'>
+<div class='container'>
 {{g.settings.customheader|safe}}
-</div>
+<h3 class='seriesname'>{{g.settings.seriesname}}</h3>
+<h4 class='eventname'>{{g.event.date.strftime("%a %b %d %Y")}} - {{g.event.name}}</h4>
+<h5 class='eventinfo'><span class='location'>{{g.event.location}}</span> - <span class='entrantcount'>{{g.entrantcount}} Entrants</span></h5>
 
-<div id='seriestitle'>{{g.settings.seriesname}}</div>
-
-<!-- Event info -->
-<div id='eventtitle'>{{g.event.date}} - {{g.event.name}}</div>
-<div id='hosttitle'>Hosted At: <span class='host'>{{g.event.location}}</span></div>
-<div id='entrantcount'>({{g.entrantcount}} Entrants)</div>
-
-<hr />
-<!-- Results -->
-
-<div id='classlinks'>
+<div class='classlinks'>
 {% for cls in results|sort -%}
 <a href='#body{{cls}}'>{{cls}}</a>
 {% endfor %}
 </div>
 
 {{res.classtables(results)}}
-<br/>
-<br/>
+<p/>
 {{tt.toptimestable(g.toptimes)}}
+
+</div>
 
 {% endif %}
 {% endblock content %}

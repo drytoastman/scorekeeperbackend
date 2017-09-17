@@ -1,21 +1,22 @@
-{% extends "results/rbase.html" %}
+{% extends "results/bluebase.html" %}
 
 {% block content %}
+
+<div class='container'>
 <!-- Series info -->
-<div id='seriestitle'>{{settings.seriesname}}</div>
+<h3 class='seriesname'>{{settings.seriesname}}</h3>
 {% if settings.minevents > 0 %}
-<div id='minwarning'>(Min Attendance of {{settings.minevents}} Events To Place)</div>
+<div class='minwarning'>(Min Attendance of {{settings.minevents}} Events To Place)</div>
 {% endif %}
-<hr />
 <!-- Results -->
 
 <table class='champ'>
 {% for code, entrants in results.items()|sort %}
 {% set cls = classdata.classlist[code] %}
 
-<tr class='classhead'><th colspan='{{events|length + 4}}'>{{cls.classcode}} - {{cls.descrip}} -
+<tr class='head'><th colspan='{{events|length + 4}}'>{{cls.classcode}} - {{cls.descrip}} -
             Average Per Event: {{"%.2lf"%(entrants.entries/(events|length))}}</th></tr>
-<tr>
+<tr class='subhead'>
 <th>#</th>
 <th>Name</th>
 <th>Attended</th>
@@ -43,5 +44,7 @@
 {% endfor %}
 {% endfor %}
 </table>
+</div>
+
 {% endblock content %}
 

@@ -1,5 +1,4 @@
 
-// ick, this belongs someone more generic but this works for now, needed by registration events page as well
 function add_collapse_icons(cid) 
 {
     var c = $(cid);
@@ -7,6 +6,12 @@ function add_collapse_icons(cid)
     c.on('hidden.bs.collapse', function () { i.removeClass("fa-minus-square-o").addClass("fa-plus-square-o"); });
     c.on('shown.bs.collapse',  function () { i.removeClass("fa-plus-square-o").addClass("fa-minus-square-o"); });
     i.addClass(c.hasClass("show") ? "fa-minus-square-o" : "fa-plus-square-o");
+}
+
+function shownavmenu(nav, menu)
+{
+    $(nav).on('shown.bs.collapse', function(){ $(menu).dropdown('toggle'); });
+    $(nav).collapse('show');
 }
 
 String.prototype.format = function() {

@@ -17,12 +17,12 @@ td, th {
 }
 
 tr {
-  &.header th {
+  &.head th {
     text-align: center;
     font-weight: bold;
     background-color: #8ad;
   }
-  &.titles th {
+  &.subhead th {
     text-align: center;
     font-weight: bold;
     background-color: #ace;

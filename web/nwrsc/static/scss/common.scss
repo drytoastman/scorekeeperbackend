@@ -23,9 +23,9 @@
 
 .modal-header {
     padding: 0.5rem 1.0rem;
-    background: $bootstrapcolor;
+    background: $basecolor;
     color: white;
-    border-bottom: 1px solid darken($bootstrapcolor, 10%);
+    border-bottom: 1px solid darken($basecolor, 10%);
     button span {
         color: white;
     }
@@ -68,7 +68,7 @@ form {
         } 
 
         input[type=checkbox] {
-            flex: initial;
+            flex: 0 0 2rem;
         }
     }
 }
@@ -121,4 +121,37 @@ input::-webkit-inner-spin-button {
     }
 }
 
+
+/* our our bootstrap coloring for the things we use */
+@mixin bootstraptheme($name, $color)
+{
+    .bg-#{$name} { 
+      background-color: $color;
+    }
+
+    .btn-#{$name}, .btn-outline-#{$name}, .btn-outline-#{$name}:hover {
+      border-color: $color;
+    }
+
+    .btn-#{$name}, .btn-outline-#{$name}:hover {
+      color: #fff;
+      background-color: $color;
+    }
+
+    .btn-outline-#{$name} {
+      color: $color;
+      background-color: transparent;
+      background-image: none;
+    }
+
+    .btn-outline-#{$name}:focus, .btn-outline-#{$name}.focus, .btn-#{$name}:focus, .btn-#{$name}.focus {
+      box-shadow: 0 0 0 3px $color;
+    }
+
+    .btn-#{$name}:hover, .btn-#{$name}:active {
+      color: #fff;
+      background-color: darken($color, 10%);
+      border-color: darken($color, 20%);
+    }
+}
 

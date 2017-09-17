@@ -1,33 +1,37 @@
 {% extends "common/base.html" %}
 {% block headers %}
-{%- assets filters="libsass", depends="scss/*.scss", output="admin.css", "scss/admin.scss" -%}
+{%- assets filters="libsass,cssmin", depends="scss/*.scss", output="admin.css", "scss/admin.scss" -%}
 <link rel="stylesheet" href="{{ASSET_URL}}" /> 
 {%- endassets -%}
 
-{% assets output="admin.js", "extern/jquery-3.2.0.js", "extern/jquery.validate-1.16.js", "extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js", "extern/flatpickr.js", 
-                             "extern/datatables-1.10.16.js",  "extern/datatables-1.10.16-bootstrap4.js", "extern/datatables-select-1.2.3.js",
-                             "js/common.js", "js/admin.js" %}
+{% assets filters="rjsmin", output="admin.js", "jquery", "bootstrap", "flatpickr", "datatables", "js/common.js", "js/admin.js" %}
     <script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
+
+<script type="text/javascript">
+$(document).ready(function(){ {% if not g.series %}shownavmenu('#navbarNav', '#seriesdropdownlink');{% endif %} });
+</script>
 {% endblock %}
 
 {% block content %}
-<nav class="navbar navbar-expand-md navbar-dark bg-success">
+<nav class="navbar navbar-expand-md navbar-dark bg-admin">
   <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <div class='navbar-brand'><img src='/static/images/cone.png'/>Scorekeeper Admin {{g.series}}</div>
+  <div class='navbar-brand'><img src='/static/images/cone.png'/>Scorekeeper Admin</div>
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
 
         <li id="seriesdropdown" class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="seriesdropdownlink" data-toggle="dropdown">Series</a>
+          <a class="nav-link dropdown-toggle" href="#" id="seriesdropdownlink" data-toggle="dropdown">{{g.series or "Select a Series"}}</a>
           <div class="dropdown-menu">
           {% for s in g.activeseries %}
               <a class="dropdown-item" href="{{url_for(".index", series=s)}}">{{s}}</a>
           {% endfor %}
           </div>
         </li>
+
+        {% if g.series %}
 
         <li id="eventdropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="eventdropdownlink" data-toggle="dropdown">Events</a>
@@ -67,6 +71,8 @@
             <a class='dropdown-item' href='{{url_for('.newseries')}}'>New Series From Current</a>
           </div>
         </li>
+
+        {% endif %}
 
     </ul>
   </div>

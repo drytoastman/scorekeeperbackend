@@ -1,6 +1,7 @@
-{% extends "results/rbase.html" %}
+{% extends "results/bluebase.html" %}
 
 {% block content %}
+<div class='container'>
 <h2 style='margin-bottom:0px'>{{event.name}} - Dialins</h2>
 <h4 style='margin-top:0px'>Ordered by {{orderkey}}</h4>
 
@@ -37,10 +38,12 @@
     <td>{{e.classcode}}</td>
     <td>{{e.indexstr}}</td>
     <td>{{e.indexval}}</td>
-    <td class="{{orderkey=='net'     and 'sort'}}">{{e.net|t3}}</td>
-    <td class="{{orderkey=='prodiff' and 'sort'}}">{{e.prodiff|t3}}</td>
+    <td class="{{orderkey=='net'     and 'sort' or ''}}">{{e.net|t3}}</td>
+    <td class="{{orderkey=='prodiff' and 'sort' or ''}}">{{e.prodiff|t3}}</td>
     <td>{{e.bonusdial|t3}}</td>
     <td>{{e.prodial|t3}}</td>
     </tr>
 {%- endfor -%}
+</div>
+
 {% endblock content %}

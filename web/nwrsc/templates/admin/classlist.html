@@ -1,5 +1,5 @@
-{% extends "/admin/abase.html" %}
-{% import "/admin/macros.html" as m %}
+{% extends "admin/bluebase.html" %}
+{% import "admin/macros.html" as m %}
 
 {% block headers %}
 {{super()}}
@@ -27,7 +27,7 @@ $(document).ready(function(){
 <td class='flagcol'>{{field['usecarflag']}}</td>
 <td>{{field['caridxrestrict']}}</td>
 <td class='limitcol'>{{field['countedruns']}}</td>
-<td><button class="btn btn-outline-success small deleterow">Del</button></td>
+<td><button class="btn btn-outline-admin small deleterow">Del</button></td>
 <td></td>
 </tr>
 {% endmacro %}
@@ -77,8 +77,8 @@ Each class has a short code and a full string description.  The description is o
 
 </table>
 {{form.csrf_token()}}
-<button class='btn btn-outline-success addbutton'>Add Row</button>
-<input  class='btn btn-success' type='submit' value="Save">
+<button class='btn btn-outline-admin addbutton'>Add Row</button>
+<input  class='btn btn-admin' type='submit' value="Save">
 </form>
 
 </div>

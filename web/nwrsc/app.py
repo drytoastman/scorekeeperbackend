@@ -86,7 +86,7 @@ def create_app(config=None):
         "SHOWLIVE":               bool(os.environ.get('SHOWLIVE', True)),
         "LOG_LEVEL":                   os.environ.get('LOG_LEVEL', 'INFO'),
         "SECRET_KEY":                  os.environ.get('SECRET',   'replaced by environment in deployed docker-compose files'),
-        "ASSETS_DEBUG":           False,
+        "ASSETS_DEBUG":           bool(os.environ.get('DEBUG',    False)),
         "LOGGER_HANDLER_POLICY":  "None",
     })
 
@@ -102,14 +102,14 @@ def create_app(config=None):
     theapp.register_blueprint(Register,  url_prefix="/register")
     theapp.register_blueprint(Results,   url_prefix="/results/<series>")
     theapp.register_blueprint(Xml,       url_prefix="/xml/<series>")
+    theapp.add_url_rule('/admin/',       "Admin.base")
+    theapp.add_url_rule('/results/',     "Results.base")
 
     # Some static things that need to show up at the root level
     @theapp.route('/favicon.ico')
     def favicon(): return send_from_directory('static/images', 'cone.png')
     @theapp.route('/robots.txt')
     def robots(): return send_from_directory('static', 'robots.txt')
-    @theapp.route('/<subapp>/')
-    def serieslist(subapp): return render_template('common/serieslist.html', subapp=subapp, serieslist=Series.list())
 
     # Attach some handlers to the app
     @theapp.before_request
@@ -165,8 +165,14 @@ def create_app(config=None):
         shandler.setLevel(level)
         root.addHandler(shandler)
 
-    # Setting up WebAssets, crypto stuff, compression and profiling
-    Environment(theapp)
+    # WebAssets
+    assets = Environment(theapp)
+    assets.register('jquery',     Bundle("extern/jquery-3.2.0.js", "extern/jquery.validate-1.16.js"))
+    assets.register('bootstrap',  Bundle("extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js"))
+    assets.register('flatpickr',  Bundle("extern/flatpickr.js"))
+    assets.register('datatables', Bundle("extern/datatables-1.10.16.js",  "extern/datatables-1.10.16-bootstrap4.js", "extern/datatables-select-1.2.3.js"))
+
+    # crypto stuff, compression and profiling
     Compress(theapp)
     if theapp.config.get('PROFILE', False):
         theapp.wsgi_app = ProfilerMiddleware(theapp.wsgi_app, restrictions=[30])

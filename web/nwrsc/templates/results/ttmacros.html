@@ -2,14 +2,14 @@
 <table class='toptimes'>
 
 <!-- Section Titles -->
-<tr class='header'>
+<tr class='head'>
 {% for title in table.titles -%}
-<th class='toptimeshead' colspan='{{table.colcount[loop.index0]+1}}'>{{title}}</th>
+<th colspan='{{table.colcount[loop.index0]}}'>{{title}}</th>
 {%- endfor -%}
 </tr>
 
 <!-- Column headers -->
-<tr class='titles'>
+<tr class='subhead'>
 {% for colgroups in table.cols -%}
 {%- for col in colgroups -%}
 <th>{{col}}</th>

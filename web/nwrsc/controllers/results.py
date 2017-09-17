@@ -6,7 +6,7 @@ from operator import itemgetter
 import logging
 
 from flask import Blueprint, request, abort, render_template, get_template_attribute, make_response, g
-from nwrsc.model import Audit, Event, Registration, Result, RunGroups
+from nwrsc.model import *
 from nwrsc.lib.bracket import Bracket
 from nwrsc.lib.misc import csvlist
 
@@ -15,9 +15,23 @@ log = logging.getLogger(__name__)
 
 ## The indexes and lists
 
+@Results.before_request
+def setup():
+    """ Every page underneath here requires a password """
+    g.title = 'Scorekeeper Results'
+    g.activeseries = Series.active()
+    if g.series:
+        g.events  = Event.byDate()
+        if g.eventid:
+            g.event=Event.get(g.eventid)
+            if g.event is None:
+                abort(404, "No such event")
+
+
+@Results.endpoint("Results.base")
 @Results.route("/")
 def index():
-    return render_template('results/eventlist.html', events=Result.getSeriesInfo()['events'])
+    return render_template('results/bluebase.html')
 
 @Results.route("/event/<uuid:eventid>/")
 def event():
@@ -29,7 +43,6 @@ def event():
     event   = info.getEvent(g.eventid)
     challenges = info.getChallengesForEvent(g.eventid)
     return render_template('results/eventindex.html', event=event, active=active, challenges=challenges)
-
 
 ## Basic results display
 
@@ -94,7 +107,8 @@ def tt():
     elif course == 0 and event.courses > 1:
         keys.extend([{'indexed':indexed, 'counted':counted, 'course':c, 'title':c and "Course {}".format(c) or "Total"} for c in range(event.courses+1)])
     elif course == 0:
-        keys.append({'indexed':indexed, 'counted':counted, 'course':0, 'title':'Top Times'})
+        keys.append({'indexed':True,  'counted':counted, 'course':0, 'title':'Top Index Times'})
+        keys.append({'indexed':False, 'counted':counted, 'course':0, 'title':'Top Unindexed Times'})
     else:
         keys.append({'indexed':indexed, 'counted':counted, 'course':course, 'title':'Course {}'.format(course)})
 

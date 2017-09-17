@@ -1,192 +1,150 @@
-/** Some misc stuff, center divs, headers, no boders on linked images, **/
+$basecolor: #4682B4;
+$subheadgray: #ccc;
 
-div, h1, h2, h3, h4 { text-align:center; margin-top: 0px; margin-bottom: 0px; }
+@import "../extern/bootstrap-4.0.0b.scss";
+@import "common.scss";
 
-a img { border: none; }
+.bg-results {
+    background-color: $basecolor;
+}
 
+.container {
+    margin-top: 1rem;
+    font-size: 0.9rem;
 
-/** Center tables with collapsed borders **/
+    h1, h2, h3, h4, h5, h6 {
+        text-align: center;
+    }
+
+    .minwarning {
+        text-align: center;
+    }
+
+    .classlinks { // shortcuts at top of event results
+        margin-bottom: 10px;
+        text-align: center;
+        a {
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+    }
+}
 
 table {
 	margin: 0px auto;
-	border-collapse: collapse;
+    &:not(.pro) {
+        @extend .table-striped;
+    }
+
+    tr.head th { 
+        background-color: $basecolor;
+        color: white; 
+        text-align: left; 
+        padding-left: 0.6rem;
+    }
+
+    tr.subhead th { 
+        background-color: $subheadgray;
+        text-align: center;
+        padding: 0.1rem 0.3rem;
+    }
+
+    tr.missingmin td { // haven't met championship min
+    	color: #ccc;
+    }
+
+    tr.entrantrow { // border for pro double row deal
+        border-top: 1px solid $subheadgray;
+    }
+
+    td {
+        padding: 0.2rem 0.5rem;
+
+        &.trophy, &.sort, &.bestnet {
+            font-weight: bold;
+        }
+
+        &.run, &.points, &.attend {
+            text-align: center;
+        }
+
+        &.carnum {
+            text-align: right;
+        }
+
+        &.bestnet .net {
+            text-decoration: underline;
+        }
+
+        &.drop {
+            text-decoration: line-through;
+            color: #BBB;
+        }
+
+        span { 
+            &.raw, &.net {
+                display: block;
+            }
+            &.reaction {
+                display: block;
+                font-size: 0.8em;
+            }
+        }
+    }
 }
 
-table.classresults, table.toptimes, table.auditreport, table.champ {
-	font-size:0.9em; 
-}
-
+// Borders to separate multiple tables of toptime data in one table
 table.toptimes {
-	border: 1px solid #bbb;
 	td.pos {
-		border-left: 1px solid #bbb;
+		border-left: 1px solid $subheadgray;
 	}
 	td.time {
+		border-right: 1px solid $subheadgray;
 		font-size: 1.1em;
 		font-weight: bold;
-		padding-left: 8px;
-		padding-right: 5px;
-	}
-	tr:nth-child(even) {
-		background-color: #ddd
 	}
 }
 
-/** Various TD types and their span internals **/
-
-td {
-	text-align:left; 
-	padding: 5px 3px 3px;
-}
-
-
-tr.lastcourse td {
-	border-bottom: 1px solid #777;
-}
-
-tr.missingmin td {
-	color: #CCC;
-}
-
-td.run, td.points {
-	text-align:center;
-}
-
-td.drop {
-	text-decoration: line-through;
-	color: #BBB;
-}
-
-td.carnum {
-	text-align:right;
-}
-
-@media print {
-	th.caryear, th.carnum, th.cardesc, td.caryear, td.carnum, td.cardesc {
-		display: none;
+// Some extra borders for printout
+table.dialins {
+	td { 
+		border-top: 1px solid $subheadgray;
 	}
 }
 
-td.bestnet { 
-	font-weight: bold; 
-}
-
-td.bestnet .net {
-	text-decoration: underline;
-}
-
-td.attend {
-	text-align: center;
-}
-
-span { 
-	padding: 2px; 
-	&.raw, &.net {
-		display: block;
-	}
-	&.reaction {
-		display: block;
-		font-size: 0.8em;
-	}
-}
-
-/** Table header entries **/
-
-th { 
-	background-color: #bbb; 
-	text-align: center;
-	padding: 1px 3px;
-}
-
-tr.classhead th { 
-	background-color: #4682B4; 
-	color: white; 
-	text-align: left; 
-	border-top: 1px solid black;
-	padding-left: 6px;
-}
-
-th.toptimeshead {
-	background-color: #4682B4; 
-	color: white; 
-}
-
-
-/** These are all the special items at the top of the results **/
-
-div#seriestitle {
-	font: bold 1.5rem Tahoma;
-	color: darken(#4682B4, 20%);
-}
-
-div#sponsortitle {
-	font: bold 1.5rem Tahoma;
-	color: darken(#4682B4, 20%);
-}
-
-div#eventtitle {
-	font: bold 1.2rem Tahoma;
-	color: darken(#4682B4, 20%);
-}
-
-div#hosttitle {
-	font-weight: bold;
-}
-
-div#hosttitle span.host {
-	font-style: italic;
-}
-
-div#classlinks {
-	font-size:0.9em; 
-	margin-bottom: 10px;
-}
-
-div#classlinks a {
-	margin-left: 2px;
-	margin-right: 2px;
-}
-
-/** Challenge related things **/
-
+// Special table for challenge report
 table.challengeround {
     margin-bottom: 20px;
-    width: 650px;
-
-	th {
-    	border: 1px solid grey;
+	tr.winner td {
+	    background: lighten(adjust-hue($basecolor, 10), 40%);
 	}
-
 	td.entrant {
 	    width: 180px;
 	}
-	
-	td {
-	    padding: 2px 6px;
-	    border: 1px solid grey;
-	}
-	
-	tr.winner {
-	    background: #EE9;
-	}
-	
-	td.result {
-	    text-align:center;
-	    font-size: 1.2em;
-	}
-	
 	span.dial {
 		font-weight: bold;
+        float: right;
+	}
+	td.result {
+	    text-align: center;
+	    font-size: 1.2em;
 	}
 }
 
-table.dialins {
-	td { 
-		border-top: 1px dashed black;
-		padding: 2px 10px 1px 10px; 
-	}
-	td.sort { 
-		font-weight: bold; 
+
+/* For printing: use the whole page, remove excess columns and clear background colors */
+@media print {
+    .container {
+        max-width: 100%;
+        margin: 0;
+    }
+
+    tr.head th {
+        color: black !important;
+    }
+
+	.caryear, .cardesc {
+		display: none;
 	}
 }
 

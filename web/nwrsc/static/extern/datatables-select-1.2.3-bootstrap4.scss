@@ -1,18 +1,18 @@
-$basecolor: lighten($bootstrapcolor, 10%);
+$tablebasecolor: lighten($basecolor, 10%);
 
 table.dataTable tbody > tr.selected,
 table.dataTable tbody > tr > .selected {
-  background-color: $basecolor;
+  background-color: $tablebasecolor;
 }
 table.dataTable.stripe tbody > tr.odd.selected,
 table.dataTable.stripe tbody > tr.odd > .selected, table.dataTable.display tbody > tr.odd.selected,
 table.dataTable.display tbody > tr.odd > .selected {
-  background-color: darken(adjust-hue($basecolor, 10%), 5%);
+  background-color: darken(adjust-hue($tablebasecolor, 10%), 5%);
 }
 table.dataTable.hover tbody > tr.selected:hover,
 table.dataTable.hover tbody > tr > .selected:hover, table.dataTable.display tbody > tr.selected:hover,
 table.dataTable.display tbody > tr > .selected:hover {
-  background-color: lighten(adjust-hue($basecolor, 5%), 10%);
+  background-color: lighten(adjust-hue($tablebasecolor, 5%), 10%);
 }
 table.dataTable.order-column tbody > tr.selected > .sorting_1,
 table.dataTable.order-column tbody > tr.selected > .sorting_2,

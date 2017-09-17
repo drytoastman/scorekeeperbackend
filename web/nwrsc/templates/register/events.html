@@ -1,4 +1,4 @@
-{% extends "register/rbase.html" %}
+{% extends "register/bluebase.html" %}
 {% import 'common/macros.html' as m %}
 {% import 'register/macros.html' as rm %}
 
@@ -60,17 +60,7 @@ var gRegistered = Array();
 
 
 {% block content %}
-
-{{rm.navbar('events')}}
-
-<div class='container'>
-
-<div class='row'>
-<div class='col text-center'>
-{{m.errordisplay()}}
-</div>
-</div>
-</div>
+{{super()}}
 
 <div id='eventsouter'>
 <div id='eventscontainer' class='container'>
@@ -109,7 +99,7 @@ var gRegistered = Array();
         <div class='col text-center'><span class='statuslabel error'></span></div>
         </div>
         <div class='row'>
-        <div class='col'><input type='submit' class='btn btn-primary' value='Update'/></div>
+        <div class='col'><input type='submit' class='btn btn-register' value='Update'/></div>
         </div>
     </form>
 {% endcall %}

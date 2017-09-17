@@ -1,24 +1,18 @@
-{% extends "register/rbase.html" %}
+{% extends "register/bluebase.html" %}
 {% import 'common/macros.html' as m %}
 {% import 'register/macros.html' as rm %}
 
 {% block content %}
-{{rm.navbar('profile')}}
+{{super()}}
 
 <div id='profileouter' class='container'>
 
 <div class='row justify-content-center'>
-<div class='col text-center'>
-<div>{{ m.errordisplay() }}</div>
-</div>
-</div>
-
-<div class='row justify-content-center'>
 
 <div class='col-md-6'>
-<div class='title'>Scorekeeper Profile</div>
+<div class='title'>Profile For All Series</div>
 {{rm.driverDisplay(g.driver)}}
-<button class='editprofile btn btn-outline-primary' title='Edit Profile' data-toggle='modal' data-target='#profilemodal'>Edit Profile</button>
+<button class='editprofile btn btn-outline-register' title='Edit Profile' data-toggle='modal' data-target='#profilemodal'>Edit Profile</button>
 </div>
 
 <div class='col-md-6'>
@@ -51,6 +45,6 @@
 </div> {# row #}
 </div> {# container #}
 
-{{m.modal('profilemodal', 'Profile Editor', form.html('profileform', url_for('.profilepost'), 'post', 'btn-primary', 'col-md-3', 'col-md-9'))}}
+{{m.modal('profilemodal', 'Profile Editor', form.html('profileform', url_for('.profilepost'), 'post', 'btn-register', 'col-md-3', 'col-md-9'))}}
 
 {% endblock content %}
