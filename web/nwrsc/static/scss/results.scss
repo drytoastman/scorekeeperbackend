@@ -8,7 +8,7 @@ $subheadgray: #ccc;
     background-color: $basecolor;
 }
 
-.container {
+.container-fluid {
     margin-top: 1rem;
     font-size: 0.9rem;
 
@@ -40,6 +40,8 @@ table {
         background-color: $basecolor;
         color: white; 
         text-align: left; 
+		font-size: 1.1rem;
+		padding-top: 0.2rem;
         padding-left: 0.6rem;
     }
 
@@ -53,12 +55,20 @@ table {
     	color: #ccc;
     }
 
-    tr.entrantrow { // border for pro double row deal
+    tr.entrantrow, tr.head  { 
         border-top: 1px solid $subheadgray;
     }
 
     td {
         padding: 0.2rem 0.5rem;
+
+		&.name {
+			max-width: 10rem;
+		}
+
+		&.cardesc {
+			max-width: 18rem;
+		}
 
         &.trophy, &.sort, &.bestnet {
             font-weight: bold;
@@ -134,13 +144,13 @@ table.challengeround {
 
 /* For printing: use the whole page, remove excess columns and clear background colors */
 @media print {
-    .container {
-        max-width: 100%;
+    .container-fluid {
         margin: 0;
     }
 
-    tr.head th {
+    th {
         color: black !important;
+		background: none;
     }
 
 	.caryear, .cardesc {

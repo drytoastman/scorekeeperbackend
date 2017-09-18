@@ -1,16 +1,6 @@
 {% extends "results/bluebase.html" %}
-
-{% block headers %}
-{{super()}}
-<style type='text/css'>
-h3     { text-align: center; }
-table  { border-collapse: collapse; margin: 0px auto; }
-td, th { border: 1px solid #AAA; padding: 5px 3px; font-size: 0.9em; }
-.bold  { font-weight: bold; }
-</style>
-{% endblock headers %}
-
 {% block content %}
+<div class='container-fluid'>
 <h3>
 Audit -
 {% if event.courses > 1 %}
@@ -19,8 +9,8 @@ Course {{course}} -
 Run Group {{group}} - By {{order}}
 </h3>
 
-<table class='auditreport'>
-<thead><tr>
+<table class='auditreport table-bordered'>
+<thead><tr class='subhead'>
 <th>First</th>
 <th>Last</th>
 <th>#</th>
@@ -57,5 +47,6 @@ Run Group {{group}} - By {{order}}
 
 </tbody>
 </table>
+</div>
 
 {% endblock content %}

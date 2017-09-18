@@ -4,6 +4,7 @@
 """
 from operator import itemgetter
 import logging
+import re
 
 from flask import Blueprint, request, abort, render_template, get_template_attribute, make_response, g
 from nwrsc.model import *
@@ -17,15 +18,19 @@ log = logging.getLogger(__name__)
 
 @Results.before_request
 def setup():
-    """ Every page underneath here requires a password """
     g.title = 'Scorekeeper Results'
-    g.activeseries = Series.active()
+    g.seriesyears = Series.byYear()
     if g.series:
-        g.events  = Event.byDate()
+        g.year = Series.getYear(g.series)
+        g.events = Event.byDate()
         if g.eventid:
             g.event=Event.get(g.eventid)
             if g.event is None:
                 abort(404, "No such event")
+    elif len(g.seriesyears) < 2:
+        g.year = next(iter(g.seriesyears))
+    else:
+        g.year = request.args.get('year', None)
 
 
 @Results.endpoint("Results.base")

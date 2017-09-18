@@ -30,25 +30,26 @@ class Series(object):
             return [x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')]
 
     @classmethod
-    def list(cls):
+    def getYear(cls, series):
+        try:
+            return re.search('\d{4}', series).group(0)
+        except:
+            return "Other"
+
+    @classmethod
+    def byYear(cls):
         with g.db.cursor() as cur:
             cur.execute("select schema_name from information_schema.schemata union select series from results")
             serieslist = [x[0] for x in cur.fetchall() if x[0] not in ('pg_catalog', 'information_schema', 'public')]
 
-            lists = {}
-            other = []
+            lists = collections.defaultdict(list)
             for series in serieslist:
-                try:
-                    year = re.search('\d{4}', series).group(0)
-                    if year not in lists: lists[year] = list()
-                    lists[year].append(series)
-                except:
-                    other.append(series)
+                lists[cls.getYear(series)].append(series)
 
             ret = collections.OrderedDict()
             for key in sorted(lists.keys(), reverse=True):
                 ret[key] = sorted(lists[key])
-            if len(other) > 0:
-                ret['Other'] = other
+            if "Other" in ret:
+                ret.move_to_end("Other")
             return ret
 

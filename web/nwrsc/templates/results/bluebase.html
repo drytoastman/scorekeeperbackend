@@ -9,11 +9,13 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-{% if not g.series %}
+{% if not g.year -%}
+shownavmenu('#navbarNav', '#yeardropdownlink');
+{% elif not g.series -%}
 shownavmenu('#navbarNav', '#seriesdropdownlink');
-{% elif not event %}
+{% elif not event -%}
 shownavmenu('#navbarNav', '#eventdropdownlink');
-{% endif %}
+{% endif -%}
 });
 </script>
 
@@ -28,14 +30,25 @@ shownavmenu('#navbarNav', '#eventdropdownlink');
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
 
+        <li id="yeardropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="yeardropdownlink" data-toggle="dropdown">{{g.year or "Select a Year"}}</a>
+          <div class="dropdown-menu">
+          {% for y in g.seriesyears %}
+              <a class="dropdown-item" href="{{url_for(".base", year=y)}}">{{y}}</a>
+          {% endfor %}
+          </div>
+        </li>
+
+		{% if g.year %}
         <li id="seriesdropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="seriesdropdownlink" data-toggle="dropdown">{{g.series or "Select a Series"}}</a>
           <div class="dropdown-menu">
-          {% for s in g.activeseries %}
+          {% for s in g.seriesyears[g.year] %}
               <a class="dropdown-item" href="{{url_for(".index", series=s)}}">{{s}}</a>
           {% endfor %}
           </div>
         </li>
+		{% endif %}
 
         {% if g.series %}
         <li id="eventdropdown" class="nav-item dropdown">

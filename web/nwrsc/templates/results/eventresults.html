@@ -9,14 +9,14 @@
 {% block content %}
 {% if not ispost %}
 
-<div class='container'>
+<div class='container-fluid'>
 <h4>{{g.title}}</h4>
 {{res.classtables(results)}}
 </div>
 
 {% else %}
 
-<div class='container'>
+<div class='container-fluid'>
 {{g.settings.customheader|safe}}
 <h3 class='seriesname'>{{g.settings.seriesname}}</h3>
 <h4 class='eventname'>{{g.event.date.strftime("%a %b %d %Y")}} - {{g.event.name}}</h4>
