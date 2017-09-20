@@ -10,6 +10,7 @@ from flask import Flask, request, abort, g, current_app, render_template, send_f
 from flask_compress import Compress
 from flask_assets import Environment, Bundle
 from flask_bcrypt import Bcrypt
+from flask_mail import Mail
 from itsdangerous import URLSafeTimedSerializer
 from werkzeug.debug.tbtools import get_current_traceback
 from werkzeug.contrib.profiler import ProfilerMiddleware
@@ -72,16 +73,22 @@ def create_app(config=None):
     # Setup the application with default configuration
     theapp = Flask("nwrsc")
     theapp.config.update({
-        "PORT":                    int(os.environ.get('PORT',     80)),
-        "DEBUG":                  bool(os.environ.get('DEBUG',    False)),
-        "PROFILE":                bool(os.environ.get('PROFILE',  False)),
-        "DBHOST":                      os.environ.get('DBHOST',   '/var/run/postgresql'),
-        "DBPORT":                  int(os.environ.get('DBPORT',   5432)),
-        "DBUSER":                      os.environ.get('DBUSER',   'localuser'),
-        "SHOWLIVE":               bool(os.environ.get('SHOWLIVE', True)),
+        "PORT":                    int(os.environ.get('PORT',      80)),
+        "DEBUG":                  bool(os.environ.get('DEBUG',     False)),
+        "PROFILE":                bool(os.environ.get('PROFILE',   False)),
+        "DBHOST":                      os.environ.get('DBHOST',    '/var/run/postgresql'),
+        "DBPORT":                  int(os.environ.get('DBPORT',    5432)),
+        "DBUSER":                      os.environ.get('DBUSER',    'localuser'),
+        "SHOWLIVE":               bool(os.environ.get('SHOWLIVE',  True)),
         "LOG_LEVEL":                   os.environ.get('LOG_LEVEL', 'INFO'),
-        "SECRET_KEY":                  os.environ.get('SECRET',   'replaced by environment in deployed docker-compose files'),
-        "ASSETS_DEBUG":           bool(os.environ.get('DEBUG',    False)),
+        "SECRET_KEY":                  os.environ.get('SECRET',    'replaced by environment in deployed docker-compose files'),
+        "ASSETS_DEBUG":           bool(os.environ.get('DEBUG',     False)),
+        "MAIL_USE_TLS":           bool(os.environ.get('MAIL_USE_TLS',  False)),
+        "MAIL_USE_SSL":           bool(os.environ.get('MAIL_USE_SSL',  False)),
+        "MAIL_SERVER":                 os.environ.get('MAIL_SERVER',   None),
+        "MAIL_PORT":                   os.environ.get('MAIL_PORT',     None),
+        "MAIL_USERNAME":               os.environ.get('MAIL_USERNAME', None),
+        "MAIL_PASSWORD":               os.environ.get('MAIL_PASSWORD', None),
         "LOGGER_HANDLER_POLICY":  "None",
     })
 
@@ -172,6 +179,11 @@ def create_app(config=None):
         theapp.wsgi_app = ProfilerMiddleware(theapp.wsgi_app, restrictions=[30])
     theapp.hasher = Bcrypt(theapp)
     theapp.usts = URLSafeTimedSerializer(theapp.config["SECRET_KEY"])
+
+    # Flask-Mail if we are configured for it
+    if theapp.config['MAIL_SERVER']:
+        log.debug("Setting up mail")
+        Register.mail = Mail(theapp)
 
     # Database introspection at startup
     with theapp.app_context():

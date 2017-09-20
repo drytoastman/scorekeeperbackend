@@ -11,7 +11,11 @@
 {% endassets %}
 
 <script type="text/javascript">
-$(document).ready(function(){ {% if not g.series %}shownavmenu('#navbarNav', '#seriesdropdownlink');{% endif %} });
+$(document).ready(function(){
+{% if not g.series and not surpressmenu %}
+shownavmenu('#navbarNav', '#seriesdropdownlink');
+{% endif %} 
+});
 </script>
 {% endblock %}
 

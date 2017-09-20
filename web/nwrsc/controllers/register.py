@@ -6,6 +6,7 @@ import itsdangerous
 from collections import defaultdict
 
 from flask import abort, Blueprint, current_app, flash, g, get_template_attribute, redirect, request, render_template, session, url_for
+from flask_mail import Message
 
 from nwrsc.model import *
 from nwrsc.lib.forms import *
@@ -49,7 +50,7 @@ def profile():
     form        = DriverForm()
     upcoming    = getAllUpcoming(g.driver.driverid)
     attrBaseIntoForm(g.driver, form)
-    return render_template('register/profile.html', form=form, upcoming=upcoming)
+    return render_template('register/profile.html', form=form, upcoming=upcoming, surpressmenu=True)
 
 @Register.route("/profilepost", methods=['POST'])
 @Register.route("/<series>/profilepost", methods=['POST'])
@@ -188,6 +189,7 @@ def login():
     reset = ResetForm(prefix='reset')
     register = RegisterForm(prefix='register')
     active = "login"
+    hasemail = getattr(Register, 'mail', None) is not None
 
     if login.submit.data:
         if login.validate_on_submit():
@@ -205,32 +207,53 @@ def login():
             for d in Driver.find(reset.firstname.data, reset.lastname.data):
                 if d.email.lower() == reset.email.data.lower():
                     token = current_app.usts.dumps({'request': 'reset', 'driverid': str(d.driverid)})
-                    link = url_for('.reset', token=token, _external=True)
-                    # FINISH ME, do email here
-                    return render_template("common/simple.html", content="An email as been sent with a link to reset your username/password. (%s)" % link)
+                    msg = Message("Scorekeeper Reset Request", sender="drytoastman@gmail.com", recipients=["drytoastman@gmail.com"])
+                    msg.body = "Use the following link to continue the reset process.  {}".format(url_for('.reset', token=token, _external=True))
+                    Register.mail.send(msg)
+                    return render_template("common/simple.html", content="An email as been sent with a link to reset your username/password.") # (%s)" % link)
             flash("No user could be found with those parameters")
         else:
             flashformerrors(reset)
 
     elif register.submit.data:
         active = "register"
-        # FINISH ME, some kind of CAPTCHA here
+        # FINISH ME, some kind of CAPTCHA here someday?  Maybe not.
         if register.validate_on_submit():
             if Driver.byNameEmail(register.firstname.data, register.lastname.data, register.email.data):
                 flash("That combination of name/email already exists, please use the reset tab instead")
             elif Driver.byUsername(register.username.data) != None:
                 flash("That username is already taken")
             else:
-                session['driverid'] = Driver.new(register.firstname.data.strip(), register.lastname.data.strip(), register.email.data.strip(),
-                                            register.username.data.strip(), register.password.data.strip())
-                return redirect_series(register.gotoseries.data)
+                token = current_app.usts.dumps({'request': 'register', 'firstname': register.firstname.data.strip(), 'lastname': register.lastname.data.strip(),
+                                            'email':register.email.data.strip(), 'username': register.username.data.strip(), 'password': register.password.data.strip()})
+                msg = Message("Scorekeeper Profile Request", sender="drytoastman@gmail.com", recipients=["drytoastman@gmail.com"])
+                msg.body = "Use the following link to complete the registration process. {}".format(url_for('.finish', token=token, _external=True))
+                Register.mail.send(msg)
+                return render_template("common/simple.html", content="An email as been sent with a link to finish your registration.")
         else:
             flashformerrors(register)
 
     login.gotoseries.data = g.series
     register.gotoseries.data = g.series
-    return render_template('/register/login.html', active=active, login=login, reset=reset, register=register)
+    return render_template('/register/login.html', active=active, login=login, reset=reset, register=register, hasemail=hasemail)
         
+
+@Register.route("/finish")
+def finish():
+    if 'token' not in request.args:
+        return render_template("common/simple.html", header="Confirmation Error", content="This URL is meant to be loaded from a link with a confirmation token")
+    try:
+        req = current_app.usts.loads(request.args['token'], max_age=3600) # 1 hour expiry
+    except itsdangerous.SignatureExpired as e:
+        return render_template("common/simple.html", header="Confirmation Error", content="Sorry, this confirmation token has expired (%s)" % e.args[0])
+    except Exception as e:
+        abort(400, e)
+    if req['request'] != 'register':
+        abort(400, 'Invalid request')
+
+    session['driverid'] = Driver.new(req['firstname'], req['lastname'], req['email'], req['username'], req['password'])
+    return redirect(url_for(".profile"))
+
 
 @Register.route("/reset", methods=['GET', 'POST'])
 def reset():
