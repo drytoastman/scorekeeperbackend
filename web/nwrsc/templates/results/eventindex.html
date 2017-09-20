@@ -71,6 +71,8 @@ ul.wrap {
 <div class='col-12 col-md-{{colm}} col-lg-{{coll}}'>
 <h5>ProSolo</h5>
 	<ul>
+	<li><a href='{{url_for('.grid', order='number')}}'>Grid By Number</a></li>
+	<li><a href='{{url_for('.grid', order='position')}}'>Grid By Standings</a></li>
 	<li><a href='{{url_for('.dialins', order='net')}}'>Dialins By Net Time</a></li>
 	<li><a href='{{url_for('.dialins', order='prodiff')}}'>Dialins By Class Diff</a></li>
 	{%for ch in challenges %}

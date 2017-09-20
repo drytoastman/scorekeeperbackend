@@ -3,13 +3,11 @@
 {% block headers %}
 {{super()}}
 <style>
-h3 { text-align: center; }
-table  { border-collapse: collapse; margin: 0px auto; }
+table { margin-bottom: 1rem; }
 td.grid { background-color: #dcdcdc; font-weight: bold; }
-td      { border: 1px solid #999; padding: 2px; }
-td.grid, td.class,td.num { text-align: center; width: 35px; }
-td.name { width: 170px; }
-td.net  { text-align: center; width: 60px; }
+td.grid, td.class,td.num { width: 3rem; }
+td.name { width: 17rem; }
+td.net  { width: 5rem; }
 .break  { page-break-before: always; }
 </style>
 {% endblock headers %}
@@ -35,14 +33,14 @@ td.net  { text-align: center; width: 60px; }
 
 {% block content %}
 {% for start in starts %}
-
-<h3>Group {{start}}</h3>
-<table>
+<div class='container-fluid'>
+<h4>Group {{start}}</h4>
+<table class='table-bordered'>
 {{entries(groups[start], 0)}}
 </table>
 
-<h3>Group {{start}} Dual</h3>
-<table>
+<h4>Group {{start}} Dual</h4>
+<table class='table-bordered'>
 {{entries(groups[start+100], 100)}}
 </table>
 
@@ -51,4 +49,5 @@ td.net  { text-align: center; width: 60px; }
 {% endif %}
 
 {% endfor %}
+</div>
 {% endblock content %}

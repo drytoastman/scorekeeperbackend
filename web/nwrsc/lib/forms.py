@@ -220,3 +220,11 @@ class EventSettingsForm(MyFlaskForm):
     gatepen       = FloatField(   'Gate Penalty',           render_kw={'title':'The penalty value for missing a gate'})
     submit        = SubmitField(  'Update')
 
+class SeriesForm(MyFlaskForm):
+    name         = MyStringField(  'Series Name', [Length(min=6, max=12)])
+    password     = MyPasswordField('Password',    [Length(min=4, max=12)])
+    copysettings = BooleanField(   'Copy Settings')
+    copyclasses  = BooleanField(   'Copy Classes/Indexes')
+    copycars     = BooleanField(   'Copy Copy Cars')
+    submit       = SubmitField(    'Create')
+

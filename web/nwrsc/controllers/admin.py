@@ -261,7 +261,13 @@ def rungroups():
     #return render_template('/admin/editrungroups.html')
     return render_template('/admin/simple.html', text='This is TBD {}'.format(groups))
 
-@Admin.route("/newseries",  endpoint='newseries')
+@Admin.route("/newseries", methods=['GET', 'POST'])
 def newseries():
-    return render_template('/admin/simple.html', text='This is TBD')
+    form = SeriesForm()
+    if form.validate_on_submit():
+        return "do stuff here"
+    else:
+        form.name.data = g.series
+        form.copysettings.data = True
+    return render_template('/admin/newseries.html', form=form)
 

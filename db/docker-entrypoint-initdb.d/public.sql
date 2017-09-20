@@ -59,7 +59,7 @@ BEGIN
     END IF;
 
     audit_row.logid = NEXTVAL(TG_ARGV[0] || '_logid_seq');
-    EXECUTE format('INSERT INTO %I VALUES (($1).*)', quote_ident(TG_ARGV[0])) USING audit_row;
+    EXECUTE 'INSERT INTO ' || TG_ARGV[0] || ' VALUES (($1).*)' USING audit_row;
     EXECUTE pg_notify('datachange', TG_TABLE_NAME);
     RETURN NULL;
 END;
@@ -171,12 +171,12 @@ CREATE TABLE drivers (
     password   TEXT        NOT NULL DEFAULT '',
     membership TEXT        NOT NULL DEFAULT '',
     attr       JSONB       NOT NULL DEFAULT '{}', 
-    modified   TIMESTAMP   NOT NULL DEFAULT now(),
-    CONSTRAINT uniqueuser UNIQUE(username)
+    modified   TIMESTAMP   NOT NULL DEFAULT now()
 );
 CREATE INDEX ON drivers(lower(firstname));
 CREATE INDEX ON drivers(lower(lastname));
-CREATE UNIQUE INDEX uniqueper ON drivers(lower(firstname), lower(lastname), lower(email));
+CREATE UNIQUE INDEX uniqueuser ON drivers(username);
+CREATE UNIQUE INDEX uniqueper  ON drivers(lower(firstname), lower(lastname), lower(email));
 REVOKE ALL   ON drivers FROM public;
 GRANT  ALL   ON drivers TO driversaccess;
 CREATE TRIGGER driversmod AFTER INSERT OR UPDATE OR DELETE ON drivers FOR EACH ROW EXECUTE PROCEDURE logmods('publiclog');

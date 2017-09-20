@@ -9,7 +9,7 @@
 {% endblock headers %}
 
 {% block content %}
-<div class='container'>
+<div class='container-fluid'>
 <h3>{{chal.name}}</h3>
 {% for round in results | sort(reverse=True) %}
 {% if round <= 98 and round > 1 %}
