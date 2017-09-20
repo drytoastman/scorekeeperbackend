@@ -98,6 +98,9 @@ def convert(sourcefile, password):
         c = AttrWrapper(r, r.keys())
         if c.driverid < 0:
             continue
+        if c.driverid not in remapdriver:
+            print("skipping car with unknown driverid {}".format(c.driverid))
+            continue
         if c.classcode in ('UNKNWN', 'UKNWN'):
             c.classcode = 'HOLD'
         newc = dict()

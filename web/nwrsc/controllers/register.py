@@ -207,10 +207,10 @@ def login():
             for d in Driver.find(reset.firstname.data, reset.lastname.data):
                 if d.email.lower() == reset.email.data.lower():
                     token = current_app.usts.dumps({'request': 'reset', 'driverid': str(d.driverid)})
-                    msg = Message("Scorekeeper Reset Request", sender="drytoastman@gmail.com", recipients=["drytoastman@gmail.com"])
-                    msg.body = "Use the following link to continue the reset process.  {}".format(url_for('.reset', token=token, _external=True))
+                    msg = Message("Scorekeeper Reset Request", recipients=[d.email])
+                    msg.body = "Use the following link to continue the reset process.\n\n{}".format(url_for('.reset', token=token, _external=True))
                     Register.mail.send(msg)
-                    return render_template("common/simple.html", content="An email as been sent with a link to reset your username/password.") # (%s)" % link)
+                    return redirect(url_for(".emailsent"))
             flash("No user could be found with those parameters")
         else:
             flashformerrors(reset)
@@ -224,12 +224,13 @@ def login():
             elif Driver.byUsername(register.username.data) != None:
                 flash("That username is already taken")
             else:
+                email = register.email.data.strip()
                 token = current_app.usts.dumps({'request': 'register', 'firstname': register.firstname.data.strip(), 'lastname': register.lastname.data.strip(),
-                                            'email':register.email.data.strip(), 'username': register.username.data.strip(), 'password': register.password.data.strip()})
-                msg = Message("Scorekeeper Profile Request", sender="drytoastman@gmail.com", recipients=["drytoastman@gmail.com"])
-                msg.body = "Use the following link to complete the registration process. {}".format(url_for('.finish', token=token, _external=True))
+                                            'email':email, 'username': register.username.data.strip(), 'password': register.password.data.strip()})
+                msg = Message("Scorekeeper Profile Request", recipients=[email])
+                msg.body = "Use the following link to complete the registration process.\n\n{}".format(url_for('.finish', token=token, _external=True))
                 Register.mail.send(msg)
-                return render_template("common/simple.html", content="An email as been sent with a link to finish your registration.")
+                return redirect(url_for(".emailsent"))
         else:
             flashformerrors(register)
 
@@ -237,6 +238,11 @@ def login():
     register.gotoseries.data = g.series
     return render_template('/register/login.html', active=active, login=login, reset=reset, register=register, hasemail=hasemail)
         
+
+@Register.route("/emailsent")
+def emailsent():
+    return render_template("common/simple.html", content="An email as been sent with a link to finish your registration/reset.")
+
 
 @Register.route("/finish")
 def finish():
