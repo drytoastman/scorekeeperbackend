@@ -173,7 +173,7 @@ def create_app(config=None):
     theapp.hasher = Bcrypt(theapp)
     theapp.usts = URLSafeTimedSerializer(theapp.config["SECRET_KEY"])
 
-    # Database introspection
+    # Database introspection at startup
     with theapp.app_context():
         AttrBase.initialize(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'])
 

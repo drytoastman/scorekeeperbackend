@@ -30,6 +30,7 @@ shownavmenu('#navbarNav', '#eventdropdownlink');
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
 
+        {% if g.seriesyears|length > 1 %}
         <li id="yeardropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="yeardropdownlink" data-toggle="dropdown">{{g.year or "Select a Year"}}</a>
           <div class="dropdown-menu">
@@ -38,6 +39,7 @@ shownavmenu('#navbarNav', '#eventdropdownlink');
           {% endfor %}
           </div>
         </li>
+        {% endif %}
 
 		{% if g.year %}
         <li id="seriesdropdown" class="nav-item dropdown">

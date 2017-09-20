@@ -1,10 +1,16 @@
 {% extends "admin/bluebase.html" %}
+{% block headers %}
+{{super()}}
+<style type="text/css">
+h5 { margin-top: 2rem; }
+label { display: none; }
+</style>
+{% endblock headers %}
 
 {% block content %}
-<h3>Enter the password for {{g.series}}</h3>
-<form action='{{url_for('.login')}}' method='POST'>
-<label for='password'>Password</label><input type='password' name='password'/>
-<input type='checkbox' name='confirm' />
-<input type='Submit' name='Submit' value='Submit'>
-</form>
+{{super()}}
+<div class='container'>
+<h5>Enter the password for {{g.series}}</h5>
+{{ form.html('seriespasswordform', url_for('.login'), 'post', 'btn-admin', 'col-md-0', 'col-md-5') | safe }}
+</div>
 {% endblock content %}

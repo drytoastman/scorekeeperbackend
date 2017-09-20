@@ -13,7 +13,7 @@ $(document).ready(function(){
 {% block content %}
 {{super()}}
 <div class='container'>
-<h3 class='text-center'>General Settings</h3>
+<h3 class='text-center'>General Settings For {{g.series}}</h3>
 {{ form.html('settingsform', url_for('.settings'), 'post', 'btn-admin', 'col-md-4', 'col-md-7') | safe }}
 </div>
 {% endblock content %}

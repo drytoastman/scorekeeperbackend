@@ -91,6 +91,10 @@ def attrBaseIntoForm(base, form):
             getattr(form, k).data = base.attr[k]
 
 
+class SeriesPasswordForm(MyFlaskForm):
+    password   = MyPasswordField('Password', [Length(min=2, max=32)])
+    submit     = SubmitField(    'Login')
+
 class PasswordForm(MyFlaskForm):
     gotoseries = HiddenField(    'gotoseries')
     username   = MyStringField(  'Username', [Length(min=6, max=32)])

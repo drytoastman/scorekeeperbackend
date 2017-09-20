@@ -52,16 +52,16 @@ def setup():
 
 @Admin.route("/login", methods=['POST', 'GET'])
 def login():
-    if request.form.get('password'):
+    form = SeriesPasswordForm()
+    if form.validate_on_submit():
         try:
-            password = request.form.get('password')[:16].strip()
-            AttrBase.testPassword(user=g.series, password=password)
+            AttrBase.testPassword(user=g.series, password=form.password.data.strip())
             session[AUTHKEY][g.series] = 1
             session.modified = True
             return redirect(session[AUTHKEY][PATHKEY])
         except Exception as e:
             log.error("Login failure: %s", e, exc_info=e)
-    return render_template('/admin/login.html')
+    return render_template('/admin/login.html', form=form)
 
 @Admin.endpoint("Admin.base")
 @Admin.route("/")
@@ -264,7 +264,16 @@ def rungroups():
 def newseries():
     form = SeriesForm()
     if form.validate_on_submit():
-        return "do stuff here"
+        try:
+            series = form.name.data.lower()
+            Series.copySeries(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'], series=series,
+                password=form.password.data, csettings=form.copysettings.data, cclasses=form.copyclasses.data, ccars=form.copycars.data)
+            session[AUTHKEY][series] = 1
+            session.modified = True
+            return redirect(url_for('.settings', series=series))
+        except Exception as e:
+            flash("Error creating series: {}".format(e))
+            log.warning(e)
     else:
         form.name.data = g.series
         form.copysettings.data = True

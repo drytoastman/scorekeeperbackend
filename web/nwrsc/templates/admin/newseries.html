@@ -1,10 +1,20 @@
 {% extends "admin/bluebase.html" %}
+{% block headers %}
+{{super()}}
+<script>
+$(document).ready(function(){
+    // copy cars implies copyclasses, as well as reversed inverse
+    $('#copycars').change(function() { if ($(this).is(':checked')) { $('#copyclasses').prop('checked', true); } });
+    $('#copyclasses').change(function() { if (!$(this).is(':checked')) { $('#copycars').prop('checked', false); } });
+});
+</script>
+{% endblock headers %}
 
 {% block content %}
 {{super()}}
 <div class='container'>
-<h4>Create New Series</h4>
-<p>Create a new series, copying information from the current</p>
+<h4 class='text-center'>Create New Series</h4>
+<p class='text-center'>Create a new series, copying information from the current</p>
 {{ form.html('seriesform', url_for('.newseries'), 'post', 'btn-admin', 'col-md-4', 'col-md-5') | safe }}
 </div>
 {% endblock content %}
