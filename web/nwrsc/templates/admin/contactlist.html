@@ -22,8 +22,8 @@ ul input {
 <script>
 var emailregex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
 var thetable   = null;
-var matchrun   = [];
-var matchreg   = []
+var matchtypes = [];
+var matchevent = []
 
 function copyemail()
 {
@@ -44,9 +44,25 @@ function extractemail()
 
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {
-        if ((matchrun.length == 0) && (matchreg.length == 0)) return true;
-        for (var ii = 0; ii < matchrun.length; ii++) if (data[3].includes(matchrun[ii])) return true;
-        for (var ii = 0; ii < matchreg.length; ii++) if (data[4].includes(matchreg[ii])) return true;
+        if ((matchevent.length == 0) || (matchtype == undefined)) return true;
+        switch (matchtype) 
+        {
+            case "reg":
+                for (var ii = 0; ii < matchevent.length; ii++)
+                    if (data[4].includes(matchevent[ii]))
+                        return true;
+                break;
+            case "run":
+                for (var ii = 0; ii < matchevent.length; ii++)
+                    if (data[3].includes(matchevent[ii])) 
+                        return true;
+                break;
+            case "noshow":
+                for (var ii = 0; ii < matchevent.length; ii++)
+                    if (data[4].includes(matchevent[ii]) && !(data[3].includes(matchevent[ii])))
+                        return true;
+                break;
+        } 
         return false;
     }
 );
@@ -69,9 +85,16 @@ $(document).ready(function(){
 
     $('.dtheader').append("<div class='validwrapper'><button class='btn btn-outline-admin' onclick='copyemail()'>Copy Valid Email</button></div>");
 
-    $('input[type=checkbox]').change(function () {
-        matchrun = $('ul input[data-type="run"]:checked').map(function () { return $(this).data('event'); });
-        matchreg = $('ul input[data-type="reg"]:checked').map(function () { return $(this).data('event'); });
+    // mutually exclusive filtertype
+    $('ul input[name=filtertype]').change(function () {
+        if ($(this).prop('checked')) {
+            $('ul input[name=filtertype]').not(this).prop('checked', false);
+        }
+    });
+
+    $('ul input[type=checkbox]').change(function () {
+        matchtype  = $('ul input[name=filtertype]:checked').val();
+        matchevent = $('ul input[name=event]:checked').map(function () { return $(this).data('event'); });
         thetable.draw();
     });
 });
@@ -81,19 +104,18 @@ $(document).ready(function(){
 {% block content %}
 {{super()}}
 <div class='container'>
-<h2>Contact List</h2>
-<h5>
-Ran in 
-</h5>
+<h3>Contact List</h3>
+<p>The default list is of anyone who has registered or run in the series.  Use the checkboxes to select filters and/or type text into the search box.</p>
+<h6>Filter Type</h6>
 <ul>
-{% for e in events %}
-    <li><input data-type="run" data-event="{{e.eventid}}" type='checkbox'/>{{e.name}}</li>
-{% endfor %}
+    <li><input type="checkbox" name="filtertype" value="reg"/>Registered In</li>
+    <li><input type="checkbox" name="filtertype" value="run"/>Ran In</li>
+    <li><input type="checkbox" name="filtertype" value="noshow"/>Registered But Didn't Run</li>
 </ul>
-<h5>Registered in</h5>
+<h6>For Events</h6>
 <ul>
 {% for e in events %}
-    <li><input data-type="reg" data-event="{{e.eventid}}" type='checkbox'/>{{e.name}}</li>
+    <li><input data-event="{{e.eventid}}" name="event" type="checkbox"/>{{e.name}}</li>
 {% endfor %}
 </ul>
 <br/>
