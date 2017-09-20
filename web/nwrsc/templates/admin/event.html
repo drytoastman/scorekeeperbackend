@@ -25,7 +25,7 @@
 <li><a href='{{url_for('.deleteevent')}}' onclick='return confirm("Do you really want to delete this event and and its registered entries?");'>Delete Event</a></li>
 </ul>
 
-<h5>Timing Cards <small class="text-muted">(<a href='{{url_for('.printhelp')}}' target='_blank'>Printing Help</a>)</small></h5>
+<h5>Timing Cards <small class="text-muted">(<a href='{{url_for('.printhelp')}}' target='helptab'>Printing Help</a>)</small></h5>
 
 <form action='{{url_for('.printcards')}}' method='get'>
   <div class='form-group col-md-5'>

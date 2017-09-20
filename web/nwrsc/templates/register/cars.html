@@ -40,6 +40,9 @@ gCars['{{c.carid}}'] = {{c|to_json|safe}};
 
 <table>
 <tr><td colspan=3 class='title'>Cars in {{g.series}}</td></tr>
+{% if settings.classinglink: %}
+<tr><td colspan=3 class='text-center p-0'><a href="{{settings.classinglink}}" target="helptab"><span class='fa fa-external-link'></span>Classing Help</a></td></tr>
+{% endif %}
 {% for car in cars.values()|msort("classcode","number") %}
     <tr><td>
     <div class="btn-group" role="group">

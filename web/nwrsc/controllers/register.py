@@ -65,13 +65,14 @@ def profilepost():
 @Register.route("/<series>/cars")
 def cars():
     if not g.driver: return login()
+    settings = Settings.get()
     carform = CarForm(g.classdata)
     events  = {e.eventid:e for e in Event.byDate()}
     cars    = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
     active  = defaultdict(set)
     for carid,eventid in Driver.activecars(g.driver.driverid):
         active[carid].add(eventid)
-    return render_template('register/cars.html', events=events, cars=cars, active=active, carform=carform)
+    return render_template('register/cars.html', events=events, cars=cars, active=active, carform=carform, settings=settings)
 
 
 @Register.route("/<series>/carspost", methods=['POST'])
