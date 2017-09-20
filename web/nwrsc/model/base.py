@@ -1,5 +1,8 @@
 import json
 import logging
+import psycopg2 
+import psycopg2.extras
+
 from flask import g
 
 TABLES = ['drivers', 'cars', 'events']
@@ -11,33 +14,53 @@ INSERTS       = dict()
 
 log = logging.getLogger(__name__)
 
+# setup uuid for postgresql
+psycopg2.extras.register_uuid()
+psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
+
 class AttrBase(object):
 
     @classmethod
-    def initialize(cls):
-        """ A little introspection to load the schema from database """
-        with g.db.cursor() as cur:
-            # Need to set a valid series so we can inspect the format
-            cur.execute("SELECT schema_name FROM information_schema.schemata")
-            serieslist = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')])
-            if not len(serieslist):
-                raise Exception("No valid series yet, need to get this to restart somehow")
+    def connect(cls, host, port, user):
+        return psycopg2.connect(cursor_factory=psycopg2.extras.DictCursor, application_name="webserver", dbname="scorekeeper", host=host, port=port, user=user)
 
-            testseries = (serieslist.pop(), 'public')
-            cur.execute("set search_path=%s,%s", testseries)
+    @classmethod
+    def testPassword(cls, user, password):
+        """ Assumes container db is named as such but it works, can't use config/unix socket as it implicitly trusts any user declaration, throws exception on error """
+        psycopg2.connect(application_name="webtest", dbname="scorekeeper", host='db', port=5432, user=user, password=password).close()
 
-            # Determing the primary keys for each table
-            for table in TABLES:
-                cur.execute("SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)" \
-                            "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
-                PRIMARY_KEYS[table] = [row[0] for row in cur.fetchall()]
+    @classmethod
+    def initialize(cls, host, port):
+        """ A little introspection to load the schema from database, use superuser incase we need to create an test db """
+        with cls.connect(host=host, port=port, user="postgres") as db:
+            with db.cursor() as cur:
+                # Need to set a valid series so we can inspect the format
+                cur.execute("SELECT schema_name FROM information_schema.schemata")
+                serieslist = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')])
+                if not len(serieslist):
+                    cur.execute("select verify_user('blank2000', 'blank2000')")
+                    ret1 = cur.fetchone()[0]
+                    cur.execute("select verify_series('blank2000')")
+                    ret2 = cur.fetchone()[0]
+                    if not ret1 or not ret2:
+                        raise Exception("No valid series yet and can't create an test series")
+                    serieslist = ['blank2000']
 
-                cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s AND table_schema IN %s AND column_name NOT IN ('modified', 'username', 'password')", (table, testseries))
-                COLUMNS[table] = [row[0] for row in cur.fetchall()]
-                NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
+                testseries = (serieslist.pop(), 'public')
+                cur.execute("set search_path=%s,%s", testseries)
 
-                UPDATES[table] = "UPDATE {} SET {},modified=now() WHERE {}".format(table, ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[table]), " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[table]))
-                INSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now())".format(table, ",".join(COLUMNS[table]), ",".join(["%({})s".format(x) for x in COLUMNS[table]]))
+                # Determing the primary keys for each table
+                for table in TABLES:
+                    cur.execute("SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)" \
+                                "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
+                    PRIMARY_KEYS[table] = [row[0] for row in cur.fetchall()]
+
+                    cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s AND table_schema IN %s AND column_name NOT IN ('modified', 'username', 'password')", (table, testseries))
+                    COLUMNS[table] = [row[0] for row in cur.fetchall()]
+                    NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
+
+                    UPDATES[table] = "UPDATE {} SET {},modified=now() WHERE {}".format(table, ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[table]), " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[table]))
+                    INSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now())".format(table, ",".join(COLUMNS[table]), ",".join(["%({})s".format(x) for x in COLUMNS[table]]))
 
 
     def __init__(self, **kwargs):

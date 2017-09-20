@@ -6,8 +6,6 @@ import sys
 import threading
 from operator import attrgetter
 
-import psycopg2 
-import psycopg2.extras
 from flask import Flask, request, abort, g, current_app, render_template, send_from_directory
 from flask_compress import Compress
 from flask_assets import Environment, Bundle
@@ -70,9 +68,6 @@ def create_app(config=None):
     def hashtml(val):
         return HASHTML.search(val) is not None
 
-    # setup uuid for postgresql
-    psycopg2.extras.register_uuid()
-    psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
 
     # Setup the application with default configuration
     theapp = Flask("nwrsc")
@@ -114,8 +109,7 @@ def create_app(config=None):
     # Attach some handlers to the app
     @theapp.before_request
     def onrequest():
-        g.db = psycopg2.connect(cursor_factory=psycopg2.extras.DictCursor, application_name="webserver", dbname="scorekeeper",
-                                host=current_app.config['DBHOST'], port=current_app.config['DBPORT'], user=current_app.config['DBUSER'])
+        g.db = AttrBase.connect(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'], user=current_app.config['DBUSER'])
         if hasattr(g, 'series') and g.series:
             # Set up the schema path if we have a series
             g.seriestype = Series.type(g.series)
@@ -181,9 +175,7 @@ def create_app(config=None):
 
     # Database introspection
     with theapp.app_context():
-        onrequest()
-        AttrBase.initialize()
-        teardown()
+        AttrBase.initialize(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'])
 
     log.info("Scorekeeper App created")
     return theapp

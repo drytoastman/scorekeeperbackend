@@ -52,11 +52,10 @@ def setup():
 
 @Admin.route("/login", methods=['POST', 'GET'])
 def login():
-    """ Assumes container db is named as such but it works, can't use config/unix socket as it implicitly trusts any user declaration """
     if request.form.get('password'):
         try:
             password = request.form.get('password')[:16].strip()
-            psycopg2.connect(host='db', port=5432, user=g.series, password=password, dbname='scorekeeper').close()
+            AttrBase.testPassword(user=g.series, password=password)
             session[AUTHKEY][g.series] = 1
             session.modified = True
             return redirect(session[AUTHKEY][PATHKEY])
