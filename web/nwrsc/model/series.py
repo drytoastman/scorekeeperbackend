@@ -76,4 +76,11 @@ class Series(object):
                         cur.execute("insert into {}.cars (select * from {}.cars)".format(series, g.series))
                 db.commit()
 
- 
+    @classmethod
+    def deleteSeries(cls, host, port):
+        with AttrBase.connect(host=host, port=port, user="postgres") as db:
+            with db.cursor() as cur:
+                cur.execute("DROP SCHEMA {} CASCADE".format(g.series))
+                cur.execute("DROP USER {}".format(g.series))
+            db.commit()
+

@@ -232,3 +232,7 @@ class SeriesForm(MyFlaskForm):
     copycars     = BooleanField(   'Copy Copy Cars')
     submit       = SubmitField(    'Create')
 
+class ArchiveForm(MyFlaskForm):
+    name         = MyStringField(  'Enter Series Name', [Length(min=6, max=12)])
+    submit       = SubmitField(    'Archive')
+

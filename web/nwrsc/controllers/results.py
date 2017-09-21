@@ -6,10 +6,10 @@ from operator import itemgetter
 import logging
 import re
 
-from flask import Blueprint, request, abort, render_template, get_template_attribute, make_response, g
-from nwrsc.model import *
+from flask import Blueprint, request, render_template, get_template_attribute, make_response, g
+from nwrsc.model import Audit, Result, Series
 from nwrsc.lib.bracket import Bracket
-from nwrsc.lib.misc import csvlist
+from nwrsc.lib.misc import ArchivedSeriesException, csvlist, InvalidChallengeException, InvalidEventException
 
 Results = Blueprint("Results", __name__)
 log = logging.getLogger(__name__)
@@ -22,11 +22,12 @@ def setup():
     g.seriesyears = Series.byYear()
     if g.series:
         g.year = Series.getYear(g.series)
-        g.events = Event.byDate()
+        g.seriesinfo = Result.getSeriesInfo()
+        g.events = g.seriesinfo.getEvents()
         if g.eventid:
-            g.event=Event.get(g.eventid)
+            g.event = g.seriesinfo.getEvent(g.eventid)
             if g.event is None:
-                abort(404, "No such event")
+                raise InvalidEventException()
     elif len(g.seriesyears) < 2:
         g.year = next(iter(g.seriesyears))
     else:
@@ -40,30 +41,28 @@ def index():
 
 @Results.route("/event/<uuid:eventid>/")
 def event():
-    info    = Result.getSeriesInfo()
-    if not info.getEvent(g.eventid):
-        abort(404, "No such event")
+    if not g.seriesinfo.getEvent(g.eventid):
+        raise InvalidEventException()
     results = Result.getEventResults(g.eventid)
     active  = results.keys()
-    event   = info.getEvent(g.eventid)
-    challenges = info.getChallengesForEvent(g.eventid)
+    event   = g.seriesinfo.getEvent(g.eventid)
+    challenges = g.seriesinfo.getChallengesForEvent(g.eventid)
     return render_template('results/eventindex.html', event=event, active=active, challenges=challenges)
 
 ## Basic results display
 
 def _resultsforclasses(clslist=None, grplist=None):
     """ Show our class results """
-    info        = Result.getSeriesInfo()
     resultsbase = Result.getEventResults(g.eventid)
-    g.classdata = info.getClassData() 
-    g.event     = info.getEvent(g.eventid)
+    g.classdata = g.seriesinfo.getClassData() 
+    g.event     = g.seriesinfo.getEvent(g.eventid)
 
     if clslist is None and grplist is None:
         ispost         = True
         results        = resultsbase
         g.toptimes     = Result.getTopTimesTable(g.classdata, results, {'indexed':True}, {'indexed':False})
         g.entrantcount = sum([len(x) for x in results.values()])
-        g.settings     = info.getSettings()
+        g.settings     = g.seriesinfo.getSettings()
     elif grplist is not None:
         ispost         = False
         results        = dict()
@@ -102,9 +101,8 @@ def tt():
     segments = bool(int(request.args.get('segments', '0')))
     course   = int(request.args.get('course', '0'))
 
-    info      = Result.getSeriesInfo()
-    event     = info.getEvent(g.eventid)
-    classdata = info.getClassData() 
+    event     = g.seriesinfo.getEvent(g.eventid)
+    classdata = g.seriesinfo.getClassData() 
 
     keys = []
     if segments:
@@ -124,10 +122,9 @@ def tt():
 
 @Results.route("/champ/")
 def champ():
-    info    = Result.getSeriesInfo()
     results = Result.getChampResults()
-    events  = [x for x in info['events'] if not x['ispractice']]
-    return render_template('/results/champ.html', results=results, settings=info.getSettings(), classdata=info.getClassData(), events=events)
+    events  = [x for x in g.events if not x.ispractice]
+    return render_template('/results/champ.html', results=results, settings=g.seriesinfo.getSettings(), classdata=g.seriesinfo.getClassData(), events=events)
 
 
 ## ProSolo related data (Challenge and Dialins)
@@ -138,18 +135,15 @@ def dialins():
     if orderkey not in ('net', 'prodiff'):
         return "Invalid order key"
 
-    info    = Result.getSeriesInfo()
     results = Result.getEventResults(g.eventid)
-    event   = info.getEvent(g.eventid)
     entrants = [e for cls in results.values() for e in cls]
     entrants.sort(key=itemgetter(orderkey))
-    return render_template('/challenge/dialins.html', orderkey=orderkey, event=event, entrants=entrants)
+    return render_template('/challenge/dialins.html', orderkey=orderkey, event=g.event, entrants=entrants)
 
 def _loadChallengeResults(challengeid, load=True):
-    info = Result.getSeriesInfo()
-    challenge = info.getChallenge(challengeid)
+    challenge = g.seriesinfo.getChallenge(challengeid)
     if challenge is None:
-        abort(404, "Invalid or no challenge id")
+        raise InvalidChallengeException()
     return (challenge, load and Result.getChallengeResults(challengeid) or None)
 
 @Results.route("/challenge/<uuid:challengeid>/bracket")
@@ -174,14 +168,17 @@ def bracketround(challengeid, round):
 @Results.route("/challenge/<uuid:challengeid>/")
 def challenge(challengeid):
     (challenge, results) = _loadChallengeResults(challengeid)
+    log.debug("{}, {}".format(challenge, results))
     return render_template('/challenge/challengereport.html', results=results, chal=challenge)
 
 @Results.route("/event/<uuid:eventid>/audit")
 def audit():
+    if g.seriestype != Series.ACTIVE:
+        raise ArchivedSeriesException()
     course = request.args.get('course', 1)
     group  = request.args.get('group', 1)
     order  = request.args.get('order', 'runorder')
-    event  = Event.get(g.eventid)
+    event  = g.event
     audit  = Audit.audit(event, course, group)
 
     if order in ['firstname', 'lastname']:
@@ -194,6 +191,8 @@ def audit():
 
 @Results.route("/event/<uuid:eventid>/grid")
 def grid():
+    if g.seriestype != Series.ACTIVE:
+        raise ArchivedSeriesException()
     order = request.args.get('order', 'number')
     groups = RunGroups.getForEvent(g.eventid)
 

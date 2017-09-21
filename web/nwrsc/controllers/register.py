@@ -10,6 +10,7 @@ from flask_mail import Message
 
 from nwrsc.model import *
 from nwrsc.lib.forms import *
+from nwrsc.lib.misc import *
 from nwrsc.lib.encoding import json_encode, ical_encode
 
 log = logging.getLogger(__name__)
@@ -23,7 +24,10 @@ def setup():
     g.selection = request.endpoint
     if 'driverid' in session:
         g.driver = Driver.get(session['driverid'])
-        if g.series: g.classdata = ClassData.get()
+        if g.series:
+            if g.seriestype != Series.ACTIVE:
+                raise ArchivedSeriesException()
+            g.classdata = ClassData.get()
     else:
         g.driver = None
 
@@ -121,7 +125,7 @@ def events():
 
 @Register.route("/<series>/eventspost", methods=['POST'])
 def eventspost():
-    if not g.driver: abort(404)
+    if not g.driver: raise NotLoggedInException()
 
     try:
         eventid = uuid.UUID(request.form['eventid'])
@@ -147,7 +151,7 @@ def eventspost():
 
 @Register.route("/<series>/usednumbers")
 def usednumbers():
-    if not g.driver: abort(404)
+    if not g.driver: raise NotLoggedInException()
     classcode = request.args.get('classcode', None)
     if classcode is None:
         return "missing data in request"
@@ -169,7 +173,7 @@ def logout():
 def view():
     event = Event.get(g.eventid)
     if event is None:
-        abort(404, "No event found for id %s" % g.eventid)
+        raise InvalidEventException()
     g.settings = Settings.get()
     g.classdata = ClassData.get()
     registered = defaultdict(list)
@@ -246,17 +250,13 @@ def emailsent():
 
 @Register.route("/finish")
 def finish():
-    if 'token' not in request.args:
-        return render_template("common/simple.html", header="Confirmation Error", content="This URL is meant to be loaded from a link with a confirmation token")
     try:
         req = current_app.usts.loads(request.args['token'], max_age=3600) # 1 hour expiry
-    except itsdangerous.SignatureExpired as e:
-        return render_template("common/simple.html", header="Confirmation Error", content="Sorry, this confirmation token has expired (%s)" % e.args[0])
     except Exception as e:
-        abort(400, e)
-    if req['request'] != 'register':
-        abort(400, 'Invalid request')
+        raise DisplayableError(header="Confirmation Error", content="Sorry, this confirmation token failed (%s)" % e.__class__.__name__) from e
 
+    if req.get('request', '') != 'register':
+        raise DisplayableError(header="Confirmation Error", content="Sorry, this confirmation token failed as the request type is incorrect")
     session['driverid'] = Driver.new(req['firstname'], req['lastname'], req['email'], req['username'], req['password'])
     return redirect(url_for(".profile"))
 
@@ -271,26 +271,19 @@ def reset():
         return redirect_series("")
 
     elif request.method == 'GET':
-        if 'token' not in request.args:
-            return render_template("common/simple.html", header="Reset Error", content="This URL is meant to be loaded from a link with a reset token")
-            
-        token = request.args.get('token', '')
-        req   = {}
         try:
-            req = current_app.usts.loads(token, max_age=3600) # 1 hour expiry
-        except itsdangerous.SignatureExpired as e:
-            return render_template("common/simple.html", header="Confirmation Error", content="Sorry, this confirmation token has expired (%s)" % e.args[0])
+            req = current_app.usts.loads(request.args['token'], max_age=3600) # 1 hour expiry
         except Exception as e:
-            abort(400, e)
+            raise DisplayableError(header="Confirmation Error", content="Sorry, this confirmation token failed (%s)" % e.__class__.__name__) from e
     
-        if req['request'] == 'reset':
+        if req.get('request', '') == 'reset':
             session['driverid'] = uuid.UUID(req['driverid'])
             return render_template("register/reset.html", form=form)
 
     elif form.errors:
         return render_template("register/reset.html", form=form, formerror=form.errors)
 
-    abort(400)
+    raise DisplayableError(header="Confirmation Error", content="Unknown reset request type")
 
  
 ####################################################################

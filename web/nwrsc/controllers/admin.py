@@ -7,10 +7,11 @@ import psycopg2
 import re
 import uuid
 
-from flask import abort, Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
+from flask import Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
 
 from nwrsc.lib.encoding import json_encode
 from nwrsc.lib.forms import *
+from nwrsc.lib.misc import InvalidEventException
 from nwrsc.model import *
 
 log     = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def setup():
     if g.eventid:
         g.event=Event.get(g.eventid)
         if g.event is None:
-            abort(404, "No such event")
+            raise InvalidEventException()
 
 
 @Admin.route("/login", methods=['POST', 'GET'])
@@ -202,6 +203,25 @@ def deleteevent():
     except psycopg2.IntegrityError as ie:
         flash("Unable to delete event as its still referenced: {}".format(ie.diag.message_detail))
         return redirect(url_for(".event"))
+
+
+@Admin.route("/archive", methods=['GET', 'POST'])
+def archive():
+    """ Request to archive the series, make sure all results/settings are in the results table and then delete the series """
+    form = ArchiveForm()
+    if form.validate_on_submit():
+        try:
+            if form.name.data == g.series:
+                Result.cacheAll()
+                g.db.close() # Need to drop the localuser connection before delete or we get deadlock
+                del g.db
+                Series.deleteSeries(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'])
+                return redirect(url_for(".base", series=None))
+            flash("Incorrect series name")
+        except Exception as e:
+            flash("Unable to delete series: {}".format(e))
+
+    return render_template("/admin/archive.html", form=form)
 
 
 @Admin.route("/seriesattend")

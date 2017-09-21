@@ -48,7 +48,6 @@ $(document).ready(function(){ {% if not g.series %}shownavmenu('#navbarNav', '#s
             <a class='dropdown-item' href='{{url_for('.settings')}}'>General</a>
             <a class='dropdown-item' href='{{url_for('.classlist')}}'>Classes</a>
             <a class='dropdown-item' href='{{url_for('.indexlist')}}'>Indexes</a>
-            <a class='dropdown-item' href='{{url_for('.drivers')}}'>Driver/Car Editor</a>
           </div>
         </li>
 
@@ -69,6 +68,14 @@ $(document).ready(function(){ {% if not g.series %}shownavmenu('#navbarNav', '#s
           <div class="dropdown-menu">
             <a class='dropdown-item' href='{{url_for('.createevent')}}'>New Event</a>
             <a class='dropdown-item' href='{{url_for('.newseries')}}'>New Series From Current</a>
+          </div>
+        </li>
+
+        <li id="advanceddropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="advanceddropdownlink" data-toggle="dropdown">Advanced</a>
+          <div class="dropdown-menu">
+            <a class='dropdown-item' href='{{url_for('.drivers')}}'>Driver/Car Editor</a>
+            <a class='dropdown-item' href='{{url_for('.archive')}}'>Archive Series</a>
           </div>
         </li>
 

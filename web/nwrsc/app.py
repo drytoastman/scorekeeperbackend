@@ -1,10 +1,11 @@
 import datetime
+from operator import attrgetter
 import os
 import logging
 import re
 import sys
 import threading
-from operator import attrgetter
+from traceback import format_tb
 
 from flask import Flask, request, abort, g, current_app, render_template, send_from_directory
 from flask_compress import Compress
@@ -23,6 +24,7 @@ from nwrsc.controllers.feed import Xml, Json
 from nwrsc.controllers.register import Register
 from nwrsc.controllers.results import Results
 from nwrsc.lib.encoding import to_json
+from nwrsc.lib.misc import *
 from nwrsc.model import AttrBase, Series
 
 log = logging.getLogger(__name__)
@@ -122,7 +124,7 @@ def create_app(config=None):
             # Set up the schema path if we have a series
             g.seriestype = Series.type(g.series)
             if g.seriestype == Series.INVALID:
-                abort(404, "%s is not a valid series" % g.series)
+                raise InvalidSeriesException()
             with g.db.cursor() as cur:
                 cur.execute("SET search_path=%s,'public'; commit; begin", (g.series,))
         else:
@@ -138,6 +140,31 @@ def create_app(config=None):
     def logrequest(response):
         log.info("%s %s?%s %s %s (%s)" % (request.method, request.path, request.query_string, response.status_code, response.content_length, response.content_encoding))
         return response
+
+    @theapp.errorhandler(InvalidSeriesException)
+    def invalidseries(e):
+        return render_template("common/simple.html", header="404 No Such Series", content="There is no series present with that name"), 404
+
+    @theapp.errorhandler(InvalidEventException)
+    def invalidevent(e):
+        return render_template("common/simple.html", header="404 No Such Event", content="There is no event present with that id"), 404
+
+    @theapp.errorhandler(InvalidChallengeException)
+    def invalidchallenge(e):
+        return render_template("common/simple.html", header="404 No Such Challenge", content="There is no challenge present with that id"), 404
+
+    @theapp.errorhandler(ArchivedSeriesException)
+    def nonactiveseries(e):
+        return render_template("common/simple.html", header="410 Archived Series", content="This series is archived and the requested page is not available for archived series"), 410
+
+    @theapp.errorhandler(NotLoggedInException)
+    def notloggedin(e):
+        return render_template("common/simple.html", header="403 Not Logged In", content="You are not logged in and cannot access this resource."), 403
+
+    @theapp.errorhandler(DisplayableError)
+    def displayable(e):
+        log.info(e.content, exc_info=e.__cause__ and e or None)
+        return render_template("common/simple.html", header=e.header, content=e.content)
 
     # extra Jinja bits
     theapp.jinja_env.filters['t3'] = t3

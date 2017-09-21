@@ -1,0 +1,29 @@
+{% extends "admin/bluebase.html" %}
+
+{% block headers %}
+{{super()}}
+<script>
+function checkname() {
+    $('input[type=submit]').prop('disabled', $(this).val() != "{{g.series}}");
+}
+$(document).ready(function(){
+    $('input[name="name"]').bind("change keyup input", checkname);
+    checkname();
+});
+
+</script>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h3>Archive Series</h3>
+<p>
+Archive will make sure all the results, raw and calculated, are stored for retrieval but the actual series tables will be deleted.<br/>
+To continue, type the name of the series into the box and click Archive.
+</p>
+
+{{ form.html('archiveform', url_for('.archive'), 'post', 'btn-admin', 'col-md-3', 'col-md-4') | safe }}
+
+</div>
+{% endblock %}

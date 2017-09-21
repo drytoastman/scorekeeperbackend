@@ -12,7 +12,7 @@ import math
 from flask import Blueprint, abort, current_app, g, get_template_attribute, request, render_template
 from nwrsc.lib.encoding import json_encode
 from nwrsc.model import *
-from nwrsc.lib.misc import csvlist
+from nwrsc.lib.misc import ArchivedSeriesException, csvlist
 
 log = logging.getLogger(__name__)
 Announcer = Blueprint("Announcer", __name__) 
@@ -22,6 +22,11 @@ MAX_WAIT = 30
 # FINISH ME
 # do we want 'if current_app.config['SHOWLIVE']' checks for announcer?
 # Or just no link on the results page?
+
+@Announcer.before_request
+def activecheck():
+    if g.seriestype != Series.ACTIVE:
+        raise ArchivedSeriesException()
 
 @Announcer.route("/")
 def eventlist():

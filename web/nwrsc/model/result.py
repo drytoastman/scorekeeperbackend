@@ -56,6 +56,15 @@ class Result(object):
     """
 
     @classmethod
+    def cacheAll(cls):
+        info = cls.getSeriesInfo()
+        for e in info.getEvents():
+            cls.getEventResults(e.eventid, True)
+            for c in info.getChallengesForEvent(uuid.UUID(e.eventid)):
+                cls.getChallengeResults(c.challengeid)
+        cls.getChampResults(True)
+
+    @classmethod
     def getSeriesInfo(cls, asstring=False):
         name = "info"
         if cls._needUpdate(False, ('classlist', 'indexlist', 'events', 'settings'), name):
@@ -73,11 +82,14 @@ class Result(object):
 
     @classmethod
     def getChallengeResults(cls, challengeid):
+        log.debug(type(challengeid))
         if cls._needUpdate(True, ('challengerounds', 'challengeruns'), challengeid):
             cls._updateChallengeResults(challengeid)
         ret = dict() # Have to convert back to dict as JSON can't store using ints as keys
+        log.debug("1: %s", ret)
         for rnd in cls._loadResults(challengeid, asstring=False):
             ret[rnd['round']] = rnd
+        log.debug("2: %s", ret)
         return ret
 
     @classmethod
@@ -668,6 +680,9 @@ class SeriesInfo(dict):
 
     def getSettings(self):
         return Settings(self['settings'])
+
+    def getEvents(self):
+        return [Event(**e) for e in self['events']]
 
     def getEvent(self, eventid):
         for e in self['events']:
