@@ -47,7 +47,7 @@ def event():
     active  = results.keys()
     event   = g.seriesinfo.getEvent(g.eventid)
     challenges = g.seriesinfo.getChallengesForEvent(g.eventid)
-    return render_template('results/eventindex.html', event=event, active=active, challenges=challenges)
+    return render_template('results/eventindex.html', event=event, active=active, challenges=challenges, isactive=(g.seriestype==Series.ACTIVE))
 
 ## Basic results display
 

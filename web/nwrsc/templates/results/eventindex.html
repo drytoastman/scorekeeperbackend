@@ -39,8 +39,7 @@ ul.wrap {
 <ul>
 <li><a href='{{url_for('.post')}}'>Event Results</a></li>
 <li><a href='{{url_for('.champ')}}'>Championship</a></li>
-{%if config.SHOWLIVE %}
-{# FINISH ME <li><a href="{{url_for('Live.index')}}">Mobile Live Page</a></li> #}
+{%if config.SHOWLIVE and isactive %}
 <li><a href="{{url_for('Announcer.index')}}">Announcer Panel</a></li>
 {% endif %}
 <li><a href='{{url_for('Xml.scca')}}'>SCCA Report</a></li>
@@ -71,8 +70,10 @@ ul.wrap {
 <div class='col-12 col-md-{{colm}} col-lg-{{coll}}'>
 <h5>ProSolo</h5>
 	<ul>
+    {% if isactive %}
 	<li><a href='{{url_for('.grid', order='number')}}'>Grid By Number</a></li>
 	<li><a href='{{url_for('.grid', order='position')}}'>Grid By Standings</a></li>
+    {% endif %}
 	<li><a href='{{url_for('.dialins', order='net')}}'>Dialins By Net Time</a></li>
 	<li><a href='{{url_for('.dialins', order='prodiff')}}'>Dialins By Class Diff</a></li>
 	{%for ch in challenges %}
