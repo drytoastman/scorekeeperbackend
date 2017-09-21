@@ -19,10 +19,6 @@ Announcer = Blueprint("Announcer", __name__)
 
 MAX_WAIT = 30
 
-# FINISH ME
-# do we want 'if current_app.config['SHOWLIVE']' checks for announcer?
-# Or just no link on the results page?
-
 @Announcer.before_request
 def activecheck():
     if g.seriestype != Series.ACTIVE:
@@ -128,47 +124,3 @@ def loadAnnouncerResults(carid, mini):
 
     return data
 
-# FINISH ME, to do later, not sure if this is even used....
-class LiveController(object):
-
-    def index(self):
-        if self.eventid:
-            return self._browser()
-        elif self.database is not None:
-            return self._events()
-        else:
-            return self._database()
-
-    def _database(self):
-        c.dblist = self._databaseList(archived=False)
-        return render_mako('/live/database.mako')
-
-    def _events(self):
-        c.events = self.session.query(Event).all()
-        return render_mako('/live/events.mako')
-
-    def _browser(self):
-        c.event = self.event
-        c.classes = [x[0] for x in self.session.query(Class.code).all()]
-        return render_mako('/live/browser.mako')
-
-    def Event(self):
-        carid = int(self.routingargs.get('other', 0))
-        c.results = self._classlist(carid)
-        return render_mako_def('/live/tables.mako', 'classlist')
-
-    def Champ(self):
-        carid = int(self.routingargs.get('other', 0))
-        c.champ = self._champlist(carid)
-        c.cls = self.cls
-        return render_mako_def('/live/tables.mako', 'champlist')
-
-    def PAX(self):
-        carid = int(self.routingargs.get('other', 0))
-        c.toptimes = self._loadTopTimes(carid, raw=False)
-        return render_mako('/announcer/topnettimes.mako').replace('\n', '')
-
-    def Raw(self):
-        carid = int(self.routingargs.get('other', 0))
-        c.toptimes = self._loadTopTimes(carid, raw=True)
-        return render_mako('/announcer/toprawtimes.mako').replace('\n', '')

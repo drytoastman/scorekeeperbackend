@@ -33,6 +33,7 @@ td.net  { width: 5rem; }
 
 {% block content %}
 {% for start in starts %}
+{% if groups[start].count > 0 or groups[start+100].count > 0 %}
 <div class='container-fluid'>
 <h4>Group {{start}}</h4>
 <table class='table-bordered'>
@@ -48,6 +49,7 @@ td.net  { width: 5rem; }
 <p class='break'>
 {% endif %}
 
+{% endif %}
 {% endfor %}
 </div>
 {% endblock content %}

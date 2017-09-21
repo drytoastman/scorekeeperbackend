@@ -196,7 +196,8 @@ def create_app(config=None):
 
     # WebAssets
     assets = Environment(theapp)
-    assets.register('jquery',     Bundle("extern/jquery-3.2.0.js", "extern/jquery.validate-1.16.js"))
+    assets.register('jquery',     Bundle("extern/jquery-3.2.0.js"))
+    assets.register('jquerymod',  Bundle("extern/jquery.sortable-1.12.1.js", "extern/jquery.validate-1.16.js"))
     assets.register('bootstrap',  Bundle("extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js"))
     assets.register('flatpickr',  Bundle("extern/flatpickr.js"))
     assets.register('datatables', Bundle("extern/datatables-1.10.16.js",  "extern/datatables-1.10.16-bootstrap4.js", "extern/datatables-select-1.2.3.js"))

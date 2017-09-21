@@ -274,11 +274,21 @@ def delreg():
     Registration.delete(g.eventid, carid)
     return ""
 
-@Admin.route("/event/<uuid:eventid>/rungroups")
+@Admin.route("/event/<uuid:eventid>/rungroups", methods=['GET', 'POST'])
 def rungroups():
+    if request.form:
+        try:
+            newgroups = defaultdict(list)
+            for key in request.form.keys():
+                newgroups[int(key[5:])] = request.form[key].split(',')
+            RunGroups.getForEvent(g.eventid).update(g.eventid, newgroups)
+        except Exception as e:
+            flash(str(e))
+        return redirect(url_for('.rungroups'))
     groups = RunGroups.getForEvent(g.eventid)
-    #return render_template('/admin/editrungroups.html')
-    return render_template('/admin/simple.html', text='This is TBD {}'.format(groups))
+    for e in Registration.getForEvent(g.eventid):
+        groups.put(e)
+    return render_template('/admin/editrungroups.html', groups=groups)
 
 @Admin.route("/newseries", methods=['GET', 'POST'])
 def newseries():

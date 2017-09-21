@@ -204,7 +204,7 @@ CREATE TABLE classorder (
     rungroup  INTEGER     NOT NULL, 
     gorder    INTEGER     NOT NULL, 
     modified  TIMESTAMP   NOT NULL DEFAULT now(),
-    PRIMARY KEY (eventid, classcode, rungroup)
+    PRIMARY KEY (eventid, classcode, rungroup) DEFERRABLE INITIALLY DEFERRED
 );
 CREATE INDEX ON classorder(eventid);
 CREATE INDEX ON classorder(classcode);

@@ -1,0 +1,101 @@
+{% extends "admin/bluebase.html" %}
+
+{% block headers %}
+{{super()}}
+
+<style type="text/css">
+/* getting the iframe in bootstrap col to use available space */
+html, body { height: 100%; }
+.container-fluid, .row { height: calc(100% - 7rem); } 
+iframe { width: 100%; height: 100%; }
+
+/* touch ups */
+ul         { list-style: none; }
+input      { margin-left: 1rem; }
+h6         { margin-bottom: 0; }
+.highlight { background: yellow !important; }
+
+/* primary controls */
+.grouping { 
+	float: left; 
+    margin-top: 0.5rem;
+}
+
+.rungroup {
+    min-height: 20rem;
+    border:     1px solid #DDD;
+    padding:    0.1rem;
+    margin:     0.1rem 1rem 1rem 1rem;
+}
+
+.rungroup li {
+    background: #f0f0f0;
+    border:     1px solid #999;
+    width:      5.4rem;
+    padding:    0.2rem;
+    margin:     0.3rem;
+}
+</style>
+
+<script>
+function collectgroups()
+{
+    $('ul.rungroup').each(function (ul) {
+        var groups = [];
+        $(this).find('li').each(function() {
+            groups.push($(this).text().split(' ')[0]);
+        });
+        $('input[name="'+$(this).prop('id')+'"]').val(groups);
+    });
+}
+$(document).ready(function(){
+	$(".rungroup").sortable({
+        connectWith: '.rungroup',
+        update: function(event, ui) {
+            ui.item.addClass("highlight");
+        }
+    });
+});
+</script>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+
+<div class='container-fluid'>
+<h3>RunGroup Editor</h3>
+<ul>
+<li>Drag and Drop the classes to the correct group</li>
+<li>The tuple of numbers represent the number of first drivers and second drivers</li>
+<li>The panel on the right shows the current <a href="{{url_for('Results.grid')}}">grid report by number</a></li>
+</ul>
+
+<div class='row'>
+<div class='col-5'>
+<form method="post" action="{{url_for(".rungroups")}}" onSubmit="collectgroups()">
+{% for group in range(3) %}
+<div class='grouping'>
+{% set grp = groups.get(group) %}
+{% set dbl = groups.get(group+100) %}
+<h6  class='text-center'>{{group and "Group {}".format(group) or "No Group"}}</h6>
+<div class='text-center'>{{grp.count}},{{dbl.count}}</div>
+<ul id="group{{group}}" class="rungroup rounded">
+{% for code in grp %}
+	<li class="rounded">{{code}} ({{grp[code]|length}}, {{dbl[code]|length}})</li>
+{% endfor %}
+</ul>
+<input type='hidden' name='group{{group}}' value=''/>
+</div>
+{% endfor %}
+<br style="clear:both"/>
+<input class='btn btn-admin' type='submit' value='Update'/>
+</form>
+</div>
+
+<div class='col-7'>
+<iframe src="{{url_for('Results.grid')}}" frameborder="0"></iframe>
+</div>
+</div>
+</div>
+
+{% endblock content %}
