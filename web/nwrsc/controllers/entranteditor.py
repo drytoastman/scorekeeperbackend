@@ -26,8 +26,10 @@ def getdrivers():
 def getitems():
     ret = dict()
     for did in request.args['driverids'].split(','):
-        ret[did] = Car.getForDriver(did)
-        for c in ret[did]:
+        ret[did] = dict()
+        ret[did]["cars"] = Car.getForDriver(did)
+        ret[did]["series"] = ",".join(sorted(Driver.getOtherSeriesActivity(g.series, did)))
+        for c in ret[did]["cars"]:
             c.loadActivity()
     return json_encode(ret)
 

@@ -74,12 +74,10 @@ function baction(atype, atarget, arg, disable)
     });
 }
 
-function buildEntrantTable(driver, cars, multiple) {
-    var anyact = false;
-    for (ii in cars) { if (cars[ii].activity > 0) anyact = true; }
-
+function buildEntrantTable(driver, cars, series, disabledelete, disablemerge)
+{
     var table = $('<table/>').addClass('drivertable');
-    table.append($('<tr>').append($('<td/>').prop('colspan', 2).addClass('buttons').append(baction(EDIT, DRV, driver.driverid, false), baction(DEL, DRV, driver.driverid, anyact), baction(MERGE, DRV, driver.driverid, !multiple))));
+    table.append($('<tr>').append($('<td/>').prop('colspan', 2).addClass('buttons').append(baction(EDIT, DRV, driver.driverid, false), baction(DEL, DRV, driver.driverid, disabledelete), baction(MERGE, DRV, driver.driverid, disablemerge))));
     table.append($('<tr>').append($('<th/>').text('DriverId'),   $('<td/>').text(driver.driverid)));
     table.append($('<tr>').append($('<th/>').text('Name'),       $('<td/>').text("{0} {1}".format(driver.firstname, driver.lastname))));
     table.append($('<tr>').append($('<th/>').text('Email'),      $('<td/>').text(driver.email)));
@@ -89,6 +87,9 @@ function buildEntrantTable(driver, cars, multiple) {
         var c = cars[ii];
         table.append($('<tr>').addClass('carrow').append($('<td/>').prop('colspan', 2).prop('id', c.carid)
                    .append(baction(EDIT, CAR, c.carid, false), baction(DEL, CAR, c.carid, c.activity>0), "{0} #{1} {2} {3} {4} {5}".format(c.classcode, c.number, c.year, c.make, c.model, c.color))));
+    }
+    if (series.length > 0) {
+        table.append($('<tr>').addClass('seriesrow').append($('<td/>').prop('colspan', 2).text("*Has cars in " + series)));
     }
     return table;
 }
@@ -104,16 +105,28 @@ function rebuildInfoContainer()
             data:   {driverids:driverids},
             method: 'GET',
             success: function(data) { 
-                var count = 0;
                 currentcars = Object();
-                for (driverid in data) { count += 1; }
+                var seriesact = Object();
+                var drivercount = 0;
+                for (driverid in data) {
+                    seriesact[driverid] = data[driverid]['series'].length > 0;
+                    drivercount += 1;
+                }
                 for (driverid in data) {
                     driver = thetable.row('#'+driverid).data();
-                    for (var idx in data[driverid]) {
-                        var c = data[driverid][idx];
+                    var caract = false;
+                    for (var idx in data[driverid]['cars']) {
+                        var c = data[driverid]['cars'][idx];
                         currentcars[c.carid] = c;
+                        if (c.activity > 0) {
+                            caract = true;
+                        }
                     }
-                    targetdiv.append(buildEntrantTable(driver, data[driverid], count>1));
+                    var otherseriesact = false;
+                    for (did in seriesact) {
+                        otherseriesact |= (did != driverid) && seriesact[did];
+                    }
+                    targetdiv.append(buildEntrantTable(driver, data[driverid]['cars'], data[driverid]['series'], caract > 0, (drivercount<2) || (otherseriesact>0)));
                 }
             },
             error: function(xhr, stat, error) {
