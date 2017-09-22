@@ -1,8 +1,11 @@
 from collections import defaultdict, OrderedDict
+import logging
 from operator import attrgetter
+
 from flask import g
 from .base import Entrant
 
+log = logging.getLogger(__name__)
 
 class ClassList(list):
     """ List of entries for this particular run group position """
@@ -16,6 +19,12 @@ class ClassList(list):
         self.numbers.add(e.number)
         return True
 
+    @property
+    def truecount(self):
+        """ Count of real entrants, skipping blank pads """
+        return len(list(filter(lambda x: x.number, self)))
+
+
 class GroupOrder(OrderedDict):
     """
         List of classes in a rungroup
@@ -24,9 +33,14 @@ class GroupOrder(OrderedDict):
     def pad(self):
         """ If the class is a odd # of entries and next class is not single, add a space """
         codes = list(self.keys())
+        rows = 0
         for ii in range(len(codes)-1):
-            if len(self[codes[ii]]) % 2 != 0 and len(self[codes[ii+1]]) > 1:
-                self[codes[ii]].append(Entrant())
+            cl = self[codes[ii]]
+            clnext = self[codes[ii+1]]
+            rows += len(cl)
+            if rows % 2 != 0 and len(clnext) > 1:
+                cl.append(Entrant())
+                rows += 1
 
     def number(self):
         """ Create the grid numbers for each entry """
@@ -38,7 +52,8 @@ class GroupOrder(OrderedDict):
 
     @property
     def count(self):
-        return sum(len(x) for x in self.values())
+        """ count of entrants in this rungroup """
+        return sum(x.truecount for x in self.values())
         
 
 class RunGroups(defaultdict):

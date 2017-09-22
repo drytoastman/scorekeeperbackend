@@ -29,6 +29,8 @@ h6         { margin-bottom: 0; }
 }
 
 .rungroup li {
+    font-size:  0.9rem;
+    color:      #303030;
     background: #f0f0f0;
     border:     1px solid #999;
     width:      5.4rem;
@@ -81,7 +83,7 @@ $(document).ready(function(){
 <div class='text-center'>{{grp.count}},{{dbl.count}}</div>
 <ul id="group{{group}}" class="rungroup rounded">
 {% for code in grp %}
-	<li class="rounded">{{code}} ({{grp[code]|length}}, {{dbl[code]|length}})</li>
+	<li class="rounded"><strong>{{code}}</strong> ({{grp[code]|length}}, {{dbl[code]|length}})</li>
 {% endfor %}
 </ul>
 <input type='hidden' name='group{{group}}' value=''/>
