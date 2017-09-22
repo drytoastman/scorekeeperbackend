@@ -2,15 +2,18 @@
 {% block headers %}
 {{super()}}
 <style type="text/css">
-h5 { margin-top: 2rem; }
-label { display: none; }
+.col-md-5 { padding: 1rem 0 0.5rem 0; }
+label { visibility: hidden; }
 </style>
 {% endblock headers %}
 
 {% block content %}
 {{super()}}
 <div class='container'>
-<h5>Enter the password for {{g.series}}</h5>
-{{ form.html('seriespasswordform', url_for('.login'), 'post', 'btn-admin', 'col-md-0', 'col-md-5') | safe }}
+<div class='row'>
+<div class='col-md-1'></div>
+<div class='col-md-5'>Enter the password for {{series}}</div>
+</div>
+{{ form.html('seriespasswordform', url_for(base), 'post', 'btn-admin', 'col-md-1', 'col-md-4') | safe }}
 </div>
 {% endblock content %}

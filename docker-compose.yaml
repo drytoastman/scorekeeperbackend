@@ -16,6 +16,7 @@ services:
         - DEBUG=1
         - LOG_LEVEL=DEBUG
         - WERKZEUG_DEBUG_PIN=off
+        - SUPER_ADMIN_PASSWORD=testing
     volumes:  
         - "dbsocket:/var/run/postgresql"
         - "logs:/var/log"

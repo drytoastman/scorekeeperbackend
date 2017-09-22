@@ -8,9 +8,11 @@
     <script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
 
+{% if not g.series %}
 <script type="text/javascript">
-$(document).ready(function(){ {% if not g.series %}shownavmenu('#navbarNav', '#seriesdropdownlink');{% endif %} });
+$(document).ready(function(){ shownavmenu('#navbarNav', '#seriesdropdownlink'); });
 </script>
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -21,6 +23,9 @@ $(document).ready(function(){ {% if not g.series %}shownavmenu('#navbarNav', '#s
   <div class='navbar-brand'><img src='/static/images/cone.png'/>Scorekeeper Admin</div>
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
+        {% if g.superauth %}
+        <li class="superauth navbar-text">SuperAuth</li>
+        {% endif %}
 
         <li id="seriesdropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="seriesdropdownlink" data-toggle="dropdown">{{g.series or "Select a Series"}}</a>

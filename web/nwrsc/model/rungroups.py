@@ -85,6 +85,7 @@ class RunGroups(defaultdict):
         with g.db.cursor() as cur:
             for group, classes in newgroups.items():
                 for row, cls in enumerate(classes):
+                    log.debug("{}, {}, {}, {}".format(group, classes, row, cls))
                     if group == 0:
                         cur.execute("DELETE FROM classorder WHERE eventid=%s AND classcode=%s", (eventid, cls))
                         continue
@@ -98,6 +99,10 @@ class RunGroups(defaultdict):
     @classmethod
     def getForEvent(cls, eventid):
         ret = RunGroups(GroupOrder)
+        for ii in range(1,4):
+            ret[ii]
+            ret[100+ii]
+
         with g.db.cursor() as cur:
             cur.execute("SELECT * FROM classorder WHERE eventid=%s ORDER BY rungroup, gorder", (eventid,))
             active = ['HOLD']

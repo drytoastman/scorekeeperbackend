@@ -187,7 +187,13 @@ $(document).ready(function(){
 {{super()}}
 <div class='container'>
 <h2>Driver Editor</h2>
-<p class='small'>Cars are from {{g.series}} but drivers are shared amongst series. Don't be a dick.</p>
+<p class='small'>
+{% if g.superauth %}
+You are running under SuperAuth and can modify/merge all cars and drivers.  Don't be a dick.
+{% else %}
+Cars are from {{g.series}} but drivers are shared amongst series. Be a good citizen.  To modify all data <a href='{{url_for('.slogin')}}'>get SuperAuth</a>.
+{% endif %}
+</p>
 <div class='row'>
 <div class='col-5'>
 <table id='drivertable' class='table-striped table-bordered stripe hover' cellspacing="0" width="100%">

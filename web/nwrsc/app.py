@@ -92,6 +92,7 @@ def create_app(config=None):
         "MAIL_USERNAME":               os.environ.get('MAIL_USERNAME', None),
         "MAIL_PASSWORD":               os.environ.get('MAIL_PASSWORD', None),
         "MAIL_DEFAULT_SENDER":         os.environ.get('MAIL_DEFAULT_SENDER', None),
+        "SUPER_ADMIN_PASSWORD":        os.environ.get('SUPER_ADMIN_PASSWORD', None),
         "LOGGER_HANDLER_POLICY":  "None",
     })
 

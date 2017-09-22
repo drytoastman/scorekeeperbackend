@@ -7,8 +7,8 @@ function checkname() {
     $('input[type=submit]').prop('disabled', $(this).val() != "{{g.series}}");
 }
 $(document).ready(function(){
-    $('input[name="name"]').bind("change keyup input", checkname);
-    checkname();
+    $('input[name="name"]').bind("change keyup input", checkname).prop('autocomplete', 'off');
+    checkname.call($('input[type=submit]'));
 });
 
 </script>

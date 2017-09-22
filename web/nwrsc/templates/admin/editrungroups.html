@@ -26,6 +26,7 @@ h6         { margin-bottom: 0; }
     border:     1px solid #DDD;
     padding:    0.1rem;
     margin:     0.1rem 1rem 1rem 1rem;
+    min-width:  6.8rem;
 }
 
 .rungroup li {
@@ -33,7 +34,7 @@ h6         { margin-bottom: 0; }
     color:      #303030;
     background: #f0f0f0;
     border:     1px solid #999;
-    width:      5.4rem;
+    width:      6.8rem;
     padding:    0.2rem;
     margin:     0.3rem;
 }
@@ -67,8 +68,8 @@ $(document).ready(function(){
 <div class='container-fluid'>
 <h3>RunGroup Editor</h3>
 <ul>
-<li>Drag and Drop the classes to the correct group</li>
-<li>The tuple of numbers represent the number of first drivers and second drivers</li>
+<li>Drag and Drop the classes into the correct group and order</li>
+<li>The tuple of numbers represent the number of first drivers and second drivers based on car number</li>
 <li>The panel on the right shows the current <a href="{{url_for('Results.grid')}}">grid report by number</a></li>
 </ul>
 

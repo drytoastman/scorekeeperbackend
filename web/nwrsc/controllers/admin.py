@@ -14,20 +14,57 @@ from nwrsc.lib.forms import *
 from nwrsc.lib.misc import InvalidEventException
 from nwrsc.model import *
 
-log     = logging.getLogger(__name__)
-Admin   = Blueprint("Admin", __name__)
-AUTHKEY = 'adminauth'
-PATHKEY = 'origpath'
+log      = logging.getLogger(__name__)
+Admin    = Blueprint("Admin", __name__)
+ADMINKEY = 'admin'
+AUTHKEY  = 'auth'
+SUPERKEY = 'authSuper'
+PATHKEY  = 'origpath'
 
-def recordpath():
-    if PATHKEY not in session[AUTHKEY]:
-        session[AUTHKEY][PATHKEY] = request.path
+# Keep all session access in one place for easy browsing/control
+
+def recordPath():
+    if ADMINKEY not in session:
+        session[ADMINKEY] = {}
+    if PATHKEY not in session[ADMINKEY]:
+        session[ADMINKEY][PATHKEY] = request.path
         session.modified = True
 
-def clearpath():
-    if PATHKEY in session[AUTHKEY]:
-        del session[AUTHKEY][PATHKEY]
+def clearPath():
+    if ADMINKEY not in session:
+        session[ADMINKEY] = {}
+    if PATHKEY in session[ADMINKEY]:
+        del session[ADMINKEY][PATHKEY]
         session.modified = True
+
+def getRecordedPath():
+    if ADMINKEY not in session or PATHKEY not in session[ADMINKEY]:
+        return url_for(".index")
+    return session[ADMINKEY][PATHKEY]
+
+def authSeries(series):
+    if ADMINKEY not in session:
+        session[ADMINKEY] = {}
+    if AUTHKEY not in session[ADMINKEY]:
+        session[ADMINKEY][AUTHKEY] = {}
+    session[ADMINKEY][AUTHKEY][series] = 1
+    session.modified = 1
+
+def isAuth(series):
+    if ADMINKEY not in session: return False
+    if AUTHKEY not in session[ADMINKEY]: return False
+    return g.series in session[ADMINKEY][AUTHKEY]
+
+def authSuper():
+    if ADMINKEY not in session:
+        session[ADMINKEY] = {}
+    session[ADMINKEY][SUPERKEY] = 1
+    session.modified = 1
+
+def isSuperAuth():
+    if ADMINKEY not in session: return False
+    return SUPERKEY in session[ADMINKEY]
+
 
 @Admin.before_request
 def setup():
@@ -37,18 +74,33 @@ def setup():
     if not g.series:
         return render_template('/admin/bluebase.html')
 
-    if AUTHKEY not in session:
-        session[AUTHKEY] = {}
-    if not g.series in session[AUTHKEY]:
-        recordpath()
+    g.superauth = isSuperAuth()
+    if not g.superauth and not isAuth(g.series):
+        recordPath()
         return login()
 
-    clearpath()
+    clearPath()
     g.events  = Event.byDate()
     if g.eventid:
         g.event=Event.get(g.eventid)
         if g.event is None:
             raise InvalidEventException()
+
+
+@Admin.route("/slogin", methods=['POST', 'GET'])
+def slogin():
+    form = SeriesPasswordForm()
+    spw = current_app.config['SUPER_ADMIN_PASSWORD']
+    if not spw:
+        flash("SuperAdmin password is not enabled")
+        return render_template("admin/simple.html")
+
+    if form.validate_on_submit():
+        if spw == form.password.data.strip():
+            authSuper()
+            return redirect(getRecordedPath())
+        flash("Incorrect password")
+    return render_template('/admin/login.html', base='.slogin', form=form, series='SuperAdmin')
 
 
 @Admin.route("/login", methods=['POST', 'GET'])
@@ -57,12 +109,12 @@ def login():
     if form.validate_on_submit():
         try:
             AttrBase.testPassword(user=g.series, password=form.password.data.strip())
-            session[AUTHKEY][g.series] = 1
-            session.modified = True
-            return redirect(session[AUTHKEY][PATHKEY])
+            authSeries(g.series)
+            return redirect(getRecordedPath())
         except Exception as e:
             log.error("Login failure: %s", e, exc_info=e)
-    return render_template('/admin/login.html', form=form)
+    return render_template('/admin/login.html', base='.login', form=form, series=g.series)
+
 
 @Admin.endpoint("Admin.base")
 @Admin.route("/")
@@ -279,8 +331,9 @@ def rungroups():
     if request.form:
         try:
             newgroups = defaultdict(list)
-            for key in request.form.keys():
-                newgroups[int(key[5:])] = request.form[key].split(',')
+            for key, val in request.form.items():
+                if val.strip():
+                    newgroups[int(key[5:])] = val.split(',')
             RunGroups.getForEvent(g.eventid).update(g.eventid, newgroups)
         except Exception as e:
             flash(str(e))
@@ -297,9 +350,8 @@ def newseries():
         try:
             series = form.name.data.lower()
             Series.copySeries(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'], series=series,
-                password=form.password.data, csettings=form.copysettings.data, cclasses=form.copyclasses.data, ccars=form.copycars.data)
-            session[AUTHKEY][series] = 1
-            session.modified = True
+                              password=form.password.data, csettings=form.copysettings.data, cclasses=form.copyclasses.data, ccars=form.copycars.data)
+            authSeries(series)
             return redirect(url_for('.settings', series=series))
         except Exception as e:
             flash("Error creating series: {}".format(e))
