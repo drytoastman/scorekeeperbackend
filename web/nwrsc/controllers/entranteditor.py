@@ -8,6 +8,7 @@ from nwrsc.controllers.admin import Admin
 from nwrsc.lib.encoding import json_encode
 from nwrsc.lib.forms import *
 from nwrsc.model import *
+from nwrsc.model.superauth import SuperAuth
 
 log = logging.getLogger(__name__)
 
@@ -27,10 +28,13 @@ def getitems():
     ret = dict()
     for did in request.args['driverids'].split(','):
         ret[did] = dict()
-        ret[did]["cars"] = Car.getForDriver(did)
-        ret[did]["series"] = ",".join(sorted(Driver.getOtherSeriesActivity(g.series, did)))
-        for c in ret[did]["cars"]:
-            c.loadActivity()
+        if g.superauth:
+            ret[did]["cars"] = SuperAuth.getCarsForDriver(did)
+        else:
+            ret[did]["series"] = ",".join(sorted(SuperAuth.getActivityInOtherSeries(g.series, did)))
+            ret[did]["cars"] = Car.getForDriver(did)
+            for c in ret[did]["cars"]:
+                c.loadActivity()
     return json_encode(ret)
 
 @Admin.route("/usednumbers")
@@ -41,9 +45,15 @@ def usednumbers():
 def deleteitem():
     try:
         if 'carid' in request.form:
-            Car.delete(uuid.UUID(request.form['carid']))
+            carid = uuid.UUID(request.form['carid'])
+            ret = g.superauth and SuperAuth.deleteCar(request.form['series'], carid) or Car.delete(carid)
+            if ret <= 0:
+                raise Exception("Delete returned < 1 rows (%s)", ret)
         elif 'driverid' in request.form:
-            Driver.delete(uuid.UUID(request.form['driverid']))
+            driverid = uuid.UUID(request.form['driverid'])
+            ret = g.superauth and SuperAuth.deleteDriver(driverid) or Driver.delete(driverid)
+            if ret != 1:
+                raise Exception("Delete returned %s not 1", ret)
         else:
             abort(400, "No carid or driverid given")
     except Exception as e:
@@ -65,7 +75,10 @@ def edititem():
         if form.validate():
             c = Car()
             formIntoAttrBase(form, c)
-            c.update()
+            if g.superauth:
+                SuperAuth.updateCar(request.form['series'], c)
+            else:
+                c.update()
 
     if form and len(form.errors) > 0:
         return "\n".join(["{}: {}".format(f, m[0]) for (f, m) in form.errors.items()]), 400
@@ -76,7 +89,10 @@ def mergedrivers():
     try:
         dest = uuid.UUID(request.form['dest'])
         srcs = [uuid.UUID(x) for x in request.form['src'].split(',')]
-        Driver.merge(srcs, dest)
+        if g.superauth:
+            SuperAuth.merge(srcs, dest)
+        else:
+            Driver.merge(srcs, dest)
         return ""
     except Exception as e:
         return str(e), 500

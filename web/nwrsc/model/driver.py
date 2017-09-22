@@ -3,7 +3,6 @@ import json
 
 from flask import g
 from .base import AttrBase
-from .series import Series
 
 class Driver(AttrBase):
     TABLENAME = "drivers"
@@ -52,6 +51,7 @@ class Driver(AttrBase):
             cur.execute("DELETE FROM cars WHERE driverid=%s", (driverid,))
             cur.execute("DELETE FROM drivers WHERE driverid=%s", (driverid,))
             g.db.commit()
+            return cur.rowcount
 
     @classmethod
     def updatepassword(cls, driverid, username, password):
@@ -64,16 +64,4 @@ class Driver(AttrBase):
         with g.db.cursor() as cur:
             cur.execute("SELECT r.carid,r.eventid FROM runs r JOIN cars c on r.carid=c.carid WHERE c.driverid=%s union select r2.carid,r2.eventid from registered r2 JOIN cars c2 on r2.carid=c2.carid WHERE c2.driverid=%s", (driverid, driverid))
             return [(r['carid'], r['eventid']) for r in cur.fetchall()]
-
-
-    @classmethod
-    def getOtherSeriesActivity(cls, ignoreseries, driverid):
-        ret = list()
-        with g.db.cursor() as cur:
-            for s in Series.active():
-                if s == ignoreseries: continue
-                cur.execute("SELECT carid FROM {}.cars WHERE driverid=%s".format(s), (driverid,))
-                if cur.rowcount > 0:
-                    ret.append(s)
-        return ret
 

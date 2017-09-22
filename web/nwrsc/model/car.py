@@ -36,12 +36,14 @@ class Car(AttrBase):
         with g.db.cursor() as cur:
             cur.execute("DELETE FROM cars WHERE carid=%s", (carid,))
             g.db.commit()
+            return cur.rowcount
 
     @classmethod
     def deleteWCheck(cls, carid, verifyid):
         with g.db.cursor() as cur:
             cur.execute("DELETE FROM cars WHERE carid=%s and driverid=%s", (carid, verifyid))
             g.db.commit()
+            return cur.rowcount
 
     @classmethod
     def getForDriver(cls, driverid):
