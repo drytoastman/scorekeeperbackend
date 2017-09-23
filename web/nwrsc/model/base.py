@@ -34,19 +34,7 @@ class AttrBase(object):
         """ A little introspection to load the schema from database, use superuser incase we need to create an test db """
         with cls.connect(host=host, port=port, user="postgres") as db:
             with db.cursor() as cur:
-                # Need to set a valid series so we can inspect the format
-                cur.execute("SELECT schema_name FROM information_schema.schemata")
-                serieslist = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')])
-                if not len(serieslist):
-                    cur.execute("select verify_user('blank2000', 'blank2000')")
-                    ret1 = cur.fetchone()[0]
-                    cur.execute("select verify_series('blank2000')")
-                    ret2 = cur.fetchone()[0]
-                    if not ret1 or not ret2:
-                        raise Exception("No valid series yet and can't create an test series")
-                    serieslist = ['blank2000']
-
-                testseries = (serieslist.pop(), 'public')
+                testseries = ('template', 'public')
                 cur.execute("set search_path=%s,%s", testseries)
 
                 # Determing the primary keys for each table

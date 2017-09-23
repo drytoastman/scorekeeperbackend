@@ -56,9 +56,8 @@ class MergeProcess():
 
                     localdb.rollback() # Don't hang out in idle transaction from selects
 
-            except (NoDatabaseException, NoSeriesException, NoLocalHostServer) as ie:
+            except (NoDatabaseException, NoLocalHostServer) as ie:
                 log.debug(type(ie).__name__)
-                pass
 
             except Exception as e:
                 log.error("Caught exception in main loop: {}".format(e), exc_info=e)

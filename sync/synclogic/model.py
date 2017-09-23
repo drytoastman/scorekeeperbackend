@@ -65,9 +65,6 @@ class SyncException(Exception):
 class NoDatabaseException(SyncException):
     pass
 
-class NoSeriesException(SyncException):
-    pass
-
 class NoLocalHostServer(SyncException):
     pass
 
@@ -79,12 +76,7 @@ class DataInterface(object):
         with DataInterface.connectLocal() as db:
             with db.cursor() as cur:
                 # Need to set a valid series so we can inspect the format
-                cur.execute("SELECT schema_name FROM information_schema.schemata")
-                serieslist = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')])
-                if not len(serieslist):
-                    raise NoSeriesException()
-
-                testseries = (serieslist.pop(), 'public')
+                testseries = ('template', 'public')
                 cur.execute("set search_path=%s,%s", testseries)
 
                 # Determing the primary keys for each table
@@ -339,7 +331,7 @@ class MergeServer(object):
         """ Update the mergestate dict related to deleted or added series """
         with scandb.cursor() as cur:
             cur.execute("SELECT schema_name FROM information_schema.schemata")
-            serieslist   = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')])
+            serieslist   = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public', 'template')])
             cachedseries = set(self.mergestate.keys())
             if serieslist == cachedseries:
                 return

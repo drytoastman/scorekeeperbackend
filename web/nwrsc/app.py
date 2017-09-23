@@ -5,6 +5,7 @@ import logging
 import re
 import sys
 import threading
+import time
 from traceback import format_tb
 
 from flask import Flask, request, abort, g, current_app, render_template, send_from_directory
@@ -217,7 +218,13 @@ def create_app(config=None):
 
     # Database introspection at startup
     with theapp.app_context():
-        AttrBase.initialize(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'])
+        while True:
+            try:
+                AttrBase.initialize(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'])
+                break
+            except Exception as e:
+                log.info("Error during model initialization, waiting for db and template: %s", e)
+                time.sleep(5)
 
     log.info("Scorekeeper App created")
     return theapp

@@ -31,7 +31,7 @@ class Series(object):
     def activeindb(cls, db):
         with db.cursor() as cur:
             cur.execute("select schema_name from information_schema.schemata")
-            return [x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public')]
+            return [x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public', 'template')]
 
     @classmethod
     def getYear(cls, series):
@@ -44,7 +44,7 @@ class Series(object):
     def byYear(cls):
         with g.db.cursor() as cur:
             cur.execute("select schema_name from information_schema.schemata union select series from results")
-            serieslist = [x[0] for x in cur.fetchall() if x[0] not in ('pg_catalog', 'information_schema', 'public')]
+            serieslist = [x[0] for x in cur.fetchall() if x[0] not in ('pg_catalog', 'information_schema', 'public', 'template')]
 
             lists = collections.defaultdict(list)
             for series in serieslist:

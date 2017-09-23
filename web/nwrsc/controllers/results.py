@@ -28,7 +28,7 @@ def setup():
             g.event = g.seriesinfo.getEvent(g.eventid)
             if g.event is None:
                 raise InvalidEventException()
-    elif len(g.seriesyears) < 2:
+    elif len(g.seriesyears) == 1:
         g.year = next(iter(g.seriesyears))
     else:
         g.year = request.args.get('year', None)
