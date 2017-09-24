@@ -5,7 +5,9 @@ sudo: required
 services: [docker]
 
 after_success:
-    - docker-compose build
-    - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-    - docker-compose push
+    if [ ! -z "$TRAVIS_TAG" ]; then
+       docker-compose build
+       docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+       docker-compose push
+    fi
 
