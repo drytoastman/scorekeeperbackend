@@ -1,0 +1,11 @@
+language: python
+python: ['3.6']
+script: pytest
+sudo: required
+services: [docker]
+
+after_success:
+    - docker-compose build
+    - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+    - docker-compose push
+

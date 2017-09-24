@@ -24,7 +24,7 @@ for name in ('web', 'db', 'sync'):
     service.pop('command', None)
     # Filter out any local directory mountings or debug environment variables
     service['volumes']     = filter(lambda v: not (v.startswith('/') or v.startswith('.')), service.get('volumes', []))
-    service['environment'] = filter(lambda e: 'DEBUG' not in e, service.get('environment', []))
+    service['environment'] = [] #filter(lambda e: 'DEBUG' not in e, service.get('environment', []))
 
-compose['services']['web']['environment'].append('NWRSC_SECRET={}'.format(base64.b64encode(os.urandom(32))[:-1]))
+compose['services']['web']['environment'].append('SECRET={}'.format(base64.b64encode(os.urandom(32))[:-1]))
 print yaml.safe_dump(compose)

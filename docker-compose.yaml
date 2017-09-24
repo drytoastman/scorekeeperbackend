@@ -10,6 +10,7 @@ version: '3.2'
 services:
 
   web:
+    image:   "drytoastman/scweb:${TRAVIS_TAG:-latest}"
     build:   "web"
     command: "ash -c 'pip install -e /code && exec webserver.py'"
     environment:
@@ -27,7 +28,8 @@ services:
         - "80:80"  # Web for all
 
   db:
-    build: "db"
+    image:   "drytoastman/scdb:${TRAVIS_TAG:-latest}"
+    build:   "db"
     volumes:  
         - "database:/var/lib/postgresql/data"
         - "dbsocket:/var/run/postgresql"
@@ -39,7 +41,8 @@ services:
         - "127.0.0.1:6432:6432" # DB for trusted localhost
 
   sync:
-    build: "sync"
+    image:   "drytoastman/scsync:${TRAVIS_TAG:-latest}"
+    build:   "sync"
     command: "ash -c 'pip install -e /code && exec syncserver.py'"
     environment:
         - DEBUG=1
