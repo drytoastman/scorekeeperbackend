@@ -6,8 +6,8 @@ services: [docker]
 
 after_success:
     if [ ! -z "$TRAVIS_TAG" ]; then
-       docker-compose build
-       docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-       docker-compose push
+       docker-compose build;
+       docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+       docker-compose push;
     fi
 
