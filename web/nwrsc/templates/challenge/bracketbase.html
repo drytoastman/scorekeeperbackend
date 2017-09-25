@@ -15,9 +15,6 @@ table.challengeround { margin: 0px; width: auto; }
 table.challengeround td.entrant { width: auto; }
 </style>
 
-{% assets filters="rjsmin", output="bracket.js", "jquery" %}
-	<script type="text/javascript" src="{{ASSET_URL}}"></script>
-{% endassets %}
 <script type="text/javascript">
 function mousein(ev, rnd)
 {	

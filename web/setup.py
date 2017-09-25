@@ -25,7 +25,7 @@ x = setup(
     ],
 
     packages=find_packages(),
-    scripts=['bin/webserver.py'],
+    scripts=['bin/webserver.py', 'bin/assets_preload.py'],
     include_package_data=True,
     zip_safe=False,
 )

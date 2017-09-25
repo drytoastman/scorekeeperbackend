@@ -31,7 +31,7 @@ from nwrsc.model import AttrBase, Series
 log = logging.getLogger(__name__)
 HASHTML = re.compile(r'(<!--.*?-->|<[^>]*>)')
 
-def create_app(config=None):
+def create_app():
     """ Setup the application for the WSGI server """
 
     def errorlog(exception):
@@ -76,14 +76,12 @@ def create_app(config=None):
     # Setup the application with default configuration
     theapp = Flask("nwrsc")
     theapp.config.update({
-        "PORT":                    int(os.environ.get('PORT',      80)),
         "DEBUG":                  bool(os.environ.get('DEBUG',     False)),
         "PROFILE":                bool(os.environ.get('PROFILE',   False)),
         "DBHOST":                      os.environ.get('DBHOST',    '/var/run/postgresql'),
         "DBPORT":                  int(os.environ.get('DBPORT',    5432)),
         "DBUSER":                      os.environ.get('DBUSER',    'localuser'),
         "SHOWLIVE":               bool(os.environ.get('SHOWLIVE',  True)),
-        "LOG_LEVEL":                   os.environ.get('LOG_LEVEL', 'INFO'),
         "SECRET_KEY":                  os.environ.get('SECRET',    'replaced by environment in deployed docker-compose files'),
         "ASSETS_DEBUG":           bool(os.environ.get('DEBUG',     False)),
         "MAIL_USE_TLS":           bool(os.environ.get('MAIL_USE_TLS',  False)),
@@ -178,31 +176,24 @@ def create_app(config=None):
     if not theapp.debug:
         theapp.register_error_handler(Exception, errorlog)
 
-    level = getattr(logging, theapp.config['LOG_LEVEL'], logging.INFO)
-    fmt  = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S')
-    root = logging.getLogger()
-    root.setLevel(level)
-    root.handlers = []
-
-    fhandler = logging.handlers.RotatingFileHandler('/var/log/scweb.log', maxBytes=1000000, backupCount=10)
-    fhandler.setFormatter(fmt)
-    fhandler.setLevel(level)
-    root.addHandler(fhandler)
-    logging.getLogger('werkzeug').setLevel(logging.WARN)
-
-    if theapp.debug:
-        shandler = logging.StreamHandler()
-        shandler.setFormatter(fmt)
-        shandler.setLevel(level)
-        root.addHandler(shandler)
-
     # WebAssets
     assets = Environment(theapp)
-    assets.register('jquery',     Bundle("extern/jquery-3.2.0.js"))
-    assets.register('jquerymod',  Bundle("extern/jquery.sortable-1.12.1.js", "extern/jquery.validate-1.16.js"))
-    assets.register('bootstrap',  Bundle("extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js"))
-    assets.register('flatpickr',  Bundle("extern/flatpickr.js"))
-    assets.register('datatables', Bundle("extern/datatables-1.10.16.js",  "extern/datatables-1.10.16-bootstrap4.js", "extern/datatables-select-1.2.3.js"))
+    jquery     = Bundle("extern/jquery-3.2.0.js")
+    jquerymod  = Bundle("extern/jquery.sortable-1.12.1.js", "extern/jquery.validate-1.16.js")
+    bootstrap  = Bundle("extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js")
+    flatpickr  = Bundle("extern/flatpickr.js")
+    datatables = Bundle("extern/datatables-1.10.16.js",  "extern/datatables-1.10.16-bootstrap4.js", "extern/datatables-select-1.2.3.js")
+
+    assets.register('admin.js',     Bundle(jquery, jquerymod, bootstrap, flatpickr, datatables, "js/common.js", "js/admin.js", filters="rjsmin", output="admin.js"))
+    assets.register('announcer.js', Bundle(jquery, bootstrap, "js/announcer.js",                                               filters="rjsmin", output="announcer.js"))
+    assets.register('register.js',  Bundle(jquery, jquerymod, bootstrap, "js/common.js", "js/admin.js",                        filters="rjsmin", output="register.js"))
+    assets.register('results.js',   Bundle(jquery, bootstrap, "js/common.js",                                                  filters="rjsmin", output="results.js"))
+
+    assets.register('admin.css',         Bundle("scss/admin.scss",         depends="scss/*.scss", filters="libsass,cssmin", output="admin.css"))
+    assets.register('announcer.css',     Bundle("scss/announcer.scss",     depends="scss/*.scss", filters="libsass,cssmin", output="announcer.css"))
+    assets.register('announcermini.css', Bundle("scss/announcermini.scss", depends="scss/*.scss", filters="libsass,cssmin", output="announcermini.css"))
+    assets.register('results.css',       Bundle("scss/results.scss",       depends="scss/*.scss", filters="libsass,cssmin", output="results.css"))
+    assets.register('register.css',      Bundle("scss/register.scss",      depends="scss/*.scss", filters="libsass,cssmin", output="register.css"))
 
     # crypto stuff, compression and profiling
     Compress(theapp)
@@ -216,8 +207,32 @@ def create_app(config=None):
         log.debug("Setting up mail")
         Register.mail = Mail(theapp)
 
+    log.info("Scorekeeper App created")
+    return theapp
+
+
+def logging_setup(level=logging.INFO, debug=False):
+    fmt  = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S')
+    root = logging.getLogger()
+    root.setLevel(level)
+    root.handlers = []
+
+    fhandler = logging.handlers.RotatingFileHandler('/var/log/scweb.log', maxBytes=1000000, backupCount=10)
+    fhandler.setFormatter(fmt)
+    fhandler.setLevel(level)
+    root.addHandler(fhandler)
+    logging.getLogger('werkzeug').setLevel(logging.WARN)
+
+    if debug:
+        shandler = logging.StreamHandler()
+        shandler.setFormatter(fmt)
+        shandler.setLevel(level)
+        root.addHandler(shandler)
+
+
+def model_setup(app):
     # Database introspection at startup
-    with theapp.app_context():
+    with app.app_context():
         while True:
             try:
                 AttrBase.initialize(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'])
@@ -225,7 +240,6 @@ def create_app(config=None):
             except Exception as e:
                 log.info("Error during model initialization, waiting for db and template: %s", e)
                 time.sleep(5)
+        log.info("Scorekeeper DB models initialized")
 
-    log.info("Scorekeeper App created")
-    return theapp
 

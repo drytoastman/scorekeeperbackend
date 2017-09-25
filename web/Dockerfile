@@ -6,4 +6,5 @@ RUN apk add --no-cache libpq libstdc++ libjpeg-turbo freetype \
     && apk del buildreq
 COPY . /tmp/app
 RUN pip install /tmp/app
+RUN assets_preload.py
 CMD ["webserver.py"]

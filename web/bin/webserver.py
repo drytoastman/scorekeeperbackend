@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
-import signal
-import os, sys
 from cheroot import wsgi
 from cheroot.workers import threadpool
-from nwrsc.app import create_app
+import logging
+import nwrsc.app 
+import os
+import signal
+import sys
 
 server = None
 
@@ -27,14 +29,19 @@ def justdie(self, timeout=None):
 
 if __name__ == '__main__':
     pidfile = os.path.expanduser('~/nwrscwebserver.pid')
-    theapp = create_app()
-    port = theapp.config['PORT']
-
     signal.signal(signal.SIGABRT, removepid)
     signal.signal(signal.SIGINT,  removepid)
     signal.signal(signal.SIGTERM, removepid)
     with open(pidfile, 'w') as fp:
         fp.write(str(os.getpid()))
+
+    level = getattr(logging, os.environ.get('LOG_LEVEL', 'INFO'), logging.INFO)
+    debug = bool(os.environ.get('DEBUG', False))
+    port  = int(os.environ.get('PORT', 80))
+
+    nwrsc.app.logging_setup(level, debug)
+    theapp = nwrsc.app.create_app()
+    nwrsc.app.model_setup(theapp)
 
     print("webserver INFO: starting server", file=sys.stderr)
     if theapp.debug:

@@ -3,7 +3,7 @@
 
 {% block headers %}
 {{super()}}
-{%- assets filters="libsass,cssmin", output="results.css", "scss/results.scss" -%}
+{%- assets "results.css" %}
 <link rel="stylesheet" href="{{ASSET_URL}}" /> 
 {%- endassets -%}
 {% endblock headers %}

@@ -1,9 +1,9 @@
 {% extends "common/base.html" %}
 {% block headers %}
-{%- assets filters="libsass,cssmin", output="results.css", "scss/results.scss" -%}
+{%- assets "results.css" %}
 <link rel="stylesheet" href="{{ASSET_URL}}" /> 
 {%- endassets -%}
-{% assets filters="rjsmin", output="results.js", "jquery", "bootstrap", "js/common.js" %}
+{% assets "results.js" %}
     <script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
 

@@ -1,13 +1,12 @@
 {% extends "common/base.html" %}
 {% import 'common/macros.html' as m %}
 
-
 {% block headers %}
-{%- assets filters="libsass,cssmin", depends="scss/*.scss", output="register.css", "scss/register.scss" -%}
+{%- assets "register.css" %}
 <link rel="stylesheet" href="{{ASSET_URL}}" /> 
 {%- endassets -%}
-{% assets filters="rjsmin", output="register.js", "jquery", "jquerymod", "bootstrap", "js/common.js", "js/register.js" %}
-	<script type="text/javascript" src="{{ASSET_URL}}"></script>
+{% assets "register.js" %}
+<script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
 
 <script type="text/javascript">
