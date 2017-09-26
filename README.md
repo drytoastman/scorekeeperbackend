@@ -10,11 +10,11 @@ They include:
 ## Development
 
 When doing development use **docker-compose** as the basis for management.  The local
-docker-compose.yaml builds from local Dockerfiles and imports the code directory as active volumes.
+docker-compose.yaml builds from local Dockerfiles and imports the code directories as active volumes.
 Eg (as compose does not automatically rebuild):
 ```
-docker-compose -p develop build
-docker-compose -p develop up
+docker-compose build
+docker-compose up
 ```
 
 ## Docker Machine
@@ -39,7 +39,8 @@ docker-machine ssh default -L '*:80:127.0.0.1:80' -L '*:54329:127.0.0.1:54329' -
 
 ## Deployment
 
-For distribution, the intention is to use **docker-compose.yaml** as the base and then use create_deployment.py
-to create a composition file for use in a deployed system.  It relies on docker hub for images that are
-automatically built from github hooks.
+For systems not using the frontend monitor application to control the backend, you can use **docker-compose.yaml**
+as the basis for your docker-composition file.  scorekeeper.wwscc.org uses a modified version of this file that 
+removes the sync server and uses a different set of environment variables.
+
 

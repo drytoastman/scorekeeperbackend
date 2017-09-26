@@ -196,7 +196,7 @@ def grid():
     order = request.args.get('order', 'number')
     groups = RunGroups.getForEvent(g.eventid)
 
-    # Create a list of entrants in order of rungroup, classorder and [net/number]
+    # Create a list of entrants in order of rungroup and [net/number]
     if order == 'position': 
         for l in Result.getEventResults(g.eventid).values():
             for d in l:

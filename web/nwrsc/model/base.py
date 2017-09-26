@@ -31,8 +31,8 @@ class AttrBase(object):
 
     @classmethod
     def initialize(cls, host, port):
-        """ A little introspection to load the schema from database, use superuser incase we need to create an test db """
-        with cls.connect(host=host, port=port, user="postgres") as db:
+        """ A little introspection to load the schema from database """
+        with cls.connect(host=host, port=port, user="localuser") as db:
             with db.cursor() as cur:
                 testseries = ('template', 'public')
                 cur.execute("set search_path=%s,%s", testseries)

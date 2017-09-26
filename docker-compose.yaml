@@ -2,9 +2,6 @@
 # This compose file is meant for development purposes
 # It mounts the local user's directory and creates a link in the web container
 # so that it uses the local copy of the web service
-#
-# We use a script to create a docker-compose file for deployment with specific
-# images on docker hub and remove the extra developement features
 
 version: '3.2'
 services:

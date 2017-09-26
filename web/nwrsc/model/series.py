@@ -57,12 +57,19 @@ class Series(object):
                 ret.move_to_end("Other")
             return ret
 
+
+    def _verifySeriesName(cls, series):
+        """ We have to resort to string formatting for some operations below, filter out evil data here """
+        if re.search(r'[^A-Za-z0-9]', series): raise Exception("Series has non ascii characters")
+        if len(series) > 16:                   raise Exception("Series name is too long (16 characters max)")
+        return True
+
     @classmethod
     def copySeries(cls, host, port, series, password, csettings, cclasses, ccars):
-        if not all(ord(c) < 128 for c in series): raise Exception("Series has non ascii characters")
-        if len(series) > 16:                      raise Exception("Series name is too long (16 characters max)")
+        """ Create a new series and copy over from info from the current.  """
+        cls._verifySeriesName(series)
+        cls._verifySeriesName(g.series)
         if Series.type(series) != Series.INVALID: raise Exception("{} already exists".format(series))
-
         with AttrBase.connect(host=host, port=port, user="postgres") as db:
             with db.cursor() as cur:
                 cur.execute("select verify_user(%s, %s)", (series, password))
@@ -78,6 +85,8 @@ class Series(object):
 
     @classmethod
     def deleteSeries(cls, host, port):
+        """ Delete a series schema from the database, including the series user.  """
+        cls._verifySeriesName(g.series)
         with AttrBase.connect(host=host, port=port, user="postgres") as db:
             with db.cursor() as cur:
                 cur.execute("DROP SCHEMA {} CASCADE".format(g.series))
