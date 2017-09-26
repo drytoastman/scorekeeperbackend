@@ -40,7 +40,7 @@ def create_app():
         log.error(traceback.plaintext)
         last = traceback.frames[-1]
         now = datetime.datetime.now().replace(microsecond=0)
-        return render_template("error.html", now=now, name=os.path.basename(last.filename), line=last.lineno, exception=exception)
+        return render_template("common/error.html", now=now, name=os.path.basename(last.filename), line=last.lineno, exception=exception)
 
     def preprocessor(endpoint, values):
         """ Remove the requirement for blueprint functions to put series/eventid in their function definitions """
