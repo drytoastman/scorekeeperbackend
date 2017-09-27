@@ -121,7 +121,7 @@ def login():
 def index():
     return render_template('/admin/status.html')
 
-@Admin.route("/event/<uuid:eventid>")
+@Admin.route("/event/<uuid:eventid>/")
 def event():
     return render_template('/admin/event.html', event=g.event)
 
