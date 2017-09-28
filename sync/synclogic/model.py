@@ -16,7 +16,7 @@ psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
 
 log  = logging.getLogger(__name__)
 
-# publiclog, serieslog, mergeservers and mergepasswords are used during merging but are never merged themselves
+# publiclog, serieslog and mergeservers are used during merging but are never merged themselves
 # results can be generated from tables so there is no need to merge it
 
 TABLE_ORDER = [
@@ -220,6 +220,9 @@ class PresentObject():
         self.pk = pk
         self.data = data
         self.modified = data['modified']
+
+    def __repr__(self):
+        return "PresentObject ({}, {}, {})".format(self.table, self.pk, self.data)
 
     @classmethod
     def minmodtime(cls, d):
