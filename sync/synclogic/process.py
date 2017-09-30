@@ -72,9 +72,8 @@ class MergeProcess():
     def mergeWith(self, localdb, local, remote, passwords):
         global signalled
 
-        address = remote.address or remote.hostname
-        log.debug("checking %s", address)
-        with DataInterface.connectRemote(host=address, user='nulluser', password='nulluser') as remotedb:
+        log.debug("checking %s", remote)
+        with DataInterface.connectRemote(server=remote, user='nulluser', password='nulluser') as remotedb:
             remote.updateSeriesFrom(remotedb)
 
         for series in remote.mergestate.keys():
@@ -87,7 +86,7 @@ class MergeProcess():
                 assert not signalled, "Quit signal received"
                 assert series in local.mergestate, "series was not created in local database yet"
                 remote.seriesStart(series)
-                with DataInterface.connectRemote(host=address, user=series, password=passwords[series]) as remotedb:
+                with DataInterface.connectRemote(server=remote, user=series, password=passwords[series]) as remotedb:
                     remote.updateCacheFrom(remotedb, series)
 
                     if remote.mergestate[series]['totalhash'] != local.mergestate[series]['totalhash']:

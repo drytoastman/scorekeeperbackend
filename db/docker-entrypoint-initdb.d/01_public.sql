@@ -191,8 +191,9 @@ CREATE TABLE mergeservers (
     lastcheck  TIMESTAMP  NOT NULL DEFAULT 'epoch',
     nextcheck  TIMESTAMP  NOT NULL DEFAULT 'epoch',
     waittime   INTEGER    NOT NULL DEFAULT 60,
-    active     BOOLEAN    NOT NULL DEFAULT False,
-    oneshot    BOOLEAN    NOT NULL DEFAULT False,
+    ctimeout   INTEGER    NOT NULL DEFAULT 3,
+    cfailures  INTEGER    NOT NULL DEFAULT 0,
+    hoststate  CHAR(1)    NOT NULL DEFAULT 'I' CHECK (hoststate IN ('A', '1', 'I')),
     mergestate JSONB      NOT NULL DEFAULT '{}'
 );
 REVOKE ALL   ON mergeservers FROM public;

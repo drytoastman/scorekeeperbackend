@@ -45,7 +45,7 @@ LOCALARGS = {
   "cursor_factory": psycopg2.extras.DictCursor,
             "host": "/var/run/postgresql",
             #"host": "127.0.0.1", "port": 6432,
-            "user": "postgres",  # Need to be able to create users, schema, etc.
+            "user": "postgres",  # Needed to load passwords for use on connecting to other servers
           "dbname": "scorekeeper",
 "application_name": "synclocal"
 }
@@ -103,8 +103,9 @@ class DataInterface(object):
             raise NoDatabaseException(e)
 
     @classmethod
-    def connectRemote(cls, host, user, password):
-        return psycopg2.connect(host=host, user=user, password=password, **REMOTEARGS)
+    def connectRemote(cls, server, user, password):
+        address = server.address or server.hostname
+        return psycopg2.connect(host=address, user=user, password=password, connect_timeout=server.ctimeout, **REMOTEARGS)
 
     @classmethod
     def loadPasswords(cls, db):
@@ -280,6 +281,9 @@ class MergeServer(object):
         for k,v in nt.items():
             setattr(self, k, v)
 
+    def __repr__(self):
+        return "{} ({}/{})".format(self.serverid, self.hostname, self.address)
+
     @classmethod
     def getAll(cls, db, sql, args=None):
         with db.cursor() as cur:
@@ -288,7 +292,7 @@ class MergeServer(object):
 
     @classmethod
     def getActive(cls, db):
-        return cls.getAll(db, "SELECT * FROM mergeservers WHERE active=true")
+        return cls.getAll(db, "SELECT * FROM mergeservers WHERE hoststate IN ('A', '1') and serverid!='00000000-0000-0000-0000-000000000000'")
 
     @classmethod
     def getLocal(cls, db):
@@ -318,16 +322,15 @@ class MergeServer(object):
     
     def mergeDone(self):
         with self.db.cursor() as localcur:
-            if self.oneshot:
-                self.oneshot = False
-                self.active  = False
+            if self.hoststate == '1':
+                self.hoststate = 'I'
             self.lastcheck = datetime.datetime.utcnow()
-            if self.active:
+            if self.hoststate in ('A', '1'):
                 self.nextcheck = self.lastcheck + datetime.timedelta(seconds=(self.waittime + random.uniform(-5, +5)))
             else:
                 self.nextcheck = datetime.datetime.utcfromtimestamp(0)
-            localcur.execute("UPDATE mergeservers SET lastcheck=%s, nextcheck=%s, active=%s, oneshot=%s, mergestate=%s WHERE serverid=%s",
-                                    (self.lastcheck, self.nextcheck, self.active, self.oneshot, json.dumps(self.mergestate), self.serverid))
+            localcur.execute("UPDATE mergeservers SET lastcheck=%s, nextcheck=%s, hoststate=%s, mergestate=%s WHERE serverid=%s",
+                                    (self.lastcheck, self.nextcheck, self.hoststate, json.dumps(self.mergestate), self.serverid))
             self.db.commit()
 
     def updateSeriesFrom(self, scandb):
