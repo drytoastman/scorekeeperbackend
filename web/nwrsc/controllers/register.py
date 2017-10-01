@@ -120,7 +120,9 @@ def events():
     for e in events:
         decorateEvent(e, len(registered[e.eventid]))
 
-    return render_template('register/events.html', events=events, cars=cars, registered=registered)
+    squareacct = None # { 'applicationId': 'sandbox-sq0idp-7hFpQgQuD7gtAMB4qJLLlg' }
+
+    return render_template('register/events.html', events=events, cars=cars, registered=registered, squareacct=squareacct)
 
 
 @Register.route("/<series>/eventspost", methods=['POST'])
@@ -147,6 +149,11 @@ def eventspost():
     reg    = [ r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid]
     decorateEvent(event, len(reg))
     return eventdisplay(event, cars, reg, error)
+
+
+@Register.route("/<series>/squarepayment", methods=['POST'])
+def squarepayment():
+    return "square payment {}".format(request.form)
 
 
 @Register.route("/<series>/usednumbers")

@@ -76,7 +76,7 @@ var gRegistered = Array();
     </div>
 
     <div id='eventtog{{ev.eventid}}' data-eventid='{{ev.eventid}}' class='eventholder {{eclass}} collapse row'>
-    {{rm.eventdisplay(ev, cars, registered[ev.eventid])}}
+    {{rm.eventdisplay(ev, cars, registered[ev.eventid], squareacct)}}
     </div>
 
 {% endfor %}
@@ -104,6 +104,16 @@ var gRegistered = Array();
     </form>
 {% endcall %}
 
+{% call m.modal('paymentmodal', 'Payment', '') %}
+    <label>Card Number</label>    <div id="sq-card-number"></div>
+    <label>CVV</label>            <div id="sq-cvv"></div>
+    <label>Expiration Date</label><div id="sq-expiration-date"></div>
+    <label>Postal Code</label>    <div id="sq-postal-code"></div>
+    <form id="nonce-form" novalidate action="{{url_for('.squarepayment')}}" method="post">
+      <input type="hidden" id="card-nonce" name="nonce">
+      <input type="submit" onclick="requestCardNonce(event)">
+    </form>
+{% endcall %}
 
 {% endblock content %}
 

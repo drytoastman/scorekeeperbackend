@@ -8,6 +8,9 @@
 {% assets "register.js" %}
 <script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
+{% if squareacct %}
+{% include 'register/squarehead.html' %}
+{% endif %}
 
 <script type="text/javascript">
 $(document).ready(function(){

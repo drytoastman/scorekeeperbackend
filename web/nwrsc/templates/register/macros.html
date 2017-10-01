@@ -56,7 +56,7 @@
 {% endmacro %}
 
 
-{% macro  eventdisplay(ev, ecars, registered, error='') %}
+{% macro  eventdisplay(ev, ecars, registered, squareacct, error='') %}
     <script type="text/javascript">
     gRegistered['{{ev.eventid}}'] = {{registered|to_json|safe}};
     </script>
@@ -112,6 +112,9 @@
         {%- if ev.isOpen() %}
             {%- if ev.mylimit > 0 or registered|length > 0 %}
             <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
+            {%- endif %}
+            {%- if squareacct and 'cost' in ev.attr and ev.attr.cost > 0 %}
+            <button class='payment btn btn-outline-register' data-toggle='modal' data-target='#paymentmodal'>Payment Test</button>
             {%- endif %}
 
             {%- if registered|length >= ev.mylimit and ev.limitmessage %}
