@@ -104,8 +104,12 @@ class DataInterface(object):
 
     @classmethod
     def connectRemote(cls, server, user, password):
-        address = server.address or server.hostname
-        return psycopg2.connect(host=address, user=user, password=password, connect_timeout=server.ctimeout, **REMOTEARGS)
+        try:
+            address = server.address or server.hostname
+            return psycopg2.connect(host=address, user=user, password=password, connect_timeout=server.ctimeout, **REMOTEARGS)
+        except:
+            server.recordConnectFailure()
+            raise
 
     @classmethod
     def loadPasswords(cls, db):
@@ -331,6 +335,12 @@ class MergeServer(object):
                 self.nextcheck = datetime.datetime.utcfromtimestamp(0)
             localcur.execute("UPDATE mergeservers SET lastcheck=%s, nextcheck=%s, hoststate=%s, mergestate=%s WHERE serverid=%s",
                                     (self.lastcheck, self.nextcheck, self.hoststate, json.dumps(self.mergestate), self.serverid))
+            self.db.commit()
+
+    def recordConnectFailure(self):
+        with self.db.cursor() as localcur:
+            self.cfailures += 1
+            localcur.execute("UPDATE mergeservers SET cfailures=%s WHERE serverid=%s", (self.cfailures, self.serverid))
             self.db.commit()
 
     def updateSeriesFrom(self, scandb):
