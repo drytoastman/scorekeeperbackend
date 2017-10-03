@@ -104,14 +104,16 @@ var gRegistered = Array();
     </form>
 {% endcall %}
 
-{% call m.modal('paymentmodal', 'Payment', '') %}
-    <label>Card Number</label>    <div id="sq-card-number"></div>
-    <label>CVV</label>            <div id="sq-cvv"></div>
-    <label>Expiration Date</label><div id="sq-expiration-date"></div>
-    <label>Postal Code</label>    <div id="sq-postal-code"></div>
+{% call m.modal('paymentmodal', 'Square Payment', '') %}
+    <div class='row'><label class='col-md-4'>Card Number</label>    <div class='col-md-8' id="sq-card-number"></div></div>
+    <div class='row'><label class='col-md-4'>CVV</label>            <div class='col-md-8' id="sq-cvv"></div></div>
+    <div class='row'><label class='col-md-4'>Expiration Date</label><div class='col-md-8' id="sq-expiration-date"></div></div>
+    <div class='row'><label class='col-md-4'>Postal Code</label>    <div class='col-md-8' id="sq-postal-code"></div></div>
     <form id="nonce-form" novalidate action="{{url_for('.squarepayment')}}" method="post">
       <input type="hidden" id="card-nonce" name="nonce">
-      <input type="submit" onclick="requestCardNonce(event)">
+        <div class='row'>
+        <div class='col'><input type='submit' class='btn btn-register' value='Make Payment' onclick="requestCardNonce(event)"/></div>
+        </div>
     </form>
 {% endcall %}
 
