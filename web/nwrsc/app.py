@@ -208,7 +208,20 @@ def create_app():
         Register.mail = Mail(theapp)
 
     log.info("Scorekeeper App created")
+    theapp.wsgi_app = ReverseProxied(theapp.wsgi_app)
     return theapp
+
+
+class ReverseProxied(object):
+    def __init__(self, app):
+        self.app = app
+    def __call__(self, environ, start_response):
+        if environ.get('HTTP_X_FORWARDED_PROTO', '') == 'https' or environ.get('HTTP_X_FORWARDED_PORT', '80') == '443':
+            environ['wsgi.url_scheme'] = 'https'
+
+        server = environ.get('HTTP_X_FORWARDED_SERVER', '').split(',')[0]
+        if server: environ['HTTP_HOST'] = server
+        return self.app(environ, start_response)
 
 
 def logging_setup(level=logging.INFO, debug=False):
