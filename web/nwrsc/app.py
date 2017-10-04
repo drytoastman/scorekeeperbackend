@@ -92,6 +92,8 @@ def create_app():
         "MAIL_PASSWORD":               os.environ.get('MAIL_PASSWORD', None),
         "MAIL_DEFAULT_SENDER":         os.environ.get('MAIL_DEFAULT_SENDER', None),
         "SUPER_ADMIN_PASSWORD":        os.environ.get('SUPER_ADMIN_PASSWORD', None),
+        "SQ_APPLICATION_ID":           os.environ.get('SQ_APPLICATION_ID', None),
+        "SQ_APPLICATION_SECRET":       os.environ.get('SQ_APPLICATION_SECRET', None),
         "LOGGER_HANDLER_POLICY":  "None",
     })
 
@@ -107,6 +109,7 @@ def create_app():
     theapp.register_blueprint(Register,  url_prefix="/register")
     theapp.register_blueprint(Results,   url_prefix="/results/<series>")
     theapp.register_blueprint(Xml,       url_prefix="/xml/<series>")
+    theapp.add_url_rule('/admin/squarecallback', "Admin.squarecallback")
     theapp.add_url_rule('/admin/',       "Admin.base")
     theapp.add_url_rule('/results/',     "Results.base")
 

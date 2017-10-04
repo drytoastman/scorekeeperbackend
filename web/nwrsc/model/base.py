@@ -5,7 +5,7 @@ import psycopg2.extras
 
 from flask import g
 
-TABLES = ['drivers', 'cars', 'events']
+TABLES = ['drivers', 'cars', 'events', 'merchants']
 COLUMNS       = dict()
 PRIMARY_KEYS  = dict()
 NONPRIMARY    = dict()
@@ -44,6 +44,7 @@ class AttrBase(object):
                     PRIMARY_KEYS[table] = [row[0] for row in cur.fetchall()]
 
                     cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s AND table_schema IN %s AND column_name NOT IN ('modified', 'username', 'password')", (table, testseries))
+                    
                     COLUMNS[table] = [row[0] for row in cur.fetchall()]
                     NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
 

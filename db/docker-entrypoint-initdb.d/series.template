@@ -269,3 +269,15 @@ CREATE TRIGGER crunmod AFTER INSERT OR UPDATE OR DELETE ON challengeruns FOR EAC
 CREATE TRIGGER crununi BEFORE UPDATE ON challengeruns FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified();
 COMMENT ON TABLE challengeruns IS 'the list of runs for a challenge in a ProSolo, different from regular runs table';
 
+
+CREATE TABLE merchants (
+    merchantid TEXT      PRIMARY KEY,
+    name       TEXT      NOT NULL,
+    type       TEXT      NOT NULL,
+    attr       JSONB     NOT NULL,
+    modified   TIMESTAMP NOT NULL DEFAULT now()
+);
+REVOKE ALL ON merchants FROM public;
+GRANT  ALL ON merchants TO <seriesname>;
+COMMENT ON TABLE merchants IS 'the list of configured merchant data available for online payment options, this is NOT synced between nodes';
+

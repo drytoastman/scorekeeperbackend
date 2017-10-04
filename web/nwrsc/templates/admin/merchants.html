@@ -1,0 +1,22 @@
+{% extends "admin/bluebase.html" %}
+{% import "admin/macros.html" as m %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h2>Available Account List</h2>
+
+<table class='merchanttable'>
+<tr><th>Name</th><th>Account Id</th><th>Type</th></tr>
+{% for m in merchants %}
+<tr><td>{{m.name}}</td><td>{{m.merchantid}}</td><td>{{m.type}}</td></tr>
+{% endfor %}
+</table>
+
+{% if sqappid %}
+<a class='btn btn-admin' href='https://connect.squareup.com/oauth2/authorize?client_id={{sqappid}}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE&state={{g.series}}'>Authorize New Square Account</a>
+{% endif %}
+</div>
+
+{% endblock content %}
+

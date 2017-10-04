@@ -201,6 +201,7 @@ def login():
     register = RegisterForm(prefix='register')
     active = "login"
     hasemail = getattr(Register, 'mail', None) is not None
+    return "{}".format(request)
 
     if login.submit.data:
         if login.validate_on_submit():

@@ -75,6 +75,13 @@ class Challenge(AttrBase):
         return cls.getall("select * from challenges order by challengeid")
 
 
+class Merchant(AttrBase):
+    TABLENAME = "merchants"
+    @classmethod
+    def getAll(cls):
+        return cls.getall("select * from merchants order by name")
+
+
 class NumberEntry(AttrBase):
     @classmethod
     def allNumbers(cls):

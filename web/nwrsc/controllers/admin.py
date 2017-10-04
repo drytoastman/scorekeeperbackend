@@ -1,6 +1,8 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
+import http.client
 import io
+import json
 import logging
 import operator
 import psycopg2
@@ -11,7 +13,7 @@ from flask import Blueprint, current_app, flash, g, redirect, request, render_te
 
 from nwrsc.lib.encoding import json_encode
 from nwrsc.lib.forms import *
-from nwrsc.lib.misc import InvalidEventException
+from nwrsc.lib.misc import *
 from nwrsc.model import *
 
 log      = logging.getLogger(__name__)
@@ -71,6 +73,10 @@ def setup():
     """ Every page underneath here requires a password """
     g.title = 'Scorekeeper Admin'
     g.activeseries = Series.active()
+    
+    if request.endpoint == 'Admin.squarecallback': # special URL without g.series
+        return
+
     if not g.series:
         return render_template('/admin/bluebase.html')
 
@@ -360,4 +366,75 @@ def newseries():
         form.name.data = g.series
         form.copysettings.data = True
     return render_template('/admin/newseries.html', form=form)
+
+
+@Admin.route("/merchants")
+def merchants():
+    merchants = Merchant.getAll()
+    sqappid = current_app.config.get('SQ_APPLICATION_ID', '')
+    return render_template('/admin/merchants.html', merchants=merchants, sqappid=sqappid)
+
+
+@Admin.endpoint("Admin.squarecallback")
+def squarecallback():
+    g.series = request.args.get('state', '')
+    if not isSuperAuth() and not isAuth(g.series):
+        raise NotLoggedInException()
+    with g.db.cursor() as cur:
+        cur.execute("SET search_path=%s,'public'; commit; begin", (g.series,))
+
+    authorization_code = request.args.get('code', None)
+    if not authorization_code:
+        flash('Authorization Failed')
+        return redirect(url_for('.merchants'))
+
+    appid     = current_app.config.get('SQ_APPLICATION_ID', '')
+    appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
+    if not appid or not appsecret:
+        flash('There is no square applcation setup in the local configuration')
+        return redirect(url_for('.merchants'))
+
+    oauth_headers = {
+      'Authorization': 'Client '+appsecret,
+      'Accept':        'application/json',
+      'Content-Type':  'application/json'
+    }
+
+    oauth_request = {
+      'client_id': appid,
+      'client_secret': appsecret,
+      'code': authorization_code,
+    }
+
+    connection = http.client.HTTPSConnection('connect.squareup.com')
+    connection.request('POST', '/oauth2/token', json.dumps(oauth_request), oauth_headers)
+    response = json.loads(connection.getresponse().read())
+    if not response.get('access_token', ''):
+        flash('Code exchange failed')
+        return redirect(url_for('.merchants'))
+
+    name = response['merchant_id']
+    try:
+        oauth_headers['Authorization'] = 'Bearer '+response['access_token']
+        connection.request('GET', '/v2/locations', "", oauth_headers)
+        locations = json.loads(connection.getresponse().read())
+        log.debug(locations)
+        for l in locations['locations']:
+            if l['merchant_id'] == response['merchant_id']:
+                name = l['name']
+    except Exception as e:
+        flash('Name lookup error: ' + str(e))
+        log.warning("merchant name lookup error", exc_info=e)
+
+    try:
+        m = Merchant()
+        m.merchantid = response['merchant_id']
+        m.name       = name
+        m.type       = "square"
+        m.attr       = {'access_token': response['access_token'], 'expires_at': response['expires_at'] }
+        m.insert()
+    except Exception as e:
+        flash("Inserting new merchant failed: " + str(e))
+
+    return redirect(url_for('.merchants'))
 
