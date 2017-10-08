@@ -1,34 +1,41 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import sys
+import glob
+import json
 import os
+import psycopg2
+import psycopg2.extras
+import sqlite3
+import sys
+import uuid
+
+from flask import g
+from nwrsc.model import Result, Series
+from nwrsc.app import create_app
 
 class AttrWrapper(object):
     def __init__(self, tup, headers):
         for k,v in zip(headers, tup):
             setattr(self, k, v)
 
-def convert(sourcefile, password):
-    import sqlite3
-    import json
-    import uuid
-    import psycopg2
-    import psycopg2.extras
-
+def convert(sourcefile, archive):
     remapdriver    = dict()
     remapcar       = dict({-1:None})
     remapevent     = dict()
     remapchallenge = dict()
     challengeruns  = list()
-    name = os.path.basename(sourcefile[:-3])
-    print("putting things in {}".format(name))
+    name = os.path.basename(sourcefile[:-3]).lower()
 
     old = sqlite3.connect(sourcefile)
     old.row_factory = sqlite3.Row
 
-    # Assumes that we are running on the docker host and can access the system like the Java applications
+    for r in old.execute("select value from passwords where tag='series'"):
+        password = r['value']
+    print("{} - password {}".format(name, password))
+
+    # Assumes that we are running in a docker container along side db
     psycopg2.extras.register_uuid()
-    new = psycopg2.connect(host='127.0.0.1', port=6432, user='postgres', dbname='scorekeeper', application_name='oldimport', cursor_factory=psycopg2.extras.DictCursor)
+    new = psycopg2.connect(host='/var/run/postgresql', user='postgres', dbname='scorekeeper', application_name='oldimport', cursor_factory=psycopg2.extras.DictCursor)
     cur = new.cursor()
 
     cur.execute("select schema_name from information_schema.schemata where schema_name=%s", (name,))
@@ -40,7 +47,7 @@ def convert(sourcefile, password):
     cur.execute("set search_path=%s,%s", (name, 'public'))
 
     #DRIVERS, add to global list and remap ids as necessary
-    print("drivers")
+    print("\tdrivers")
     for r in old.execute('select * from drivers'):
         d = AttrWrapper(r, r.keys())
 
@@ -49,7 +56,7 @@ def convert(sourcefile, password):
         if cur.rowcount > 0: # and d.email.strip().lower():
             match = cur.fetchone()
             remapdriver[d.id] = match['driverid']
-            print('match %s %s %s' % (d.firstname, d.lastname, d.email))
+            print('\t\tmatch %s %s %s' % (d.firstname, d.lastname, d.email))
         else:
             newd = dict()
             newd['driverid']   = uuid.uuid1()
@@ -70,17 +77,21 @@ def convert(sourcefile, password):
 
 
     #INDEXLIST 
-    print("indexes")
+    print("\tindexes")
     cur.execute("insert into indexlist values ('', 'No Index', 1.000, now())")
+    allindexcodes = set()
     for r in old.execute("select * from indexlist"):
         i = AttrWrapper(r, r.keys())
         cur.execute("insert into indexlist values (%s, %s, %s, now())",     
                     (i.code, i.descrip, i.value))
+        allindexcodes.add(i.code)
+
 
     #CLASSLIST (map seriesid)
-    print("classes")
+    print("\tclasses")
     cur.execute("insert into classlist values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
-                    ('HOLD', 'Unknown Class', '', '', 1.0, False, False, False, False, False, 0))
+                ('HOLD', 'Unknown Class', '', '', 1.0, False, False, False, False, False, 0))
+    allclasscodes = set()
     for r in old.execute("select * from classlist"):
         c = AttrWrapper(r, r.keys())
         c.usecarflag  = c.usecarflag and True or False
@@ -90,19 +101,24 @@ def convert(sourcefile, password):
         c.secondruns  = c.code in ('TOPM', 'ITO2')
         cur.execute("insert into classlist values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
                     (c.code, c.descrip, c.classindex, c.caridxrestrict, c.classmultiplier, c.carindexed, c.usecarflag, c.eventtrophy, c.champtrophy, c.secondruns, c.countedruns))
+        allclasscodes.add(c.code)
 
 
     #CARS (all the same fields, need to map carid, driverid and seriesid)
-    print("cars")
+    print("\tcars")
     for r in old.execute("select * from cars"):
         c = AttrWrapper(r, r.keys())
         if c.driverid < 0:
             continue
         if c.driverid not in remapdriver:
-            print("skipping car with unknown driverid {}".format(c.driverid))
+            print("\t\tskipping car with unknown driverid {}".format(c.driverid))
             continue
-        if c.classcode in ('UNKNWN', 'UKNWN'):
+        if c.classcode not in allclasscodes:
+            print("\t\tassigning unknown class {} to HOLD".format(c.classcode))
             c.classcode = 'HOLD'
+        if c.indexcode and c.indexcode not in allindexcodes:
+            print("\t\tassigning unknown index {} to AM".format(c.indexcode))
+            c.indexcode = 'AM'
         newc = dict()
         newc['carid']      = uuid.uuid1()
         newc['driverid']   = remapdriver[c.driverid]
@@ -121,33 +137,32 @@ def convert(sourcefile, password):
 
         
     #EVENTS (all the same fields)
-    maxeid = 1
-    print("events")
+    print("\tevents")
     for r in old.execute("select * from events"):
         e = AttrWrapper(r, r.keys())
-        if not e.segments.strip():
-            segments = 0
-        else:
+        segments = e.segments
+        if segments:
             segments = len(e.segments.replace(" ", "").split(","))
+        else:
+            segments = 0
         newe = dict()
         newe['eventid']     = uuid.uuid1()
-        newe['name']        = e.name
+        newe['name']        = e.name or "No Name"
         newe['date']        = e.date
         newe['regopened']   = e.regopened
         newe['regclosed']   = e.regclosed
         newe['courses']     = e.courses
         newe['runs']        = e.runs
-        newe['countedruns'] = e.countedruns
+        newe['countedruns'] = e.countedruns or 0
         newe['segments']    = segments
-        newe['perlimit']    = e.perlimit
-        newe['sinlimit']    = e.totlimit
-        newe['totlimit']    = e.totlimit
+        newe['perlimit']    = e.perlimit or 0
+        newe['sinlimit']    = e.totlimit or 0
+        newe['totlimit']    = e.totlimit or 0
         newe['conepen']     = e.conepen
         newe['gatepen']     = e.gatepen
         newe['ispro']       = e.ispro and True or False
         newe['ispractice']  = e.practice and True or False
         newe['attr']        = dict()
-        maxeid = max(maxeid, e.id)
 
         for a in ('location', 'sponsor', 'host', 'chair', 'designer', 'snail', 'cost', 'notes', 'doublespecial'):
             if hasattr(e, a) and getattr(e, a):
@@ -160,33 +175,49 @@ def convert(sourcefile, password):
         remapevent[e.id] = newe['eventid']
 
     #REGISTERED (map carid)
-    print("registered")
+    print("\tregistered")
     for r in old.execute("select * from registered"):
         oldr = AttrWrapper(r, r.keys())
         if oldr.eventid > 0x0FFFF:
             continue
         if oldr.carid in remapcar:
-            cur.execute("insert into registered values (%s, %s, %s, now())", (remapevent[oldr.eventid], remapcar[oldr.carid], oldr.paid and 1.0 or 0.0))
+            cur.execute("insert into registered values (%s, %s, NULL, now())", (remapevent[oldr.eventid], remapcar[oldr.carid]))
         else:
-            print("skipping unknown carid {}".format(oldr.carid))
+            print("\t\tskipping unknown carid {}".format(oldr.carid))
 
 
     #CLASSORDER
-    print("classorder")
+    print("\tclassorder")
     for r in old.execute("select * from rungroups"):
         oldr = AttrWrapper(r, r.keys())
+        if not oldr.classcode:
+            print("\t\tskipping blank classcode in classorder table")
+            continue
+        if oldr.classcode not in allclasscodes:
+            print("\t\tassigning unknown class {} to HOLD".format(oldr.classcode))
+            oldr.classcode = 'HOLD'
         cur.execute("insert into classorder values (%s, %s, %s, %s, now())", (remapevent[oldr.eventid], oldr.classcode, oldr.rungroup, oldr.gorder))
 
 
     #RUNORDER 
-    print("runorder")
-    for r in old.execute("select * from runorder"):
+    print("\trunorder")
+    uniqueorder = set()
+    for r in old.execute("select * from runorder order by row"):
         oldr = AttrWrapper(r, r.keys())
-        cur.execute("insert into runorder values (%s, %s, %s, %s, %s, now())", (remapevent[oldr.eventid], oldr.course, oldr.rungroup, oldr.row, remapcar[oldr.carid]))
+        key = (oldr.eventid, oldr.course, oldr.rungroup, oldr.row)
+        if key in uniqueorder:
+            print("\t\tskipping duplicate runorder row {}".format(key))
+            continue
+        uniqueorder.add(key)
+		
+        if oldr.carid in remapcar:
+            cur.execute("insert into runorder values (%s, %s, %s, %s, %s, now())", (remapevent[oldr.eventid], oldr.course, oldr.rungroup, oldr.row, remapcar[oldr.carid]))
+        else:
+            print("\t\tskipping unknown carid {}".format(oldr.carid))
 
 
     #RUNS (map eventid, carid)
-    print("runs")
+    print("\truns")
     for r in old.execute("select * from runs"):
         oldr = AttrWrapper(r, r.keys())
         if (oldr.eventid > 0x0FFFF):
@@ -200,12 +231,16 @@ def convert(sourcefile, password):
             seg = getattr(oldr, 'seg%d'%ii)
             if seg is not None and seg > 0:
                 attr['seg%d'%ii] = seg
-        cur.execute("insert into runs values (%s, %s, %s, %s, %s, %s, %s, %s, %s, now())",
-            (remapevent[oldr.eventid], remapcar[oldr.carid], oldr.course, oldr.run, oldr.cones, oldr.gates, oldr.raw, oldr.status, json.dumps(attr)))
+
+        if oldr.carid in remapcar:
+            cur.execute("insert into runs values (%s, %s, %s, %s, %s, %s, %s, %s, %s, now())",
+                (remapevent[oldr.eventid], remapcar[oldr.carid], oldr.course, oldr.run, oldr.cones, oldr.gates, oldr.raw, oldr.status, json.dumps(attr)))
+        else:
+            print("\t\tskipping unknown carid {}".format(oldr.carid))
 
 
     #SETTINGS
-    print("settings")
+    print("\tsettings")
     settings = dict()
     for r in old.execute("select name,val from settings"):
         key = r['name']
@@ -216,7 +251,7 @@ def convert(sourcefile, password):
 
         
     #CHALLENGES (remap challengeid, eventid)
-    print("challenges")
+    print("\tchallenges")
     for r in old.execute("select * from challenges"):
         c = AttrWrapper(r, r.keys())
 
@@ -231,9 +266,8 @@ def convert(sourcefile, password):
 
 
     #CHALLENGEROUNDS (remap roundid, challengeid, carid)
-    print("challengerounds")
+    print("\tchallengerounds")
     check1 = set()
-    maxcid = 1
     for rp in old.execute("select * from challengerounds"):
         r = AttrWrapper(rp, rp.keys())
         cid  = remapchallenge[r.challengeid]
@@ -243,12 +277,11 @@ def convert(sourcefile, password):
         c1d = r.car1dial or 0.0
         c2d = r.car2dial or 0.0
         check1.add((cid, r.round))
-        maxcid = max(maxcid, cid)
         cur.execute("insert into challengerounds values (%s, %s, %s, %s, %s, %s, %s, now())", (cid, r.round, ss, c1id, c1d, c2id, c2d))
 
 
     #CHALLENGERUNS (now in ther own table)
-    print("challengeruns")
+    print("\tchallengeruns")
     for r in challengeruns:
         chid  = remapchallenge[r.eventid >> 16]
         round = r.eventid & 0x0FFF
@@ -257,13 +290,30 @@ def convert(sourcefile, password):
             cur.execute("insert into challengeruns values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", (chid, round, caid,
                             r.course, r.reaction, r.sixty, r.raw, r.cones, r.gates, r.status))
 
+    if archive:
+        global app
+        with app.app_context():
+            g.db = new
+            g.seriestype = Series.ACTIVE
+            g.series = name
+            Result.cacheAll()
+            cur.execute("DROP SCHEMA {} CASCADE".format(name))
+            cur.execute("DELETE FROM drivers")
+            cur.execute("DELETE FROM publiclog")
+            cur.execute("DROP USER {}".format(name))
+
     old.close()
     new.commit()
     new.close()
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print("Usage: {} <old db file> <seriespassword>".format(sys.argv[0]))
+        print("Usage: {} <db directory> <true/false>".format(sys.argv[0]))
     else:
-        convert(sys.argv[1], sys.argv[2])
+        # Archive assumes that database is blank before we start this dog and pony show
+        archive = sys.argv[2].lower() == 'true'
+        print(glob.glob(sys.argv[1]))
+        app = create_app()
+        for f in glob.glob(sys.argv[1]):
+            convert(f, archive)
 

@@ -234,10 +234,13 @@ class Result(object):
     
         with g.db.cursor() as cur:
             # Fetch all of the entrants (driver/car combo), place in class lists, save pointers for quicker access
-            cur.execute("select distinct d.firstname,d.lastname,d.membership,c.*,r.rungroup from drivers d " + 
-                        "join cars c on c.driverid=d.driverid join runorder r on r.carid=c.carid " +
-                        "where r.eventid=%s", (eventid,))
+            cur.execute("SELECT distinct(c.carid),d.firstname,d.lastname,d.membership,c.*,r2.rungroup FROM drivers d " + 
+                        "JOIN cars c ON c.driverid=d.driverid LEFT JOIN runorder r2 ON r2.carid=c.carid and r2.eventid=%s "
+                        "WHERE c.carid IN (SELECT distinct(carid) FROM runs WHERE eventid=%s)", (eventid, eventid))
+
             for e in [Entrant(**x) for x in cur.fetchall()]:
+                if e.carid in cptrs:
+                    continue # ignore duplicate carids from old series
                 e.indexstr = classdata.getIndexStr(e)
                 e.indexval = classdata.getEffectiveIndex(e)
                 e.runs = [[Run(course=x+1,run=y+1,raw=999.999,cones=0,gates=0,pen=999.999,net=999.999,status='PLC') for y in range(event.runs)] for x in range(event.courses)]
@@ -247,6 +250,8 @@ class Result(object):
             # Fetch all of the runs, calc net and assign to the correct entrant
             cur.execute("select * from runs where eventid=%s and course<=%s and run<=%s", (eventid, event.courses, event.runs))
             for r in [Run(**x) for x in cur.fetchall()]:
+                if r.raw <= 0:
+                    continue # ignore crap data that can't be correct
                 match = cptrs[r.carid]
                 match.runs[r.course-1][r.run - 1] = r
                 penalty = (r.cones * event.conepen) + (r.gates * event.gatepen)
@@ -259,7 +264,7 @@ class Result(object):
                 else:
                     r.pen = r.raw + penalty
                     r.net = (r.raw*match.indexval) + penalty
-        
+
             # For every entrant, calculate their best runs (raw,net,allraw,allnet) and event sum(net)
             for e in cptrs.values():
                 e.net = 0      # Best counted net overall time
