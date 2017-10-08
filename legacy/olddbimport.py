@@ -221,6 +221,8 @@ def convert(sourcefile, archive):
     for r in old.execute("select * from runs"):
         oldr = AttrWrapper(r, r.keys())
         if (oldr.eventid > 0x0FFFF):
+            if not oldr.reaction: oldr.reaction = 0
+            if not oldr.sixty: oldr.sixty = 0
             challengeruns.append(oldr)
             continue
             
