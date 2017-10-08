@@ -63,6 +63,15 @@ def create_app():
         except:
             return str(val)
 
+    def d2(val):
+        """ Wrapper to safely print dollar amounts as $XXX.12 format """
+        if val is None: return ""
+        if type(val) is not float: return str(val)
+        try:
+            return "$%0.2f" % (val,)
+        except:
+            return str(val)
+
     def msort(val, *attr):
         """ Filter to sort on multiple attributes """
         ret = list(val)
@@ -171,6 +180,7 @@ def create_app():
 
     # extra Jinja bits
     theapp.jinja_env.filters['t3'] = t3
+    theapp.jinja_env.filters['d2'] = d2
     theapp.jinja_env.filters['msort'] = msort
     theapp.jinja_env.filters['to_json'] = to_json
     theapp.jinja_env.tests['htmlstr'] = hashtml

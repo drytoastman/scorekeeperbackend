@@ -1,10 +1,13 @@
 from collections import defaultdict
 from datetime import datetime
-import uuid
 import json
+import logging
+import uuid
 
 from flask import g
 from .base import AttrBase, Entrant
+
+log = logging.getLogger(__name__)
 
 class Attendance(object):
 
@@ -75,13 +78,6 @@ class Challenge(AttrBase):
         return cls.getall("select * from challenges order by challengeid")
 
 
-class Merchant(AttrBase):
-    TABLENAME = "merchants"
-    @classmethod
-    def getAll(cls):
-        return cls.getall("select * from merchants order by name")
-
-
 class NumberEntry(AttrBase):
     @classmethod
     def allNumbers(cls):
@@ -90,12 +86,33 @@ class NumberEntry(AttrBase):
             return [cls(**x) for x in cur.fetchall()]
 
 
+class Payment(AttrBase):
+    @classmethod
+    def getForDriver(cls, driverid):
+        return cls.getall("SELECT * FROM payments WHERE driverid=%s", (driverid,))
+
+    @classmethod
+    def getForDriverEvent(cls, driverid, eventid):
+        return cls.getall("SELECT * FROM payments WHERE driverid=%s and eventid=%s", (driverid, eventid))
+
+
+class PaymentAccount(AttrBase):
+    TABLENAME = "paymentaccounts"
+    @classmethod
+    def getAll(cls):
+        return cls.getall("select * from paymentaccounts order by name")
+
+
 class Registration(AttrBase):
 
     @classmethod
-    def getForEvent(cls, eventid):
+    def getForEvent(cls, eventid, txrequired=False):
         with g.db.cursor() as cur:
-            cur.execute("SELECT d.*,c.*,r.*,d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s ORDER BY c.number", (eventid,))
+            base = "SELECT d.*,c.*,r.*,d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s"
+            if txrequired:
+                cur.execute(base + " and r.txid IS NOT NULL ORDER BY c.number", (eventid,))
+            else:
+                cur.execute(base + " ORDER BY c.number", (eventid,))
             return [Entrant(**x) for x in cur.fetchall()]
 
     @classmethod
@@ -107,13 +124,12 @@ class Registration(AttrBase):
         return cls.getall("SELECT c.*,e.eventid,e.date,e.name FROM {}.registered r JOIN {}.cars c ON r.carid=c.carid JOIN {}.events e ON e.eventid=r.eventid WHERE c.driverid=%s ORDER BY e.date".format(series,series,series), (driverid,))
 
     @classmethod
-    def update(cls, eventid, carids, verifyid):
+    def update(cls, eventid, pairs, verifyid):
         with g.db.cursor() as cur:
-            # FINISH ME, do a little more to only update/delete what is necessary to preclude unncessary changes in the logs
             cur.execute("DELETE from registered where eventid=%s and carid in (select carid from cars where driverid=%s)", (eventid, verifyid))
-            for cid in carids:
-                # FINISH ME, what is a one-liner to insert only if car with carid has driverid=verifyid
-                cur.execute("INSERT INTO registered (eventid, carid) VALUES (%s, %s)", (eventid, cid))
+            log.info(pairs)
+            for pair in pairs:
+                cur.execute("INSERT INTO registered (eventid, carid, txid) VALUES (%s, %s, %s)", (eventid, pair[0], pair[1]))
             g.db.commit()
 
     @classmethod

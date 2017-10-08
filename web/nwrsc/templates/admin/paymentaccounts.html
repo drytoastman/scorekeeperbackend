@@ -1,0 +1,28 @@
+{% extends "admin/bluebase.html" %}
+{% import "common/macros.html" as m %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h2>Configured Account List</h2>
+<small>Secure tokens hidden</small>
+
+<table class='accounttable'>
+<tr><th>Name</th><th>Account Id</th><th>Type</th><th>Expires</th></tr>
+{% for a in accounts %}
+<tr><td>{{a.name}}</td><td>{{a.accountid}}</td><td>{{a.type}}</td><td><button class="btn btn-admin small">Del</button></td>
+{% endfor %}
+</table>
+
+{% if sqappid %}
+<a class='btn btn-admin' href='https://connect.squareup.com/oauth2/authorize?client_id={{sqappid}}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE&state={{g.series}}'>Authorize New Square Account</a>
+{% endif %}
+<button class='btn btn-outline-admin' data-toggle='modal' data-target='#squaremodal'>Manual Square Setup</button>
+<button class='btn btn-outline-admin' data-toggle='modal' data-target='#paypalmodal'>Manual Paypal Setup</button>
+
+</div>
+
+{{m.modal('squaremodal', 'Manual Square Setup', 'Square stuff here')}}
+{{m.modal('paypalmodal', 'Manual Paypal Setup', 'Paypal stuff here')}}
+
+{% endblock content %}

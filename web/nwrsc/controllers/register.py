@@ -1,10 +1,11 @@
+from collections import defaultdict
 import datetime
+import itertools
 import logging
 import uuid
 import time
-import itsdangerous
-from collections import defaultdict
 
+import itsdangerous
 from flask import abort, Blueprint, current_app, flash, g, get_template_attribute, redirect, request, render_template, session, url_for
 from flask_mail import Message
 
@@ -112,17 +113,19 @@ def carspost():
 def events():
     if not g.driver: return login()
 
-    events = Event.byDate()
-    cars   = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
+    sqappid  = current_app.config.get('SQ_APPLICATION_ID', '')
+    events   = Event.byDate()
+    cars     = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
     registered = defaultdict(list)
+    payments   = defaultdict(float)
     for r in Registration.getForDriver(g.driver.driverid):
-        registered[r.eventid].append(r.carid)
+        registered[r.eventid].append(r)
     for e in events:
         decorateEvent(e, len(registered[e.eventid]))
+    for p in Payment.getForDriver(g.driver.driverid):
+        payments[p.eventid] += p.amount
 
-    squareacct = None # { 'applicationId': 'sandbox-sq0idp-7hFpQgQuD7gtAMB4qJLLlg' }
-
-    return render_template('register/events.html', events=events, cars=cars, registered=registered, squareacct=squareacct)
+    return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, sqappid=sqappid)
 
 
 @Register.route("/<series>/eventspost", methods=['POST'])
@@ -130,25 +133,45 @@ def eventspost():
     if not g.driver: raise NotLoggedInException()
 
     try:
+        error   = ""
         eventid = uuid.UUID(request.form['eventid'])
         carids  = [uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True]
         curreg  = len([r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
         event   = Event.get(eventid)
+        payments= Payment.getForDriverEvent(g.driver.driverid, eventid)
+        minpay  = max(event.getMinCost(), 0.01)
         decorateEvent(event, curreg) # Figure out limit with current registration
         if len(carids) > event.mylimit:
             error = "Limit hit outside session, request aborted"
         else:
-            error = ""
-            Registration.update(eventid, carids, g.driver.driverid)
+            pairs = [[cid, None] for cid in carids]
+            total = 0
+            idx = 0
+            for p in payments:  # reassign payments to registrations
+                total += p.amount
+                while total >= minpay and idx < len(pairs):
+                    pairs[idx][1] = p.txid
+                    idx += 1
+                    total -= minpay
+                    log.info("{}, {}".format(total, minpay))
+
+            Registration.update(eventid, pairs, g.driver.driverid)
     except Exception as e:
         g.db.rollback()
+        log.warning("exception in events post: " + str(e), exc_info=e)
         return "<div class='error'>{}</div>".format(e)
 
-    eventdisplay = get_template_attribute('/register/macros.html', 'eventdisplay')
-    cars   = {c.carid:c for c in Car.getForDriver(g.driver.driverid)}
-    reg    = [ r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid]
+    cars    = {c.carid:c for c in Car.getForDriver(g.driver.driverid)}
+    reg     = [ r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid ]
+    sqappid = current_app.config.get('SQ_APPLICATION_ID', '')
     decorateEvent(event, len(reg))
-    return eventdisplay(event, cars, reg, error)
+    if payments:
+        paid = sum(p.amount for p in payments)
+    else:
+        paid = 0.0
+
+    eventdisplay = get_template_attribute('/register/macros.html', 'eventdisplay')
+    return eventdisplay(event, cars, reg, paid, sqappid, error)
 
 
 @Register.route("/<series>/squarepayment", methods=['POST'])
@@ -184,7 +207,7 @@ def view():
     g.settings = Settings.get()
     g.classdata = ClassData.get()
     registered = defaultdict(list)
-    for r in Registration.getForEvent(g.eventid):
+    for r in Registration.getForEvent(g.eventid, event.paymentRequired()):
         registered[r.classcode].append(r)
     return render_template('register/reglist.html', event=event, registered=registered)
 
@@ -310,8 +333,8 @@ def getAllUpcoming(driverid):
     return upcoming
  
 def decorateEvent(e, mycount):
-    e.drivercount  = e.getDriverCount()
-    e.entrycount   = e.getCount()
+    e.drivercount  = e.getRegisteredDriverCount()
+    e.entrycount   = e.getRegisteredCount()
     limits         = [[999, ""],]
     if e.sinlimit and e.drivercount >= e.sinlimit and mycount == 0:
         limits.append([0,          "The single entry limit of {} has been met".format(e.sinlimit)])

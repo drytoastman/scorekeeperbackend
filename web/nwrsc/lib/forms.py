@@ -206,8 +206,9 @@ class EventSettingsForm(MyFlaskForm):
     regclosed     = DateTimeField('Registration Closes',    render_kw={'title':'When registration should close'}, format='%Y-%m-%d %H:%M')
     perlimit      = IntegerField( 'Per Driver Entry Limit', render_kw={'title':'Limit to the number of entries a single driver can register (0=nolimit)'})
     totlimit      = IntegerField( 'Total Entry Limit',      render_kw={'title':'The total limit for all registrations for the event (0=nolimit)'})
-    cost          = FloatField(   'Cost', [Optional()],     render_kw={'title':'The cost to prepay for the event'})
-    payments      = MyStringField('Payment Account',        render_kw={'title':'TBD: the payment account information for taking prepayments'})
+    cost          = MyStringField('Cost', [Optional()],     render_kw={'title':'The cost to prepay for the event, can be a JSON object of labels to values'})
+    payments      = SelectField(  'Payment Account')
+    paymentreq    = BooleanField( 'Payment Required',       render_kw={'title':'Check this box to require payment for registration'})
     notes         = TextAreaField('Notes',                  render_kw={'title':'Notes for the event that show up on the registation page', 'rows':6})
     ispro         = BooleanField( 'Is A ProSolo',           render_kw={'title':'Check if this is a ProSolo style event'}) 
     ispractice    = BooleanField( 'Is A Practice',          render_kw={'title':'Check if this is a practice and not counted towards championship points'})
@@ -235,4 +236,10 @@ class SeriesForm(MyFlaskForm):
 class ArchiveForm(MyFlaskForm):
     name         = MyStringField(  'Enter Series Name', [Length(min=6, max=12)])
     submit       = SubmitField(    'Archive')
+
+class SquareAccountForm(MyFlaskForm):
+    name       = MyStringField(  'Account Name', [Length(min=4)])
+    accountid  = MyStringField(  'Account Id')
+    token      = MyStringField(  'Payment Token')
+    submit     = SubmitField(    'Add')
 

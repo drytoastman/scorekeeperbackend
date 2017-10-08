@@ -4,7 +4,67 @@
 
 {% block headers %}
 {{super()}}
+<script type="text/javascript" src="https://js.squareup.com/v2/paymentform"></script>
 <script type="text/javascript">
+
+{% if sqappid %}
+var applicationId = '{{sqappid}}';
+try {
+var paymentForm = new SqPaymentForm({
+  applicationId: applicationId,
+  //locationId: locationId,
+  inputClass: 'sq-input',
+  inputStyles: [ { fontSize: '15px', lineHeight: '23px' } ],
+  // Used for credit card payments
+  cardNumber:     { elementId: 'sq-card-number',     placeholder: '.... .... .... ....' },
+  cvv:            { elementId: 'sq-cvv',             placeholder: 'CVV' },
+  expirationDate: { elementId: 'sq-expiration-date', placeholder: 'MM/YY' },
+  postalCode:     { elementId: 'sq-postal-code' },
+  // Payment form callback functions
+  callbacks: {
+    // Used for credit card payments. Called when the SqPaymentForm
+    // completes a request to generate a card nonce, even if the request
+    // failed because of an error.
+    cardNonceResponseReceived: function(errors, nonce, cardData) {
+      if (errors) {
+        console.log("Encountered errors:");
+        errors.forEach(function(error) { console.log('  ' + error.message); });
+        return;
+      } else {
+
+        // You can delete this line, it's provided for testing purposes
+        alert('Nonce received: ' + nonce);
+        // Assign the nonce value to the hidden form field
+        document.getElementById('card-nonce').value = nonce;
+        document.getElementById('nonce-form').submit();
+
+        // Let the form continue to the payment processing page
+        submitPayment(nonce);
+      }
+    },
+
+    unsupportedBrowserDetected: function() {
+        alert('Browser not supported for square payments');
+    },
+
+    paymentFormLoaded: function() {
+      // Fill in this callback to perform actions after the payment form is
+      // done loading (such as setting the postal code field programmatically).
+      // paymentForm.setPostalCode('94103');
+    }
+  }
+});
+} catch (e) {
+    console.log("Square not available:" + e);
+}
+
+// This function is called when a buyer clicks the Submit button on the webpage to charge their card.
+function requestCardNonce(event) {
+  event.preventDefault();
+  paymentForm.requestCardNonce();
+}
+{% endif %}
+
 $(document).ready(function() { 
     $('[id^=eventtog]').each(function (ii, val) {
         add_collapse_icons('#'+this.id); 
@@ -48,13 +108,15 @@ function initregform(id, eventid, limit, msg)
 
     me.find('input[name=eventid]').val(eventid);
     me.find('input[type=checkbox]').prop('checked', false).prop('disabled', false).click(checkmax);
-    gRegistered[eventid].forEach(function (carid) {
-        me.find("input[name="+carid+"]").prop('checked', true);
+    gRegistered[eventid].forEach(function (regentry) {
+        me.find("input[name="+regentry.carid+"]").prop('checked', true);
     });
+
     checkmax();
 }
 
 var gRegistered = Array();
+var gCosts = Array();
 </script>
 {% endblock headers %}
 
@@ -76,7 +138,7 @@ var gRegistered = Array();
     </div>
 
     <div id='eventtog{{ev.eventid}}' data-eventid='{{ev.eventid}}' class='eventholder {{eclass}} collapse row'>
-    {{rm.eventdisplay(ev, cars, registered[ev.eventid], squareacct)}}
+    {{rm.eventdisplay(ev, cars, registered[ev.eventid], payments[ev.eventid], sqappid)}}
     </div>
 
 {% endfor %}
@@ -85,6 +147,7 @@ var gRegistered = Array();
 
 {% call m.modal('registermodal', 'Register Cars', '') %}
     <form id='registerform' action='{{url_for(".eventspost")}}' method='POST'>
+        <input type="hidden" id="card-nonce" name="nonce">
         <input type='hidden' name='eventid' value=''/>
         <div class='row'>
         <div class='col text-center'><a href='cars'><span class='fa fa-car'></span>Create,Edit and Delete Cars Here</a></div>
@@ -99,21 +162,20 @@ var gRegistered = Array();
         <div class='col text-center'><span class='statuslabel error'></span></div>
         </div>
         <div class='row'>
-        <div class='col'><input type='submit' class='btn btn-register' value='Update'/></div>
+        <div class='col'><input id='regupdatebutton' type='submit' class='btn btn-register' value='Update'/></div>
         </div>
     </form>
 {% endcall %}
 
-{% call m.modal('paymentmodal', 'Square Payment', '') %}
-    <div class='row'><label class='col-md-4'>Card Number</label>    <div class='col-md-8' id="sq-card-number"></div></div>
-    <div class='row'><label class='col-md-4'>CVV</label>            <div class='col-md-8' id="sq-cvv"></div></div>
-    <div class='row'><label class='col-md-4'>Expiration Date</label><div class='col-md-8' id="sq-expiration-date"></div></div>
-    <div class='row'><label class='col-md-4'>Postal Code</label>    <div class='col-md-8' id="sq-postal-code"></div></div>
-    <form id="nonce-form" novalidate action="{{url_for('.squarepayment')}}" method="post">
-      <input type="hidden" id="card-nonce" name="nonce">
-        <div class='row'>
-        <div class='col'><input type='submit' class='btn btn-register' value='Make Payment' onclick="requestCardNonce(event)"/></div>
-        </div>
+{% call m.modal('squaremodal', 'Payment', '') %}
+    <form id='paymentform' action='{{url_for(".squarepayment")}}' method='POST'>
+        <img class='square' src="/static/images/squarelogo.svg"/>
+        <div class='row square'><label class='col-md-4'>Card Number</label>    <div class='col-md-8' id="sq-card-number"></div></div>
+        <div class='row square'><label class='col-md-4'>CVV</label>            <div class='col-md-8' id="sq-cvv"></div></div>
+        <div class='row square'><label class='col-md-4'>Expiration Date</label><div class='col-md-8' id="sq-expiration-date"></div></div>
+        <div class='row square'><label class='col-md-4'>Postal Code</label>    <div class='col-md-8' id="sq-postal-code"></div></div>
+        <div class='row square'><label class='col-md-4'>Cost</label>           <div class='col-md-8'>50.00</div></div>
+        <div class='row square'><div class='col'><input id='regpaybutton' type='submit' class='btn btn-register' value='Pay' onclick="requestCardNonce(event)"/></div></div>
     </form>
 {% endcall %}
 

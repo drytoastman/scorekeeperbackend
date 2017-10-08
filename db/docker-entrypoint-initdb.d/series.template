@@ -160,11 +160,37 @@ GRANT  ALL ON timertimes TO <seriesname>;
 COMMENT ON TABLE runs IS 'The list of all times received by data entry, we do not track changes as its intention is to be insert-only';
 
 
+CREATE TABLE paymentaccounts (
+    accountid TEXT      PRIMARY KEY,
+    name      TEXT      NOT NULL,
+    type      TEXT      NOT NULL,
+    attr      JSONB     NOT NULL,
+    modified  TIMESTAMP NOT NULL DEFAULT now()
+);
+REVOKE ALL ON paymentaccounts FROM public;
+GRANT  ALL ON paymentaccounts TO <seriesname>;
+COMMENT ON TABLE paymentaccounts IS 'the list of configured merchant data available for online payment options, this is NOT synced between nodes';
+
+
+CREATE TABLE payments (
+    txid      TEXT      PRIMARY KEY,
+    accountid TEXT      NOT NULL REFERENCES paymentaccounts,
+    driverid  UUID      NOT NULL REFERENCES public.drivers,
+    eventid   UUID      NOT NULL REFERENCES events, 
+    amount    FLOAT     NOT NULL DEFAULT 0.0,
+    modified  TIMESTAMP NOT NULL DEFAULT now()
+);
+REVOKE ALL ON payments FROM public;
+GRANT  ALL ON payments TO <seriesname>;
+CREATE TRIGGER paymod AFTER INSERT OR UPDATE OR DELETE ON payments FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
+CREATE TRIGGER payuni BEFORE UPDATE ON payments FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified();
+COMMENT ON TABLE payments IS 'The list of driver payments for events';
+
+
 CREATE TABLE registered (
     eventid  UUID         NOT NULL REFERENCES events, 
     carid    UUID         NOT NULL REFERENCES cars, 
-    paid     NUMERIC(3,2) NOT NULL DEFAULT 0.0,
-    txid     TEXT         NOT NULL DEFAULT '',
+    txid     TEXT         REFERENCES payments,
     modified TIMESTAMP    NOT NULL DEFAULT now(),
     PRIMARY KEY (eventid, carid)
 );
@@ -268,16 +294,4 @@ GRANT  ALL ON challengeruns TO <seriesname>;
 CREATE TRIGGER crunmod AFTER INSERT OR UPDATE OR DELETE ON challengeruns FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
 CREATE TRIGGER crununi BEFORE UPDATE ON challengeruns FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified();
 COMMENT ON TABLE challengeruns IS 'the list of runs for a challenge in a ProSolo, different from regular runs table';
-
-
-CREATE TABLE merchants (
-    merchantid TEXT      PRIMARY KEY,
-    name       TEXT      NOT NULL,
-    type       TEXT      NOT NULL,
-    attr       JSONB     NOT NULL,
-    modified   TIMESTAMP NOT NULL DEFAULT now()
-);
-REVOKE ALL ON merchants FROM public;
-GRANT  ALL ON merchants TO <seriesname>;
-COMMENT ON TABLE merchants IS 'the list of configured merchant data available for online payment options, this is NOT synced between nodes';
 

@@ -220,6 +220,7 @@ def settings():
 def eventedit():
     """ Process edit event form submission """
     form = EventSettingsForm()
+    form.payments.choices = [('', '')] + [(a.accountid, a.name) for a in PaymentAccount.getAll()]
     if request.form:
         if form.validate():
             newevent = Event()
@@ -238,6 +239,7 @@ def eventedit():
 def createevent():
     """ Present form to create a new event """
     form = EventSettingsForm()
+    form.payments.choices = [('', '')] + [(a.accountid, a.name) for a in PaymentAccount.getAll()]
     if request.form:
         if form.validate():
             newevent = Event()
@@ -368,11 +370,11 @@ def newseries():
     return render_template('/admin/newseries.html', form=form)
 
 
-@Admin.route("/merchants")
-def merchants():
-    merchants = Merchant.getAll()
+@Admin.route("/accounts")
+def accounts():
+    accounts = PaymentAccount.getAll()
     sqappid = current_app.config.get('SQ_APPLICATION_ID', '')
-    return render_template('/admin/merchants.html', merchants=merchants, sqappid=sqappid)
+    return render_template('/admin/paymentaccounts.html', accounts=accounts, sqappid=sqappid)
 
 
 @Admin.endpoint("Admin.squarecallback")
@@ -386,13 +388,13 @@ def squarecallback():
     authorization_code = request.args.get('code', None)
     if not authorization_code:
         flash('Authorization Failed')
-        return redirect(url_for('.merchants'))
+        return redirect(url_for('.accounts'))
 
     appid     = current_app.config.get('SQ_APPLICATION_ID', '')
     appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
     if not appid or not appsecret:
         flash('There is no square applcation setup in the local configuration')
-        return redirect(url_for('.merchants'))
+        return redirect(url_for('.accounts'))
 
     oauth_headers = {
       'Authorization': 'Client '+appsecret,
@@ -411,7 +413,7 @@ def squarecallback():
     response = json.loads(connection.getresponse().read())
     if not response.get('access_token', ''):
         flash('Code exchange failed')
-        return redirect(url_for('.merchants'))
+        return redirect(url_for('.accounts'))
 
     name = response['merchant_id']
     try:
@@ -427,14 +429,14 @@ def squarecallback():
         log.warning("merchant name lookup error", exc_info=e)
 
     try:
-        m = Merchant()
-        m.merchantid = response['merchant_id']
-        m.name       = name
-        m.type       = "square"
-        m.attr       = {'access_token': response['access_token'], 'expires_at': response['expires_at'] }
-        m.insert()
+        p = PaymentAccount()
+        p.accountid = response['merchant_id']
+        p.name      = name
+        p.type      = "square"
+        p.attr      = {'access_token': response['access_token'], 'expires_at': response['expires_at'] }
+        p.insert()
     except Exception as e:
-        flash("Inserting new merchant failed: " + str(e))
+        flash("Inserting new payment account failed: " + str(e))
 
-    return redirect(url_for('.merchants'))
+    return redirect(url_for('.accounts'))
 

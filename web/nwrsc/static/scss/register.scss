@@ -33,8 +33,30 @@ ul {
         font-weight: bold;
         display: block;
     }
+    span.label {
+        font-size: 70%;
+        margin-left: 0.1rem;
+    }
+    span.unpaid {
+        color: red;
+    } 
+    span.paid {
+        color: green;
+    } 
     span.desc {
         font-size: 0.9rem;
+    }
+}
+
+span.payments {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 1rem;
+    font-weight: bold;
+    span.amount {
+        display: block;
+        text-align: center;
+        font-weight: normal;
     }
 }
 
@@ -58,6 +80,7 @@ ul {
         dd.ddhtml {
             margin-left: 3.0rem;
         }
+        
         dd:not(.ddhtml) {
             margin-left: 0.3rem;
             display: inline;
@@ -66,6 +89,18 @@ ul {
                 vertical-align: middle;
                 margin-left: -0.3rem;
             }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .eventcarlist {
+        button {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        span.payments {
+            margin: auto 0;
         }
     }
 }
@@ -275,4 +310,9 @@ ul {
     outline: 5px auto rgb(255, 97, 97);
 }
 
+img.square {
+    height: 2rem;
+    margin: 0.5rem auto;
+    display: block;
+}
 
