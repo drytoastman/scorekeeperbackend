@@ -99,8 +99,8 @@ class Payment(AttrBase):
 class PaymentAccount(AttrBase):
     TABLENAME = "paymentaccounts"
     @classmethod
-    def getAll(cls):
-        return cls.getall("select * from paymentaccounts order by name")
+    def getAllOnline(cls):
+        return cls.getall("select * from paymentaccounts where accountid!='onsite' order by name")
 
 
 class Registration(AttrBase):

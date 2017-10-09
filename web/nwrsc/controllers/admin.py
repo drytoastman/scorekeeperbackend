@@ -220,7 +220,7 @@ def settings():
 def eventedit():
     """ Process edit event form submission """
     form = EventSettingsForm()
-    form.payments.choices = [('', '')] + [(a.accountid, a.name) for a in PaymentAccount.getAll()]
+    form.payments.choices = [('', '')] + [(a.accountid, a.name) for a in PaymentAccount.getAllOnline()]
     if request.form:
         if form.validate():
             newevent = Event()
@@ -239,7 +239,7 @@ def eventedit():
 def createevent():
     """ Present form to create a new event """
     form = EventSettingsForm()
-    form.payments.choices = [('', '')] + [(a.accountid, a.name) for a in PaymentAccount.getAll()]
+    form.payments.choices = [('', '')] + [(a.accountid, a.name) for a in PaymentAccount.getAllOnline()]
     if request.form:
         if form.validate():
             newevent = Event()
@@ -372,7 +372,7 @@ def newseries():
 
 @Admin.route("/accounts")
 def accounts():
-    accounts = PaymentAccount.getAll()
+    accounts = PaymentAccount.getAllOnline()
     sqappid = current_app.config.get('SQ_APPLICATION_ID', '')
     return render_template('/admin/paymentaccounts.html', accounts=accounts, sqappid=sqappid)
 

@@ -170,6 +170,7 @@ CREATE TABLE paymentaccounts (
 REVOKE ALL ON paymentaccounts FROM public;
 GRANT  ALL ON paymentaccounts TO <seriesname>;
 COMMENT ON TABLE paymentaccounts IS 'the list of configured merchant data available for online payment options, this is NOT synced between nodes';
+INSERT INTO paymentaccounts (accountid, name, type, attr) VALUES ('onsite', 'Onsite Payment', 'onsite', '{}');
 
 
 CREATE TABLE payments (
