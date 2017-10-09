@@ -314,7 +314,6 @@ if __name__ == '__main__':
     else:
         # Archive assumes that database is blank before we start this dog and pony show
         archive = sys.argv[2].lower() == 'true'
-        print(glob.glob(sys.argv[1]))
         app = create_app()
         for f in glob.glob(sys.argv[1]):
             convert(f, archive)
