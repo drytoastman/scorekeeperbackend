@@ -87,6 +87,7 @@ class NumberEntry(AttrBase):
 
 
 class Payment(AttrBase):
+    TABLENAME = "payments"
     @classmethod
     def getForDriver(cls, driverid):
         return cls.getall("SELECT * FROM payments WHERE driverid=%s", (driverid,))
@@ -101,6 +102,10 @@ class PaymentAccount(AttrBase):
     @classmethod
     def getAllOnline(cls):
         return cls.getall("select * from paymentaccounts where accountid!='onsite' order by name")
+
+    @classmethod
+    def get(cls, accountid):
+        return cls.getunique("select * from paymentaccounts where accountid=%s", (accountid, ))
 
 
 class Registration(AttrBase):

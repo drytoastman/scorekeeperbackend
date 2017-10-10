@@ -10,64 +10,62 @@
 {% if sqappid %}
 var applicationId = '{{sqappid}}';
 try {
-var paymentForm = new SqPaymentForm({
-  applicationId: applicationId,
-  //locationId: locationId,
-  inputClass: 'sq-input',
-  inputStyles: [ { fontSize: '15px', lineHeight: '23px' } ],
-  // Used for credit card payments
-  cardNumber:     { elementId: 'sq-card-number',     placeholder: '.... .... .... ....' },
-  cvv:            { elementId: 'sq-cvv',             placeholder: 'CVV' },
-  expirationDate: { elementId: 'sq-expiration-date', placeholder: 'MM/YY' },
-  postalCode:     { elementId: 'sq-postal-code' },
-  // Payment form callback functions
-  callbacks: {
-    // Used for credit card payments. Called when the SqPaymentForm
-    // completes a request to generate a card nonce, even if the request
-    // failed because of an error.
-    cardNonceResponseReceived: function(errors, nonce, cardData) {
-      if (errors) {
-        console.log("Encountered errors:");
-        errors.forEach(function(error) { console.log('  ' + error.message); });
-        return;
-      } else {
-
-        // You can delete this line, it's provided for testing purposes
-        alert('Nonce received: ' + nonce);
-        // Assign the nonce value to the hidden form field
-        document.getElementById('card-nonce').value = nonce;
-        document.getElementById('nonce-form').submit();
-
-        // Let the form continue to the payment processing page
-        submitPayment(nonce);
+  var paymentForm = new SqPaymentForm({
+      applicationId:  applicationId,
+      inputClass:     'sq-input',
+      inputStyles:    [ { fontSize: '15px', lineHeight: '23px' } ],
+      cardNumber:     { elementId: 'sq-card-number',     placeholder: '.... .... .... ....' },
+      cvv:            { elementId: 'sq-cvv',             placeholder: 'CVV' },
+      expirationDate: { elementId: 'sq-expiration-date', placeholder: 'MM/YY' },
+      postalCode:     { elementId: 'sq-postal-code' },
+      // Payment form callback functions
+      callbacks: {
+        unsupportedBrowserDetected: function() { alert('Browser not supported for square payments'); },
+        cardNonceResponseReceived: function(errors, nonce, cardData) {
+          if (errors) {
+            console.log(errors);
+          } else {
+            $('#squareform input[name=nonce]').val(nonce);
+            eventRelativeSubmit($('#squareform'));
+          }
+        },
       }
-    },
-
-    unsupportedBrowserDetected: function() {
-        alert('Browser not supported for square payments');
-    },
-
-    paymentFormLoaded: function() {
-      // Fill in this callback to perform actions after the payment form is
-      // done loading (such as setting the postal code field programmatically).
-      // paymentForm.setPostalCode('94103');
-    }
-  }
-});
+  });
 } catch (e) {
     console.log("Square not available:" + e);
 }
 
-// This function is called when a buyer clicks the Submit button on the webpage to charge their card.
-function requestCardNonce(event) {
-  event.preventDefault();
-  paymentForm.requestCardNonce();
-}
 {% endif %}
+
+// Submit change requests/payments via AJAX and then update the event section separately
+function eventRelativeSubmit(form)
+{
+    form.closest('.modal').modal('hide');
+    var eventid = form.find('input[name=eventid]').val();
+    var targetdiv = $('#eventtog'+eventid);
+    var sheight = targetdiv.height();
+    targetdiv.html('<i class="fa fa-spinner fa-pulse fa-3x fa-fw text-center"></i>');
+    targetdiv.height(sheight);
+
+    $.ajax({
+        dataType: "html",
+        url: form.attr('action'),
+        data: form.serialize(),
+        method: 'POST',
+        success: function(data) { targetdiv.html(data); },
+        error: function(xhr, stat, error) { targetdiv.html('<div class="error">'+xhr.responseText+'</div>'); },
+        complete: function(xhr) { targetdiv.height('auto'); }
+        });
+}
 
 $(document).ready(function() { 
     $('[id^=eventtog]').each(function (ii, val) {
         add_collapse_icons('#'+this.id); 
+    });
+
+    $('#squaremodal').on('show.bs.modal', function (e) {
+        var button = $(e.relatedTarget) // Button that triggered the modal
+        initsquareform('#squareform', button.data('eventid'));
     });
 
     $('#registermodal').on('show.bs.modal', function (e) {
@@ -77,25 +75,28 @@ $(document).ready(function() {
 
     $('#registerform input[type=submit]').click(function (e) {
         e.preventDefault();
-        $('#registermodal').modal('hide');
-        var form = $('#registerform');
-        var eventid = form.find('input[name=eventid]').val();
-        var targetdiv = $('#eventtog'+eventid);
-        var sheight = targetdiv.height();
-        targetdiv.html('<i class="fa fa-spinner fa-pulse fa-3x fa-fw text-center"></i>');
-        targetdiv.height(sheight);
+        eventRelativeSubmit($('#registerform'));
+    });
 
-        $.ajax({
-            dataType: "html",
-            url: form.attr('action'),
-            data: form.serialize(),
-            method: 'POST',
-            success: function(data) { targetdiv.html(data); },
-            error: function(xhr, stat, error) { targetdiv.html('<div class="error">'+xhr.responseText+'</div>'); },
-            complete: function(xhr) { targetdiv.height('auto'); }
-            });
+    $('#squareform input[type=submit]').click(function (e) {
+        e.preventDefault();
+        paymentForm.requestCardNonce();
     });
 });
+
+
+function initsquareform(id, eventid)
+{
+    var me = $(id);
+    me.find('input[name=eventid]').val(eventid);
+    paymentForm.setPostalCode('{{g.driver.attr.zip}}');
+    costs = gCosts[eventid].options;
+    options = [];
+    for (key in costs) {
+        options.push($('<option/>').val(costs[key]).text(key));
+    }
+    me.find('select[name=amount]').empty().append(options);
+}
 
 function initregform(id, eventid, limit, msg)
 {
@@ -147,7 +148,6 @@ var gCosts = Array();
 
 {% call m.modal('registermodal', 'Register Cars', '') %}
     <form id='registerform' action='{{url_for(".eventspost")}}' method='POST'>
-        <input type="hidden" id="card-nonce" name="nonce">
         <input type='hidden' name='eventid' value=''/>
         <div class='row'>
         <div class='col text-center'><a href='cars'><span class='fa fa-car'></span>Create,Edit and Delete Cars Here</a></div>
@@ -168,14 +168,16 @@ var gCosts = Array();
 {% endcall %}
 
 {% call m.modal('squaremodal', 'Payment', '') %}
-    <form id='paymentform' action='{{url_for(".squarepayment")}}' method='POST'>
+    <form id='squareform' action='{{url_for(".square")}}' method='POST'>
+        <input type='hidden' name='nonce'   value=''/>
+        <input type='hidden' name='eventid' value=''/>
         <img class='square' src="/static/images/squarelogo.svg"/>
         <div class='row square'><label class='col-md-4'>Card Number</label>    <div class='col-md-8' id="sq-card-number"></div></div>
         <div class='row square'><label class='col-md-4'>CVV</label>            <div class='col-md-8' id="sq-cvv"></div></div>
         <div class='row square'><label class='col-md-4'>Expiration Date</label><div class='col-md-8' id="sq-expiration-date"></div></div>
         <div class='row square'><label class='col-md-4'>Postal Code</label>    <div class='col-md-8' id="sq-postal-code"></div></div>
-        <div class='row square'><label class='col-md-4'>Cost</label>           <div class='col-md-8'>50.00</div></div>
-        <div class='row square'><div class='col'><input id='regpaybutton' type='submit' class='btn btn-register' value='Pay' onclick="requestCardNonce(event)"/></div></div>
+        <div class='row square'><label class='col-md-4'>Type</label>           <div class='col-md-8 p-0'><select name='amount'></select></div></div>
+        <div class='row square'><div class='col'><input id='regpaybutton' type='submit' class='btn btn-register' value='Pay'/></div></div>
     </form>
 {% endcall %}
 

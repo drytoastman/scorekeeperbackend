@@ -5,7 +5,7 @@ import psycopg2.extras
 
 from flask import g
 
-TABLES = ['drivers', 'cars', 'events', 'paymentaccounts']
+TABLES = ['drivers', 'cars', 'events', 'payments', 'paymentaccounts']
 COLUMNS       = dict()
 PRIMARY_KEYS  = dict()
 NONPRIMARY    = dict()

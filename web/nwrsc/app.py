@@ -118,7 +118,7 @@ def create_app():
     theapp.register_blueprint(Register,  url_prefix="/register")
     theapp.register_blueprint(Results,   url_prefix="/results/<series>")
     theapp.register_blueprint(Xml,       url_prefix="/xml/<series>")
-    theapp.add_url_rule('/admin/squarecallback', "Admin.squarecallback")
+    theapp.add_url_rule('/admin/squareoauth', "Admin.squareoauth")
     theapp.add_url_rule('/admin/',       "Admin.base")
     theapp.add_url_rule('/results/',     "Results.base")
 

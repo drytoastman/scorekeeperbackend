@@ -9,6 +9,7 @@ import itsdangerous
 from flask import abort, Blueprint, current_app, flash, g, get_template_attribute, redirect, request, render_template, session, url_for
 from flask_mail import Message
 
+from nwrsc.controllers.square import *
 from nwrsc.model import *
 from nwrsc.lib.forms import *
 from nwrsc.lib.misc import *
@@ -128,41 +129,11 @@ def events():
     return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, sqappid=sqappid)
 
 
-@Register.route("/<series>/eventspost", methods=['POST'])
-def eventspost():
-    if not g.driver: raise NotLoggedInException()
-
-    try:
-        error   = ""
-        eventid = uuid.UUID(request.form['eventid'])
-        carids  = [uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True]
-        curreg  = len([r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
-        event   = Event.get(eventid)
-        payments= Payment.getForDriverEvent(g.driver.driverid, eventid)
-        minpay  = max(event.getMinCost(), 0.01)
-        decorateEvent(event, curreg) # Figure out limit with current registration
-        if len(carids) > event.mylimit:
-            error = "Limit hit outside session, request aborted"
-        else:
-            pairs = [[cid, None] for cid in carids]
-            total = 0
-            idx = 0
-            for p in payments:  # reassign payments to registrations
-                total += p.amount
-                while total >= minpay and idx < len(pairs):
-                    pairs[idx][1] = p.txid
-                    idx += 1
-                    total -= minpay
-                    log.info("{}, {}".format(total, minpay))
-
-            Registration.update(eventid, pairs, g.driver.driverid)
-    except Exception as e:
-        g.db.rollback()
-        log.warning("exception in events post: " + str(e), exc_info=e)
-        return "<div class='error'>{}</div>".format(e)
-
+def _renderSingleEvent(event, error):
+    """ For returning HTML for a single event div in response to updates/payments """
     cars    = {c.carid:c for c in Car.getForDriver(g.driver.driverid)}
-    reg     = [ r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid ]
+    reg     = [ r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == event.eventid ]
+    payments= Payment.getForDriverEvent(g.driver.driverid, event.eventid)
     sqappid = current_app.config.get('SQ_APPLICATION_ID', '')
     decorateEvent(event, len(reg))
     if payments:
@@ -174,9 +145,59 @@ def eventspost():
     return eventdisplay(event, cars, reg, paid, sqappid, error)
 
 
-@Register.route("/<series>/squarepayment", methods=['POST'])
-def squarepayment():
-    return "square payment {}".format(request.form)
+def _matchPaymentsToRegistration(event, carids):
+    minpay   = max(event.getMinCost(), 0.01)
+    payments = Payment.getForDriverEvent(g.driver.driverid, event.eventid)
+    pairs    = [[cid, None] for cid in carids]
+    total    = 0
+    idx      = 0
+    for p in payments:  # reassign payments to registrations
+        total += p.amount
+        while total >= minpay and idx < len(pairs):
+            pairs[idx][1] = p.txid
+            idx += 1
+            total -= minpay
+            log.info("{}, {}".format(total, minpay))
+
+    Registration.update(event.eventid, pairs, g.driver.driverid)
+
+
+@Register.route("/<series>/eventspost", methods=['POST'])
+def eventspost():
+    if not g.driver: raise NotLoggedInException()
+
+    try:
+        error   = ""
+        eventid = uuid.UUID(request.form['eventid'])
+        event   = Event.get(eventid)
+        carids  = [uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True]
+        curreg  = len([r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
+        decorateEvent(event, curreg) # Figure out limit with current registration
+        if len(carids) > event.mylimit:
+            error = "Limit hit outside session, request aborted"
+        else:
+            _matchPaymentsToRegistration(event, carids)
+    except Exception as e:
+        g.db.rollback()
+        log.warning("exception in events post: " + str(e), exc_info=e)
+        return "<div class='error'>{}</div>".format(e)
+
+    return _renderSingleEvent(event, error)
+
+
+@Register.route("/<series>/square", methods=['POST'])
+def square():
+    if not g.driver: raise NotLoggedInException()
+    if not all(k in request.form for k in ('eventid', 'nonce', 'amount')):
+        return "Invalid square payment submssion"
+
+    eventid = uuid.UUID(request.form['eventid'])
+    event   = Event.get(eventid)
+    account = PaymentAccount.get(event.attr.get('payments'))
+    error   = square_payment(event, account, g.driver, float(request.form['amount']), request.form['nonce'])
+    if not error:
+        _matchPaymentsToRegistration(event, [r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
+    return _renderSingleEvent(event, error)
 
 
 @Register.route("/<series>/usednumbers")
