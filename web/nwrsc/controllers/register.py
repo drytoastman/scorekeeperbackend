@@ -188,13 +188,15 @@ def eventspost():
 @Register.route("/<series>/square", methods=['POST'])
 def square():
     if not g.driver: raise NotLoggedInException()
-    if not all(k in request.form for k in ('eventid', 'nonce', 'amount')):
+    if not all(k in request.form for k in ('eventid', 'nonce', 'amount', 'count')):
         return "Invalid square payment submssion"
 
     eventid = uuid.UUID(request.form['eventid'])
+    count   = int(request.form['count'])
+    amount  = float(request.form['amount'])
     event   = Event.get(eventid)
-    account = PaymentAccount.get(event.attr.get('payments'))
-    error   = square_payment(event, account, g.driver, float(request.form['amount']), request.form['nonce'])
+    account = PaymentAccount.get(event.accountid)
+    error   = square_payment(event, account, g.driver, count*amount, request.form['nonce'])
     if not error:
         _matchPaymentsToRegistration(event, [r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
     return _renderSingleEvent(event, error)

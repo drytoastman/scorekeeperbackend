@@ -295,9 +295,10 @@ span.payments {
 
 // square payment form
 .sq-input {
-    border: 1px solid rgb(223, 223, 223);
+    border: 1px solid $bordercolor; 
     outline-offset: -2px;
     height: 1.8rem;
+    padding-left: 0.6rem;
 }
 
 .sq-input--focus {
@@ -310,9 +311,14 @@ span.payments {
     outline: 5px auto rgb(255, 97, 97);
 }
 
-img.square {
+#squareform .total {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+#squareform img {
     height: 2rem;
-    margin: 0.5rem auto;
+    margin: 0 auto 1.0rem;
     display: block;
 }
 

@@ -140,6 +140,18 @@ LANGUAGE plpgsql;
 COMMENT ON FUNCTION verify_series(varchar) IS 'If series does not exist, reads in series template, replaces series variable name and executes the commands, requires series user to be present';
 
 
+-- Single row table to set and track schema version
+CREATE TABLE version (
+    id       INTEGER   NOT NULL DEFAULT 1 CHECK (id=1),
+    version  TEXT      NOT NULL,
+    modified TIMESTAMP NOT NULL DEFAULT now()
+);
+REVOKE ALL    ON version FROM public;
+GRANT  SELECT ON version TO driversaccess;
+CREATE TRIGGER versionmod AFTER INSERT OR UPDATE OR DELETE ON version FOR EACH ROW EXECUTE PROCEDURE logmods('publiclog');
+CREATE TRIGGER versionuni BEFORE UPDATE ON version FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified();
+
+
 -- The results table acts as a storage of calculated results and information for each series.  As enough information
 -- will exist here to supply the results set of pages, we can delete old series schema, release old unused driver
 -- information and solidify the driver information for older series (name changes, etc).

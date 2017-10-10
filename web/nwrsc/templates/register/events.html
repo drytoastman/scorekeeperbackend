@@ -68,6 +68,17 @@ $(document).ready(function() {
         initsquareform('#squareform', button.data('eventid'));
     });
 
+    $('#squareform input[type=submit]').click(function (e) {
+        e.preventDefault();
+        paymentForm.requestCardNonce();
+    });
+
+    $('#squareform select[name=amount], #squareform select[name=count]').change(function () {
+        var form = $('#squareform');
+        var total = form.find('select[name=amount]').val() * form.find('select[name=count]').val();
+        form.find('.total').html('$'+total.toFixed(2));
+    })
+
     $('#registermodal').on('show.bs.modal', function (e) {
         var button = $(e.relatedTarget) // Button that triggered the modal
         initregform('#registerform', button.data('eventid'), button.data('limit'), button.data('msg'))
@@ -76,11 +87,6 @@ $(document).ready(function() {
     $('#registerform input[type=submit]').click(function (e) {
         e.preventDefault();
         eventRelativeSubmit($('#registerform'));
-    });
-
-    $('#squareform input[type=submit]').click(function (e) {
-        e.preventDefault();
-        paymentForm.requestCardNonce();
     });
 });
 
@@ -96,6 +102,7 @@ function initsquareform(id, eventid)
         options.push($('<option/>').val(costs[key]).text(key));
     }
     me.find('select[name=amount]').empty().append(options);
+    me.find('select[name=count]').val(1).change();
 }
 
 function initregform(id, eventid, limit, msg)
@@ -171,13 +178,15 @@ var gCosts = Array();
     <form id='squareform' action='{{url_for(".square")}}' method='POST'>
         <input type='hidden' name='nonce'   value=''/>
         <input type='hidden' name='eventid' value=''/>
-        <img class='square' src="/static/images/squarelogo.svg"/>
-        <div class='row square'><label class='col-md-4'>Card Number</label>    <div class='col-md-8' id="sq-card-number"></div></div>
-        <div class='row square'><label class='col-md-4'>CVV</label>            <div class='col-md-8' id="sq-cvv"></div></div>
-        <div class='row square'><label class='col-md-4'>Expiration Date</label><div class='col-md-8' id="sq-expiration-date"></div></div>
-        <div class='row square'><label class='col-md-4'>Postal Code</label>    <div class='col-md-8' id="sq-postal-code"></div></div>
-        <div class='row square'><label class='col-md-4'>Type</label>           <div class='col-md-8 p-0'><select name='amount'></select></div></div>
-        <div class='row square'><div class='col'><input id='regpaybutton' type='submit' class='btn btn-register' value='Pay'/></div></div>
+        <img src="/static/images/squarelogo.svg"/>
+        <div class='row'><label class='col-md-4'>Card Number</label>    <div class='col-md-8 p-0'><div id="sq-card-number"></div></div></div>
+        <div class='row'><label class='col-md-4'>CVV</label>            <div class='col-md-8 p-0'><div id="sq-cvv"></div></div></div>
+        <div class='row'><label class='col-md-4'>Expiration Date</label><div class='col-md-8 p-0'><div id="sq-expiration-date"></div></div></div>
+        <div class='row'><label class='col-md-4'>Postal Code</label>    <div class='col-md-8 p-0'><div id="sq-postal-code"></div></div></div>
+        <div class='row'><label class='col-md-4'>Type</label>           <div class='col-md-8 p-0'><select name='amount'></select></div></div>
+        <div class='row'><label class='col-md-4'>Count</label>          <div class='col-md-8 p-0'><select name='count'><option value=1>1x</option><option value=2>2x</option></select></div></div>
+        <div class='row'><label class='col-md-4'>Total</label>          <div class='col-md-8 p-0 total'>$0.00</div></div>
+        <div class='row'><div class='col p-0'><input id='regpaybutton' type='submit' class='btn btn-register' value='Pay'/></div></div>
     </form>
 {% endcall %}
 

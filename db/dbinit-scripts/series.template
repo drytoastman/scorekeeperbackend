@@ -79,6 +79,20 @@ COMMENT ON COLUMN classlist.champtrophy     IS 'True if cars in this class are i
 COMMENT ON COLUMN classlist.secondruns      IS 'True if this class is meant for second runs of the day';
 COMMENT ON COLUMN classlist.countedruns     IS 'If > 0, the number of runs that are counted towards final results';
 
+
+CREATE TABLE paymentaccounts (
+    accountid TEXT      PRIMARY KEY,
+    name      TEXT      NOT NULL,
+    type      TEXT      NOT NULL,
+    attr      JSONB     NOT NULL,
+    modified  TIMESTAMP NOT NULL DEFAULT now()
+);
+REVOKE ALL ON paymentaccounts FROM public;
+GRANT  ALL ON paymentaccounts TO <seriesname>;
+COMMENT ON TABLE paymentaccounts IS 'the list of configured merchant data available for online payment options, this is NOT synced between nodes';
+INSERT INTO paymentaccounts (accountid, name, type, attr) VALUES ('onsite', 'Onsite Payment', 'onsite', '{}');
+
+
 CREATE TABLE events (
     eventid       UUID        PRIMARY KEY, 
     name          TEXT        NOT NULL, 
@@ -96,6 +110,7 @@ CREATE TABLE events (
     gatepen       FLOAT       NOT NULL DEFAULT 10.0, 
     ispro         BOOLEAN     NOT NULL DEFAULT FALSE, 
     ispractice    BOOLEAN     NOT NULL DEFAULT FALSE, 
+    accountid     TEXT        REFERENCES paymentaccounts,
     attr          JSONB       NOT NULL,
     modified      TIMESTAMP   NOT NULL DEFAULT now()
 );
@@ -103,7 +118,7 @@ REVOKE ALL ON events FROM public;
 GRANT  ALL ON events TO <seriesname>;
 CREATE TRIGGER  eventmod AFTER  INSERT OR UPDATE OR DELETE ON events FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
 CREATE TRIGGER  eventuni BEFORE UPDATE ON events FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified();
-COMMENT ON TABLE events IS 'The list of events for this series, attr includes location, sponsor, host, chair, designer, snail, cost, payments, notes, etc';
+COMMENT ON TABLE events IS 'The list of events for this series, attr includes location, sponsor, host, chair, designer, snail, costs, notes, etc';
 
 
 CREATE TABLE cars (
@@ -158,19 +173,6 @@ CREATE TABLE timertimes(
 REVOKE ALL ON timertimes FROM public;
 GRANT  ALL ON timertimes TO <seriesname>;
 COMMENT ON TABLE runs IS 'The list of all times received by data entry, we do not track changes as its intention is to be insert-only';
-
-
-CREATE TABLE paymentaccounts (
-    accountid TEXT      PRIMARY KEY,
-    name      TEXT      NOT NULL,
-    type      TEXT      NOT NULL,
-    attr      JSONB     NOT NULL,
-    modified  TIMESTAMP NOT NULL DEFAULT now()
-);
-REVOKE ALL ON paymentaccounts FROM public;
-GRANT  ALL ON paymentaccounts TO <seriesname>;
-COMMENT ON TABLE paymentaccounts IS 'the list of configured merchant data available for online payment options, this is NOT synced between nodes';
-INSERT INTO paymentaccounts (accountid, name, type, attr) VALUES ('onsite', 'Onsite Payment', 'onsite', '{}');
 
 
 CREATE TABLE payments (

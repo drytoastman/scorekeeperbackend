@@ -40,6 +40,23 @@ class MyEmailField(EmailField):
         kwargs.setdefault('required', 1)
         return EmailField.__call__(self, **kwargs)
 
+class BlankSelectField(SelectField):
+
+    def iter_choices(self):
+        yield ('__None', '', self.data is None)
+        yield from SelectField.iter_choices(self)
+
+    def process_formdata(self, valuelist):
+        if valuelist and valuelist[0] == '__None':
+            self.data = None
+        else:
+            SelectField.process_formdata(self, valuelist)
+
+    def pre_validate(self, form):
+        if self.data is not None:
+            SelectField.pre_validate(self, form)
+
+
 class MyFlaskForm(FlaskForm):
 
     def html(self, idx, action, method, btnclass='btn-primary', labelcol='col-md-3', inputcol='col-md-9'):
@@ -207,7 +224,7 @@ class EventSettingsForm(MyFlaskForm):
     perlimit      = IntegerField( 'Per Driver Entry Limit', render_kw={'title':'Limit to the number of entries a single driver can register (0=nolimit)'})
     totlimit      = IntegerField( 'Total Entry Limit',      render_kw={'title':'The total limit for all registrations for the event (0=nolimit)'})
     cost          = MyStringField('Cost', [Optional()],     render_kw={'title':'The cost to prepay for the event, can be a JSON object of labels to values'})
-    payments      = SelectField(  'Payment Account')
+    accountid     = BlankSelectField('Payment Account')
     paymentreq    = BooleanField( 'Payment Required',       render_kw={'title':'Check this box to require payment for registration'})
     notes         = TextAreaField('Notes',                  render_kw={'title':'Notes for the event that show up on the registation page', 'rows':6})
     ispro         = BooleanField( 'Is A ProSolo',           render_kw={'title':'Check if this is a ProSolo style event'}) 
