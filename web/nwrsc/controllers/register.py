@@ -120,22 +120,25 @@ def events():
     sqform   = SquarePaymentForm()
     registered = defaultdict(list)
     payments   = defaultdict(float)
+    accounts   = dict()
     for r in Registration.getForDriver(g.driver.driverid):
         registered[r.eventid].append(r)
     for e in events:
         decorateEvent(e, len(registered[e.eventid]))
     for p in Payment.getForDriver(g.driver.driverid):
         payments[p.eventid] += p.amount
+    for e in events:
+        accounts[e.eventid] = PaymentAccount.get(e.accountid)
 
-    return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, sqappid=sqappid, sqform=sqform)
+    return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, accounts=accounts, sqappid=sqappid, sqform=sqform)
 
 
 def _renderSingleEvent(event, error):
-    """ For returning HTML for a single event div in response to updates/payments """
+    """ INTERNAL: For returning HTML for a single event div in response to updates/payments """
     cars    = {c.carid:c for c in Car.getForDriver(g.driver.driverid)}
     reg     = [ r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == event.eventid ]
     payments= Payment.getForDriverEvent(g.driver.driverid, event.eventid)
-    sqappid = current_app.config.get('SQ_APPLICATION_ID', '')
+    account = PaymentAccount.get(event.accountid)
     decorateEvent(event, len(reg))
     if payments:
         paid = sum(p.amount for p in payments)
@@ -143,10 +146,11 @@ def _renderSingleEvent(event, error):
         paid = 0.0
 
     eventdisplay = get_template_attribute('/register/macros.html', 'eventdisplay')
-    return eventdisplay(event, cars, reg, paid, sqappid, error)
+    return eventdisplay(event, cars, reg, paid, account, error)
 
 
 def _matchPaymentsToRegistration(event, carids):
+    """ INTERNAL: For matching event payments to registered entries when either side changes """
     minpay   = max(event.getMinCost(), 0.01)
     payments = Payment.getForDriverEvent(g.driver.driverid, event.eventid)
     pairs    = [[cid, None] for cid in carids]
@@ -165,6 +169,7 @@ def _matchPaymentsToRegistration(event, carids):
 
 @Register.route("/<series>/eventspost", methods=['POST'])
 def eventspost():
+    """ Handles a add/change request from the user """
     if not g.driver: raise NotLoggedInException()
 
     try:
@@ -188,6 +193,7 @@ def eventspost():
 
 @Register.route("/<series>/square", methods=['POST'])
 def square():
+    """ Handles a square payment request from the user """
     if not g.driver: raise NotLoggedInException()
 
     form = SquarePaymentForm()

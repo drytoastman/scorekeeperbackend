@@ -30,10 +30,12 @@ $(document).ready(function(){
 </table>
 
 <button class='btn btn-admin' {{ not sqappid and "disabled" or "" }} onclick="location.href='https://connect.squareup.com/oauth2/authorize?client_id={{sqappid}}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE&state={{g.series}}'">(Re)Authorize Square Account</button>
-<button class='btn btn-outline-admin' data-toggle='modal' data-target='#squaremodal'>Manual Square Setup</button>
+<button class='btn btn-outline-admin' data-toggle='modal' data-target='#squaremodal'>Manual Square Add</button>
+<button class='btn btn-outline-admin' data-toggle='modal' data-target='#paypalmodal'>Manual Paypal Add</button>
 
 </div>
 
 {{m.modal('squaremodal', 'Manual Square Setup', sqacctform.html('squareform', url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
+{{m.modal('paypalmodal', 'Manual Square Setup', ppacctform.html('paypalform', url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
 
 {% endblock content %}

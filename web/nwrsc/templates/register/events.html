@@ -146,7 +146,7 @@ var gCosts = Array();
     </div>
 
     <div id='eventtog{{ev.eventid}}' data-eventid='{{ev.eventid}}' class='eventholder {{eclass}} collapse row'>
-    {{rm.eventdisplay(ev, cars, registered[ev.eventid], payments[ev.eventid], sqappid)}}
+    {{rm.eventdisplay(ev, cars, registered[ev.eventid], payments[ev.eventid], accounts[ev.eventid])}}
     </div>
 
 {% endfor %}
@@ -172,6 +172,10 @@ var gCosts = Array();
         <div class='col'><input id='regupdatebutton' type='submit' class='btn btn-register' value='Update'/></div>
         </div>
     </form>
+{% endcall %}
+
+{% call m.modal('paypalmodal', 'Payment', '') %}
+    Put paypal stuff here someday
 {% endcall %}
 
 {% call m.modal('squaremodal', 'Payment', '') %}

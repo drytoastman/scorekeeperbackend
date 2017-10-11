@@ -379,6 +379,8 @@ def delaccount():
 def accounts():
     action = request.form.get('submit')
     sqacctform = SquareAccountForm()
+    ppacctform = PayPalAccountForm()
+
     if action == 'Add Square Account':
         if sqacctform.validate():
             p = PaymentAccount()
@@ -391,9 +393,21 @@ def accounts():
             flashformerrors(sqacctform)
         return redirect(url_for('.accounts'))
 
+    if action == 'Add PayPal Account':
+        if ppacctform.validate():
+            p = PaymentAccount()
+            p.accountid = ppacctform.accountid.data
+            p.name      = ppacctform.name.data 
+            p.type      = "paypal"
+            p.attr      = { 'something': ppacctform.token.data }
+            p.insert()
+        else:
+            flashformerrors(ppacctform)
+        return redirect(url_for('.accounts'))
+ 
     accounts = PaymentAccount.getAllOnline()
     sqappid = current_app.config.get('SQ_APPLICATION_ID', '')
-    return render_template('/admin/paymentaccounts.html', accounts=accounts, sqappid=sqappid, sqacctform=sqacctform)
+    return render_template('/admin/paymentaccounts.html', accounts=accounts, sqappid=sqappid, sqacctform=sqacctform, ppacctform=ppacctform)
 
 
 @Admin.endpoint("Admin.squareoauth")

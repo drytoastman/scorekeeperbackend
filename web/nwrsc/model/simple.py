@@ -105,6 +105,7 @@ class PaymentAccount(AttrBase):
 
     @classmethod
     def get(cls, accountid):
+        if accountid is None: return None
         return cls.getunique("select * from paymentaccounts where accountid=%s", (accountid, ))
 
     @classmethod

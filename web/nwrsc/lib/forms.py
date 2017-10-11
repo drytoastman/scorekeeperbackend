@@ -260,6 +260,12 @@ class SquareAccountForm(MyFlaskForm):
     token      = MyStringField(  'Access Token')
     submit     = SubmitField(    'Add Square Account')
 
+class PayPalAccountForm(MyFlaskForm):
+    accountid  = MyStringField(  'Account Id')
+    name       = MyStringField(  'Name', [Length(min=4)])
+    token      = MyStringField(  'What data goes here?')
+    submit     = SubmitField(    'Add PayPal Account')
+
 class SquarePaymentForm(MyFlaskForm):
     eventid    = HiddenField('eventid')
     nonce      = HiddenField('nonce')
