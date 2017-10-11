@@ -142,7 +142,7 @@ COMMENT ON FUNCTION verify_series(varchar) IS 'If series does not exist, reads i
 
 -- Single row table to set and track schema version
 CREATE TABLE version (
-    id       INTEGER   NOT NULL DEFAULT 1 CHECK (id=1),
+    id       INTEGER   PRIMARY KEY CHECK (id=1),
     version  TEXT      NOT NULL,
     modified TIMESTAMP NOT NULL DEFAULT now()
 );
