@@ -6,3 +6,4 @@ ENV TEMPLATE_SCHEMA_VERSION=20171010
 COPY dbinit-scripts /docker-entrypoint-initdb.d
 COPY custom-entrypoint.sh /usr/local/bin
 ENTRYPOINT ["custom-entrypoint.sh"]
+CMD ["postgres"]

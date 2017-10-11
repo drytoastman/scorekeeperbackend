@@ -13,4 +13,4 @@ if [ -s "$PGDATA/PG_VERSION" ]; then
 fi 
 
 # Run the regular entrypoint
-exec /usr/local/bin/docker-entrypoint.sh postgres
+exec /usr/local/bin/docker-entrypoint.sh "$@"

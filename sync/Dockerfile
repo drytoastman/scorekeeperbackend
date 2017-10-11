@@ -1,4 +1,4 @@
-FROM python:3.6.1-alpine
+FROM python:3.6.3-alpine3.6
 COPY requirements.txt /tmp
 RUN apk add --no-cache libpq \
     && apk add --no-cache --virtual buildreq gcc musl-dev linux-headers postgresql-dev \
