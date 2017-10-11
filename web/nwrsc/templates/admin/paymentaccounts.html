@@ -1,5 +1,20 @@
 {% extends "admin/bluebase.html" %}
 {% import "common/macros.html" as m %}
+{% block headers %}
+{{super()}}
+<script>
+$(document).ready(function(){
+    $('#accounttable tbody').on('click', 'button', function() {
+        var row = $(this).closest('tr');
+        $.post('{{url_for('.delaccount')}}', {accountid: $(this).data('accountid')}, function ( response ) {
+            row.remove();
+        }).fail(function(xhr, textStatus, errorThrown) {
+            alert(xhr.responseText);
+        });
+    });
+});
+</script>
+{% endblock headers %}
 
 {% block content %}
 {{super()}}
@@ -7,22 +22,18 @@
 <h2>Configured Account List</h2>
 <small>Secure tokens hidden</small>
 
-<table class='accounttable'>
-<tr><th>Name</th><th>Account Id</th><th>Type</th><th>Expires</th></tr>
+<table id='accounttable' class='accounttable table-striped'>
+<tr><th>Name</th><th>Account Id</th><th>Type</th><th>Expires</th><th></th></tr>
 {% for a in accounts %}
-<tr><td>{{a.name}}</td><td>{{a.accountid}}</td><td>{{a.type}}</td><td><button class="btn btn-admin small">Del</button></td>
+<tr><td>{{a.name}}</td><td>{{a.accountid}}</td><td>{{a.type}}</td><td>{{a.attr.expires}}</td><td><button class="btn btn-admin small" data-accountid='{{a.accountid}}'>Del</button></td>
 {% endfor %}
 </table>
 
-{% if sqappid %}
-<a class='btn btn-admin' href='https://connect.squareup.com/oauth2/authorize?client_id={{sqappid}}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE&state={{g.series}}'>Authorize New Square Account</a>
-{% endif %}
+<button class='btn btn-admin' {{ not sqappid and "disabled" or "" }} onclick="location.href='https://connect.squareup.com/oauth2/authorize?client_id={{sqappid}}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE&state={{g.series}}'">(Re)Authorize Square Account</button>
 <button class='btn btn-outline-admin' data-toggle='modal' data-target='#squaremodal'>Manual Square Setup</button>
-<button class='btn btn-outline-admin' data-toggle='modal' data-target='#paypalmodal'>Manual Paypal Setup</button>
 
 </div>
 
-{{m.modal('squaremodal', 'Manual Square Setup', 'Square stuff here')}}
-{{m.modal('paypalmodal', 'Manual Paypal Setup', 'Paypal stuff here')}}
+{{m.modal('squaremodal', 'Manual Square Setup', sqacctform.html('squareform', url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
 
 {% endblock content %}

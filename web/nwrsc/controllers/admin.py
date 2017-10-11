@@ -369,11 +369,31 @@ def newseries():
     return render_template('/admin/newseries.html', form=form)
 
 
-@Admin.route("/accounts")
+@Admin.route("/delaccount", methods=['POST'])
+def delaccount():
+    log.debug("Delete " + request.form['accountid'])
+    PaymentAccount.delete(request.form['accountid'])
+    return ""
+
+@Admin.route("/accounts", methods=['GET', 'POST'])
 def accounts():
+    action = request.form.get('submit')
+    sqacctform = SquareAccountForm()
+    if action == 'Add Square Account':
+        if sqacctform.validate():
+            p = PaymentAccount()
+            p.accountid = sqacctform.accountid.data
+            p.name      = sqacctform.name.data 
+            p.type      = "square"
+            p.attr      = { 'access_token': sqacctform.token.data }
+            p.insert()
+        else:
+            flashformerrors(sqacctform)
+        return redirect(url_for('.accounts'))
+
     accounts = PaymentAccount.getAllOnline()
     sqappid = current_app.config.get('SQ_APPLICATION_ID', '')
-    return render_template('/admin/paymentaccounts.html', accounts=accounts, sqappid=sqappid)
+    return render_template('/admin/paymentaccounts.html', accounts=accounts, sqappid=sqappid, sqacctform=sqacctform)
 
 
 @Admin.endpoint("Admin.squareoauth")

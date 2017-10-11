@@ -107,6 +107,12 @@ class PaymentAccount(AttrBase):
     def get(cls, accountid):
         return cls.getunique("select * from paymentaccounts where accountid=%s", (accountid, ))
 
+    @classmethod
+    def delete(cls, accountid):
+        with g.db.cursor() as cur:
+            cur.execute("delete from paymentaccounts where accountid=%s", (accountid, ))
+            g.db.commit()
+
 
 class Registration(AttrBase):
 

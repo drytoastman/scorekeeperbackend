@@ -176,15 +176,16 @@ var gCosts = Array();
 
 {% call m.modal('squaremodal', 'Payment', '') %}
     <form id='squareform' action='{{url_for(".square")}}' method='POST'>
-        <input type='hidden' name='nonce'   value=''/>
-        <input type='hidden' name='eventid' value=''/>
+        {{sqform.nonce()}}
+        {{sqform.eventid()}}
+        {{sqform.csrf_token()}}
         <img src="/static/images/squarelogo.svg"/>
         <div class='row'><label class='col-md-4'>Card Number</label>    <div class='col-md-8 p-0'><div id="sq-card-number"></div></div></div>
         <div class='row'><label class='col-md-4'>CVV</label>            <div class='col-md-8 p-0'><div id="sq-cvv"></div></div></div>
         <div class='row'><label class='col-md-4'>Expiration Date</label><div class='col-md-8 p-0'><div id="sq-expiration-date"></div></div></div>
         <div class='row'><label class='col-md-4'>Postal Code</label>    <div class='col-md-8 p-0'><div id="sq-postal-code"></div></div></div>
-        <div class='row'><label class='col-md-4'>Type</label>           <div class='col-md-8 p-0'><select name='amount'></select></div></div>
-        <div class='row'><label class='col-md-4'>Count</label>          <div class='col-md-8 p-0'><select name='count'><option value=1>1x</option><option value=2>2x</option></select></div></div>
+        <div class='row'><label class='col-md-4'>Type</label>           <div class='col-md-8 p-0'><select name='amount'>{# dynamic #}</select></div></div>
+        <div class='row'><label class='col-md-4'>Count</label>          <div class='col-md-8 p-0'>{{sqform.count()}}</div></div>
         <div class='row'><label class='col-md-4'>Total</label>          <div class='col-md-8 p-0 total'>$0.00</div></div>
         <div class='row'><div class='col p-0'><input id='regpaybutton' type='submit' class='btn btn-register' value='Pay'/></div></div>
     </form>

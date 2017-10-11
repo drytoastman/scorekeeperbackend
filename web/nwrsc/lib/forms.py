@@ -255,8 +255,14 @@ class ArchiveForm(MyFlaskForm):
     submit       = SubmitField(    'Archive')
 
 class SquareAccountForm(MyFlaskForm):
-    name       = MyStringField(  'Account Name', [Length(min=4)])
-    accountid  = MyStringField(  'Account Id')
-    token      = MyStringField(  'Payment Token')
-    submit     = SubmitField(    'Add')
+    accountid  = MyStringField(  'Location Id')
+    name       = MyStringField(  'Name', [Length(min=4)])
+    token      = MyStringField(  'Access Token')
+    submit     = SubmitField(    'Add Square Account')
+
+class SquarePaymentForm(MyFlaskForm):
+    eventid    = HiddenField('eventid')
+    nonce      = HiddenField('nonce')
+    #amount     = SelectField('Type')
+    count      = SelectField('Count', choices=[('1', '1x'), ('2', '2x')])
 

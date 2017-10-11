@@ -11,6 +11,7 @@ PRIMARY_KEYS  = dict()
 NONPRIMARY    = dict()
 UPDATES       = dict()
 INSERTS       = dict()
+UPSERTS       = dict()
 
 log = logging.getLogger(__name__)
 
@@ -50,6 +51,12 @@ class AttrBase(object):
 
                     UPDATES[table] = "UPDATE {} SET {},modified=now() WHERE {}".format(table, ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[table]), " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[table]))
                     INSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now())".format(table, ",".join(COLUMNS[table]), ",".join(["%({})s".format(x) for x in COLUMNS[table]]))
+                    UPSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now()) ON CONFLICT ({}) DO UPDATE SET {}".format(
+                                                    table, 
+                                                    ",".join(COLUMNS[table]),
+                                                    ",".join(["%({})s".format(x) for x in COLUMNS[table]]),
+                                                    ",".join(PRIMARY_KEYS[table]),
+                                                    ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[table]))
 
 
     def __init__(self, **kwargs):
@@ -60,6 +67,12 @@ class AttrBase(object):
         with g.db.cursor() as cur:
             self.cleanAttr()
             cur.execute(INSERTS[self.TABLENAME], self.__dict__)
+            g.db.commit()
+
+    def upsert(self):
+        with g.db.cursor() as cur:
+            self.cleanAttr()
+            cur.execute(UPSERTS[self.TABLENAME], self.__dict__)
             g.db.commit()
 
     def update(self):

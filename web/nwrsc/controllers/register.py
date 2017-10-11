@@ -117,6 +117,7 @@ def events():
     sqappid  = current_app.config.get('SQ_APPLICATION_ID', '')
     events   = Event.byDate()
     cars     = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
+    sqform   = SquarePaymentForm()
     registered = defaultdict(list)
     payments   = defaultdict(float)
     for r in Registration.getForDriver(g.driver.driverid):
@@ -126,7 +127,7 @@ def events():
     for p in Payment.getForDriver(g.driver.driverid):
         payments[p.eventid] += p.amount
 
-    return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, sqappid=sqappid)
+    return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, sqappid=sqappid, sqform=sqform)
 
 
 def _renderSingleEvent(event, error):
@@ -188,17 +189,21 @@ def eventspost():
 @Register.route("/<series>/square", methods=['POST'])
 def square():
     if not g.driver: raise NotLoggedInException()
-    if not all(k in request.form for k in ('eventid', 'nonce', 'amount', 'count')):
-        return "Invalid square payment submssion"
 
-    eventid = uuid.UUID(request.form['eventid'])
-    count   = int(request.form['count'])
-    amount  = float(request.form['amount'])
-    event   = Event.get(eventid)
-    account = PaymentAccount.get(event.accountid)
-    error   = square_payment(event, account, g.driver, count*amount, request.form['nonce'])
-    if not error:
-        _matchPaymentsToRegistration(event, [r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
+    form = SquarePaymentForm()
+    log.debug(request.form)
+    if form.validate_on_submit():
+        eventid = uuid.UUID(form.eventid.data)
+        event   = Event.get(eventid)
+        count   = int(form.count.data)
+        amount  = float(request.form['amount'])
+        account = PaymentAccount.get(event.accountid)
+        error   = square_payment(event, account, g.driver, count*amount, form.nonce.data)
+        if not error:
+            _matchPaymentsToRegistration(event, [r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
+    else:
+        return "<div class='error'>Invalid square payment submission {}</div>".format(form.errors)
+
     return _renderSingleEvent(event, error)
 
 

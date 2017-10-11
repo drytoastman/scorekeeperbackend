@@ -1,9 +1,10 @@
+import dateutil.parser
 import http.client
 import logging
 import json
 import uuid
 
-from flask import current_app, flash, redirect, request, url_for
+from flask import current_app, flash, g, redirect, request, url_for
 
 from nwrsc.model import Payment, PaymentAccount
 
@@ -34,12 +35,7 @@ def square_payment(event, account, driver, amount, nonce):
         'idempotency_key': str(uuid.uuid1())
     }
 
-    url = '/v2/locations/{}/transactions'.format(account.attr.get('location', 'missing'))
-
-    log.debug(url)
-    log.debug(headers)
-    log.debug(request)
-
+    url = '/v2/locations/{}/transactions'.format(account.accountid)
     connection = http.client.HTTPSConnection('connect.squareup.com')
     connection.request('POST', url, json.dumps(request), headers)
     response = json.loads(connection.getresponse().read())
@@ -90,29 +86,28 @@ def square_oauth_account():
     connection.request('POST', '/oauth2/token', json.dumps(oauth_request), oauth_headers)
     response = json.loads(connection.getresponse().read())
     if not response.get('access_token', ''):
-        flash('Code exchange failed')
+        error = 'Code exchange failed: ' + str(response)
+        log.warning(error)
+        flash(error)
         return redirect(url_for('.accounts'))
 
-    name = response['merchant_id']
     try:
         oauth_headers['Authorization'] = 'Bearer '+response['access_token']
-        connection.request('GET', '/v2/locations', "", oauth_headers)
-        locations = json.loads(connection.getresponse().read())
-        log.debug(locations)
-        for l in locations['locations']:
-            if l['merchant_id'] == response['merchant_id']:
-                name = l['name']
+        connection.request('GET', '/v2/locations', '', oauth_headers)
+        for loc in json.loads(connection.getresponse().read())['locations']:
+            if loc['status'].lower() in ('active',):
+                try:
+                    p = PaymentAccount()
+                    p.accountid = loc['id']
+                    p.name      = loc['business_name']
+                    p.type      = "square"
+                    p.attr      = { 'access_token': response['access_token'], 'expires': str(dateutil.parser.parse(response['expires_at'])) }
+                    p.upsert()
+                except Exception as e:
+                    g.db.rollback()
+                    flash("Inserting new payment account failed: " + str(e))
     except Exception as e:
-        flash('Name lookup error: ' + str(e))
-        log.warning("merchant name lookup error", exc_info=e)
+        flash('Business location lookup error: ' + str(e))
+        log.warning("Square merchant name lookup error", exc_info=e)
 
-    try:
-        p = PaymentAccount()
-        p.accountid = response['merchant_id']
-        p.name      = name
-        p.type      = "square"
-        p.attr      = {'access_token': response['access_token'], 'expires_at': response['expires_at'] }
-        p.insert()
-    except Exception as e:
-        flash("Inserting new payment account failed: " + str(e))
 
