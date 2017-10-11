@@ -375,9 +375,11 @@ class MergeServer(object):
 
         with scandb.cursor() as cur:
             cur.execute("SELECT version FROM version")
+            if cur.rowcount != 1:
+                raise DifferentSchemaException("No remote schema version")
             ver = cur.fetchone()[0]
             if ver != SCHEMA_VERSION:
-                raise DifferentSchemaException("Different Schema {} != {}".format(ver, SCHEMA_VERSION))
+                raise DifferentSchemaException("Different schema {} != {}".format(ver, SCHEMA_VERSION))
 
             # Do a sanity check on the log tables to see if anyting actually changed since our last check
             cur.execute("SET search_path=%s,%s", (series, 'public'))
