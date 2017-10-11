@@ -42,6 +42,7 @@ COLUMNS       = dict()
 PRIMARY_KEYS  = dict()
 NONPRIMARY    = dict()
 HASH_COMMANDS = dict()
+SCHEMA_VERSION = ""
 
 LOCALARGS = {
   "cursor_factory": psycopg2.extras.DictCursor,
@@ -70,13 +71,20 @@ class NoDatabaseException(SyncException):
 class NoLocalHostServer(SyncException):
     pass
 
+class DifferentSchemaException(SyncException):
+    pass
+
 
 class DataInterface(object):
 
     def initialize():
         """ A little introspection to load the schema from database so we don't have to keep a local copy in this file """
+        global SCHEMA_VERSION
         with DataInterface.connectLocal() as db:
             with db.cursor() as cur:
+                cur.execute("SELECT version FROM version")
+                SCHEMA_VERSION = cur.fetchone()[0]
+
                 # Need to set a valid series so we can inspect the format
                 testseries = ('template', 'public')
                 cur.execute("set search_path=%s,%s", testseries)
@@ -366,6 +374,11 @@ class MergeServer(object):
         seriesstate = self.mergestate[series]
 
         with scandb.cursor() as cur:
+            cur.execute("SELECT version FROM version")
+            ver = cur.fetchone()[0]
+            if ver != SCHEMA_VERSION:
+                raise DifferentSchemaException("Different Schema {} != {}".format(ver, SCHEMA_VERSION))
+
             # Do a sanity check on the log tables to see if anyting actually changed since our last check
             cur.execute("SET search_path=%s,%s", (series, 'public'))
             cur.execute("SELECT MAX(times.max) FROM (SELECT max(ltime) FROM serieslog UNION ALL SELECT max(ltime) FROM publiclog) AS times")

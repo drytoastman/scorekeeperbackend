@@ -75,6 +75,7 @@ class MergeProcess():
         log.debug("checking %s", remote)
         with DataInterface.connectRemote(server=remote, user='nulluser', password='nulluser') as remotedb:
             remote.updateSeriesFrom(remotedb)
+            # FINISH ME, need to get non-series error to frontend if this fails for some reason
 
         for series in remote.mergestate.keys():
             error = None

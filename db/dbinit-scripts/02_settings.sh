@@ -28,4 +28,5 @@ log_min_duration_statement = 20
 " >> postgresql.conf
 
 cp /docker-entrypoint-initdb.d/series.template series.sql
- 
+psql -U postgres -d scorekeeper -c "INSERT INTO version (id, version) VALUES (1, $TEMPLATE_SCHEMA_VERSION)"
+
