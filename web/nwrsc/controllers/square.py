@@ -6,7 +6,7 @@ import uuid
 
 from flask import current_app, flash, g, redirect, request, url_for
 
-from nwrsc.model import Payment, PaymentAccount
+from nwrsc.model import Payment, PaymentAccount, PaymentAccountSecret
 
 log = logging.getLogger(__name__)
 
