@@ -13,7 +13,12 @@ LOCALARGS = {
 updatelist = [
     (True, "ALTER TABLE events ADD COLUMN accountid TEXT REFERENCES paymentaccounts"),
     (True, "UPDATE events SET accountid=attr->>'payments'"),
-    "20171011"
+    "20171011",
+    (True, "CREATE TRIGGER payaccmod AFTER INSERT OR UPDATE OR DELETE ON paymentaccounts FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog')"),
+    (True, "CREATE TRIGGER payaccuni BEFORE UPDATE ON paymentaccounts FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified()"),
+    (True, "CREATE TRIGGER timmod AFTER INSERT OR UPDATE OR DELETE ON timertimes FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog')"),
+    (True, "CREATE TRIGGER timuni BEFORE UPDATE ON timertimes FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified()"),
+    "20171012"
 ]
 
 def get_version(db):
@@ -54,7 +59,7 @@ if __name__ == "__main__":
                         if cmd[0]: 
                             for s in series:  
                                 cur.execute("set search_path=%s,%s", (s, 'public'))
-                                cur.execute(cmd[1])
+                                cur.execute(cmd[1].replace("<seriesname>", s))
                         else:
                             cur.execute(cmd[1])
                     else:

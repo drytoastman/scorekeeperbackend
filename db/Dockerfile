@@ -2,7 +2,7 @@ FROM postgres:9.6.5-alpine
 RUN apk --no-cache add openssl socat
 ENV POSTGRES_DB=scorekeeper
 ENV POSTGRES_PASSWORD=thisgetsoverwrittenlater
-ENV TEMPLATE_SCHEMA_VERSION=20171010
+ENV TEMPLATE_SCHEMA_VERSION=20171012
 COPY dbinit-scripts /docker-entrypoint-initdb.d
 COPY custom-entrypoint.sh /usr/local/bin
 ENTRYPOINT ["custom-entrypoint.sh"]
