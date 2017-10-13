@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 def square_payment(event, account, driver, amount, nonce):
     headers = {
-        'Authorization': 'Bearer ' + account.attr.get('access_token', 'missing'),
+        'Authorization': 'Bearer ' + PaymentAccountSecret.get(account.accountid),
         'Accept':        'application/json',
         'Content-Type':  'application/json'
     }
@@ -101,8 +101,13 @@ def square_oauth_account():
                     p.accountid = loc['id']
                     p.name      = loc['business_name']
                     p.type      = "square"
-                    p.attr      = { 'access_token': response['access_token'], 'expires': str(dateutil.parser.parse(response['expires_at'])) }
+                    p.attr      = { 'expires': str(dateutil.parser.parse(response['expires_at'])) }
                     p.upsert()
+
+                    s = PaymentAccountSecret()
+                    s.accountid = loc['id']
+                    s.secret    = response['access_token']
+                    s.upsert()
                 except Exception as e:
                     g.db.rollback()
                     flash("Inserting new payment account failed: " + str(e))

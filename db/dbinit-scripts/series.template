@@ -95,6 +95,16 @@ COMMENT ON TABLE paymentaccounts IS 'the list of configured merchant data availa
 INSERT INTO paymentaccounts (accountid, name, type, attr) VALUES ('onsite', 'Onsite Payment', 'onsite', '{}');
 
 
+CREATE TABLE secrets (
+    accountid TEXT      PRIMARY KEY,
+    secret    TEXT      NOT NULL DEFAULT '',
+    modified  TIMESTAMP NOT NULL DEFAULT now()
+);
+REVOKE ALL ON secrets FROM public;
+GRANT ALL  ON secrets TO localuser;
+COMMENT ON TABLE secrets IS 'Local only table for payment account details that only need to be on the main server, localuser required to access, no remotes';
+
+
 CREATE TABLE events (
     eventid       UUID        PRIMARY KEY, 
     name          TEXT        NOT NULL, 

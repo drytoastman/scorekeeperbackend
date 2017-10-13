@@ -99,6 +99,7 @@ class Payment(AttrBase):
 
 class PaymentAccount(AttrBase):
     TABLENAME = "paymentaccounts"
+
     @classmethod
     def getAllOnline(cls):
         return cls.getall("select * from paymentaccounts where accountid!='onsite' order by name")
@@ -112,6 +113,21 @@ class PaymentAccount(AttrBase):
     def delete(cls, accountid):
         with g.db.cursor() as cur:
             cur.execute("delete from paymentaccounts where accountid=%s", (accountid, ))
+            g.db.commit()
+
+
+class PaymentAccountSecret(AttrBase):
+    TABLENAME = "secrets"
+
+    @classmethod
+    def get(cls, accountid):
+        if accountid is None: return None
+        return cls.getval("select secret from secrets where accountid=%s", (accountid, ))
+
+    @classmethod
+    def delete(cls, accountid):
+        with g.db.cursor() as cur:
+            cur.execute("delete from secrets where accountid=%s", (accountid, ))
             g.db.commit()
 
 

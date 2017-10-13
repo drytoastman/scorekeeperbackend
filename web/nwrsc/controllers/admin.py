@@ -373,6 +373,7 @@ def newseries():
 def delaccount():
     log.debug("Delete " + request.form['accountid'])
     PaymentAccount.delete(request.form['accountid'])
+    PaymentAccountSecret.delete(request.form['accountid'])
     return ""
 
 @Admin.route("/accounts", methods=['GET', 'POST'])
@@ -387,8 +388,13 @@ def accounts():
             p.accountid = sqacctform.accountid.data
             p.name      = sqacctform.name.data 
             p.type      = "square"
-            p.attr      = { 'access_token': sqacctform.token.data }
+            p.attr      = {}
             p.insert()
+
+            s = PaymentAccountSecret()
+            s.accountid = sqacctform.accountid.data
+            s.secret    = sqacctform.token.data
+            s.upsert()
         else:
             flashformerrors(sqacctform)
         return redirect(url_for('.accounts'))
