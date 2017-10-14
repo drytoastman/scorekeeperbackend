@@ -20,7 +20,7 @@
 {{g.settings.customheader|safe}}
 <h3 class='seriesname'>{{g.settings.seriesname}}</h3>
 <h4 class='eventname'>{{g.event.date.strftime("%a %b %d %Y")}} - {{g.event.name}}</h4>
-<h5 class='eventinfo'><span class='location'>{{g.event.location}}</span> - <span class='entrantcount'>{{g.entrantcount}} Entrants</span></h5>
+<h6 class='eventinfo'><span class='location'>{{g.event.location}}</span> - <span class='entrantcount'>{{g.entrantcount}} Entrants</span></h6>
 
 <div class='classlinks'>
 {% for cls in results|sort -%}

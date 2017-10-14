@@ -33,10 +33,12 @@ function load_driver_form(form, dr)
     }
 }
 
-$.validator.addMethod("notinused", function( value, element ) {
-    var used = $(element).data("usednumbers") || [];
-    return ($.inArray(parseInt(value), used) < 0);
-},  "that number is already in use");
+if ($.validator) {
+    $.validator.addMethod("notinused", function( value, element ) {
+        var used = $(element).data("usednumbers") || [];
+        return ($.inArray(parseInt(value), used) < 0);
+    },  "that number is already in use");
+}
 
 (function ($) {
 
