@@ -24,7 +24,7 @@ def loadPythonFunc(self, func, text):
     # Some flailing attempt at stopping bad behaviour
     if 'import' in text:
         raise Exception("python code to load contains import, not loading")
-    
+
     text = str(text)
     text = text.replace('\r', '')
     exec(text, loadenv)
@@ -123,7 +123,7 @@ months = ["", "January", "February", "March", "April", "May", "June", "July", "A
 
 def stringLimit(c, txt, font, size, limit):
     if not txt:
-        return None
+        return ""
     w = c.stringWidth(txt, font, size)
     while w > limit:
         txt = txt[:-1]
@@ -259,7 +259,7 @@ def drawCard(c, event, entrant, image, **kwargs):
 
     x = 337
     y = 187
-    c.drawString(x, y, stringLimit(c, entrant.brag,   'Courier', 10, 200)); y += 21
+    c.drawString(x, y, stringLimit(c, entrant.brag,  'Courier', 10, 200)); y += 21
     c.drawString(x, y, entrant.membership or ""); y += 21
     c.drawString(x, y, stringLimit(c, entrant.color, 'Courier', 10, 85)); y += 21
     c.drawString(x, y, stringLimit(c, entrant.model, 'Courier', 10, 85)); y += 21
