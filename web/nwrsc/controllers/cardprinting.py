@@ -1,3 +1,4 @@
+import datetime
 from flask import g, make_response, request
 import io
 import logging
@@ -44,6 +45,7 @@ def printcards():
         for r in registered:
             r.__dict__.update(r.dattr)
             r.__dict__.update(r.cattr)
+            r.quickentry = "{:010d}".format(r.carid.time_low)
         if type == 'lastname':
             registered.sort(key=operator.attrgetter('firstname'))
             registered.sort(key=operator.attrgetter('lastname'))
@@ -57,7 +59,7 @@ def printcards():
         for r in registered:
             objects.append(dict(r.__dict__))
         titles = ['driverid', 'lastname', 'firstname', 'email', 'address', 'city', 'state', 'zip', 'phone', 'sponsor', 'brag',
-                                'carid', 'year', 'make', 'model', 'color', 'number', 'classcode', 'indexcode']
+                                'carid', 'year', 'make', 'model', 'color', 'number', 'classcode', 'indexcode', 'quickentry']
         return csv_encode("cards", titles, objects)
 
 
@@ -105,22 +107,6 @@ def printcards():
 # 5inch = 360points, half = 180
 MIDDLE = 288
 
-barChar = {}
-barChar['0'] = 'nnnwwnwnn'
-barChar['1'] = 'wnnwnnnnw'
-barChar['2'] = 'nnwwnnnnw'
-barChar['3'] = 'wnwwnnnnn'
-barChar['4'] = 'nnnwwnnnw'
-barChar['5'] = 'wnnwwnnnn'
-barChar['6'] = 'nnwwwnnnn'
-barChar['7'] = 'nnnwnnwnw'
-barChar['8'] = 'wnnwnnwnn'
-barChar['9'] = 'nnwwnnwnn'
-barChar['*'] = 'nwnnwnwnn'
-barChar['-'] = 'nwnnnnwnw'
-
-months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-
 def stringLimit(c, txt, font, size, limit):
     if not txt:
         return ""
@@ -129,36 +115,6 @@ def stringLimit(c, txt, font, size, limit):
         txt = txt[:-1]
         w = c.stringWidth(txt, font, size)
     return txt
-
-def code39Right(c, x, y, code, height=20, baseline=2.5):
-    wide = baseline
-    narrow = baseline / 2.5
-    gap = narrow
-
-    codestr = '*%s*' % code.upper()
-    xpos = x
-    for char in codestr[::-1]:
-        seq = barChar.get(char, None)
-        if seq is None:
-            continue
-
-        for bar in range(8, -1, -1):
-            if seq[bar] == 'n':
-                lineWidth = narrow
-            else:
-                lineWidth = wide
-
-            xpos -= lineWidth/2.0
-            c.setLineWidth(lineWidth)
-            if (bar % 2) == 0:
-                c.setStrokeColorRGB(0,0,0)
-                c.line(xpos, y, xpos, y+height)
-            xpos -= lineWidth/2.0
-
-        xpos -= gap
-
-    c.setFont('Courier', 8)
-    c.drawRightString(x, y-8, code)
 
 def timerow(c, y, height):
     c.rect(MIDDLE-270,y, 220, height)
@@ -241,7 +197,7 @@ def drawCard(c, event, entrant, image, **kwargs):
     c.setFont('Helvetica-Bold', 13)
     c.drawCentredString(MIDDLE, 337, "%s" % (event.name))
     c.setFont('Helvetica-Bold', 11)
-    c.drawCentredString(MIDDLE, 320, "%s %d, %d" % (months[event.date.month], event.date.day, event.date.year))
+    c.drawCentredString(MIDDLE, 320, event.date.strftime("%B %d, %Y"))
     #c.setFont('Helvetica-Bold', 12)
     #c.drawAlignedString(MIDDLE, 313, "Sponsored by: {}".format(event.attr.get('sponsor', '')), ':')
     if entrant is None:
@@ -274,5 +230,6 @@ def drawCard(c, event, entrant, image, **kwargs):
     else:
         c.drawString(x, y, entrant.classcode); y += 21
 
-    code39Right(c, 558, 316, str(entrant.carid.fields[0]))
+    c.setFont('Courier', 20)
+    c.drawRightString(558, 320, entrant.quickentry)
 
