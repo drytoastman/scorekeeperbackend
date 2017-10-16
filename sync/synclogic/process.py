@@ -34,6 +34,7 @@ class MergeProcess():
         self.wakequeue.put(False)
 
     def runforever(self):
+        DataInterface.initialize()
         done = False
         while not done:
             try:
@@ -41,7 +42,6 @@ class MergeProcess():
                 signalled = False
                 with DataInterface.connectLocal() as localdb:
                     # Reset our world on each loop
-                    DataInterface.initialize()
                     me = MergeServer.getLocal(localdb)
                     me.updateSeriesFrom(localdb)
                     for series in me.mergestate.keys():
