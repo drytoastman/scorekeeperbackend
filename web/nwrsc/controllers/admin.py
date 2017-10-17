@@ -373,7 +373,6 @@ def newseries():
 def delaccount():
     log.debug("Delete " + request.form['accountid'])
     PaymentAccount.delete(request.form['accountid'])
-    PaymentAccountSecret.delete(request.form['accountid'])
     return ""
 
 @Admin.route("/accounts", methods=['GET', 'POST'])

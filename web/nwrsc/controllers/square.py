@@ -6,13 +6,13 @@ import uuid
 
 from flask import current_app, flash, g, redirect, request, url_for
 
-from nwrsc.model import Payment, PaymentAccount, PaymentAccountSecret
+from nwrsc.model import Payment, PaymentAccount
 
 log = logging.getLogger(__name__)
 
 def square_payment(event, account, driver, amount, nonce):
     headers = {
-        'Authorization': 'Bearer ' + PaymentAccountSecret.get(account.accountid),
+        'Authorization': 'Bearer ' + account.secret,
         'Accept':        'application/json',
         'Content-Type':  'application/json'
     }

@@ -114,7 +114,7 @@
             {%- if ev.mylimit > 0 or registered|length > 0 %}
             <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-cost='{{ev.attr.costx}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
             {%- endif %}
-            {%- if account %}
+            {%- if account.secret %}
             <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-toggle='modal' data-target='#{{account.type}}modal'>Make Payment</button>
             {%- endif %}
             {%- if paid %}
