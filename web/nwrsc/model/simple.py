@@ -88,6 +88,11 @@ class NumberEntry(AttrBase):
 
 class Payment(AttrBase):
     TABLENAME = "payments"
+
+    @classmethod
+    def getAllOnline(cls):
+        return cls.getall("SELECT * FROM payments p JOIN drivers d ON p.driverid=d.driverid WHERE p.accountid!='onsite'")
+
     @classmethod
     def getForDriver(cls, driverid):
         return cls.getall("SELECT * FROM payments WHERE driverid=%s", (driverid,))
@@ -102,7 +107,7 @@ class PaymentAccount(AttrBase):
 
     @classmethod
     def getAllOnline(cls):
-        return cls.getall("SELECT p.*,s.secret FROM paymentaccounts p LEFT JOIN secrets s ON s.accountid=p.accountid WHERE accountid!='onsite' ORDER BY name")
+        return cls.getall("SELECT p.*,s.secret FROM paymentaccounts p LEFT JOIN secrets s ON s.accountid=p.accountid WHERE p.accountid!='onsite' ORDER BY name")
 
     @classmethod
     def get(cls, accountid):

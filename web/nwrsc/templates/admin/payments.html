@@ -1,0 +1,38 @@
+{% extends "common/base.html" %}
+{% block headers %}
+{{super()}}
+<style type="text/css">
+body {
+    font-family: sans-serif;
+}
+ul {
+    list-style: none;
+}
+ul.inner {
+    margin: 0.5rem 0;
+}
+li > ul {
+    columns: 3;
+}
+.ename, .count {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+</style>
+{% endblock headers %}
+
+{% block content %}
+<h2>Online Payments</h2>
+<ul>
+{% for event in events %}
+    <li><span class='ename'>{{event.name}}</span> 
+    {% if event.date %}- <span class='edate'>{{event.date.strftime('%a %b %d, %Y')}}</span>{% endif %}
+    <ul class='inner'>
+    {% for driverid,plist in payments[event.eventid].items() -%}
+        <li><span class='name'>{{plist[0].lastname}}, {{plist[0].firstname}}</span> - <span class='membership'>{{"${0:.2f}".format(plist|sum(attribute='amount'))}}</span></li>
+    {% endfor %}
+    </ul>
+    </li>
+{% endfor %}
+</ul>
+{% endblock content %}

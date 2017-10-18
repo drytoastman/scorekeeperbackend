@@ -300,10 +300,18 @@ def eventattend():
 
 @Admin.route("/uniqueattend")
 def uniqueattend():
-    """ Return the list of new entrantsa attending each event """
+    """ return the list of new entrants attending each event """
     for e in g.events:
-        e.drivers = Attendance.newForEvent(e)
-    return render_template('/admin/attendance.html', title='Unique Attendance', events=g.events)
+        e.drivers = attendance.newforevent(e)
+    return render_template('/admin/attendance.html', title='unique attendance', events=g.events)
+
+@Admin.route("/payments")
+def payments():
+    """ return the list of payments for profiles for an event """
+    payments = defaultdict(lambda: defaultdict(list))
+    for p in Payment.getAllOnline():
+        payments[p.eventid][p.driverid].append(p)
+    return render_template('/admin/payments.html', payments=payments, events=g.events)
 
 
 @Admin.route("/contactlist")
