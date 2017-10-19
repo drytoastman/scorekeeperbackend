@@ -5,8 +5,8 @@
 This is a the collection of docker images that make up the Scorekeeper backend.
 They include:
 1. The postgresql database
-1. The web services [![Known Vulnerabilities](https://snyk.io/test/github/drytoastman/scorekeeperbackend/badge.svg?targetFile=web%2Frequirements.txt)](https://snyk.io/test/github/drytoastman/scorekeeperbackend?targetFile=web%2Frequirements.txt)
-1. The sync processor [![Known Vulnerabilities](https://snyk.io/test/github/drytoastman/scorekeeperbackend/badge.svg?targetFile=sync%2Frequirements.txt)](https://snyk.io/test/github/drytoastman/scorekeeperbackend?targetFile=sync%2Frequirements.txt)
+1. The web services [![](https://snyk.io/test/github/drytoastman/scorekeeperbackend/badge.svg?targetFile=web2%2Frequirements.txt)](https://snyk.io/test/github/drytoastman/scorekeeperbackend?targetFile=web%2Frequirements.txt)
+1. The sync processor [![](https://snyk.io/test/github/drytoastman/scorekeeperbackend/badge.svg?targetFile=sync2%2Frequirements.txt)](https://snyk.io/test/github/drytoastman/scorekeeperbackend?targetFile=sync%2Frequirements.txt)
 
 ## Development
 
