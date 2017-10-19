@@ -1,8 +1,0 @@
-version: v1.0.0
-ignore:
-    'SNYK-PYTHON-WTFORMS-40581':
-        - '* > wtforms':
-            reason: 'No remediation available, waiting on wtforms 3'
-            expires: '2019-01-01T00:00:00.000Z'
-patch:
-
