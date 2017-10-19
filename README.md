@@ -1,11 +1,12 @@
-
 # Scorekeeper Backend
+
+[![Build Status](https://travis-ci.org/drytoastman/scorekeeperbackend.svg?branch=master)](https://travis-ci.org/drytoastman/scorekeeperbackend)
 
 This is a the collection of docker images that make up the Scorekeeper backend.
 They include:
 1. The postgresql database
-1. The web services
-1. The merge processor
+1. The web services [![Known Vulnerabilities](https://snyk.io/test/github/drytoastman/scorekeeperbackend/badge.svg?targetFile=web%2Frequirements.txt)](https://snyk.io/test/github/drytoastman/scorekeeperbackend?targetFile=web%2Frequirements.txt)
+1. The sync processor [![Known Vulnerabilities](https://snyk.io/test/github/drytoastman/scorekeeperbackend/badge.svg?targetFile=sync%2Frequirements.txt)](https://snyk.io/test/github/drytoastman/scorekeeperbackend?targetFile=sync%2Frequirements.txt)
 
 ## Development
 
