@@ -7,6 +7,7 @@ import logging
 import psycopg2
 import psycopg2.extras
 import queue
+import time
 import uuid
 
 from synclogic.model import *
@@ -34,7 +35,15 @@ class MergeProcess():
         self.wakequeue.put(False)
 
     def runforever(self):
-        DataInterface.initialize()
+        while True:
+            try:
+                DataInterface.initialize()
+                break
+            except Exception as e:
+                log.info("Error during model initialization, waiting for db and template: %s", e)
+                time.sleep(5)
+        log.info("Sync DB models initialized")
+
         done = False
         while not done:
             try:
