@@ -61,7 +61,11 @@ class MergeProcess():
                     # Check if there are any timeouts for servers to merge with
                     for remote in MergeServer.getActive(localdb):
                         if remote.nextcheck < datetime.datetime.utcnow():
-                            self.mergeWith(localdb, me, remote, passwords)
+                            try:
+                                self.mergeWith(localdb, me, remote, passwords)
+                            except Exception as e:
+                                log.error("Caught exception merging with {}: {}".format(remote, e), exc_info=e)
+                                remote.serverError(str(e))
 
                     localdb.rollback() # Don't hang out in idle transaction from selects
 
@@ -84,7 +88,6 @@ class MergeProcess():
         log.debug("checking %s", remote)
         with DataInterface.connectRemote(server=remote, user='nulluser', password='nulluser') as remotedb:
             remote.updateSeriesFrom(remotedb)
-            # FINISH ME, need to get non-series error to frontend if this fails for some reason
 
         for series in remote.mergestate.keys():
             error = None
