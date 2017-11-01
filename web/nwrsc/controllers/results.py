@@ -7,7 +7,7 @@ import logging
 import re
 
 from flask import Blueprint, request, render_template, get_template_attribute, make_response, g
-from nwrsc.model import Audit, Result, Registration, RunGroups, Series
+from nwrsc.model import Audit, Entrant, Result, Registration, RunGroups, Series
 from nwrsc.lib.bracket import Bracket
 from nwrsc.lib.misc import ArchivedSeriesException, csvlist, InvalidChallengeException, InvalidEventException
 

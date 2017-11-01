@@ -76,6 +76,7 @@ class Event(AttrBase):
         event.totlimit = 0
         event.conepen = 2.0
         event.gatepen = 10.0
+        event.accountid = None
         event.ispro = False
         event.ispractice = False
         return event
