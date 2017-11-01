@@ -35,19 +35,23 @@ class MergeProcess():
         self.wakequeue.put(False)
 
     def runforever(self):
-        while True:
+        global signalled
+        done = False
+
+        while not done:
             try:
                 DataInterface.initialize()
                 break
             except Exception as e:
                 log.info("Error during model initialization, waiting for db and template: %s", e)
-                time.sleep(5)
+
+            try: done = self.wakequeue.get(timeout=2)
+            except: pass
+
         log.info("Sync DB models initialized")
 
-        done = False
         while not done:
             try:
-                global signalled
                 signalled = False
                 with DataInterface.connectLocal() as localdb:
                     # Reset our world on each loop
@@ -76,10 +80,8 @@ class MergeProcess():
                 log.error("Caught exception in main loop: {}".format(e), exc_info=e)
 
             # Wait for 10 seconds before rescanning.  Wake immediately if something is dropped in the queue
-            try:
-                done = self.wakequeue.get(timeout=10)
-            except:
-                pass
+            try: done = self.wakequeue.get(timeout=10)
+            except: pass
 
 
     def mergeWith(self, localdb, local, remote, passwords):
