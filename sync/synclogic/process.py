@@ -107,14 +107,9 @@ class MergeProcess():
 
                         # Obtain a merge lock on both sides and start the merge
                         with DataInterface.mergelocks(local, localdb, remote, remotedb, series):
-                            # Shortcut for fresh download, just copy it all
-                            if local.mergestate[series]['totalhash'] == '':
-                                for t in TABLE_ORDER:
-                                    DataInterface.copyTable(remotedb, localdb, series, t)
-                            else:
-                                ltables = local.mergestate[series]['hashes']
-                                rtables = remote.mergestate[series]['hashes']
-                                self.mergeTables(localdb, remotedb, set([k for k in ltables if ltables[k] != rtables[k]]))
+                            ltables = local.mergestate[series]['hashes']
+                            rtables = remote.mergestate[series]['hashes']
+                            self.mergeTables(localdb, remotedb, set([k for k in ltables if ltables[k] != rtables[k]]))
 
                             remotedb.commit()
                             localdb.commit()

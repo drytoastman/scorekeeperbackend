@@ -133,10 +133,10 @@ class DataInterface(object):
     @classmethod
     def insert(cls, db, objs):
         if len(objs) == 0: return
-        stmt = "INSERT INTO {} ({}) VALUES ({})".format(objs[0].table, ",".join(COLUMNS[objs[0].table]), ",".join(["%({})s".format(x) for x in COLUMNS[objs[0].table]]))
+        stmt = "INSERT INTO {} ({}) VALUES %s".format(objs[0].table, ",".join(COLUMNS[objs[0].table]), ",".join(["%({})s".format(x) for x in COLUMNS[objs[0].table]]))
+        templ = "({})".format(",".join(["%({})s".format(x) for x in COLUMNS[objs[0].table]]))
         with db.cursor() as cur:
-            for obj in objs:
-                cur.execute(stmt, obj.data)
+            psycopg2.extras.execute_values(cur, stmt, [o.data for o in objs], templ)
 
     @classmethod
     def update(cls, db, objs):
@@ -144,6 +144,7 @@ class DataInterface(object):
         stmt = "UPDATE {} SET {} WHERE {}".format(objs[0].table, ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[objs[0].table]), " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[objs[0].table]))
         with db.cursor() as cur:
             for obj in objs:
+                # FINISH ME, change to execute_values
                 cur.execute(stmt, obj.data)
 
     @classmethod
@@ -171,17 +172,6 @@ class DataInterface(object):
                         raise e
         return undelete 
 
-    @classmethod
-    def copyTable(cls, srcdb, dstdb, series, table):
-        """ Use psycopg2 execute_values to perhaps insert data a little faster """
-        log.debug("copy table %s/%s", series, table)
-        with srcdb.cursor() as scur, dstdb.cursor() as dcur:
-            istmt = "INSERT INTO {} ({}) VALUES %s".format(table, ",".join(COLUMNS[table]))
-            templ = "({})".format(",".join(["%({})s".format(x) for x in COLUMNS[table]]))
-            scur.execute("set search_path=%s,%s", (series, 'public'))
-            dcur.execute("set search_path=%s,%s", (series, 'public'))
-            scur.execute("select * from {}".format(table))
-            psycopg2.extras.execute_values(dcur, istmt, scur.fetchall(), templ)
 
     @classmethod
     @contextlib.contextmanager
