@@ -133,19 +133,16 @@ class DataInterface(object):
     @classmethod
     def insert(cls, db, objs):
         if len(objs) == 0: return
-        stmt = "INSERT INTO {} ({}) VALUES %s".format(objs[0].table, ",".join(COLUMNS[objs[0].table]), ",".join(["%({})s".format(x) for x in COLUMNS[objs[0].table]]))
-        templ = "({})".format(",".join(["%({})s".format(x) for x in COLUMNS[objs[0].table]]))
+        stmt = "INSERT INTO {} ({}) VALUES ({})".format(objs[0].table, ",".join(COLUMNS[objs[0].table]), ",".join(["%({})s".format(x) for x in COLUMNS[objs[0].table]]))
         with db.cursor() as cur:
-            psycopg2.extras.execute_values(cur, stmt, [o.data for o in objs], templ)
+            psycopg2.extras.execute_batch(cur, stmt, [o.data for o in objs])
 
     @classmethod
     def update(cls, db, objs):
         if len(objs) == 0: return
         stmt = "UPDATE {} SET {} WHERE {}".format(objs[0].table, ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[objs[0].table]), " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[objs[0].table]))
         with db.cursor() as cur:
-            for obj in objs:
-                # FINISH ME, change to execute_values
-                cur.execute(stmt, obj.data)
+            psycopg2.extras.execute_batch(cur, stmt, [o.data for o in objs])
 
     @classmethod
     def delete(cls, db, objs):
