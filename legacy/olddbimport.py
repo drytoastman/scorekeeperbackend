@@ -162,15 +162,16 @@ def convert(sourcefile, archive):
         newe['gatepen']     = e.gatepen
         newe['ispro']       = e.ispro and True or False
         newe['ispractice']  = e.practice and True or False
+        newe['accountid']   = None
         newe['attr']        = dict()
 
         for a in ('location', 'sponsor', 'host', 'chair', 'designer', 'snail', 'cost', 'notes', 'doublespecial'):
             if hasattr(e, a) and getattr(e, a):
                 newe['attr'][a] = getattr(e, a)
 
-        cur.execute("insert into events values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
+        cur.execute("insert into events values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
             (newe['eventid'], newe['name'], newe['date'], newe['regopened'], newe['regclosed'], newe['courses'], newe['runs'], newe['countedruns'], newe['segments'],
-            newe['perlimit'], newe['sinlimit'], newe['totlimit'], newe['conepen'], newe['gatepen'], newe['ispro'], newe['ispractice'], json.dumps(newe['attr'])))
+            newe['perlimit'], newe['sinlimit'], newe['totlimit'], newe['conepen'], newe['gatepen'], newe['ispro'], newe['ispractice'], newe['accountid'], json.dumps(newe['attr'])))
 
         remapevent[e.id] = newe['eventid']
 
