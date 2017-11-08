@@ -84,19 +84,25 @@ LANGUAGE plpgsql;
 COMMENT ON FUNCTION notifymods() IS 'Send a notification when there are changes, no logging';
 
 
-CREATE OR REPLACE FUNCTION ignoreunmodified() RETURNS TRIGGER AS $body$
+CREATE OR REPLACE FUNCTION updatechecks() RETURNS TRIGGER AS $body$
 DECLARE
-    app text;
+    app text := current_setting('application_name');
+    oldrow hstore := hstore(OLD);
+    newrow hstore := hstore(NEW);
 BEGIN
     IF (TG_OP = 'UPDATE') THEN
-        app = current_setting('application_name');
         IF (OLD = NEW) THEN
             RETURN NULL;
         END IF;
+        FOR ii IN 0..TG_NARGS LOOP
+            IF (oldrow -> TG_ARGV[ii] != newrow -> TG_ARGV[ii]) THEN
+                RAISE EXCEPTION 'Cannot use UPDATE to change % of the primary key', TG_ARGV[ii];
+            END IF;
+        END LOOP;
         IF ((app = 'synclocal') OR (app = 'syncremote')) THEN
             RETURN NEW;
         END IF;
-        IF akeys(hstore(NEW) - hstore(OLD)) = ARRAY['modified'] THEN
+        IF akeys(newrow - oldrow) = ARRAY['modified'] THEN
             RETURN NULL;
         END IF;
     END IF;
@@ -104,7 +110,7 @@ BEGIN
 END;
 $body$
 LANGUAGE plpgsql;
-COMMENT ON FUNCTION ignoreunmodified() IS 'do not update rows if there are no changes or the only change is the modified field (except when syncing)';
+COMMENT ON FUNCTION updatechecks() IS 'Do not UPDATE rows if there are no changes or the only change is [modified] (except when syncing), also disallow some primary key changes in UPDATE';
 
 
 CREATE OR REPLACE FUNCTION verify_user(IN name varchar, IN password varchar) RETURNS boolean AS $body$
@@ -149,7 +155,7 @@ CREATE TABLE version (
 REVOKE ALL    ON version FROM public;
 GRANT  SELECT ON version TO driversaccess;
 CREATE TRIGGER versionmod AFTER INSERT OR UPDATE OR DELETE ON version FOR EACH ROW EXECUTE PROCEDURE logmods('publiclog');
-CREATE TRIGGER versionuni BEFORE UPDATE ON version FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified();
+CREATE TRIGGER versionuni BEFORE UPDATE ON version FOR EACH ROW EXECUTE PROCEDURE updatechecks();
 
 
 -- The results table acts as a storage of calculated results and information for each series.  As enough information
@@ -192,7 +198,7 @@ CREATE UNIQUE INDEX uniqueper  ON drivers(lower(firstname), lower(lastname), low
 REVOKE ALL   ON drivers FROM public;
 GRANT  ALL   ON drivers TO driversaccess;
 CREATE TRIGGER driversmod AFTER INSERT OR UPDATE OR DELETE ON drivers FOR EACH ROW EXECUTE PROCEDURE logmods('publiclog');
-CREATE TRIGGER driversuni BEFORE UPDATE ON drivers FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified();
+CREATE TRIGGER driversuni BEFORE UPDATE ON drivers FOR EACH ROW EXECUTE PROCEDURE updatechecks('driverid');
 COMMENT ON TABLE drivers IS 'The global list of drivers for all series';
 
 
