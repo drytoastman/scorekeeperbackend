@@ -5,6 +5,7 @@ import logging.handlers
 import os
 import signal
 import synclogic
+import sys
 import time
 import threading
 
@@ -28,7 +29,7 @@ if __name__ == '__main__':
 
     log = logging.getLogger(__name__)
     log.info("starting main")
-    mp = synclogic.process.MergeProcess()
+    mp = synclogic.process.MergeProcess(sys.argv[1:])
     done = False
 
     def interrupt(signum, frame):

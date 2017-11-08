@@ -44,24 +44,6 @@ NONPRIMARY    = dict()
 HASH_COMMANDS = dict()
 SCHEMA_VERSION = ""
 
-LOCALARGS = {
-  "cursor_factory": psycopg2.extras.DictCursor,
-            "host": "/var/run/postgresql",
-            #"host": "127.0.0.1", "port": 6432,
-            "user": "postgres",  # Needed to load passwords for use on connecting to other servers
-          "dbname": "scorekeeper",
-"application_name": "synclocal"
-}
-
-REMOTEARGS = {
-  "cursor_factory": psycopg2.extras.DictCursor,
-            "port": 54329,
-          "dbname": "scorekeeper",
-"application_name": "syncremote",
-   # Must specify host, user and password
-}
-
-
 class SyncException(Exception):
     pass
 
@@ -77,10 +59,11 @@ class DifferentSchemaException(SyncException):
 
 class DataInterface(object):
 
-    def initialize():
+    @classmethod
+    def initialize(cls, uselocalhost=False):
         """ A little introspection to load the schema from database so we don't have to keep a local copy in this file """
         global SCHEMA_VERSION
-        with DataInterface.connectLocal() as db:
+        with DataInterface.connectLocal(uselocalhost) as db:
             with db.cursor() as cur:
                 cur.execute("SELECT version FROM version")
                 SCHEMA_VERSION = cur.fetchone()[0]
@@ -106,17 +89,33 @@ class DataInterface(object):
             HASH_COMMANDS[table] = "SELECT {} FROM (SELECT MD5({}) as rowhash from {}) as t".format(SUMS, md5cols, table)
 
     @classmethod
-    def connectLocal(cls):
+    def connectLocal(cls, uselocalhost=False):
+        args = {
+          "cursor_factory": psycopg2.extras.DictCursor,
+                    "host": "/var/run/postgresql",
+                    "user": "postgres",  # Needed to load passwords for use on connecting to other servers
+                  "dbname": "scorekeeper",
+        "application_name": "synclocal"
+        }
+        if uselocalhost:
+            args.update({"host": "127.0.0.1", "port": 6432})
         try:
-            return psycopg2.connect(**LOCALARGS)
+            return psycopg2.connect(**args)
         except Exception as e:
             raise NoDatabaseException(e)
 
     @classmethod
     def connectRemote(cls, server, user, password):
+        args = {
+          "cursor_factory": psycopg2.extras.DictCursor,
+                    "port": 54329,
+                  "dbname": "scorekeeper",
+        "application_name": "syncremote",
+           # Must addhost, user and password
+        }
         try:
             address = server.address or server.hostname
-            return psycopg2.connect(host=address, user=user, password=password, connect_timeout=server.ctimeout, **REMOTEARGS)
+            return psycopg2.connect(host=address, user=user, password=password, connect_timeout=server.ctimeout, **args)
         except:
             server.recordConnectFailure()
             raise
