@@ -10,7 +10,7 @@ import uuid
 from flask import Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
 
 from nwrsc.controllers.square import *
-from nwrsc.lib.encoding import json_encode
+from nwrsc.lib.encoding import csv_encode, json_encode
 from nwrsc.lib.forms import *
 from nwrsc.lib.misc import *
 from nwrsc.model import *
@@ -133,9 +133,8 @@ def event():
 @Admin.route("/numbers")
 def numbers():
     numbers = defaultdict(lambda: defaultdict(set))
-    settings = Settings.get()
     for res in NumberEntry.allNumbers():
-        if settings.superuniquenumbers:
+        if Settings.get("superuniquenumbers"):
             res.code = "All"
         numbers[res.classcode][res.number].add(res.firstname+" "+res.lastname)
     return render_template('/admin/numberlist.html', numbers=numbers)
@@ -212,9 +211,9 @@ def settings():
         else:
             flashformerrors(form)
     else:
-        form.process(obj=Settings.get())
+        form.process(obj=Settings.getAll())
 
-    return render_template('/admin/settings.html', settings=settings, form=form)
+    return render_template('/admin/settings.html', form=form)
 
 
 @Admin.route("/event/<uuid:eventid>/edit", methods=['POST','GET'])
@@ -359,6 +358,46 @@ def rungroups():
     for e in Registration.getForEvent(g.eventid):
         groups.put(e)
     return render_template('/admin/editrungroups.html', groups=groups)
+
+
+@Admin.route("/event/<uuid:eventid>/cards")
+def cards():
+    page = request.args.get('page', 'card')
+    type = request.args.get('type', 'blank')
+
+    if type == 'blank':
+        registered = []
+    else:
+        registered = Registration.getForEvent(g.eventid)
+        for r in registered:
+            r.__dict__.update(r.dattr)
+            r.__dict__.update(r.cattr)
+            r.quickentry = "{:010d}".format(r.carid.time_low)
+        if type == 'lastname':
+            registered.sort(key=operator.attrgetter('firstname'))
+            registered.sort(key=operator.attrgetter('lastname'))
+        elif type == 'classnumber':
+            registered.sort(key=operator.attrgetter('number'))
+            registered.sort(key=operator.attrgetter('classcode'))
+
+    if page == 'csv':
+        # CSV data, just use a template and return
+        objects = list()
+        for r in registered:
+            objects.append(dict(r.__dict__))
+        titles = ['driverid', 'lastname', 'firstname', 'email', 'address', 'city', 'state', 'zip', 'phone', 'sponsor', 'brag',
+                                'carid', 'year', 'make', 'model', 'color', 'number', 'classcode', 'indexcode', 'quickentry']
+        return csv_encode("cards", titles, objects)
+
+    elif page == 'template':
+        if type == 'blank': registered.append({})
+        return render_template('admin/cards.html', registered=registered)
+
+    else:
+        from nwrsc.lib.pdfcards import pdfcards
+        if type == 'blank': registered.append(None)
+        return pdfcards(page, g.event, registered)
+
 
 @Admin.route("/newseries", methods=['GET', 'POST'])
 def newseries():

@@ -19,7 +19,6 @@ from werkzeug.debug.tbtools import get_current_traceback
 from werkzeug.contrib.profiler import ProfilerMiddleware
 
 from nwrsc.controllers.admin import Admin
-from nwrsc.controllers.cardprinting import printcards # loads routes
 from nwrsc.controllers.entranteditor import drivers # loads routes
 from nwrsc.controllers.dynamic import Announcer
 from nwrsc.controllers.feed import Xml, Json
@@ -27,21 +26,13 @@ from nwrsc.controllers.register import Register
 from nwrsc.controllers.results import Results
 from nwrsc.lib.encoding import to_json
 from nwrsc.lib.misc import *
-from nwrsc.model import AttrBase, Series
+from nwrsc.model import AttrBase, Series, Settings
 
 log = logging.getLogger(__name__)
 HASHTML = re.compile(r'(<!--.*?-->|<[^>]*>)')
 
 def create_app():
     """ Setup the application for the WSGI server """
-
-    def errorlog(exception):
-        """ We want to log exception information to file for later investigation """
-        traceback = get_current_traceback(ignore_system_exceptions=True, show_hidden_frames=True)
-        log.error(traceback.plaintext)
-        last = traceback.frames[-1]
-        now = datetime.datetime.now().replace(microsecond=0)
-        return render_template("common/error.html", now=now, name=os.path.basename(last.filename), line=last.lineno, exception=exception)
 
     def preprocessor(endpoint, values):
         """ Remove the requirement for blueprint functions to put series/eventid in their function definitions """
@@ -83,7 +74,7 @@ def create_app():
         return HASHTML.search(val) is not None
 
 
-    # Setup the application with default configuration
+    ### Configuration
     theapp = Flask("nwrsc")
     theapp.config.update({
         "DEBUG":                  bool(os.environ.get('DEBUG',     False)),
@@ -106,10 +97,10 @@ def create_app():
         "SQ_APPLICATION_SECRET":       os.environ.get('SQ_APPLICATION_SECRET', None),
         "LOGGER_HANDLER_POLICY":  "None",
     })
-
     theapp.config['TEMPLATES_AUTO_RELOAD'] = theapp.config['DEBUG']
 
-    # Setup basic top level URL handling followed by Blueprints for the various sections
+
+    ### URL handling and Blueprints for the various sections
     theapp.url_value_preprocessor(preprocessor)
     theapp.url_defaults(urldefaults)
     theapp.add_url_rule('/',             'toresults', redirect_to='/results')
@@ -123,13 +114,13 @@ def create_app():
     theapp.add_url_rule('/admin/',       "Admin.base")
     theapp.add_url_rule('/results/',     "Results.base")
 
-    # Some static things that need to show up at the root level
     @theapp.route('/favicon.ico')
     def favicon(): return send_from_directory('static/images', 'cone.png')
     @theapp.route('/robots.txt')
     def robots(): return send_from_directory('static', 'robots.txt')
 
-    # Attach some handlers to the app
+
+    ## Before, After and Teardown request
     @theapp.before_request
     def onrequest():
         g.db = AttrBase.connect(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'], user=current_app.config['DBUSER'])
@@ -154,6 +145,8 @@ def create_app():
         log.info("%s %s?%s %s %s (%s)" % (request.method, request.path, request.query_string, response.status_code, response.content_length, response.content_encoding))
         return response
 
+
+    ### Error Handlers
     @theapp.errorhandler(InvalidSeriesException)
     def invalidseries(e):
         return render_template("common/simple.html", header="404 No Such Series", content="There is no series present with that name"), 404
@@ -179,28 +172,37 @@ def create_app():
         log.info(e.content, exc_info=e.__cause__ and e or None)
         return render_template("common/simple.html", header=e.header, content=e.content)
 
-    # extra Jinja bits
+    if not theapp.debug:
+        @theapp.errorhandler(Exception)
+        def errorlog(e):
+            """ We want to log exception information to file for later investigation when debugger framework isn't presenting it for us and present a simple reportable error for user """
+            traceback = get_current_traceback(ignore_system_exceptions=True, show_hidden_frames=True)
+            log.error(traceback.plaintext)
+            last = traceback.frames[-1]
+            now = datetime.datetime.now().replace(microsecond=0)
+            return render_template("common/error.html", now=now, name=os.path.basename(last.filename), line=last.lineno, exception=e)
+
+
+    #### Jinja 
     theapp.jinja_env.filters['t3'] = t3
     theapp.jinja_env.filters['d2'] = d2
     theapp.jinja_env.filters['msort'] = msort
     theapp.jinja_env.filters['to_json'] = to_json
     theapp.jinja_env.tests['htmlstr'] = hashtml
 
-    def custom_template_loader(name):
+    def custom_template_loader(request):
         # Allows us to %include templates from the database settings values
-        if 'settings' in g and name in g.settings.__dict__:
-            rv = getattr(g.settings, name)
+        log.debug("requesting " + request)
+        name = request.split('%')
+        if name[0] in Settings.DEFAULTS:
+            rv = Settings.get(name[0])
             if len(rv.strip()):
                 return rv
         return None
     theapp.jinja_loader = ChoiceLoader([ theapp.jinja_loader, FunctionLoader(custom_template_loader) ])
 
 
-    # If not running in debug mode (debug details to browser), log the traceback locally instead
-    if not theapp.debug:
-        theapp.register_error_handler(Exception, errorlog)
-
-    # WebAssets
+    ### WebAssets
     assets = Environment(theapp)
     jquery     = Bundle("extern/jquery-3.2.0.js")
     jquerymod  = Bundle("extern/jquery.sortable-1.12.1.js", "extern/jquery.validate-1.16.js")
@@ -219,20 +221,20 @@ def create_app():
     assets.register('results.css',       Bundle("scss/results.scss",       depends="scss/*.scss", filters="libsass,cssmin", output="results.css"))
     assets.register('register.css',      Bundle("scss/register.scss",      depends="scss/*.scss", filters="libsass,cssmin", output="register.css"))
 
-    # crypto stuff, compression and profiling
+
+    ### Crypto, Compression, Mail and optional Profiling
+    theapp.hasher = Bcrypt(theapp)
+    theapp.usts = URLSafeTimedSerializer(theapp.config["SECRET_KEY"])
+    if theapp.config['MAIL_SERVER']:
+        Register.mail = Mail(theapp)
     Compress(theapp)
     if theapp.config.get('PROFILE', False):
         theapp.wsgi_app = ProfilerMiddleware(theapp.wsgi_app, restrictions=[30])
-    theapp.hasher = Bcrypt(theapp)
-    theapp.usts = URLSafeTimedSerializer(theapp.config["SECRET_KEY"])
 
-    # Flask-Mail if we are configured for it
-    if theapp.config['MAIL_SERVER']:
-        log.debug("Setting up mail")
-        Register.mail = Mail(theapp)
+    ### Reverse Proxy handler
+    theapp.wsgi_app = ReverseProxied(theapp.wsgi_app)
 
     log.info("Scorekeeper App created")
-    theapp.wsgi_app = ReverseProxied(theapp.wsgi_app)
     return theapp
 
 

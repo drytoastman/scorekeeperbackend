@@ -27,7 +27,7 @@
 
 <h5>Timing Cards <small class="text-muted">(<a href='{{url_for('.printhelp')}}' target='helptab'>Printing Help</a>)</small></h5>
 
-<form action='{{url_for('.printcards')}}' method='get'>
+<form action='{{url_for('.cards')}}' method='get'>
   <div class='form-group col-md-5'>
   <label for="typeselection" class="col-form-label">Data/Order</label>
   <select id="typeselection" name="type" class="form-control">
@@ -40,15 +40,15 @@
   <div class='form-group col-md-5'>
   <label for="pageselection" class="col-form-label">Output Format</label>
   <select id="pageselection" name="page" class="form-control">
-    <option value="card">8x5 Index Cards (PDF)</option>
-    <option value="letter">8x11 Letter Paper (PDF)</option>
     <option value="template">HTML Template</option>
     <option value="csv">CSV Data</option>
+    <option value="card">8x5 Index Cards (PDF - Deprecated)</option>
+    <option value="letter">8x11 Letter Paper (PDF - Deprecated)</option>
   </select>
   </div>
 
   <div class='form-group col-md-5 submit'>
-  <input class="btn btn-outline-admin form-control" type="submit" value="Download"/>
+  <input class="btn btn-outline-admin form-control" type="submit" value="Get"/>
   </div>
 </form>
 </div>

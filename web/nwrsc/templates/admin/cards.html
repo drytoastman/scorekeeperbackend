@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>{{g.event.name}} Cards</title>
+
+<style type="text/css">
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+div.card {
+    margin: auto;
+    width: 99.5vw;
+    height: 98.0vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    page-break-after: always;
+}
+
+div.eventname {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+div.eventdate {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+span.label1, span.label2, span.label3 { 
+    font-weight: bold; 
+    font-size: 1.1rem; 
+    display: inline-block;
+    text-align: right;
+    margin-right: 0.3rem;
+}
+
+span.label1 {
+    width: 5.0rem;
+}
+span.label2 {
+    width: 5.0rem;
+}
+span.label3 {
+    width: 6.0rem;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    border: 1px solid black;
+}
+td {
+    height: 1.8rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+}
+table.runs {
+    margin-top: 0.5rem;
+}
+
+td.half    { width: 50%;   max-width: 50vw; }
+td.quarter { width: 25%;   max-width: 25vw; }
+td.third   { width: 33.3%; max-width: 33.3vw; }
+td.sixth   { width: 16.6%; max-width: 16.6vw; }
+
+/* extra buffer on firefox so page-break doesn't cause blank pages between real pages */
+@-moz-document url-prefix() { 
+  div.card {
+    height: 96.5vh;
+  }
+}
+</style>
+</head>
+
+<body>
+{% for reg in registered %}
+<div class='card'>
+{% include ['cardtemplate%'+g.series, 'admin/defaultcard.html'] %}
+</div>
+{% endfor %}
+</body>
+</html>
+

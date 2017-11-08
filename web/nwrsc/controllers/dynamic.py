@@ -84,7 +84,7 @@ def timer():
         time.sleep(1.0)
  
 def loadAnnouncerResults(carid, mini):
-    settings  = Settings.get()
+    settings  = Settings.getAll()
     classdata = ClassData.get()
     event     = Event.get(g.eventid)
     results   = Result.getEventResults(g.eventid)

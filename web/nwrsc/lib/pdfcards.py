@@ -1,86 +1,28 @@
-import datetime
-from flask import g, make_response, request, render_template, render_template_string
+from flask import make_response
 import io
-import logging
-import operator
-from PIL import Image
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
-from reportlab.lib.utils import ImageReader
 
-from nwrsc.controllers.admin import Admin
-from nwrsc.lib.encoding import csv_encode
-from nwrsc.model import Event, Registration, Settings
-
-log = logging.getLogger(__name__)
-
-@Admin.route("/event/<uuid:eventid>/printcards")
-def printcards():
-    page = request.args.get('page', 'card')
-    type = request.args.get('type', 'blank')
-
-    if type == 'blank':
-        registered = []
-    else:
-        registered = Registration.getForEvent(g.eventid)
-        for r in registered:
-            r.__dict__.update(r.dattr)
-            r.__dict__.update(r.cattr)
-            r.quickentry = "{:010d}".format(r.carid.time_low)
-        if type == 'lastname':
-            registered.sort(key=operator.attrgetter('firstname'))
-            registered.sort(key=operator.attrgetter('lastname'))
-        elif type == 'classnumber':
-            registered.sort(key=operator.attrgetter('number'))
-            registered.sort(key=operator.attrgetter('classcode'))
-    
-    if page == 'csv':
-        # CSV data, just use a template and return
-        objects = list()
-        for r in registered:
-            objects.append(dict(r.__dict__))
-        titles = ['driverid', 'lastname', 'firstname', 'email', 'address', 'city', 'state', 'zip', 'phone', 'sponsor', 'brag',
-                                'carid', 'year', 'make', 'model', 'color', 'number', 'classcode', 'indexcode', 'quickentry']
-        return csv_encode("cards", titles, objects)
-
-    elif page == 'template':
-        settings = Settings.get()
-        if len(settings.cardtemplate):
-            return render_template_string(settings.cardtemplate, registered=registered)
-        else:
-            return render_template('admin/defaultcards.html', registered=registered)
-
-
-    # Otherwise we are are PDF
+def pdfcards(page, event, registered):
+    """ Legacy PDF printing """
     if page == 'letter': # Letter has an additional 72 points Y to space out
         size = (8*inch, 11*inch)
     else:
         size = (8*inch, 5*inch)
-
-    if type == 'blank':
-        registered.append(None)
 
     if page == 'letter' and len(registered)%2 != 0:
         registered.append(None) # Pages are always two cards per so make it divisible by 2
 
     buf = io.BytesIO()
     mycanvas = canvas.Canvas(buf, pagesize=size, pageCompression=1)
-    carddata = None #self.session.query(Data).get('cardimage')
-    if carddata is None:
-        cardimage = Image.new('RGB', (1,1))
-    else:
-        cardimage = Image.open(io.BytesIO(carddata.data))
-    cardimage = ImageReader(cardimage)
-
-    event = Event.get(g.eventid)
     while len(registered) > 0:
         if page == 'letter':
             mycanvas.translate(0, 18)  # 72/4, bottom margin for letter page
-            drawCard(mycanvas, event, registered.pop(0), cardimage)
+            drawCard(mycanvas, event, registered.pop(0))
             mycanvas.translate(0, 396)  # 360+72/2 card size plus 2 middle margins
-            drawCard(mycanvas, event, registered.pop(0), cardimage)
+            drawCard(mycanvas, event, registered.pop(0))
         else:
-            drawCard(mycanvas, event, registered.pop(0), cardimage)
+            drawCard(mycanvas, event, registered.pop(0))
         mycanvas.showPage()
     mycanvas.save()
 
@@ -88,7 +30,6 @@ def printcards():
     response.headers['Content-Type'] = "application/octet-stream"
     response.headers['Content-Disposition'] = 'attachment;filename=cards.pdf'
     return response
-
 
 
 # 8inch = 576points, half = 288
@@ -123,7 +64,7 @@ def row211(c, y, height):
     c.rect(MIDDLE,     y, 135, height)
     c.rect(MIDDLE+135, y, 135, height)
 
-def drawCard(c, event, entrant, image, **kwargs):
+def drawCard(c, event, entrant, **kwargs):
 
     # Draw all the boxes
     c.setLineWidth(0.5)

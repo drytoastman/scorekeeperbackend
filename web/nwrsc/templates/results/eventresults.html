@@ -6,14 +6,6 @@
 {% import "results/macros.html" as res %}
 {% endif %}
 
-{% block headers %}
-{{super()}}
-<style> 
-/* series custom css */
-{% include 'resultscss' ignore missing %}
-</style>
-{% endblock headers %}
-
 {% block content %}
 {% if not ispost %}
 
@@ -25,7 +17,7 @@
 {% else %}
 
 <div class='container-fluid'>
-{% include ['resultsheader', 'results/defaultheader.html'] %}
+{% include ['resultsheader%'+g.series, 'results/defaultheader.html'] %}
 {{res.classtables(results)}}
 <p/>
 {{tt.toptimestable(g.toptimes)}}

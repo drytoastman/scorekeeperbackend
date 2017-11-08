@@ -4,8 +4,7 @@
 {{super()}}
 <script>
 $(document).ready(function(){
-	$("#pospointlist").parent().toggle({{settings.usepospoints and "true" or "false"}});
-	$("input[name=usepospoints]").click(function() { $("#pospointlist").parent().toggle(this.checked); });
+	$("input[name=usepospoints]").click(function() { $("#pospointlist").parent().toggle(this.checked); }).trigger("click");
 });
 </script>
 {% endblock headers %}

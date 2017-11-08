@@ -213,7 +213,7 @@ class SettingsForm(MyFlaskForm):
     superuniquenumbers  = BooleanField( 'Series Wide Unique Numbers', render_kw={'title':"Required that new car number are unique across all classes, not just the class in use"})
     resultsheader       = TextAreaField('Results Header',             render_kw={'title':"Jinja template code for the Event Results links, see defaultheader.html for default value", 'rows':4})
     resultscss          = TextAreaField('Results CSS',                render_kw={'title':"Extra CSS that is injected into all of the results pages for this series", 'rows':4})
-    cardtemplate        = TextAreaField('Card Template',              render_kw={'title':"If provided, the HTML template to use for HTML based card printing, see defaultcards.html for default value", 'rows':4})
+    cardtemplate        = TextAreaField('Card Template',              render_kw={'title':"If provided, the HTML template to use for HTML based card printing, see defaultcard.html for default value", 'rows':4})
     submit              = SubmitField(  'Update')
 
 class EventSettingsForm(MyFlaskForm):

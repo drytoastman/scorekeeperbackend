@@ -1,0 +1,40 @@
+<div class='eventname'>{{g.event.name}}</div>
+<div class='eventdate'>{{g.event.date}}</div>
+<table class='entrant'>
+<tr>
+    <td class='half'>   <span class='label1'>Name:</span> {{reg.firstname}} {{reg.lastname}}</td>
+    <td class='quarter'><span class='label2'>Year:</span> {{reg.year}}</td>
+    <td class='quarter'><span class='label3'>Class (Idx):</span> {{reg.classcode}} {{reg.indexcode and "({})".format(reg.indexcode) or ""}}</td>
+</tr>
+<tr>
+    <td class='half'>   <span class='label1'>Address:</span> {{reg.address}}</td>
+    <td class='quarter'><span class='label2'>Make:</span> {{reg.make}}</td>
+    <td class='quarter'><span class='label3'>Number:</span> {{reg.number}}</td>
+</tr>
+<tr>
+    <td class='half'>   <span class='label1'>CSZ:</span> {{reg.city}} {{reg.state}} {{reg.zip}}</td>
+    <td class='quarter'><span class='label2'>Model:</span> {{reg.model}}</td>
+    <td class='quarter'><span class='label3'>Run/Work:</span> </td>
+</tr>
+<tr>
+    <td class='half'>   <span class='label1'>Phone:</span> {{reg.phone}}</td>
+    <td class='quarter'><span class='label2'>Color:</span> {{reg.color}}</td>
+    <td class='quarter'><span class='label3'>Assignment:</span> </td>
+</tr>
+<tr>
+    <td class='half'>   <span class='label1'>Email:</span> {{reg.email}}</td>
+    <td class='quarter'><span class='label2'>SCCA #:</span> {{reg.membership}}</td>
+    <td class='quarter'><span class='label3'>Teched By:</span> </td>
+</tr>
+<tr>
+    <td class='half'>   <span class='label1'>Sponsor:</span> {{reg.sponsor}}</td>
+    <td class='half' colspan='2'><span class='label2'>Brag:</span> {{reg.brag}}</td>
+</tr>
+</table>
+
+<table class='runs'>
+<tr><th>Raw Time</th><th>Cones</th><th>Gates</th><th>Official Time</th></tr>
+{% for ii in range(6) %}
+<tr><td class='third'></td><td class='sixth'></td><td class='sixth'></td><td class='third'></td></tr>
+{% endfor %}
+</table>

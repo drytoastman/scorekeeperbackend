@@ -72,14 +72,14 @@ def profilepost():
 @Register.route("/<series>/cars")
 def cars():
     if not g.driver: return login()
-    settings = Settings.get()
     carform = CarForm(g.classdata)
     events  = {e.eventid:e for e in Event.byDate()}
     cars    = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
     active  = defaultdict(set)
     for carid,eventid in Driver.activecars(g.driver.driverid):
         active[carid].add(eventid)
-    return render_template('register/cars.html', events=events, cars=cars, active=active, carform=carform, settings=settings)
+    classinglink = Settings.get("classinglink")
+    return render_template('register/cars.html', events=events, cars=cars, active=active, carform=carform, classinglink=classinglink)
 
 
 @Register.route("/<series>/carspost", methods=['POST'])
@@ -219,9 +219,8 @@ def usednumbers():
     classcode = request.args.get('classcode', None)
     if classcode is None:
         return "missing data in request"
-
-    g.settings = Settings.get()
-    return json_encode(sorted(list(Car.usedNumbers(g.driver.driverid, classcode, g.settings.superuniquenumbers))))
+    superuniquenumbers = Settings.get("superuniquenumbers")
+    return json_encode(sorted(list(Car.usedNumbers(g.driver.driverid, classcode, superuniquenumbers=superuniquenumbers))))
 
 
 @Register.route("/logout")
@@ -238,12 +237,12 @@ def view():
     event = Event.get(g.eventid)
     if event is None:
         raise InvalidEventException()
-    g.settings = Settings.get()
+    seriesname = Settings.get("seriesname")
     g.classdata = ClassData.get()
     registered = defaultdict(list)
     for r in Registration.getForEvent(g.eventid, event.paymentRequired()):
         registered[r.classcode].append(r)
-    return render_template('register/reglist.html', event=event, registered=registered)
+    return render_template('register/reglist.html', seriesname=seriesname, event=event, registered=registered)
 
 @Register.route("/ical/<driverid>")
 def ical(driverid):

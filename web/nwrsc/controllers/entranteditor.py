@@ -39,7 +39,7 @@ def getitems():
 
 @Admin.route("/usednumbers")
 def usednumbers():
-    return json_encode(sorted(list(Car.usedNumbers(request.args['driverid'], request.args['classcode'], Settings.get().superuniquenumbers))))
+    return json_encode(sorted(list(Car.usedNumbers(request.args['driverid'], request.args['classcode'], Settings.get("superuniquenumbers")))))
 
 @Admin.route("/deleteitem", methods=['POST'])
 def deleteitem():

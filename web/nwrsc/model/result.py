@@ -211,7 +211,7 @@ class Result(object):
                 'challenges': Challenge.getAll(),
                 'classes': list(classdata.classlist.values()),
                 'indexes': list(classdata.indexlist.values()),
-                'settings': Settings.get()
+                'settings': Settings.getAll()
             }
         cls._insertResults(name, data)
 
@@ -229,7 +229,7 @@ class Result(object):
     
         event     = Event.get(eventid)
         classdata = ClassData.get()
-        settings  = Settings.get()
+        settings  = Settings.getAll()
         ppoints   = PosPoints(settings.pospointlist)
     
         with g.db.cursor() as cur:
@@ -537,7 +537,7 @@ class Result(object):
                 (saves loading/parsing all events again)
             Returns a dict of ChampClass objects
         """
-        settings  = Settings.get()
+        settings  = Settings.getAll()
         classdata = ClassData.get()
         events    = Event.byDate()
 

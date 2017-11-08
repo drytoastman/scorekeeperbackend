@@ -7,6 +7,11 @@
     <script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
 
+<style> 
+/* series custom css */
+{% include 'resultscss%'+g.series ignore missing %}
+</style>
+
 <script type="text/javascript">
 $(document).ready(function(){
 {% if not g.year -%}
