@@ -14,6 +14,7 @@ from flask_assets import Environment, Bundle
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
 from itsdangerous import URLSafeTimedSerializer
+from jinja2 import ChoiceLoader, FunctionLoader
 from werkzeug.debug.tbtools import get_current_traceback
 from werkzeug.contrib.profiler import ProfilerMiddleware
 
@@ -184,6 +185,16 @@ def create_app():
     theapp.jinja_env.filters['msort'] = msort
     theapp.jinja_env.filters['to_json'] = to_json
     theapp.jinja_env.tests['htmlstr'] = hashtml
+
+    def custom_template_loader(name):
+        # Allows us to %include templates from the database settings values
+        if 'settings' in g and name in g.settings.__dict__:
+            rv = getattr(g.settings, name)
+            if len(rv.strip()):
+                return rv
+        return None
+    theapp.jinja_loader = ChoiceLoader([ theapp.jinja_loader, FunctionLoader(custom_template_loader) ])
+
 
     # If not running in debug mode (debug details to browser), log the traceback locally instead
     if not theapp.debug:

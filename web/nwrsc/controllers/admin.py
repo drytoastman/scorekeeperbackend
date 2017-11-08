@@ -206,6 +206,8 @@ def settings():
         if form.validate():
             newsettings = Settings.fromForm(form)
             newsettings.save()
+            # We may have changed custom templates, clear the cache now
+            current_app.jinja_env.cache.clear()
             return redirect(url_for('.settings'))
         else:
             flashformerrors(form)
@@ -302,7 +304,7 @@ def eventattend():
 def uniqueattend():
     """ return the list of new entrants attending each event """
     for e in g.events:
-        e.drivers = attendance.newforevent(e)
+        e.drivers = Attendance.newForEvent(e)
     return render_template('/admin/attendance.html', title='unique attendance', events=g.events)
 
 @Admin.route("/payments")

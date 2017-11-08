@@ -6,6 +6,14 @@
 {% import "results/macros.html" as res %}
 {% endif %}
 
+{% block headers %}
+{{super()}}
+<style> 
+/* series custom css */
+{% include 'resultscss' ignore missing %}
+</style>
+{% endblock headers %}
+
 {% block content %}
 {% if not ispost %}
 
@@ -17,21 +25,10 @@
 {% else %}
 
 <div class='container-fluid'>
-{{g.settings.customheader|safe}}
-<h3 class='seriesname'>{{g.settings.seriesname}}</h3>
-<h4 class='eventname'>{{g.event.date.strftime("%a %b %d %Y")}} - {{g.event.name}}</h4>
-<h6 class='eventinfo'><span class='location'>{{g.event.location}}</span> - <span class='entrantcount'>{{g.entrantcount}} Entrants</span></h6>
-
-<div class='classlinks'>
-{% for cls in results|sort -%}
-<a href='#body{{cls}}'>{{cls}}</a>
-{% endfor %}
-</div>
-
+{% include ['resultsheader', 'results/defaultheader.html'] %}
 {{res.classtables(results)}}
 <p/>
 {{tt.toptimestable(g.toptimes)}}
-
 </div>
 
 {% endif %}

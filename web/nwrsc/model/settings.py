@@ -7,7 +7,7 @@ class Settings(object):
 
     BOOLS  = ["superuniquenumbers", "indexafterpenalties", "usepospoints"]
     INTS   = ["largestcarnumber", "dropevents", "minevents"]
-    STRS   = ["pospointlist", "champsorting", "seriesname", "customheader", "classinglink"]
+    STRS   = ["pospointlist", "seriesname", "classinglink", "resultsheader", "resultscss", "cardtemplate" ]
  
     def __init__(self, initial=None):
         self.superuniquenumbers = False
@@ -19,10 +19,11 @@ class Settings(object):
         self.minevents = 0
 
         self.pospointlist = "20,16,13,11,9,7,6,5,4,3,2,1"
-        self.champsorting = ""
         self.seriesname = ""
-        self.customheader = ""
         self.classinglink = ""
+        self.resultsheader = ""
+        self.resultscss = ""
+        self.cardtemplate = ""
 
         if initial:
             self.__dict__.update(initial)

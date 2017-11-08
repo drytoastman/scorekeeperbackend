@@ -560,8 +560,7 @@ class Result(object):
 
         todrop   = settings.dropevents
         bestof   = max(todrop, completed - todrop)
-        sortkeys = ['points']
-        sortkeys.extend([x for x in csvlist(settings.champsorting) if x in ChampEntrant.AvailableSubKeys])
+        sortkeys = ['points'] + ChampEntrant.AvailableSubKeys
 
         # Final storage where results are an ordered list rather than map
         ret = defaultdict(ChampClass)

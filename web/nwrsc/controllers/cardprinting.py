@@ -1,5 +1,5 @@
 import datetime
-from flask import g, make_response, request
+from flask import g, make_response, request, render_template, render_template_string
 import io
 import logging
 import operator
@@ -10,31 +10,12 @@ from reportlab.lib.utils import ImageReader
 
 from nwrsc.controllers.admin import Admin
 from nwrsc.lib.encoding import csv_encode
-from nwrsc.model import Event, Registration
+from nwrsc.model import Event, Registration, Settings
 
 log = logging.getLogger(__name__)
 
-def loadPythonFunc(self, func, text):
-    # Create place to load stuff defined in loaded code, provide limited builtins
-    loadenv = dict()
-    sand = dict()
-    for k in ['str', 'range']:
-        sand[k] = __builtins__[k]
-    loadenv['__builtins__'] = sand
-
-    # Some flailing attempt at stopping bad behaviour
-    if 'import' in text:
-        raise Exception("python code to load contains import, not loading")
-
-    text = str(text)
-    text = text.replace('\r', '')
-    exec(text, loadenv)
-    return loadenv[func]
-
 @Admin.route("/event/<uuid:eventid>/printcards")
 def printcards():
-    #drawCard = loadPythonFunc('drawCard', self.session.query(Data).get('card.py').data)
-
     page = request.args.get('page', 'card')
     type = request.args.get('type', 'blank')
 
@@ -61,6 +42,13 @@ def printcards():
         titles = ['driverid', 'lastname', 'firstname', 'email', 'address', 'city', 'state', 'zip', 'phone', 'sponsor', 'brag',
                                 'carid', 'year', 'make', 'model', 'color', 'number', 'classcode', 'indexcode', 'quickentry']
         return csv_encode("cards", titles, objects)
+
+    elif page == 'template':
+        settings = Settings.get()
+        if len(settings.cardtemplate):
+            return render_template_string(settings.cardtemplate, registered=registered)
+        else:
+            return render_template('admin/defaultcards.html', registered=registered)
 
 
     # Otherwise we are are PDF
