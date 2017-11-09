@@ -9,7 +9,9 @@
 
 <style> 
 /* series custom css */
+{% if g.series %}
 {% include 'resultscss%'+g.series ignore missing %}
+{% endif %}
 </style>
 
 <script type="text/javascript">
