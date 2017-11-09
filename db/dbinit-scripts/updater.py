@@ -11,18 +11,7 @@ LOCALARGS = {
 }
 
 updatelist = [
-    (True, "ALTER TABLE events ADD COLUMN accountid TEXT REFERENCES paymentaccounts"),
-    (True, "UPDATE events SET accountid=attr->>'payments'"),
-    "20171011",
-    (True, "CREATE TRIGGER payaccmod AFTER INSERT OR UPDATE OR DELETE ON paymentaccounts FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog')"),
-    (True, "CREATE TRIGGER payaccuni BEFORE UPDATE ON paymentaccounts FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified()"),
-    (True, "CREATE TRIGGER timmod AFTER INSERT OR UPDATE OR DELETE ON timertimes FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog')"),
-    (True, "CREATE TRIGGER timuni BEFORE UPDATE ON timertimes FOR EACH ROW EXECUTE PROCEDURE ignoreunmodified()"),
-    "20171012",
-    (True, "CREATE TABLE secrets (accountid TEXT PRIMARY KEY, secret TEXT NOT NULL DEFAULT '', modified TIMESTAMP NOT NULL DEFAULT now())"),
-    (True, "REVOKE ALL ON secrets FROM public"),
-    (True, "GRANT ALL  ON secrets TO localuser"),
-    "20171013"
+    "20171109"
 ]
 
 def get_version(db):

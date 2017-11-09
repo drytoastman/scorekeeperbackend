@@ -19,8 +19,7 @@ def square_payment(event, account, driver, amount, nonce):
 
     request = {
         'card_nonce': nonce,
-        'reference_id': str(event.eventid),
-        'note': ','.join([driver.lastname, driver.firstname, event.name]),
+        'note': ','.join([event.date.strftime('%Y-%m-%d'), event.name, driver.lastname, driver.firstname]),
         'amount_money': {
             'amount': int(amount*100),
             'currency': 'USD'

@@ -5,6 +5,7 @@ import json
 import os
 import psycopg2
 import psycopg2.extras
+import random
 import sqlite3
 import sys
 import uuid
@@ -17,6 +18,11 @@ class AttrWrapper(object):
     def __init__(self, tup, headers):
         for k,v in zip(headers, tup):
             setattr(self, k, v)
+
+def idgen():
+    """ randomize timelow so that are quick entry ids require less characters to find a match """
+    v1 = uuid.uuid1()
+    return uuid.UUID(fields=(int(random.uniform(0, 0xFFFFFFFF)), v1.time_mid, v1.time_hi_version, v1.clock_seq_hi_variant, v1.clock_seq_low, v1.node), version=1)
 
 def convert(sourcefile, archive):
     remapdriver    = dict()
@@ -35,7 +41,7 @@ def convert(sourcefile, archive):
 
     # Assumes that we are running in a docker container along side db
     psycopg2.extras.register_uuid()
-    new = psycopg2.connect(host='/var/run/postgresql', user='postgres', dbname='scorekeeper', application_name='oldimport', cursor_factory=psycopg2.extras.DictCursor)
+    new = psycopg2.connect(host='127.0.0.1', port=6432, user='postgres', dbname='scorekeeper', application_name='oldimport', cursor_factory=psycopg2.extras.DictCursor)
     cur = new.cursor()
 
     cur.execute("select schema_name from information_schema.schemata where schema_name=%s", (name,))
@@ -59,11 +65,11 @@ def convert(sourcefile, archive):
             print('\t\tmatch %s %s %s' % (d.firstname, d.lastname, d.email))
         else:
             newd = dict()
-            newd['driverid']   = uuid.uuid1()
+            newd['driverid']   = idgen()
             newd['firstname']  = d.firstname.strip()
             newd['lastname']   = d.lastname.strip()
             newd['email']      = d.email.strip()
-            newd['username']   = str(uuid.uuid1()) # Fake for now
+            newd['username']   = str(newd['driverid']) # Fake for now
             newd['password']   = ""
             newd['membership'] = d.membership and d.membership.strip() or ""
             newd['attr']       = dict()
@@ -120,7 +126,7 @@ def convert(sourcefile, archive):
             print("\t\tassigning unknown index {} to AM".format(c.indexcode))
             c.indexcode = 'AM'
         newc = dict()
-        newc['carid']      = uuid.uuid1()
+        newc['carid']      = idgen()
         newc['driverid']   = remapdriver[c.driverid]
         newc['classcode']  = c.classcode
         newc['indexcode']  = c.indexcode or ''
@@ -146,7 +152,7 @@ def convert(sourcefile, archive):
         else:
             segments = 0
         newe = dict()
-        newe['eventid']     = uuid.uuid1()
+        newe['eventid']     = idgen()
         newe['name']        = e.name or "No Name"
         newe['date']        = e.date
         newe['regopened']   = e.regopened
@@ -259,7 +265,7 @@ def convert(sourcefile, archive):
         c = AttrWrapper(r, r.keys())
 
         newc = dict()
-        newc['challengeid'] = uuid.uuid1()
+        newc['challengeid'] = idgen()
         newc['eventid']     = remapevent[c.eventid]
         newc['name']        = c.name
         newc['depth']       = c.depth
@@ -311,11 +317,12 @@ def convert(sourcefile, archive):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print("Usage: {} <db directory> <true/false>".format(sys.argv[0]))
+        print("Usage: {} <db glob> <true/false>".format(sys.argv[0]))
     else:
         # Archive assumes that database is blank before we start this dog and pony show
         archive = sys.argv[2].lower() == 'true'
         app = create_app()
+        random.seed()
         for f in glob.glob(sys.argv[1]):
             convert(f, archive)
 
