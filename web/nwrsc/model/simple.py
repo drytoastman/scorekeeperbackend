@@ -130,7 +130,7 @@ class Registration(AttrBase):
     @classmethod
     def getForEvent(cls, eventid, txrequired=False):
         with g.db.cursor() as cur:
-            base = "SELECT d.*,c.*,r.*,d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s"
+            base = "SELECT d.*,c.*,r.*,r.modified as regmodified, d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s"
             if txrequired:
                 cur.execute(base + " and r.txid IS NOT NULL ORDER BY c.number", (eventid,))
             else:

@@ -14,7 +14,8 @@ $(document).ready(function(){
             { data: 'email'     },
             { data: 'classcode' },
             { data: 'number' },
-            { data: 'cdesc' },
+            { data: 'cdesc', render: function(data) { return data.substring(0, 30); }},
+            { data: 'regmodified', render: function(data) { return data.substring(0, 16); }},
             { data: null, "defaultContent": "<button class='btn btn-admin small'>Unregister</button>" }
         ],
         sDom: '<"dtheader"fi>rt<"clear">'
@@ -50,6 +51,7 @@ $(document).ready(function(){
 <th>Class</th>
 <th>Num</th>
 <th>Car</th>
+<th>Modified</th>
 <th></th>
 </tr>
 </thead>
