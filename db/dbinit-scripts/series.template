@@ -92,7 +92,6 @@ GRANT  ALL ON paymentaccounts TO <seriesname>;
 CREATE TRIGGER payaccmod AFTER INSERT OR UPDATE OR DELETE ON paymentaccounts FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
 CREATE TRIGGER payaccuni BEFORE UPDATE ON paymentaccounts FOR EACH ROW EXECUTE PROCEDURE updatechecks('accountid');
 COMMENT ON TABLE paymentaccounts IS 'the list of configured merchant data available for online payment options, this is NOT synced between nodes';
-INSERT INTO paymentaccounts (accountid, name, type, attr) VALUES ('onsite', 'Onsite Payment', 'onsite', '{}');
 
 
 CREATE TABLE secrets (
