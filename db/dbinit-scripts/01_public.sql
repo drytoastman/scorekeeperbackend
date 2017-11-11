@@ -189,12 +189,11 @@ CREATE TABLE drivers (
     password   TEXT        NOT NULL DEFAULT '',
     membership TEXT        NOT NULL DEFAULT '',
     attr       JSONB       NOT NULL DEFAULT '{}', 
-    modified   TIMESTAMP   NOT NULL DEFAULT now()
+    modified   TIMESTAMP   NOT NULL DEFAULT now(),
+    CONSTRAINT uniqueusername UNIQUE (username)
 );
 CREATE INDEX ON drivers(lower(firstname));
 CREATE INDEX ON drivers(lower(lastname));
-CREATE UNIQUE INDEX uniqueuser ON drivers(username);
-CREATE UNIQUE INDEX uniqueper  ON drivers(lower(firstname), lower(lastname), lower(email));
 REVOKE ALL   ON drivers FROM public;
 GRANT  ALL   ON drivers TO driversaccess;
 CREATE TRIGGER driversmod AFTER INSERT OR UPDATE OR DELETE ON drivers FOR EACH ROW EXECUTE PROCEDURE logmods('publiclog');
