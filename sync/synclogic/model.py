@@ -195,7 +195,7 @@ class DataInterface(object):
             cur1.execute("SET search_path=%s,%s", (series, 'public'))
             cur2.execute("SET search_path=%s,%s", (series, 'public'))
             
-            while tries > 3:
+            while tries > 0:
                 cur1.execute("SELECT pg_try_advisory_lock(42)")
                 lock1 = cur1.fetchone()[0]
                 if lock1:
