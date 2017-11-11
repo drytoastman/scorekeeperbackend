@@ -72,7 +72,8 @@ class MergeProcess():
                                 log.error("Caught exception merging with {}: {}".format(remote, e), exc_info=e)
                                 remote.serverError(str(e))
 
-                    localdb.rollback() # Don't hang out in idle transaction from selects
+                    # Don't hang out in idle transaction from selects
+                    localdb.rollback()
 
             except (NoDatabaseException, NoLocalHostServer) as ie:
                 log.debug(type(ie).__name__)
@@ -86,12 +87,15 @@ class MergeProcess():
 
 
     def mergeWith(self, localdb, local, remote, passwords):
+        """ Run a merge process with the specified remote server """
         global signalled
 
+        # First connect to the remote server with nulluser just to update the list of active series
         log.debug("checking %s", remote)
         with DataInterface.connectRemote(server=remote, user='nulluser', password='nulluser') as remotedb:
             remote.updateSeriesFrom(remotedb)
 
+        # Now, for each active series in the remote database, check if we have the password to connect
         for series in remote.mergestate.keys():
             error = None
             if series not in passwords:
@@ -101,19 +105,21 @@ class MergeProcess():
             try:
                 assert not signalled, "Quit signal received"
                 assert series in local.mergestate, "series was not created in local database yet"
+
+                # Mark this series as the one we are actively merging with remote and make the series/password connection
                 remote.seriesStart(series)
                 with DataInterface.connectRemote(server=remote, user=series, password=passwords[series]) as remotedb:
                     remote.updateCacheFrom(remotedb, series)
 
+                    # If the totalhash of our local copy differs from the remote copy, we need to actually do something
                     if remote.mergestate[series]['totalhash'] != local.mergestate[series]['totalhash']:
                         log.debug("Need to merge %s:", series)
 
-                        # Obtain a merge lock on both sides and start the merge
+                        # Obtain a merge lock on both sides, find which tables different and run mergeTables()
                         with DataInterface.mergelocks(local, localdb, remote, remotedb, series):
                             ltables = local.mergestate[series]['hashes']
                             rtables = remote.mergestate[series]['hashes']
                             self.mergeTables(localdb, remotedb, set([k for k in ltables if ltables[k] != rtables[k]]))
-
                             remotedb.commit()
                             localdb.commit()
 
@@ -131,6 +137,7 @@ class MergeProcess():
 
 
     def mergeTables(self, localdb, remotedb, tables):
+        """ Outer loop to rerun mergeTables if for some reason, we are still not totally up to date after running """
         count = 0
         for ii in range(5):
             if len(tables) <= 0: return
@@ -138,7 +145,9 @@ class MergeProcess():
             log.debug("unfinished tables = %s", tables)
         log.error("Ran merge tables 5 times.  Quitting")
 
+
     def _mergeTablesInternal(self, localdb, remotedb, tables):
+        """ The core function for actually finding the real differences and applying them locally or remotely """
         global signalled
         localinsert = defaultdict(list)
         localupdate = defaultdict(list)
@@ -223,10 +232,12 @@ class MergeProcess():
         unfinished = set()
         for t in remoteundelete:
             if len(remoteundelete[t]) > 0:
+                log.debug("remoteundelete {} {}".format(t, len(t))
                 unfinished.add(t)
                 DataInterface.insert(remotedb, remoteundelete[t])
         for t in localundelete:
             if len(localundelete[t]) > 0:
+                log.debug("localundelete {} {}".format(t, len(t))
                 unfinished.add(t)
                 DataInterface.insert(localdb, localundelete[t])
 
