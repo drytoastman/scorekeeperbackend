@@ -10,6 +10,7 @@ import psycopg2
 import psycopg2.extras
 import random
 import struct
+import time
 import uuid
 psycopg2.extras.register_uuid()
 psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
@@ -182,6 +183,7 @@ class DataInterface(object):
         """
         lock1 = False
         lock2 = False
+        tries = 10
         try:
             if local.serverid < remote.serverid:
                 cur1 = localdb.cursor()
@@ -193,25 +195,35 @@ class DataInterface(object):
             cur1.execute("SET search_path=%s,%s", (series, 'public'))
             cur2.execute("SET search_path=%s,%s", (series, 'public'))
             
-            cur1.execute("SELECT pg_try_advisory_lock(42)")
-            lock1 = cur1.fetchone()[0]
-            if lock1:
-                cur2.execute("SELECT pg_try_advisory_lock(42)")
-                lock2 = cur2.fetchone()[0]
-            assert lock1 and lock2, "Unable to obtain locks, will try again later"
-            log.debug("Acquired both locks")
-            yield
+            while tries > 3:
+                cur1.execute("SELECT pg_try_advisory_lock(42)")
+                lock1 = cur1.fetchone()[0]
+                if lock1:
+                    cur2.execute("SELECT pg_try_advisory_lock(42)")
+                    lock2 = cur2.fetchone()[0]
+                    if lock2:
+                        log.debug("Acquired both locks")
+                        yield
+                        break
+
+                # Failed on lock1 or lock2, release the lock we did get, wait and retry
+                log.debug("Unable to obtain locks, sleeping and trying again")
+                if lock1: cur1.execute("SELECT pg_advisory_unlock(42)") 
+                time.sleep(0.5)
+                tries -= 1
+            else:
+                raise SyncException("Unable to obtain locks, will try again later")
+
         finally:
             # In case we get thrown here by exception, rollback.  We commit successful work before this happens
             remotedb.rollback()
             localdb.rollback()
             log.debug("Releasing locks (%s, %s)", lock1, lock2)
-            if lock2:
-                cur2.execute("SELECT pg_advisory_unlock(42)")
-                cur2.close()
-            if lock1:
-                cur1.execute("SELECT pg_advisory_unlock(42)")
-                cur1.close()
+            # Release locks in opposite order from obtaining to avoid deadlock
+            if lock2: cur2.execute("SELECT pg_advisory_unlock(42)")
+            if lock1: cur1.execute("SELECT pg_advisory_unlock(42)")
+            cur2.close()
+            cur1.close()
 
 
 class PresentObject():

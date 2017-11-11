@@ -232,12 +232,12 @@ class MergeProcess():
         unfinished = set()
         for t in remoteundelete:
             if len(remoteundelete[t]) > 0:
-                log.debug("remoteundelete {} {}".format(t, len(t))
+                log.debug("remoteundelete {} {}".format(t, len(t)))
                 unfinished.add(t)
                 DataInterface.insert(remotedb, remoteundelete[t])
         for t in localundelete:
             if len(localundelete[t]) > 0:
-                log.debug("localundelete {} {}".format(t, len(t))
+                log.debug("localundelete {} {}".format(t, len(t)))
                 unfinished.add(t)
                 DataInterface.insert(localdb, localundelete[t])
 
