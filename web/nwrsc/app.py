@@ -195,7 +195,10 @@ def create_app():
         log.debug("requesting " + request)
         name = request.split('%')
         if name[0] in Settings.DEFAULTS:
-            rv = Settings.get(name[0])
+            if hasattr(g, 'seriesinfo'): # archived results
+                rv = getattr(g.settings, name[0], "")
+            else:
+                rv = Settings.get(name[0])
             if len(rv.strip()):
                 return rv
         return None

@@ -23,6 +23,7 @@ def setup():
     if g.series:
         g.year = Series.getYear(g.series)
         g.seriesinfo = Result.getSeriesInfo()
+        g.settings = g.seriesinfo.getSettings()
         g.events = g.seriesinfo.getEvents()
         if g.eventid:
             g.event = g.seriesinfo.getEvent(g.eventid)
@@ -62,7 +63,6 @@ def _resultsforclasses(clslist=None, grplist=None):
         results        = resultsbase
         g.toptimes     = Result.getTopTimesTable(g.classdata, results, {'indexed':True}, {'indexed':False})
         g.entrantcount = sum([len(x) for x in results.values()])
-        g.settings     = g.seriesinfo.getSettings()
     elif grplist is not None:
         ispost         = False
         results        = dict()
@@ -124,7 +124,7 @@ def tt():
 def champ():
     results = Result.getChampResults()
     events  = [x for x in g.events if not x.ispractice]
-    return render_template('/results/champ.html', results=results, settings=g.seriesinfo.getSettings(), classdata=g.seriesinfo.getClassData(), events=events)
+    return render_template('/results/champ.html', results=results, settings=g.settings, classdata=g.seriesinfo.getClassData(), events=events)
 
 
 ## ProSolo related data (Challenge and Dialins)
