@@ -3,6 +3,7 @@ RUN apk --no-cache add openssl socat
 ENV POSTGRES_DB=scorekeeper
 ENV POSTGRES_PASSWORD=thisgetsoverwrittenlater
 ENV TEMPLATE_SCHEMA_VERSION=20171109
+COPY dbconversion-scripts /dbconversion-scripts
 COPY dbinit-scripts /docker-entrypoint-initdb.d
 COPY custom-entrypoint.sh /usr/local/bin
 ENTRYPOINT ["custom-entrypoint.sh"]
