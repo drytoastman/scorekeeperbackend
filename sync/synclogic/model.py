@@ -325,6 +325,7 @@ class MergeServer(object):
         if error is None:
             self.mergestate[series].pop('error', None)
         else:
+            log.info("series %s reported %s", series, error)
             if "password authentication failed" in error: 
                 self.mergestate[series]['error'] = "Password Incorrect"
             else:

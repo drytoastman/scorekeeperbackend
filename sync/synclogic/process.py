@@ -99,7 +99,7 @@ class MergeProcess():
         for series in remote.mergestate.keys():
             error = None
             if series not in passwords:
-                log.debug("No password for %s, skipping", series)
+                remote.seriesDone(series, "No password for %s, skipping" % (series,))
                 continue
 
             try:
