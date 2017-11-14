@@ -25,6 +25,7 @@ log_rotation_size = '10MB'
 log_line_prefix = '%t %a '
 log_statement = none
 log_min_duration_statement = 20
+password_encryption = off
 " >> postgresql.conf
 
 cp /docker-entrypoint-initdb.d/series.template series.sql
