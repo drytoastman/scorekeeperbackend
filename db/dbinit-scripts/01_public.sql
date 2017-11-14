@@ -146,6 +146,27 @@ LANGUAGE plpgsql;
 COMMENT ON FUNCTION verify_series(varchar) IS 'If series does not exist, reads in series template, replaces series variable name and executes the commands, requires series user to be present';
 
 
+CREATE OR REPLACE FUNCTION upgrade(IN seriesscript varchar, IN publicscript varchar, IN newversion varchar) RETURNS boolean AS $body$
+DECLARE
+    cmds text[];
+    schema text;
+BEGIN
+    FOR schema IN SELECT nspname FROM pg_catalog.pg_namespace where nspname !~ '^pg_' and nspname not in ('information_schema', 'public') 
+    LOOP
+        PERFORM set_config('search_path', schema||',public', true);
+        EXECUTE seriesscript;
+    END LOOP;
+    PERFORM set_config('search_path', 'public', true);
+    EXECUTE publicscript;
+    UPDATE version SET version=newversion;
+    RETURN TRUE;
+END;
+$body$
+LANGUAGE plpgsql;
+COMMENT ON FUNCTION upgrade(varchar, varchar, varchar) IS 'Run the upgrade scripts (series on each schema) and update the version to version, all within a transaction in case there is a failure';
+REVOKE ALL ON FUNCTION upgrade(varchar, varchar, varchar) FROM public;
+
+
 -- Single row table to set and track schema version
 CREATE TABLE version (
     id       INTEGER   PRIMARY KEY CHECK (id=1),
@@ -188,6 +209,7 @@ CREATE TABLE drivers (
     username   TEXT        NOT NULL DEFAULT '',
     password   TEXT        NOT NULL DEFAULT '',
     membership TEXT        NOT NULL DEFAULT '',
+    optoutmail BOOLEAN     NOT NULL DEFAULT FALSE,
     attr       JSONB       NOT NULL DEFAULT '{}', 
     modified   TIMESTAMP   NOT NULL DEFAULT now(),
     CONSTRAINT uniqueusername UNIQUE (username)
