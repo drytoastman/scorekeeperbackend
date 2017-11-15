@@ -333,12 +333,15 @@ class MergeServer(object):
         self.mergestate[series].pop('syncing', None)
         self._updateMergeState()
 
+    def serverStart(self):
+        pass
+
     def serverError(self, error):
         for series in self.mergestate:
             self.mergestate[series]['error'] = error
             self._updateMergeState()
     
-    def mergeDone(self):
+    def serverDone(self):
         with self.db.cursor() as localcur:
             if self.hoststate == '1':
                 self.hoststate = 'I'

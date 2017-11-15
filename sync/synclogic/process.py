@@ -67,10 +67,13 @@ class MergeProcess():
                     for remote in MergeServer.getActive(localdb):
                         if remote.nextcheck < datetime.datetime.utcnow():
                             try:
+                                remote.serverStart()
                                 self.mergeWith(localdb, me, remote, passwords)
                             except Exception as e:
                                 log.error("Caught exception merging with {}: {}".format(remote, e), exc_info=e)
                                 remote.serverError(str(e))
+                            finally:
+                                remote.serverDone()
 
                     # Don't hang out in idle transaction from selects
                     localdb.rollback()
@@ -133,7 +136,6 @@ class MergeProcess():
                 log.warning("Merge with %s/%s failed: %s", remote.hostname, series, e, exc_info=e)
 
             remote.seriesDone(series, error)
-        remote.mergeDone()
 
 
     def mergeTables(self, localdb, remotedb, tables):
