@@ -138,6 +138,7 @@ class DriverForm(MyFlaskForm):
     firstname = MyStringField('First Name', [Length(min=2, max=32)])
     lastname  = MyStringField('Last Name',  [Length(min=2, max=32)])
     email     = MyEmailField( 'Email',      [Email()])
+    optoutmail= BooleanField( 'Do Not Contact', render_kw={'title':"Only use email address for password reset messages"})
     membership= MyStringField('Barcode',    [Length(max=16)])
     address   = MyStringField('Address',    [Length(max=64)])
     city      = MyStringField('City   ',    [Length(max=64)])

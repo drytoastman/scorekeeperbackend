@@ -36,7 +36,7 @@ function extractemail()
     var ret = Array();
     var data = thetable.rows({filter: 'applied'}).data();
     for (var ii= 0; ii < data.length; ii ++) {
-        if (data[ii].email.match(emailregex))
+        if ((!data[ii]['optoutmail']) && (data[ii].email.match(emailregex)))
             ret.push(data[ii].email);
     }
     return ret;
@@ -76,7 +76,7 @@ $(document).ready(function(){
         columns: [
             { data: 'firstname', width: '30%' },
             { data: 'lastname',  width: '30%' },
-            { data: 'email',     width: '40%' },
+            { data: 'email',     width: '40%', render: displayemail },
             { data: 'runs',      width: '0%', visible: false },
             { data: 'reg',       width: '0%', visible: false }
         ],

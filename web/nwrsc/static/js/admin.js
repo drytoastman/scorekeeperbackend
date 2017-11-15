@@ -31,3 +31,12 @@ function titlecasecar(cid)
 	});
 }
 
+function displayemail(data, type, row, meta) 
+{
+    if (row['optoutmail']) {
+        return "**********";
+    } else {
+        return data;
+    }
+}
+

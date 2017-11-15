@@ -31,6 +31,7 @@ function load_driver_form(form, dr)
         var f = DRIVERFIELDS[idx];
         form.find('[name='+f+']').val(dr[f]);
     }
+    form.find('[name=optoutmail]').prop('checked', dr['optoutmail']);
 }
 
 if ($.validator) {

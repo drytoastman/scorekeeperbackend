@@ -58,6 +58,8 @@ networks:
 
 volumes:
   database:  # for long term storage of database/config
+    external:
+        name: scdatabase-latest
   dbsocket:  # for sharing of database unix socket across containers
   logs:      # for long term storage of logging data
 

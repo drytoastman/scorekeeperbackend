@@ -38,11 +38,11 @@ class Attendance(object):
     def getActivity(cls):
         ret = defaultdict(Entrant)
         with g.db.cursor() as cur:
-            cur.execute("SELECT distinct(d.driverid), d.firstname, d.lastname, d.email, d.membership, r.eventid FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid")
+            cur.execute("SELECT distinct(d.driverid), d.firstname, d.lastname, d.email, d.membership, d.optoutmail, r.eventid FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid")
             for row in cur.fetchall():
                 e = ret.setdefault(row['driverid'], Entrant(**row, runs=set(), reg=set()))
                 e.runs.add(row['eventid'])
-            cur.execute("SELECT distinct(d.driverid), d.firstname, d.lastname, d.email, d.membership, r.eventid FROM registered r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid")
+            cur.execute("SELECT distinct(d.driverid), d.firstname, d.lastname, d.email, d.membership, d.optoutmail, r.eventid FROM registered r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid")
             for row in cur.fetchall():
                 e = ret.setdefault(row['driverid'], Entrant(**row, runs=set(), reg=set()))
                 e.reg.add(row['eventid'])
