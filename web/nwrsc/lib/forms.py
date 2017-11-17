@@ -2,7 +2,7 @@ from functools import partial
 import logging
 from operator import attrgetter
 
-from flask import request, flash
+from flask import request, flash, url_for
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, DateField, DateTimeField, FieldList, FloatField, Form, FormField, HiddenField, PasswordField, SelectField, StringField, SubmitField, TextAreaField
 from wtforms.fields.html5 import EmailField, IntegerField, URLField
@@ -66,7 +66,10 @@ class MyFlaskForm(FlaskForm):
             if not hasattr(f.widget, 'input_type') or f.widget.input_type != 'submit':
                 ret.append("<div class='row'>")
                 if not hasattr(f.widget, 'input_type') or f.widget.input_type != 'hidden':
-                    ret.append(f.label(class_=labelcol))
+                    if f.render_kw and 'labelextra' in f.render_kw:
+                        ret.append("<div class='{} text-right'>{}<br/>{}</div>".format(labelcol, f.label(), f.render_kw['labelextra']))
+                    else:
+                        ret.append(f.label(class_=labelcol))
                 ret.append(f(class_=inputcol))
                 ret.append("</div>")
 
@@ -212,10 +215,15 @@ class SettingsForm(MyFlaskForm):
     pospointlist        = MyStringField('Position Points',            render_kw={'title':"The points for each position, starting with first, the last value will repeat to fill remaining values"})
     indexafterpenalties = BooleanField( 'Index After Penalties',      render_kw={'title':"Perform indexes after applying penalties, rather than vice versa"})
     superuniquenumbers  = BooleanField( 'Series Wide Unique Numbers', render_kw={'title':"Required that new car number are unique across all classes, not just the class in use"})
-    resultsheader       = TextAreaField('Results Header',             render_kw={'title':"Jinja template code for the Event Results links, see defaultheader.html for default value", 'rows':4})
     resultscss          = TextAreaField('Results CSS',                render_kw={'title':"Extra CSS that is injected into all of the results pages for this series", 'rows':4})
-    cardtemplate        = TextAreaField('Card Template',              render_kw={'title':"If provided, the HTML template to use for HTML based card printing, see defaultcard.html for default value", 'rows':4})
+    resultsheader       = TextAreaField('Results Header',             render_kw={'title':"Jinja template code for the Event Results links",
+                                                                                 'labelextra':"<a href='default?resultsheader'>Default If Blank</a>",  # can't use url_for as there is no context when its read
+                                                                                 'rows':4 })
+    cardtemplate        = TextAreaField('Card Template',              render_kw={'title':"If provided, the HTML template to use for HTML based card printing",
+                                                                                 'labelextra':"<a href='default?cardtemplate'>Default If Blank</a>",
+                                                                                 'rows':4})
     submit              = SubmitField(  'Update')
+
 
 class EventSettingsForm(MyFlaskForm):
     eventid       = HiddenField(  'eventid')

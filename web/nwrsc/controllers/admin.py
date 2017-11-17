@@ -7,7 +7,7 @@ import psycopg2
 import re
 import uuid
 
-from flask import Blueprint, current_app, flash, g, redirect, request, render_template, session, url_for
+from flask import Blueprint, current_app, escape, flash, g, redirect, request, render_template, send_from_directory, session, url_for
 
 from nwrsc.controllers.square import *
 from nwrsc.lib.encoding import csv_encode, json_encode
@@ -214,6 +214,16 @@ def settings():
         form.process(obj=Settings.getAll())
 
     return render_template('/admin/settings.html', form=form)
+
+
+@Admin.route("/default")
+def default():
+    if 'resultsheader' in request.args:
+        return send_from_directory('templates/results', 'defaultheader.html', mimetype='text/plain')
+    elif 'cardtemplate' in request.args:
+        return send_from_directory('templates/admin', 'defaultcard.html', mimetype='text/plain')
+
+    raise DisplayableError(header="Unknown request", content="Unknown argument for default")
 
 
 @Admin.route("/event/<uuid:eventid>/edit", methods=['POST','GET'])
