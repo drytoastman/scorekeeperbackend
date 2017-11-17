@@ -31,7 +31,7 @@
 {{ errorcell('login', active) }}
 {{ login.html('loginform', url_for('.login'), 'post')|safe }}
 <div class='row'>
-<small class='col form-text text-muted'>If you had a profile in the previous system, use the Reset tab to set a username and password</small>
+<small class='col form-text text-muted'>You can use the Reset tab if you forgot your password or the Register tab to create a new profile</small>
 </div>
 </div>
 
@@ -53,7 +53,7 @@ This server does not have an email server setup.  Reset is not possible.
 <div class='row'><div class='col align-self-center error'>{{registererror}}</div></div>
 {{ register.html('registerform', url_for('.login'), 'post')|safe }}
 <div class='row'>
-<small class='col form-text text-muted'>This is for new users who haven't run in an event.  This will not link to any previous profiles</small>
+<small class='col form-text text-muted'>This is for new users without a profile in this system.  This will not link to any previous profiles</small>
 </div>
 {% else %}
 This server does not have an email server setup.  Registration is not possible.
