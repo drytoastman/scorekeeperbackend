@@ -194,6 +194,7 @@ span.payments {
 
     div.eventheader {
         border-top: 1px solid $bordercolor;
+        border-radius: 8px;
 
         a {
             cursor: pointer;
@@ -225,7 +226,8 @@ span.payments {
     div.eventholder {
         .header {
             font-weight: bold;
-            border-bottom: 1px solid $bordercolor;
+            font-size: 1.1rem;
+            border-bottom: 1px dotted $bordercolor;
             padding-left: 1rem;
             margin-bottom: 0.4rem;
 
