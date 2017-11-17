@@ -69,11 +69,10 @@ class MergeProcess():
                             try:
                                 remote.serverStart()
                                 self.mergeWith(localdb, me, remote, passwords)
+                                remote.serverDone()
                             except Exception as e:
                                 log.error("Caught exception merging with {}: {}".format(remote, e), exc_info=e)
                                 remote.serverError(str(e))
-                            finally:
-                                remote.serverDone()
 
                     # Don't hang out in idle transaction from selects
                     localdb.rollback()
@@ -87,6 +86,10 @@ class MergeProcess():
             # Wait for 10 seconds before rescanning.  Wake immediately if something is dropped in the queue
             try: done = self.wakequeue.get(timeout=10)
             except: pass
+
+
+
+
 
 
     def mergeWith(self, localdb, local, remote, passwords):
@@ -122,7 +125,7 @@ class MergeProcess():
                         with DataInterface.mergelocks(local, localdb, remote, remotedb, series):
                             ltables = local.mergestate[series]['hashes']
                             rtables = remote.mergestate[series]['hashes']
-                            self.mergeTables(localdb, remotedb, set([k for k in ltables if ltables[k] != rtables[k]]))
+                            self.mergeTables(remote, series, localdb, remotedb, set([k for k in ltables if ltables[k] != rtables[k]]))
                             remotedb.commit()
                             localdb.commit()
 
@@ -135,20 +138,24 @@ class MergeProcess():
                 error = str(e)
                 log.warning("Merge with %s/%s failed: %s", remote.hostname, series, e, exc_info=e)
 
-            remote.seriesDone(series, error)
+            finally:
+                remote.seriesDone(series, error)
 
 
-    def mergeTables(self, localdb, remotedb, tables):
+
+
+
+    def mergeTables(self, remote, series, localdb, remotedb, tables):
         """ Outer loop to rerun mergeTables if for some reason, we are still not totally up to date after running """
         count = 0
         for ii in range(5):
             if len(tables) <= 0: return
-            tables = self._mergeTablesInternal(localdb, remotedb, tables)
+            tables = self._mergeTablesInternal(remote, series, localdb, remotedb, tables)
             log.debug("unfinished tables = %s", tables)
         log.error("Ran merge tables 5 times.  Quitting")
 
 
-    def _mergeTablesInternal(self, localdb, remotedb, tables):
+    def _mergeTablesInternal(self, remote, series, localdb, remotedb, tables):
         """ The core function for actually finding the real differences and applying them locally or remotely """
         global signalled
         localinsert = defaultdict(list)
@@ -163,7 +170,7 @@ class MergeProcess():
 
         for t in tables:
             assert not signalled, "Quit signal received"
-            log.debug("{}  collection".format(t))
+            remote.seriesStatus(series, "Analysis {}".format(t))
 
             # Load data from both databases, load it all in one go to be more efficient in updates later
             localobj  = PresentObject.loadPresent(localdb, t)
@@ -214,7 +221,7 @@ class MergeProcess():
         # Insert order first (top down)
         for t in TABLE_ORDER:
             assert not signalled, "Quit signal received"
-            log.debug("%s insert", t)
+            remote.seriesStatus(series, "Insert {}".format(t))
             DataInterface.insert(localdb,  localinsert[t])
             DataInterface.insert(remotedb, remoteinsert[t])
 
@@ -222,7 +229,7 @@ class MergeProcess():
         log.debug("Performing updates/deletes")
         for t in reversed(TABLE_ORDER):
             assert not signalled, "Quit signal received"
-            log.debug("%s update/delete", t)
+            remote.seriesStatus(series, "Update/Delete {}".format(t))
             DataInterface.update(localdb,  localupdate[t])
             DataInterface.update(remotedb, remoteupdate[t])
 
@@ -234,12 +241,12 @@ class MergeProcess():
         unfinished = set()
         for t in remoteundelete:
             if len(remoteundelete[t]) > 0:
-                log.debug("remoteundelete {} {}".format(t, len(t)))
+                remote.seriesStatus(series, "R-undelete {}".format(t))
                 unfinished.add(t)
                 DataInterface.insert(remotedb, remoteundelete[t])
         for t in localundelete:
             if len(localundelete[t]) > 0:
-                log.debug("localundelete {} {}".format(t, len(t)))
+                remote.seriesStatus(series, "L-undelete {}".format(t))
                 unfinished.add(t)
                 DataInterface.insert(localdb, localundelete[t])
 

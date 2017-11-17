@@ -316,12 +316,22 @@ class MergeServer(object):
                 log.warning("Multiple localhost entries in the database")
             return cls(cur.fetchone(), db)
 
+    
+
     def seriesStart(self, series):
+        """ Called when we start merging a given series with this remote server """
         self.mergestate[series].pop('error', None)
         self.mergestate[series]['syncing'] = True
         self._updateMergeState()
 
+    def seriesStatus(self, series, status):
+        """ Called with current status for the given series while merging with this remote server """
+        log.debug("seriesstatus: %s", status)
+        self.mergestate[series]['progress'] = status
+        self._updateMergeState()
+
     def seriesDone(self, series, error):
+        """ Called when we are done merging the given series with this remote server, error is None for when successful """
         if error is None:
             self.mergestate[series].pop('error', None)
         else:
@@ -330,29 +340,40 @@ class MergeServer(object):
                 self.mergestate[series]['error'] = "Password Incorrect"
             else:
                 self.mergestate[series]['error'] = error
+        self.mergestate[series].pop('progress', None)
         self.mergestate[series].pop('syncing', None)
         self._updateMergeState()
 
+
+
     def serverStart(self):
+        """ Called when we start a merge process with this remote server """
         pass
 
     def serverError(self, error):
+        """ Called when the merge attempt with the remove server throws an exception, most likely a connection error """
         for series in self.mergestate:
             self.mergestate[series]['error'] = error
-            self._updateMergeState()
+        if self.hoststate == '1':
+            self.hoststate = 'I'
+        with self.db.cursor() as localcur:
+            localcur.execute("UPDATE mergeservers SET hoststate=%s, mergestate=%s WHERE serverid=%s", (self.hoststate, json.dumps(self.mergestate), self.serverid))
+            self.db.commit()
     
     def serverDone(self):
+        """ Called when the merge with the remote server completes without any exceptions """
+        if self.hoststate == '1':
+            self.hoststate = 'I'
+        self.lastcheck = datetime.datetime.utcnow()
+        if self.hoststate in ('A', '1'):
+            self.nextcheck = self.lastcheck + datetime.timedelta(seconds=(self.waittime + random.uniform(-5, +5)))
+        else:
+            self.nextcheck = datetime.datetime.utcfromtimestamp(0)
         with self.db.cursor() as localcur:
-            if self.hoststate == '1':
-                self.hoststate = 'I'
-            self.lastcheck = datetime.datetime.utcnow()
-            if self.hoststate in ('A', '1'):
-                self.nextcheck = self.lastcheck + datetime.timedelta(seconds=(self.waittime + random.uniform(-5, +5)))
-            else:
-                self.nextcheck = datetime.datetime.utcfromtimestamp(0)
-            localcur.execute("UPDATE mergeservers SET lastcheck=%s, nextcheck=%s, hoststate=%s, mergestate=%s WHERE serverid=%s",
-                                    (self.lastcheck, self.nextcheck, self.hoststate, json.dumps(self.mergestate), self.serverid))
+            localcur.execute("UPDATE mergeservers SET lastcheck=%s, nextcheck=%s, hoststate=%s WHERE serverid=%s", (self.lastcheck, self.nextcheck, self.hoststate, self.serverid))
             self.db.commit()
+
+
 
     def recordConnectFailure(self):
         with self.db.cursor() as localcur:
