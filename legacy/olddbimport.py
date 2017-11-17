@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import glob
 import json
 import os
@@ -24,7 +25,7 @@ def idgen():
     v1 = uuid.uuid1()
     return uuid.UUID(fields=(int(random.uniform(0, 0xFFFFFFFF)), v1.time_mid, v1.time_hi_version, v1.clock_seq_hi_variant, v1.clock_seq_low, v1.node), version=1)
 
-def convert(sourcefile, archive):
+def convert(sourcefile=None, archive=False, overridename=None, settingsonly=False):
     remapdriver    = dict()
     remapcar       = dict({-1:None})
     remapevent     = dict()
@@ -44,13 +45,65 @@ def convert(sourcefile, archive):
     new = psycopg2.connect(host='127.0.0.1', port=6432, user='postgres', dbname='scorekeeper', application_name='oldimport', cursor_factory=psycopg2.extras.DictCursor)
     cur = new.cursor()
 
-    cur.execute("select schema_name from information_schema.schemata where schema_name=%s", (name,))
-    if cur.rowcount > 0:
-        raise Exception("{} is already an active series, not continuing".format(name))
+    if overridename:
+        name = overridename
+
+    if not settingsonly:
+        cur.execute("select schema_name from information_schema.schemata where schema_name=%s", (name,))
+        if cur.rowcount > 0:
+            raise Exception("{} is already an active series, not continuing".format(name))
 
     cur.execute("select verify_user(%s, %s)", (name, password))
     cur.execute("select verify_series(%s)", (name,))
     cur.execute("set search_path=%s,%s", (name, 'public'))
+
+
+    #INDEXLIST 
+    print("\tindexes")
+    cur.execute("insert into indexlist values ('', 'No Index', 1.000, now())")
+    allindexcodes = set()
+    for r in old.execute("select * from indexlist"):
+        i = AttrWrapper(r, r.keys())
+        cur.execute("insert into indexlist values (%s, %s, %s, now())",     
+                    (i.code, i.descrip, i.value))
+        allindexcodes.add(i.code)
+
+
+    #CLASSLIST
+    print("\tclasses")
+    cur.execute("insert into classlist values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
+                ('HOLD', 'Unknown Class', '', '', 1.0, False, False, False, False, False, 0))
+    allclasscodes = set()
+    for r in old.execute("select * from classlist"):
+        c = AttrWrapper(r, r.keys())
+        c.usecarflag  = c.usecarflag and True or False
+        c.carindexed  = c.carindexed and True or False
+        c.eventtrophy = c.eventtrophy and True or False
+        c.champtrophy = c.champtrophy and True or False
+        c.secondruns  = c.code in ('TOPM', 'ITO2')
+        cur.execute("insert into classlist values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
+                    (c.code, c.descrip, c.classindex, c.caridxrestrict, c.classmultiplier, c.carindexed, c.usecarflag, c.eventtrophy, c.champtrophy, c.secondruns, c.countedruns))
+        allclasscodes.add(c.code)
+
+
+    #SETTINGS
+    print("\tsettings")
+    settings = dict()
+    for r in old.execute("select name,val from settings"):
+        key = r['name']
+        val = r['val']
+        if key == 'useevents':
+            key = 'dropevents'
+        cur.execute("insert into settings values (%s, %s, now())", (key, val))
+
+
+    ## For settings only, we drop out here
+    if settingsonly:
+        old.close()
+        new.commit()
+        new.close()
+        return
+
 
     #DRIVERS, add to global list and remap ids as necessary
     print("\tdrivers")
@@ -83,35 +136,7 @@ def convert(sourcefile, archive):
             remapdriver[d.id] = newd['driverid']
 
 
-    #INDEXLIST 
-    print("\tindexes")
-    cur.execute("insert into indexlist values ('', 'No Index', 1.000, now())")
-    allindexcodes = set()
-    for r in old.execute("select * from indexlist"):
-        i = AttrWrapper(r, r.keys())
-        cur.execute("insert into indexlist values (%s, %s, %s, now())",     
-                    (i.code, i.descrip, i.value))
-        allindexcodes.add(i.code)
-
-
-    #CLASSLIST (map seriesid)
-    print("\tclasses")
-    cur.execute("insert into classlist values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
-                ('HOLD', 'Unknown Class', '', '', 1.0, False, False, False, False, False, 0))
-    allclasscodes = set()
-    for r in old.execute("select * from classlist"):
-        c = AttrWrapper(r, r.keys())
-        c.usecarflag  = c.usecarflag and True or False
-        c.carindexed  = c.carindexed and True or False
-        c.eventtrophy = c.eventtrophy and True or False
-        c.champtrophy = c.champtrophy and True or False
-        c.secondruns  = c.code in ('TOPM', 'ITO2')
-        cur.execute("insert into classlist values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
-                    (c.code, c.descrip, c.classindex, c.caridxrestrict, c.classmultiplier, c.carindexed, c.usecarflag, c.eventtrophy, c.champtrophy, c.secondruns, c.countedruns))
-        allclasscodes.add(c.code)
-
-
-    #CARS (all the same fields, need to map carid, driverid and seriesid)
+    #CARS (all the same fields, need to map carid and driverid)
     print("\tcars")
     for r in old.execute("select * from cars"):
         c = AttrWrapper(r, r.keys())
@@ -248,18 +273,7 @@ def convert(sourcefile, archive):
         else:
             print("\t\tskipping unknown carid {}".format(oldr.carid))
 
-
-    #SETTINGS
-    print("\tsettings")
-    settings = dict()
-    for r in old.execute("select name,val from settings"):
-        key = r['name']
-        val = r['val']
-        if key == 'useevents':
-            key = 'dropevents'
-        cur.execute("insert into settings values (%s, %s, now())", (key, val))
-
-        
+       
     #CHALLENGES (remap challengeid, eventid)
     print("\tchallenges")
     for r in old.execute("select * from challenges"):
@@ -316,14 +330,24 @@ def convert(sourcefile, archive):
     new.commit()
     new.close()
 
+
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print("Usage: {} <db glob> <true/false>".format(sys.argv[0]))
-    else:
-        # Archive assumes that database is blank before we start this dog and pony show
-        archive = sys.argv[2].lower() == 'true'
-        app = create_app()
-        random.seed()
-        for f in glob.glob(sys.argv[1]):
-            convert(f, archive)
+    parser = argparse.ArgumentParser(description='Import old data into new database')
+    parser.add_argument('--dbglob', help='a glob of the database files to import')
+    parser.add_argument('--archive', action='store_true', help='automatically archive the series after importing, assumes that the drivers table is blank before starting')
+    parser.add_argument('--settings', help='import just the non driver/car settings into the database')
+    parser.add_argument('--overridename', help='override the destination series name (for --settings only)')
+    args = parser.parse_args()
+    if not (args.dbglob or args.settings):
+        parser.print_help()
+        sys.exit(2)
+
+    app = create_app()
+    random.seed()
+
+    if args.dbglob:
+        for f in glob.glob(args.dbglob):
+            convert(sourcefile=f, archive=args.archive)
+    elif args.settings:
+        convert(sourcefile=args.settings, settingsonly=True, overridename=args.overridename)
 
