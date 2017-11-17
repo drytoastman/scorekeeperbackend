@@ -44,4 +44,15 @@ For systems not using the frontend monitor application to control the backend, y
 as the basis for your docker-composition file.  scorekeeper.wwscc.org uses a modified version of this file that 
 removes the sync server and uses a different set of environment variables.
 
+## Apache Forwarding
+
+For our OS X Server based on Apache, we can't quite set it up the way we want so we do the basics with the GUI
+configuration and then add the following lines to site configuration file to proxy most URLs to our local container.
+The .well-known line is one way of letting some URLs use the regular filesystem for serving files.
+
+```
+ProxyPass /.well-known !
+ProxyPass / http://127.0.0.1:9999/
+ProxyPassReverse / http://127.0.0.1:9999/
+```
 
