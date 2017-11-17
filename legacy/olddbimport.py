@@ -72,13 +72,14 @@ def convert(sourcefile, archive):
             newd['username']   = str(newd['driverid']) # Fake for now
             newd['password']   = ""
             newd['membership'] = d.membership and d.membership.strip() or ""
+            newd['optoutmail'] = False
             newd['attr']       = dict()
             for a in ('alias', 'address', 'city', 'state', 'zip', 'phone', 'brag', 'sponsor', 'notes'):
                 if hasattr(d, a) and getattr(d, a):
                     newd['attr'][a] = getattr(d, a).strip()
     
-            cur.execute("insert into drivers values (%s, %s, %s, %s, %s, %s, %s, %s, now())", 
-                (newd['driverid'], newd['firstname'], newd['lastname'], newd['email'], newd['username'], newd['password'], newd['membership'], json.dumps(newd['attr'])))
+            cur.execute("insert into drivers values (%s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
+                (newd['driverid'], newd['firstname'], newd['lastname'], newd['email'], newd['username'], newd['password'], newd['membership'], newd['optoutmail'], json.dumps(newd['attr'])))
             remapdriver[d.id] = newd['driverid']
 
 
