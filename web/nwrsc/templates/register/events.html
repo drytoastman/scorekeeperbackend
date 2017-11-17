@@ -134,7 +134,7 @@ var gCosts = Array();
 
 <div id='eventsouter'>
 <div id='eventscontainer' class='container'>
-    <div class='title'>Events in {{g.series}}</div>
+    <div class='title'>Events in {{g.seriesname}}</div>
 {% for ev in events %}
     {% set eclass = ev.isOpen() and "eventopen show" or "eventclosed" %}
     <div class='eventheader {{eclass}} row justify-content-start'>

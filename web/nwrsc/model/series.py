@@ -25,11 +25,7 @@ class Series(object):
 
     @classmethod
     def active(cls):
-        return cls.activeindb(g.db)
-
-    @classmethod
-    def activeindb(cls, db):
-        with db.cursor() as cur:
+        with g.db.cursor() as cur:
             cur.execute("select schema_name from information_schema.schemata")
             return [x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public', 'template')]
 

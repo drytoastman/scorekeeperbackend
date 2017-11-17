@@ -30,6 +30,7 @@ def setup():
             if g.seriestype != Series.ACTIVE:
                 raise ArchivedSeriesException()
             g.classdata = ClassData.get()
+            g.seriesname = Settings.get('seriesname')
     else:
         g.driver = None
 
