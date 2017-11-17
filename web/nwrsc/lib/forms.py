@@ -220,7 +220,7 @@ class SettingsForm(MyFlaskForm):
                                                                                  'labelextra':"<a href='default?resultsheader'>Default If Blank</a>",  # can't use url_for as there is no context when its read
                                                                                  'rows':4 })
     cardtemplate        = TextAreaField('Card Template',              render_kw={'title':"If provided, the HTML template to use for HTML based card printing",
-                                                                                 'labelextra':"<a href='default?cardtemplate'>Default If Blank</a>",
+                                                                                 'labelextra':"<a href='default?cardtemplate'>Default If Blank</a><br/><a href='default?cards'>Wrapped In</a>",
                                                                                  'rows':4})
     submit              = SubmitField(  'Update')
 

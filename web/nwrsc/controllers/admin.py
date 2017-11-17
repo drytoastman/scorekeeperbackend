@@ -222,6 +222,8 @@ def default():
         return send_from_directory('templates/results', 'defaultheader.html', mimetype='text/plain')
     elif 'cardtemplate' in request.args:
         return send_from_directory('templates/admin', 'defaultcard.html', mimetype='text/plain')
+    elif 'cards' in request.args:
+        return send_from_directory('templates/admin', 'cards.html', mimetype='text/plain')
 
     raise DisplayableError(header="Unknown request", content="Unknown argument for default")
 
