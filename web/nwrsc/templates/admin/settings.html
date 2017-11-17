@@ -4,7 +4,9 @@
 {{super()}}
 <script>
 $(document).ready(function(){
-	$("input[name=usepospoints]").click(function() { $("#pospointlist").parent().toggle(this.checked); }).trigger("click");
+    function followppcheck(checked) { $("#pospointlist").parent().toggle(checked); }
+	$("input[name=usepospoints]").click(function() { followppcheck(this.checked); });
+	followppcheck($("input[name=usepospoints]").is(':checked'))
 });
 </script>
 {% endblock headers %}
