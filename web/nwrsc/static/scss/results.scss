@@ -4,6 +4,8 @@ $subheadgray: #ccc;
 @import "../extern/bootstrap-4.0.0b.scss";
 @import "common.scss";
 
+@include bootstraptheme("results", $basecolor);
+
 .bg-results {
     background-color: $basecolor;
 }

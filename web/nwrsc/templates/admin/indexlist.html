@@ -10,6 +10,7 @@ $(document).ready(function(){
         newCountedRow('#indexlistform', '#indexlisttemplate');
         return false;
     });
+    $('input[type=text]').change(function() { $(this).css('background', 'yellow'); });
 });
 </script>
 {% endblock headers %}
@@ -23,31 +24,42 @@ $(document).ready(function(){
 </tr>
 {% endmacro %}
 
+
+{% macro controlrow() %}
+<span class="dropdown">
+  <button class="btn btn-outline-admin dropdown-toggle" type="button" data-toggle="dropdown">
+    Reset To Pax/RTP
+  </button>
+  <div class="dropdown-menu">
+    {% for l in lists %}
+    <a class="dropdown-item" href="{{url_for('.indexreset', index=l)}}" onclick="return confirm('This will overwrite all current index values, is this okay?')">{{l.replace('_', ' ')}}</a>
+    {% endfor %}
+  </div>
+</span>
+<button class='btn btn-outline-admin addbutton'>Add Row</button>
+<input  class='btn btn-admin' type='submit' value="Save">
+{% endmacro %}
+
+
 {% block content %}
 {{super()}}
 <div class='container'>
 <h2>Index Editor</h2>
 
 <form action="{{url_for('.indexlist')}}" method="post" id='indexlistform'>
-<table class='indextable'>
+
+{{ controlrow() }}
+
+<table class='indextable mt-2'>
 <tr><th>Code</th><th>Description</th><th>Value</th></tr>
 {% for field in form.indexlist %}
 {{dorow(loop.index0, field)}}
 {% endfor %}
 </table>
-
-<button class='btn btn-outline-admin addbutton'>Add Row</button>
-<span class="dropdown">
-  <button class="btn btn-outline-admin dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    Generate From
-  </button>
-  <div class="dropdown-menu">
-    <a class="dropdown-item">2017 PAX/RTP</a>
-    <a class="dropdown-item">2016 PAX/RTP</a>
-  </div>
-</span>
 {{form.csrf_token()}}
-<input  class='btn btn-admin' type='submit' value="Save">
+
+{{ controlrow() }}
+
 </form>
 </div>
 

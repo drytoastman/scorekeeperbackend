@@ -1,8 +1,11 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
+import glob
 import io
+import json
 import logging
 import operator
+import os
 import psycopg2
 import re
 import uuid
@@ -195,7 +198,22 @@ def indexlist():
         for key, idx in sorted(classdata.indexlist.items()):
             form.indexlist.append_entry(idx)
 
-    return render_template('/admin/indexlist.html', form=form)
+    lists = [os.path.basename(s[:-5]) for s in glob.glob(os.path.join(current_app.root_path, 'static/indexlists/*.json'))]
+    return render_template('/admin/indexlist.html', form=form, lists=lists)
+
+
+@Admin.route("/indexreset")
+def indexreset():
+    try:
+        index = request.args.get('index', 'none')
+        prefix = index.replace('_', ' ')
+        with open(os.path.join(current_app.root_path, 'static/indexlists', '{}.json'.format(index))) as fp:
+            indexes = json.load(fp)
+            ClassData.get().updateIndexesTo({k:Index(indexcode=k, value=v, descrip='{} {}'.format(prefix, k)) for k,v in indexes.items()})
+    except Exception as e:
+        flash("Exception loading indexes from file: {}".format(e))
+
+    return redirect(url_for('.indexlist'))
 
 
 @Admin.route("/settings", methods=['POST', 'GET'])

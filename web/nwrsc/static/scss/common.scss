@@ -156,5 +156,13 @@ input::-webkit-inner-spin-button {
       background-color: darken($color, 10%);
       border-color: darken($color, 20%);
     }
+
+    .dropdown-item:focus, .dropdown-item:hover {
+        background-color: lighten(desaturate($color, 30%), 40%);
+    }
+
+    .dropdown-item.active, .dropdown-item:active {
+        background-color: lighten(desaturate($color, 20%), 20%);
+    }
 }
 
