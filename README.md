@@ -26,7 +26,7 @@ is for anything under your $HOME directory.  This is necessary for the /code vol
 to work.
 
 There is also a requirement to forward ports across the VirtualBox bounary.  This is done automatically
-by the Java TrayMonitor application.  If that isn't running, you can do this with **docker-machine ssh** if a 
+by the Java TrayApplication.  If that isn't running, you can do this with **docker-machine ssh** if a 
 decent ssh client is available on your machine.
 
 ```
