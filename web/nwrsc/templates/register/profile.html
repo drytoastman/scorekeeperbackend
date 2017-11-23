@@ -16,13 +16,10 @@
 </div>
 
 <div class='col-md-6'>
-<div class='title'>Upcoming Entries For All Series</div>
-
-<div class='row'>
-<div class='col'>
-<a class='registeredlink' href='{{url_for(".ical", driverid=g.driver.driverid)}}'><span class='fa fa-calendar'></span>ical link</a>
+<div class='title'>
+<a class='icallink' href='{{url_for(".ical", driverid=g.driver.driverid)}}'><span class='fa fa-calendar'></span>ical</a>
+Upcoming Entries For All Series
 </div>
-</div> {# sub-row #}
 
 {% for date,events in upcoming.items()|sort %}
 {% for (series,name),entries in events.items()|sort %}

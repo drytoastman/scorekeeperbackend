@@ -24,14 +24,14 @@
     <a class="nav-link {{'active' if active=='register'}}" role="tab" data-toggle="tab" href="#register">Register</a>
 </nav>
 
-<div class='tab-content'>
+<div class='tab-content container'>
 
 
 <div id='login' role="tabpanel" class='tab-pane {{'active' if active=='login'}}'>
 {{ errorcell('login', active) }}
 {{ login.html('loginform', url_for('.login'), 'post')|safe }}
 <div class='row'>
-<small class='col form-text text-muted'>You can use the Reset tab if you forgot your password or the Register tab to create a new profile</small>
+<small class='col form-text text-muted text-right p-0'>You can use the Reset tab if you forgot your password or the Register tab to create a new profile</small>
 </div>
 </div>
 
@@ -40,7 +40,7 @@
 {{ errorcell('reset', active) }}
 {{ reset.html('resetform', url_for('.login'), 'post')|safe }}
 <div class='row'>
-<small class='col form-text text-muted'>If you do not have a valid email in your profile, you must contact us to reset your login information</small>
+<small class='col form-text text-muted text-right p-0'>If you do not have a valid email in your profile, you must contact us to reset your login information</small>
 </div>
 {% else %}
 This server does not have an email server setup.  Reset is not possible.
@@ -53,7 +53,7 @@ This server does not have an email server setup.  Reset is not possible.
 <div class='row'><div class='col align-self-center error'>{{registererror}}</div></div>
 {{ register.html('registerform', url_for('.login'), 'post')|safe }}
 <div class='row'>
-<small class='col form-text text-muted'>This is for new users without a profile in this system.  This will not link to any previous profiles</small>
+<small class='col form-text text-muted text-right p-0'>This is for new users without a profile in this system.  This will not link to any previous profiles</small>
 </div>
 {% else %}
 This server does not have an email server setup.  Registration is not possible.

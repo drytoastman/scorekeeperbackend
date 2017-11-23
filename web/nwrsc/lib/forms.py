@@ -150,6 +150,8 @@ class DriverForm(MyFlaskForm):
     phone     = MyStringField('Phone',      [Length(max=16)])
     brag      = MyStringField('Brag',       [Length(max=64)])
     sponsor   = MyStringField('Sponsor',    [Length(max=64)])
+    econtact  = MyStringField('Emerg Contact', [Length(max=64)])
+    ephone    = MyStringField('Emerg Phone',   [Length(max=64)])
     submit    = SubmitField(  'Update')
 
 class CarForm(MyFlaskForm):

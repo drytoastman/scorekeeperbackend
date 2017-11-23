@@ -149,12 +149,14 @@ span.payments {
         }
     }
 
-    .registeredlink {
-        margin-left: -0.5rem;
+    .icallink {
+        position: absolute;
+        left: 1rem;
+        top: 0.5rem;
+        font-size: 1rem;
     }
 
     .eventtitle {
-        margin-top: 0.6rem;
         font-size: 1.05rem;
         white-space: nowrap;
         overflow: hidden;

@@ -24,7 +24,7 @@ String.prototype.format = function() {
     return formatted;
 };
 
-const DRIVERFIELDS = ["driverid", "firstname", "lastname", "email", "membership", "address", "city", "state", "zip", "phone", "brag", "sponsor"];
+const DRIVERFIELDS = ["driverid", "firstname", "lastname", "email", "membership", "address", "city", "state", "zip", "phone", "brag", "sponsor", "econtact", "ephone"];
 function load_driver_form(form, dr)
 {
     for (idx in DRIVERFIELDS) {
