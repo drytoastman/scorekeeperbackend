@@ -157,15 +157,16 @@ var gCosts = Array();
     <form id='registerform' action='{{url_for(".eventspost")}}' method='POST'>
         <input type='hidden' name='eventid' value=''/>
         <div class='row'>
-        <div class='col text-center'><a href='cars'><span class='fa fa-car'></span>Create,Edit and Delete Cars Here</a></div>
-         </div>
+        <div class='col-2'></div>
+        <div class='col-10'><a href='cars'><span class='fa fa-car'></span>Create,Edit and Delete Cars Here</a></div>
+        </div>
         {% for c in cars.values() %}
-        <div class='row'>
+        <div class='row align-items-center'>
         <input class="col-2" name="{{c.carid}}" type="checkbox" value="y"/>
         <label class="col-10" for="{{c.carid}}">{{rm.carDisplay(c)}}</label>
         </div>
         {% endfor %}
-        <div class='row'>
+        <div class='row mt-2'>
         <div class='col text-center'><span class='statuslabel error'></span></div>
         </div>
         <div class='row'>

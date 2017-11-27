@@ -33,12 +33,14 @@ div.error {
         color: white;
     }
     h1 {
-        font-size: 1.4rem;
+        font-size: 1.2rem;
     }
 }
 
-
 form {
+    font-size: 0.9rem;
+    line-height: 100%;
+
     label {
         text-align: right;
         font-weight: bold;
@@ -56,22 +58,27 @@ form {
         background: rgba(255, 0, 0, 0.1);
     }
 
+
     /* just for our flask form bootstrap layout */
     .row {
         input, select {
-            margin: 0.2rem 0px;
-            height: 1.8rem;
+            height: 1.6rem;
+            margin: 0.2rem 0; 
             padding-left: 0.5rem !important;
             width: 100%;
         }
          input[type=submit] {
-            height: 2.0rem;
+            height: 1.8rem;
             margin-top: 0.8rem;
             padding: 0px;
         } 
 
         input[type=checkbox] {
             flex: 0 0 2rem;
+        }
+
+        textarea {
+            margin: 0.2rem 0;
         }
     }
 }

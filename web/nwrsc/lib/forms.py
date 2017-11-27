@@ -64,7 +64,7 @@ class MyFlaskForm(FlaskForm):
         ret.append("<form id='{}' action='{}' method='{}'>".format(idx, action, method))
         for f in self:
             if not hasattr(f.widget, 'input_type') or f.widget.input_type != 'submit':
-                ret.append("<div class='row'>")
+                ret.append("<div class='row align-items-center'>")
                 if not hasattr(f.widget, 'input_type') or f.widget.input_type != 'hidden':
                     if f.render_kw and 'labelextra' in f.render_kw:
                         ret.append("<div class='{} text-right'>{}<br/>{}</div>".format(labelcol, f.label(), f.render_kw['labelextra']))
