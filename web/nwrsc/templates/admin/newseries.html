@@ -14,7 +14,10 @@ $(document).ready(function(){
 {{super()}}
 <div class='container'>
 <h4 class='text-center'>Create New Series</h4>
-<p class='text-center'>Create a new series, copying information from the current</p>
+<p class='text-center'>
+Create a new series, copying information from the current.
+<br/><small class='text-muted'>This is only intended for use on the main server.</small>
+</p>
 {{ form.html('seriesform', url_for('.newseries'), 'post', 'btn-admin', 'col-md-4', 'col-md-5') | safe }}
 </div>
 {% endblock content %}
