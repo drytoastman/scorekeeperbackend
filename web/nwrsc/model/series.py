@@ -54,6 +54,7 @@ class Series(object):
             return ret
 
 
+    @classmethod
     def _verifySeriesName(cls, series):
         """ We have to resort to string formatting for some operations below, filter out evil data here """
         if re.search(r'[^A-Za-z0-9]', series): raise Exception("Series has non ascii characters")
