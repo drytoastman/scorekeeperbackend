@@ -6,7 +6,7 @@ import uuid
 
 from flask import current_app, flash, g, redirect, request, url_for
 
-from nwrsc.model import Payment, PaymentAccount
+from nwrsc.model import Payment, PaymentAccount, PaymentAccountSecret
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +57,8 @@ def square_payment(event, account, driver, amount, nonce):
     return ("Unknown response from Square")
 
 
-def square_oauth_account():
+def square_oauth_complete():
+    """ Perform the second half of the oauth process """
     authorization_code = request.args.get('code', None)
     if not authorization_code:
         flash('Authorization Failed')
@@ -90,28 +91,24 @@ def square_oauth_account():
         flash(error)
         return redirect(url_for('.accounts'))
 
-    try:
-        oauth_headers['Authorization'] = 'Bearer '+response['access_token']
-        connection.request('GET', '/v2/locations', '', oauth_headers)
-        for loc in json.loads(connection.getresponse().read())['locations']:
-            if loc['status'].lower() in ('active',):
-                try:
-                    p = PaymentAccount()
-                    p.accountid = loc['id']
-                    p.name      = loc['business_name']
-                    p.type      = "square"
-                    p.attr      = { 'expires': str(dateutil.parser.parse(response['expires_at'])) }
-                    p.upsert()
+    return response
 
-                    s = PaymentAccountSecret()
-                    s.accountid = loc['id']
-                    s.secret    = response['access_token']
-                    s.upsert()
-                except Exception as e:
-                    g.db.rollback()
-                    flash("Inserting new payment account failed: " + str(e))
+
+def square_obtain_locations(access_token):
+    """ Get the locations available with an access_token """
+    oauth_headers = {
+      'Authorization': 'Bearer '+access_token,
+      'Accept':        'application/json',
+      'Content-Type':  'application/json'
+    }
+
+    try:
+        connection = http.client.HTTPSConnection('connect.squareup.com')
+        connection.request('GET', '/v2/locations', '', oauth_headers)
+        return json.loads(connection.getresponse().read())['locations']
     except Exception as e:
         flash('Business location lookup error: ' + str(e))
         log.warning("Square merchant name lookup error", exc_info=e)
+        return redirect(url_for('.accounts'))
 
 

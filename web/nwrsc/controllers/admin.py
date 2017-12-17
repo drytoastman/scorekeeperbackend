@@ -10,7 +10,7 @@ import psycopg2
 import re
 import uuid
 
-from flask import Blueprint, current_app, escape, flash, g, redirect, request, render_template, send_from_directory, session, url_for
+from flask import Blueprint, current_app, escape, flash, g, redirect, request, render_template, Response, send_from_directory, session, url_for
 
 from nwrsc.controllers.square import *
 from nwrsc.lib.encoding import csv_encode, json_encode
@@ -457,10 +457,30 @@ def delaccount():
 @Admin.route("/accounts", methods=['GET', 'POST'])
 def accounts():
     action = request.form.get('submit')
+
+    if action == 'Select Location':
+        log.warning(request.form)
+        try:
+            p = PaymentAccount()
+            p.accountid = request.form['locationid']
+            p.name      = request.form[p.accountid]
+            p.type      = "square"
+            p.attr      = { 'expires': request.form['expires_at'], 'merchantid': request.form['merchant_id'] }
+            p.upsert()
+
+            s = PaymentAccountSecret()
+            s.accountid = p.accountid
+            s.secret    = request.form['access_token']
+            s.upsert()
+        except Exception as e:
+            g.db.rollback()
+            flash("Inserting new payment account failed: " + str(e))
+        return redirect(url_for('.accounts'))
+
+    """
     sqacctform = SquareAccountForm()
     ppacctform = PayPalAccountForm()
-
-    if action == 'Add Square Account':
+    elif action == 'Add Square Account':
         if sqacctform.validate():
             p = PaymentAccount()
             p.accountid = sqacctform.accountid.data
@@ -477,7 +497,7 @@ def accounts():
             flashformerrors(sqacctform)
         return redirect(url_for('.accounts'))
 
-    if action == 'Add PayPal Account':
+    elif action == 'Add PayPal Account':
         if ppacctform.validate():
             p = PaymentAccount()
             p.accountid = ppacctform.accountid.data
@@ -488,10 +508,15 @@ def accounts():
         else:
             flashformerrors(ppacctform)
         return redirect(url_for('.accounts'))
+    """
  
-    accounts = PaymentAccount.getAllOnline()
-    sqappid = current_app.config.get('SQ_APPLICATION_ID', '')
-    return render_template('/admin/paymentaccounts.html', accounts=accounts, sqappid=sqappid, sqacctform=sqacctform, ppacctform=ppacctform)
+    squareurl =  ''
+    accounts  = PaymentAccount.getAllOnline()
+    sqappid   = current_app.config.get('SQ_APPLICATION_ID', '')
+    if sqappid:
+        squareurl = 'https://connect.squareup.com/oauth2/authorize?client_id={}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE,ITEMS_READ&state={}'.format(sqappid, g.series)
+
+    return render_template('/admin/paymentaccounts.html', accounts=accounts, squareurl=squareurl)
 
 
 @Admin.endpoint("Admin.squareoauth")
@@ -502,6 +527,16 @@ def squareoauth():
     with g.db.cursor() as cur:
         cur.execute("SET search_path=%s,'public'; commit; begin", (g.series,))
 
-    square_oauth_account()
-    return redirect(url_for('.accounts'))
+    tokenresponse = square_oauth_complete()
+    if type(tokenresponse) is not dict:
+        return tokenresponse
+
+    locations = square_obtain_locations(tokenresponse['access_token'])
+    if type(locations) is not list:
+        return locations 
+
+    tokenresponse['expires_at'] = str(dateutil.parser.parse(tokenresponse['expires_at']))
+    locations = [l for l in locations if l['status'].lower() in ('active',)]
+    return render_template('/admin/locationselect.html', tokenresponse=tokenresponse, locations=locations)
+
 

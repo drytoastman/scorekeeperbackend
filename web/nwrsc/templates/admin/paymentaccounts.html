@@ -20,22 +20,22 @@ $(document).ready(function(){
 {{super()}}
 <div class='container'>
 <h2>Configured Account List</h2>
-<small>Secure tokens hidden</small>
 
 <table id='accounttable' class='accounttable table-striped'>
-<tr><th>Name</th><th>Account Id</th><th>Type</th><th>Expires</th><th></th></tr>
+<tr><th>Name</th><th>Id</th><th>Type</th><th></th></tr>
 {% for a in accounts %}
-<tr><td>{{a.name}}</td><td>{{a.accountid}}</td><td>{{a.type}}</td><td>{{a.attr.expires}}</td><td><button class="btn btn-admin small" data-accountid='{{a.accountid}}'>Del</button></td>
+<tr><td>{{a.name}}</td><td>{{a.accountid}}</td><td>{{a.type}}</td><td><button class="btn btn-admin small" data-accountid='{{a.accountid}}'>Del</button></td>
 {% endfor %}
 </table>
 
-<button class='btn btn-admin' {{ not sqappid and "disabled" or "" }} onclick="location.href='https://connect.squareup.com/oauth2/authorize?client_id={{sqappid}}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE&state={{g.series}}'">(Re)Authorize Square Account</button>
+<button class='btn btn-admin' {{ not squareurl and "disabled" or "" }} onclick="location.href='{{squareurl}}'">(Re)Authorize Square Account</button>
+{# 
 <button class='btn btn-outline-admin' data-toggle='modal' data-target='#squaremodal'>Manual Square Add</button>
-{# <button class='btn btn-outline-admin' data-toggle='modal' data-target='#paypalmodal'>Manual Paypal Add</button> #}
-
-</div>
-
+<button class='btn btn-outline-admin' data-toggle='modal' data-target='#paypalmodal'>Manual Paypal Add</button>
 {{m.modal('squaremodal', 'Manual Square Setup', sqacctform.html('squareform', url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
 {{m.modal('paypalmodal', 'Manual Square Setup', ppacctform.html('paypalform', url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
+#}
+</div>
 
 {% endblock content %}
+

@@ -1,0 +1,39 @@
+{% extends "admin/bluebase.html" %}
+{% block content %}
+{{super()}}
+<div class='container'>
+<h3>Square Setup Completion</h3>
+
+<p>
+Select the location with the items that you wish to use for online payments.
+</p>
+
+<form id='locationform' action='{{url_for('.accounts')}}' method='post'>
+
+<div class='row'>
+<div class='col mw3'>
+<select name='locationid' class='form-control'>
+{% for loc in locations -%}
+<option value="{{loc.id}}">{{loc.name}}</option>
+{% endfor -%}
+</select>
+</div>
+</div>
+
+<div class='row'>
+<div class='col mw3'>
+{% for loc in locations -%}
+<input type='hidden' name='{{loc.id}}' value='{{loc.name}}'/>
+{% endfor -%}
+<input type='hidden' name='access_token' value='{{tokenresponse.access_token}}'/>
+<input type='hidden' name='expires_at' value='{{tokenresponse.expires_at}}'/>
+<input type='hidden' name='merchant_id' value='{{tokenresponse.merchant_id}}'/>
+<input type='submit' name='submit' value='Select Location' class='btn btn-admin'>
+</div>
+</div>
+
+</form>
+
+
+{% endblock content %}
+

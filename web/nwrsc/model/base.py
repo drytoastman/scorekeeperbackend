@@ -51,7 +51,7 @@ class AttrBase(object):
 
                     UPDATES[table] = "UPDATE {} SET {},modified=now() WHERE {}".format(table, ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[table]), " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[table]))
                     INSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now())".format(table, ",".join(COLUMNS[table]), ",".join(["%({})s".format(x) for x in COLUMNS[table]]))
-                    UPSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now()) ON CONFLICT ({}) DO UPDATE SET {}".format(
+                    UPSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now()) ON CONFLICT ({}) DO UPDATE SET {},modified=now()".format(
                                                     table, 
                                                     ",".join(COLUMNS[table]),
                                                     ",".join(["%({})s".format(x) for x in COLUMNS[table]]),
