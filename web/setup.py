@@ -21,7 +21,8 @@ x = setup(
         "libsass",
         "ReportLab",
         "psycopg2",
-        "python-dateutil"
+        "python-dateutil",
+        "squareconnect"
     ],
 
     packages=find_packages(),

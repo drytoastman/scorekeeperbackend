@@ -75,7 +75,7 @@ def setup():
     """ Every page underneath here requires a password """
     g.title = 'Scorekeeper Admin'
     g.activeseries = Series.active()
-    
+
     if request.endpoint == 'Admin.squareoauth': # special URL without g.series
         return
 
@@ -461,55 +461,28 @@ def accounts():
     if action == 'Select Location':
         log.warning(request.form)
         try:
+            tdata = current_app.usts.loads(request.form['tdata'], max_age=36000) # 10 hour expiry
+            ldata = current_app.usts.loads(request.form['ldata'], max_age=36000)
+            log.warning(tdata)
+            log.warning(ldata)
+            location = ldata[request.form['locationid']]
+
             p = PaymentAccount()
-            p.accountid = request.form['locationid']
-            p.name      = request.form[p.accountid]
+            p.accountid = location['id']
+            p.name      = location['name']
             p.type      = "square"
-            p.attr      = { 'expires': request.form['expires_at'], 'merchantid': request.form['merchant_id'] }
+            p.attr      = { 'expires': tdata['expires_at'], 'merchantid': tdata['merchant_id'], 'location': location }
             p.upsert()
 
             s = PaymentAccountSecret()
             s.accountid = p.accountid
-            s.secret    = request.form['access_token']
+            s.secret    = tdata['access_token']
             s.upsert()
         except Exception as e:
             g.db.rollback()
             flash("Inserting new payment account failed: " + str(e))
         return redirect(url_for('.accounts'))
 
-    """
-    sqacctform = SquareAccountForm()
-    ppacctform = PayPalAccountForm()
-    elif action == 'Add Square Account':
-        if sqacctform.validate():
-            p = PaymentAccount()
-            p.accountid = sqacctform.accountid.data
-            p.name      = sqacctform.name.data 
-            p.type      = "square"
-            p.attr      = {}
-            p.insert()
-
-            s = PaymentAccountSecret()
-            s.accountid = sqacctform.accountid.data
-            s.secret    = sqacctform.token.data
-            s.upsert()
-        else:
-            flashformerrors(sqacctform)
-        return redirect(url_for('.accounts'))
-
-    elif action == 'Add PayPal Account':
-        if ppacctform.validate():
-            p = PaymentAccount()
-            p.accountid = ppacctform.accountid.data
-            p.name      = ppacctform.name.data 
-            p.type      = "paypal"
-            p.attr      = { 'something': ppacctform.token.data }
-            p.insert()
-        else:
-            flashformerrors(ppacctform)
-        return redirect(url_for('.accounts'))
-    """
- 
     squareurl =  ''
     accounts  = PaymentAccount.getAllOnline()
     sqappid   = current_app.config.get('SQ_APPLICATION_ID', '')
@@ -517,6 +490,7 @@ def accounts():
         squareurl = 'https://connect.squareup.com/oauth2/authorize?client_id={}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE,ITEMS_READ&state={}'.format(sqappid, g.series)
 
     return render_template('/admin/paymentaccounts.html', accounts=accounts, squareurl=squareurl)
+
 
 
 @Admin.endpoint("Admin.squareoauth")
@@ -527,16 +501,63 @@ def squareoauth():
     with g.db.cursor() as cur:
         cur.execute("SET search_path=%s,'public'; commit; begin", (g.series,))
 
-    tokenresponse = square_oauth_complete()
-    if type(tokenresponse) is not dict:
-        return tokenresponse
+    try:
+        authorization_code = request.args.get('code', None)
+        if not authorization_code:
+            flash('Authorization Failed')
+            return redirect(url_for('.accounts'))
 
-    locations = square_obtain_locations(tokenresponse['access_token'])
-    if type(locations) is not list:
-        return locations 
+        tokenresponse = square_oauth_gettoken(authorization_code)
+        tokenresponse['expires_at'] = str(dateutil.parser.parse(tokenresponse['expires_at']))
+        squareconnect.configuration.access_token = tokenresponse['access_token']
 
-    tokenresponse['expires_at'] = str(dateutil.parser.parse(tokenresponse['expires_at']))
-    locations = [l for l in locations if l['status'].lower() in ('active',)]
-    return render_template('/admin/locationselect.html', tokenresponse=tokenresponse, locations=locations)
+        # Obtain the list of locations and items
+        locresponse = squareconnect.apis.locations_api.LocationsApi().list_locations()
+        if locresponse.errors:
+            raise Exception(locresponse.errors)
 
+        catresponse = squareconnect.apis.catalog_api.CatalogApi().list_catalog()
+        if catresponse.errors:
+            raise Exception(catesponse.errors)
+
+        # Prepare a reduced list of locations and their associated items
+        locations = dict()
+        for l in locresponse.locations:
+            if l.status.lower() not in ('active',):
+                continue
+
+            loc = {
+                   'id': l.id,
+                 'name': l.name,
+                'items': list()
+            }
+            locations[l.id] = loc
+
+            for obj in catresponse.objects:
+                if obj.is_deleted or not obj.type == 'ITEM':
+                    continue
+                if obj.present_at_all_locations or loc['id'] in obj.present_at_location_ids:
+                    data = obj.item_data
+                    var0 = data.variations[0].item_variation_data
+                    loc['items'].append({
+                            'name': data.name,
+                     'description': data.description,
+                          'itemid': var0.item_id,
+                           'price': var0.price_money.amount,
+                        'currency': var0.price_money.currency
+                    })
+
+        tdata = current_app.usts.dumps(tokenresponse)
+        ldata = current_app.usts.dumps(locations)
+        return render_template('/admin/locationselect.html', locations=locations, tdata=tdata, ldata=ldata)
+
+    except Exception as e:
+        log.warning(e)
+        if len(e.args):
+           flash(e.args[0])
+        elif hasattr(e, 'body'):
+            flash(e.body)
+        else:
+            flash(str(e))
+        return redirect(url_for('.accounts'))
 

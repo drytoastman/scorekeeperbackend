@@ -13,7 +13,7 @@ Select the location with the items that you wish to use for online payments.
 <div class='row'>
 <div class='col mw3'>
 <select name='locationid' class='form-control'>
-{% for loc in locations -%}
+{% for loc in locations.values() -%}
 <option value="{{loc.id}}">{{loc.name}}</option>
 {% endfor -%}
 </select>
@@ -22,12 +22,8 @@ Select the location with the items that you wish to use for online payments.
 
 <div class='row'>
 <div class='col mw3'>
-{% for loc in locations -%}
-<input type='hidden' name='{{loc.id}}' value='{{loc.name}}'/>
-{% endfor -%}
-<input type='hidden' name='access_token' value='{{tokenresponse.access_token}}'/>
-<input type='hidden' name='expires_at' value='{{tokenresponse.expires_at}}'/>
-<input type='hidden' name='merchant_id' value='{{tokenresponse.merchant_id}}'/>
+<input type='hidden' name='tdata' value='{{tdata}}'/>
+<input type='hidden' name='ldata' value='{{ldata}}'/>
 <input type='submit' name='submit' value='Select Location' class='btn btn-admin'>
 </div>
 </div>
