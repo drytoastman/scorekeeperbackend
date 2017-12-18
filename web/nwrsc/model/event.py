@@ -29,21 +29,6 @@ class Event(AttrBase):
             return 999
         return ret
 
-    def getCostOptions(self):
-        try:
-            costs = json.loads(self.attr.get('cost', '0.0'))
-            if isinstance(costs, (float, int)):
-                costs = {'default': float(costs)}
-        except Exception as e:
-            costs = {'default': 0.0}
-        return costs
-
-    def getMinCost(self):
-        return min(self.getCostOptions().values())
-
-    def getMaxCost(self):
-        return max(self.getCostOptions().values())
-
     def paymentRequired(self): return self.attr.get('paymentreq', False)
     def hasOpened(self): return datetime.utcnow() > self.regopened
     def hasClosed(self): return datetime.utcnow() > self.regclosed

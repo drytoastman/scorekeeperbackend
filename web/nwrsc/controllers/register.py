@@ -3,6 +3,8 @@ import datetime
 import itertools
 import logging
 import uuid
+import squareconnect
+from squareconnect.models import *
 import time
 
 import itsdangerous
@@ -118,7 +120,6 @@ def events():
     sqappid  = current_app.config.get('SQ_APPLICATION_ID', '')
     events   = Event.byDate()
     cars     = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
-    sqform   = SquarePaymentForm()
     registered = defaultdict(list)
     payments   = defaultdict(float)
     accounts   = dict()
@@ -131,7 +132,7 @@ def events():
     for e in events:
         accounts[e.eventid] = PaymentAccount.get(e.accountid)
 
-    return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, accounts=accounts, sqappid=sqappid, sqform=sqform)
+    return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, accounts=accounts, sqappid=sqappid)
 
 
 def _renderSingleEvent(event, error):
@@ -152,11 +153,11 @@ def _renderSingleEvent(event, error):
 
 def _matchPaymentsToRegistration(event, carids):
     """ INTERNAL: For matching event payments to registered entries when either side changes """
-    minpay   = max(event.getMinCost(), 0.01)
     payments = Payment.getForDriverEvent(g.driver.driverid, event.eventid)
     pairs    = [[cid, None] for cid in carids]
     total    = 0
     idx      = 0
+    """
     for p in payments:  # reassign payments to registrations
         total += p.amount
         while total >= minpay and idx < len(pairs):
@@ -164,6 +165,7 @@ def _matchPaymentsToRegistration(event, carids):
             idx += 1
             total -= minpay
             log.info("{}, {}".format(total, minpay))
+    """
 
     Registration.update(event.eventid, pairs, g.driver.driverid)
 
@@ -192,26 +194,73 @@ def eventspost():
     return _renderSingleEvent(event, error)
 
 
-@Register.route("/<series>/square", methods=['POST'])
-def square():
-    """ Handles a square payment request from the user """
+@Register.route("/<series>/payment", methods=['POST'])
+def payment():
+    """ Handles a payment request from the user """
     if not g.driver: raise NotLoggedInException()
 
-    form = SquarePaymentForm()
-    log.debug(request.form)
-    if form.validate_on_submit():
-        eventid = uuid.UUID(form.eventid.data)
+    error = "something here"
+    try:
+        eventid = uuid.UUID(request.form.get('eventid', None))
         event   = Event.get(eventid)
-        count   = int(form.count.data)
-        amount  = float(request.form['amount'])
         account = PaymentAccount.get(event.accountid)
-        error   = square_payment(event, account, g.driver, count*amount, form.nonce.data)
-        if not error:
-            _matchPaymentsToRegistration(event, [r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
-    else:
-        return "<div class='error'>Invalid square payment submission {}</div>".format(form.errors)
+        items   = account.attr['location']['items']
+
+        if account.type == 'square':
+
+            log.warning("here")
+            order = CreateOrderRequest(
+                        reference_id = 'some ref here',
+                        line_items   = [])
+
+            checkout = CreateCheckoutRequest(
+                        order = order,
+                        idempotency_key = str(uuid.uuid1()),
+                        redirect_url    = url_for('.paymentcomplete', _external=True),
+                        ask_for_shipping_address = True,
+                        pre_populate_buyer_email = g.driver.email,
+                        pre_populate_shipping_address = Address(
+                            address_line_1 = g.driver.attr.get('address',''),
+                            locality       = g.driver.attr.get('city', ''),
+                            administrative_district_level_1 = g.driver.attr.get('state', ''),
+                            postal_code    = g.driver.attr.get('zip', ''),
+                            country        = g.driver.attr.get('country', 'US'),
+                            first_name     = g.driver.firstname,
+                            last_name      = g.driver.lastname
+                        ))
+            
+            for item in items.values():
+                cnt = request.form.get(item['itemid'], '0')
+                if not cnt or cnt in ('0', ):
+                    continue
+                order.line_items.append(
+                    CreateOrderRequestLineItem(
+                        name=item['name'], 
+                        base_price_money=Money(item['price'], item['currency']),
+                        quantity=cnt))
+
+            #return str(checkout)
+            #squareconnect.configuration.access_token = account.secret
+            #response = squareconnect.apis.checkout_api.CheckoutApi().create_checkout(account.attr['location']['id'], checkout)
+            #url is response.checkout.checkout_page_url
+
+        else:
+            error = "Unknown account type = {}".format(account.type)
+            log.warning(error)
+
+    except Exception as e:
+        error = str(e)
+        log.warning(error, exc_info=e)
 
     return _renderSingleEvent(event, error)
+
+
+@Register.route("/<series>/paymentcomplete")
+def paymentcomplete():
+    if not g.driver: raise NotLoggedInException()
+
+    _matchPaymentsToRegistration(event, [r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
+    return "TBD"
 
 
 @Register.route("/<series>/usednumbers")

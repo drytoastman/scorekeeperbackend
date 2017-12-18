@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
+import dateutil.parser
 import glob
 import io
 import json
@@ -8,6 +9,7 @@ import operator
 import os
 import psycopg2
 import re
+import squareconnect
 import uuid
 
 from flask import Blueprint, current_app, escape, flash, g, redirect, request, render_template, Response, send_from_directory, session, url_for
@@ -487,7 +489,7 @@ def accounts():
     accounts  = PaymentAccount.getAllOnline()
     sqappid   = current_app.config.get('SQ_APPLICATION_ID', '')
     if sqappid:
-        squareurl = 'https://connect.squareup.com/oauth2/authorize?client_id={}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE,ITEMS_READ&state={}'.format(sqappid, g.series)
+        squareurl = 'https://connect.squareup.com/oauth2/authorize?client_id={}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE,ORDERS_WRITE,ITEMS_READ&state={}'.format(sqappid, g.series)
 
     return render_template('/admin/paymentaccounts.html', accounts=accounts, squareurl=squareurl)
 
@@ -529,7 +531,7 @@ def squareoauth():
             loc = {
                    'id': l.id,
                  'name': l.name,
-                'items': list()
+                'items': dict()
             }
             locations[l.id] = loc
 
@@ -539,13 +541,13 @@ def squareoauth():
                 if obj.present_at_all_locations or loc['id'] in obj.present_at_location_ids:
                     data = obj.item_data
                     var0 = data.variations[0].item_variation_data
-                    loc['items'].append({
+                    loc['items'][var0.item_id] = {
                             'name': data.name,
                      'description': data.description,
                           'itemid': var0.item_id,
                            'price': var0.price_money.amount,
                         'currency': var0.price_money.currency
-                    })
+                    }
 
         tdata = current_app.usts.dumps(tokenresponse)
         ldata = current_app.usts.dumps(locations)

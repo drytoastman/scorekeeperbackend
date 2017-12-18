@@ -39,22 +39,6 @@
 {% endmacro %}
 
 
-{% macro  paypalLink(event) %}
-    <form class='paypalform' action='https://www.paypal.com/cgi-bin/webscr' method='post' target='_blank'>
-    <span class='eimage'>
-    <input type='hidden' name='cmd' value='_xclick' />
-    <input type='hidden' name='business' value='{{event.paypal}}' />
-    <input type='hidden' name='item_name' value='{{event.name}}' />
-    <input type='hidden' name='custom' value='{{g.driver.driverid}}/{{event.eventid}}' />
-    <input type='hidden' name='amount' value='{{event.cost}}' />
-    <input type='hidden' name='currency_code' value='USD' />
-    <input type='image' src='https://www.paypal.com/en_US/i/btn/x-click-but3.gif' name='submit'
-                        alt='Make payments with payPal - it&#039;s fast, free and secure!' />
-    </span>
-    </form>
-{% endmacro %}
-
-
 {% macro  entryLink(ev, text) %}
 <a class='viewlink' href='{{url_for('.view', eventid=ev.eventid)}}'>{{text}}</a>
 {% endmacro %}
@@ -63,7 +47,11 @@
 {% macro  eventdisplay(ev, ecars, registered, paid, account, error='') %}
     <script type="text/javascript">
     gRegistered['{{ev.eventid}}'] = {{registered|to_json|safe}};
-    gCosts['{{ev.eventid}}'] = {options: {{ev.getCostOptions()|safe}}, required:{{ev.paymentRequired() and 'true' or 'false'}} };
+    {% if account and account.attr.location %}
+    gItems ['{{ev.eventid}}'] = { options: {{ account.attr.location['items']|to_json|safe}}, required:{{ev.paymentRequired() and 'true' or 'false'}} };
+    {% else %}
+    gItems ['{{ev.eventid}}'] = { options: {}, required: 'false' };
+    {% endif %}
     </script>
 
     <div class='insidewrapper row'> {# have to reset row inside collapse it seems #}
@@ -77,7 +65,7 @@
     <dt>{{ev.hasClosed() and "Closed" or "Closes"}}</dt><dd>{{ev.regclosed.strftime('%b %d %I:%M %p')}}</dd>
 
     {%- for k, v in ev.attr.items() -%}
-    {%- if k not in ('cost', 'paymentreq', 'notes') and v %}
+    {%- if k not in ('paymentreq', 'notes') and v %}
     <dt>{{k|title}}</dt><dd>{{v}}</dd>
     {%- endif %}
     {%- endfor %}
@@ -112,10 +100,10 @@
 
         {%- if ev.isOpen() %}
             {%- if ev.mylimit > 0 or registered|length > 0 %}
-            <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-cost='{{ev.attr.costx}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
+            <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
             {%- endif %}
             {%- if account.secret %}
-            <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-toggle='modal' data-target='#{{account.type}}modal'>Make Payment</button>
+            <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-toggle='modal' data-target='#paymentmodal'>Make Payment</button>
             {%- endif %}
             {%- if paid %}
             <span class='payments'>Payments Made<span class='amount'>{{paid|d2}}</span></span>

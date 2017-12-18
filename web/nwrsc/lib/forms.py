@@ -235,7 +235,6 @@ class EventSettingsForm(MyFlaskForm):
     regclosed     = DateTimeField('Registration Closes',    render_kw={'title':'When registration should close'}, format='%Y-%m-%d %H:%M')
     perlimit      = IntegerField( 'Per Driver Entry Limit', render_kw={'title':'Limit to the number of entries a single driver can register (0=nolimit)'})
     totlimit      = IntegerField( 'Total Entry Limit',      render_kw={'title':'The total limit for all registrations for the event (0=nolimit)'})
-    cost          = MyStringField('Cost', [Optional()],     render_kw={'title':'The cost to prepay for the event, can be a JSON object of labels to values'})
     accountid     = BlankSelectField('Payment Account')
     paymentreq    = BooleanField( 'Payment Required',       render_kw={'title':'Check this box to require payment for registration'})
     notes         = TextAreaField('Notes',                  render_kw={'title':'Notes for the event that show up on the registation page', 'rows':6})
@@ -265,22 +264,4 @@ class SeriesForm(MyFlaskForm):
 class ArchiveForm(MyFlaskForm):
     name         = MyStringField(  'Enter Series Name', [Length(min=6, max=12)])
     submit       = SubmitField(    'Archive')
-
-class SquareAccountForm(MyFlaskForm):
-    accountid  = MyStringField(  'Location Id')
-    name       = MyStringField(  'Name', [Length(min=4)])
-    token      = MyStringField(  'Access Token')
-    submit     = SubmitField(    'Add Square Account')
-
-class PayPalAccountForm(MyFlaskForm):
-    accountid  = MyStringField(  'Account Id')
-    name       = MyStringField(  'Name', [Length(min=4)])
-    token      = MyStringField(  'What data goes here?')
-    submit     = SubmitField(    'Add PayPal Account')
-
-class SquarePaymentForm(MyFlaskForm):
-    eventid    = HiddenField('eventid')
-    nonce      = HiddenField('nonce')
-    #amount     = SelectField('Type')
-    count      = SelectField('Count', choices=[('1', '1x'), ('2', '2x')])
 
