@@ -17,11 +17,17 @@ function eventRelativeSubmit(form)
     targetdiv.height(sheight);
 
     $.ajax({
-        dataType: "html",
+        dataType: "json",
         url: form.attr('action'),
         data: form.serialize(),
         method: 'POST',
-        success: function(data) { targetdiv.html(data); },
+        success: function(data) { 
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                targetdiv.html(data.html); 
+            }
+        },
         error: function(xhr, stat, error) { targetdiv.html('<div class="error">'+xhr.responseText+'</div>'); },
         complete: function(xhr) { targetdiv.height('auto'); }
         });

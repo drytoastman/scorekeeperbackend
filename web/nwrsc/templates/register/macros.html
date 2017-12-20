@@ -47,8 +47,8 @@
 {% macro  eventdisplay(ev, ecars, registered, paid, account, error='') %}
     <script type="text/javascript">
     gRegistered['{{ev.eventid}}'] = {{registered|to_json|safe}};
-    {% if account and account.attr.location %}
-    gItems ['{{ev.eventid}}'] = { options: {{ account.attr.location['items']|to_json|safe}}, required:{{ev.paymentRequired() and 'true' or 'false'}} };
+    {% if account and account.attr['items'] %}
+    gItems ['{{ev.eventid}}'] = { options: {{ account.attr['items']|to_json|safe}}, required:{{ev.paymentRequired() and 'true' or 'false'}} };
     {% else %}
     gItems ['{{ev.eventid}}'] = { options: {}, required: 'false' };
     {% endif %}

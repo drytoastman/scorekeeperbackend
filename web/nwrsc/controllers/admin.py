@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 import dateutil.parser
 import glob
+import http.client
 import io
 import json
 import logging
@@ -14,7 +15,6 @@ import uuid
 
 from flask import Blueprint, current_app, escape, flash, g, redirect, request, render_template, Response, send_from_directory, session, url_for
 
-from nwrsc.controllers.square import *
 from nwrsc.lib.encoding import csv_encode, json_encode
 from nwrsc.lib.forms import *
 from nwrsc.lib.misc import *
@@ -461,19 +461,16 @@ def accounts():
     action = request.form.get('submit')
 
     if action == 'Select Location':
-        log.warning(request.form)
         try:
             tdata = current_app.usts.loads(request.form['tdata'], max_age=36000) # 10 hour expiry
             ldata = current_app.usts.loads(request.form['ldata'], max_age=36000)
-            log.warning(tdata)
-            log.warning(ldata)
             location = ldata[request.form['locationid']]
 
             p = PaymentAccount()
             p.accountid = location['id']
             p.name      = location['name']
             p.type      = "square"
-            p.attr      = { 'expires': tdata['expires_at'], 'merchantid': tdata['merchant_id'], 'location': location }
+            p.attr      = { 'expires': tdata['expires_at'], 'merchantid': tdata['merchant_id'], 'items': location['items'] }
             p.upsert()
 
             s = PaymentAccountSecret()
@@ -482,6 +479,7 @@ def accounts():
             s.upsert()
         except Exception as e:
             g.db.rollback()
+            log.warning(e, exc_info=e)
             flash("Inserting new payment account failed: " + str(e))
         return redirect(url_for('.accounts'))
 
@@ -497,6 +495,7 @@ def accounts():
 
 @Admin.endpoint("Admin.squareoauth")
 def squareoauth():
+    """ Special endpoint out of the normal URL pattern space as it has to be statically set in the Square control panel """
     g.series = request.args.get('state', '')
     if not isSuperAuth() and not isAuth(g.series):
         raise NotLoggedInException()
@@ -539,14 +538,15 @@ def squareoauth():
                 if obj.is_deleted or not obj.type == 'ITEM':
                     continue
                 if obj.present_at_all_locations or loc['id'] in obj.present_at_location_ids:
-                    data = obj.item_data
-                    var0 = data.variations[0].item_variation_data
-                    loc['items'][var0.item_id] = {
-                            'name': data.name,
-                     'description': data.description,
-                          'itemid': var0.item_id,
-                           'price': var0.price_money.amount,
-                        'currency': var0.price_money.currency
+                    idata = obj.item_data
+                    var0  = idata.variations[0]
+                    vdata = var0.item_variation_data
+                    loc['items'][var0.id] = {
+                            'name': idata.name,
+                     'description': idata.description,
+                          'itemid': var0.id,
+                           'price': vdata.price_money.amount,
+                        'currency': vdata.price_money.currency
                     }
 
         tdata = current_app.usts.dumps(tokenresponse)
@@ -562,4 +562,33 @@ def squareoauth():
         else:
             flash(str(e))
         return redirect(url_for('.accounts'))
+
+
+def square_oauth_gettoken(authorization_code):
+    """ Perform the second half of the oauth process, why is this not in their SDK? """
+
+    appid     = current_app.config.get('SQ_APPLICATION_ID', '')
+    appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
+    if not appid or not appsecret:
+        raise Exception('There is no square applcation setup in the local configuration')
+
+    oauth_headers = {
+      'Authorization': 'Client '+appsecret,
+      'Accept':        'application/json',
+      'Content-Type':  'application/json'
+    }
+
+    oauth_request = {
+      'client_id': appid,
+      'client_secret': appsecret,
+      'code': authorization_code,
+    }
+
+    connection = http.client.HTTPSConnection('connect.squareup.com')
+    connection.request('POST', '/oauth2/token', json.dumps(oauth_request), oauth_headers)
+    response = json.loads(connection.getresponse().read())
+    if not response.get('access_token', ''):
+        raise Exception('Code exchange failed: ' + str(response))
+
+    return response
 

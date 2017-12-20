@@ -4,14 +4,12 @@ import itertools
 import logging
 import uuid
 import squareconnect
-from squareconnect.models import *
 import time
 
 import itsdangerous
 from flask import abort, Blueprint, current_app, flash, g, get_template_attribute, redirect, request, render_template, session, url_for
 from flask_mail import Message
 
-from nwrsc.controllers.square import *
 from nwrsc.model import *
 from nwrsc.lib.forms import *
 from nwrsc.lib.misc import *
@@ -191,7 +189,7 @@ def eventspost():
         log.warning("exception in events post: " + str(e), exc_info=e)
         return "<div class='error'>{}</div>".format(e)
 
-    return _renderSingleEvent(event, error)
+    return json_encode({'html': _renderSingleEvent(event, error)})
 
 
 @Register.route("/<series>/payment", methods=['POST'])
@@ -199,27 +197,24 @@ def payment():
     """ Handles a payment request from the user """
     if not g.driver: raise NotLoggedInException()
 
-    error = "something here"
+    error = ""
     try:
         eventid = uuid.UUID(request.form.get('eventid', None))
         event   = Event.get(eventid)
         account = PaymentAccount.get(event.accountid)
-        items   = account.attr['location']['items']
+        items   = account.attr['items']
 
         if account.type == 'square':
 
-            log.warning("here")
-            order = CreateOrderRequest(
-                        reference_id = 'some ref here',
-                        line_items   = [])
-
-            checkout = CreateCheckoutRequest(
+            # FINISH ME, what to add for referenceid, same as idempotency_key and store in table?
+            order    = squareconnect.models.CreateOrderRequest(line_items = [])
+            checkout = squareconnect.models.CreateCheckoutRequest(
                         order = order,
                         idempotency_key = str(uuid.uuid1()),
-                        redirect_url    = url_for('.paymentcomplete', _external=True),
+                        redirect_url    = url_for('.paymentcomplete', eventid=eventid, _external=True),
                         ask_for_shipping_address = True,
                         pre_populate_buyer_email = g.driver.email,
-                        pre_populate_shipping_address = Address(
+                        pre_populate_shipping_address = squareconnect.models.Address(
                             address_line_1 = g.driver.attr.get('address',''),
                             locality       = g.driver.attr.get('city', ''),
                             administrative_district_level_1 = g.driver.attr.get('state', ''),
@@ -234,15 +229,16 @@ def payment():
                 if not cnt or cnt in ('0', ):
                     continue
                 order.line_items.append(
-                    CreateOrderRequestLineItem(
-                        name=item['name'], 
-                        base_price_money=Money(item['price'], item['currency']),
+                    squareconnect.models.CreateOrderRequestLineItem(
+                        catalog_object_id=item['itemid'],
+                        note="{} - {}".format(event.date.strftime("%m/%d/%Y"), event.name),
                         quantity=cnt))
 
-            #return str(checkout)
-            #squareconnect.configuration.access_token = account.secret
-            #response = squareconnect.apis.checkout_api.CheckoutApi().create_checkout(account.attr['location']['id'], checkout)
-            #url is response.checkout.checkout_page_url
+            log.warning(checkout)
+            squareconnect.configuration.access_token = account.secret
+            response = squareconnect.apis.checkout_api.CheckoutApi().create_checkout(account.accountid, checkout)
+            log.warning(response)
+            return json_encode({'redirect': response.checkout.checkout_page_url})
 
         else:
             error = "Unknown account type = {}".format(account.type)
@@ -252,15 +248,24 @@ def payment():
         error = str(e)
         log.warning(error, exc_info=e)
 
-    return _renderSingleEvent(event, error)
+    return json_encode({'html': _renderSingleEvent(event, error)})
 
 
-@Register.route("/<series>/paymentcomplete")
+@Register.route("/<series>/paymentcomplete/<uuid:eventid>")
 def paymentcomplete():
     if not g.driver: raise NotLoggedInException()
+    
+    event   = Event.get(g.eventid)
+    account = PaymentAccount.get(event.accountid)
 
-    _matchPaymentsToRegistration(event, [r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
-    return "TBD"
+    squareconnect.configuration.access_token = account.secret
+    response = squareconnect.apis.transactions_api.TransactionsApi().retrieve_transaction(account.accountid, request.args['transactionId'])
+    return str(response)
+
+#    if not response.errors and response.transaction:
+#        _matchPaymentsToRegistration(event, [r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == g.eventid])
+    #return "'{}', '{}', '{}'".format(request.args['checkoutId'], request.args['referenceId'], request.args['transactionId'])
+    #return "TBD"
 
 
 @Register.route("/<series>/usednumbers")
