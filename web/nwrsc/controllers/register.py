@@ -115,11 +115,11 @@ def carspost():
 def events():
     if not g.driver: return login()
 
-    sqappid  = current_app.config.get('SQ_APPLICATION_ID', '')
     events   = Event.byDate()
     cars     = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
     registered = defaultdict(list)
     payments   = defaultdict(float)
+    pitems     = defaultdict(list)
     accounts   = dict()
     for r in Registration.getForDriver(g.driver.driverid):
         registered[r.eventid].append(r)
@@ -127,10 +127,12 @@ def events():
         decorateEvent(e, len(registered[e.eventid]))
     for p in Payment.getForDriver(g.driver.driverid):
         payments[p.eventid] += p.amount
+    for i in PaymentItem.getAll():
+        pitems[i.accountid].append(i)
     for e in events:
         accounts[e.eventid] = PaymentAccount.get(e.accountid)
 
-    return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, accounts=accounts, sqappid=sqappid)
+    return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, accounts=accounts, pitems=pitems)
 
 
 def _renderSingleEvent(event, error):
@@ -198,11 +200,12 @@ def payment():
     if not g.driver: raise NotLoggedInException()
 
     error = ""
+    log.warning(request.form)
     try:
         eventid = uuid.UUID(request.form.get('eventid', None))
         event   = Event.get(eventid)
         account = PaymentAccount.get(event.accountid)
-        items   = account.attr['items']
+        items   = PaymentItem.getForAccount(event.accountid)
 
         if account.type == 'square':
 
@@ -224,15 +227,20 @@ def payment():
                             last_name      = g.driver.lastname
                         ))
             
-            for item in items.values():
-                cnt = request.form.get(item['itemid'], '0')
-                if not cnt or cnt in ('0', ):
+            itemcounts = defaultdict(int)
+            for key,itemid in request.form.items():
+                if not key.startswith('pay-') or not itemid:
                     continue
+                carid = uuid.UUID(key[4:])
+                itemcounts[itemid] += 1
+
+            for itemid, count in itemcounts.items():
+                if not count: continue
                 order.line_items.append(
                     squareconnect.models.CreateOrderRequestLineItem(
-                        catalog_object_id=item['itemid'],
+                        catalog_object_id=itemid,
                         note="{} - {}".format(event.date.strftime("%m/%d/%Y"), event.name),
-                        quantity=cnt))
+                        quantity=str(count)))
 
             log.warning(checkout)
             squareconnect.configuration.access_token = account.secret

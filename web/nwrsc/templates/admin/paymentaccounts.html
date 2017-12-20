@@ -29,13 +29,13 @@ $(document).ready(function(){
     <td>{{a.accountid}}</td>
     <td>{{a.type}}</td>
     <td>
-    {% if a.attr['items'] is mapping %}
     <table style='width: 100%'>
-    {% for item in a.attr['items'].values() %}
+    {% for item in items %}
+    {% if item['accountid'] == a.accountid %}
         <tr><td>{{ item.name }}</td><td>{{ "${0:.2f}".format(item.price/100) }}</td></tr>
+    {% endif %}
     {% endfor %}
     </table>
-    {% endif %}
     </td>
     <td><button class="btn btn-admin small" data-accountid='{{a.accountid}}'>Del</button></td>
 </tr>

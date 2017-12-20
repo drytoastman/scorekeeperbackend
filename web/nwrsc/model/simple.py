@@ -107,23 +107,38 @@ class PaymentAccount(AttrBase):
 
     @classmethod
     def getAllOnline(cls):
-        return cls.getall("SELECT p.*,s.secret FROM paymentaccounts p LEFT JOIN secrets s ON s.accountid=p.accountid WHERE p.accountid!='onsite' ORDER BY name")
+        return cls.getall("SELECT p.*,s.secret FROM paymentaccounts p LEFT JOIN paymentsecrets s ON s.accountid=p.accountid WHERE p.accountid!='onsite' ORDER BY name")
 
     @classmethod
     def get(cls, accountid):
+        """ Get the payment account and also rolls in the secret from paymentsecrets """
         if accountid is None: return None
-        return cls.getunique("select p.*,s.secret from paymentaccounts p LEFT JOIN secrets s ON s.accountid=p.accountid where p.accountid=%s", (accountid, ))
+        return cls.getunique("select p.*,s.secret from paymentaccounts p LEFT JOIN paymentsecrets s ON s.accountid=p.accountid where p.accountid=%s", (accountid, ))
 
     @classmethod
     def delete(cls, accountid):
         with g.db.cursor() as cur:
-            cur.execute("delete from secrets where accountid=%s", (accountid, ))
+            cur.execute("delete from paymentsecrets  where accountid=%s", (accountid, ))
+            cur.execute("delete from paymentitems    where accountid=%s", (accountid, ))
             cur.execute("delete from paymentaccounts where accountid=%s", (accountid, ))
             g.db.commit()
 
 
-class PaymentAccountSecret(AttrBase):
-    TABLENAME = "secrets"
+class PaymentItem(AttrBase):
+    TABLENAME = "paymentitems"
+
+    @classmethod
+    def getAll(cls):
+        return cls.getall("SELECT * FROM paymentitems")
+
+    @classmethod
+    def getForAccount(cls, accountid):
+        return cls.getall("SELECT * FROM paymentitems where accountid=%s", (accountid,))
+
+
+class PaymentSecret(AttrBase):
+    TABLENAME = "paymentsecrets"
+
 
 class Registration(AttrBase):
 
@@ -215,6 +230,21 @@ class RunOrder(AttrBase):
             return ret
 
 
+class TempCache():
+
+    @classmethod
+    def get(key):
+        with g.db.cursor() as cur:
+            cur.execute("SELECT data FROM tempcache WHERE key=%s", (key, ))
+            return cur.fetchone()[0]
+
+    @classmethod
+    def put(key, data):
+        with g.db.cursor() as cur:
+            jtext = json.dumps(data)
+            cur.execute("INSERT INTO tempcache (key, data) VALUES (%s, %s) ON CONFLICT (key) DO UPDATE SET data=%s", (key, jtext, jtext))
+
+        
 class TimerTimes():
 
     @classmethod

@@ -63,21 +63,17 @@ $(document).ready(function() {
 function initpaymentform(id, eventid)
 {
     var me = $(id);
+    var itemlist = gItems[gAccounts[eventid]];
+
     me.find('input[name=eventid]').val(eventid);
-    $('#paymentitemsbody tr').remove();
-    for (itemid in gItems[eventid].options) {
-        item = gItems[eventid].options[itemid];
-        $('#paymentitemsbody').append($('<tr>').append(
-            $('<td>').append(item['name']),
-            $('<td>').append("$"+(item['price']/100).toFixed(2)),
-            $('<td>').append($('<select>').attr('name', itemid).append(
-                $('<option>').text('0'),
-                $('<option>').text('1'),
-                $('<option>').text('2'),
-            ))
-        ));
-    }
-    me.find('select[name=count]').val(1).change();
+    me.find('select').each(function(index) {
+        var select = $(this);
+        select.find('option').remove(); 
+        select.append($('<option>').attr('value', '').text(''));
+        $.each(itemlist, function() {
+            select.append($('<option>').attr('value', this.itemid).text(this.name + " - $" + (this.price/100).toFixed(2)));
+        });
+    });
 }
 
 function initregform(id, eventid, limit, msg)
@@ -99,7 +95,13 @@ function initregform(id, eventid, limit, msg)
 }
 
 var gRegistered = Array();
-var gItems = Array();
+var gAccounts = Array();
+{% for ev in events -%}
+{% if accounts[ev.eventid] -%}
+gAccounts["{{ev.eventid}}"] = "{{accounts[ev.eventid].accountid}}";
+{% endif -%}
+{% endfor -%}
+var gItems = {{pitems|to_json|safe}};
 </script>
 {% endblock headers %}
 
@@ -153,12 +155,19 @@ var gItems = Array();
 
 {% call m.modal('paymentmodal', 'Payment', '') %}
     <form id='paymentform' action='{{url_for(".payment")}}' method='POST'>
-        <input type='hidden' name='eventid'/>
-        <table class='w-100'>
-        <tbody id='paymentitemsbody'>
-        </tbody>
-        </table>
-        <div class='row'><div class='col p-0'><input id='checkoutbutton' type='submit' class='btn btn-register' value='Checkout'/></div></div>
+        <input type='hidden' name='eventid' value=''/>
+        {% for c in cars.values() %}
+        <div class='row align-items-center'>
+        <div class="col">{{rm.carDisplay(c)}}</div>
+        <div class="col">
+            <select name='{{"pay-{}".format(c.carid)}}'>
+            </select>
+        </div>
+        </div>
+        {% endfor %}
+        <div class='row'>
+        <div class='col'><input id='checkoutbutton' type='submit' class='btn btn-register' value='Checkout'/></div>
+        </div>
     </form>
 {% endcall %}
 

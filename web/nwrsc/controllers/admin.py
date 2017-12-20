@@ -456,6 +456,7 @@ def delaccount():
     PaymentAccount.delete(request.form['accountid'])
     return ""
 
+
 @Admin.route("/accounts", methods=['GET', 'POST'])
 def accounts():
     action = request.form.get('submit')
@@ -470,10 +471,19 @@ def accounts():
             p.accountid = location['id']
             p.name      = location['name']
             p.type      = "square"
-            p.attr      = { 'expires': tdata['expires_at'], 'merchantid': tdata['merchant_id'], 'items': location['items'] }
+            p.attr      = { 'expires': tdata['expires_at'], 'merchantid': tdata['merchant_id'] } 
             p.upsert()
 
-            s = PaymentAccountSecret()
+            for _,item in location['items'].items():
+                i = PaymentItem()
+                i.itemid    = item['itemid']
+                i.accountid = location['id']
+                i.name      = item['name']
+                i.price     = item['price']
+                i.currency  = item['currency']
+                i.upsert()
+ 
+            s = PaymentSecret()
             s.accountid = p.accountid
             s.secret    = tdata['access_token']
             s.upsert()
@@ -485,11 +495,12 @@ def accounts():
 
     squareurl =  ''
     accounts  = PaymentAccount.getAllOnline()
+    items     = PaymentItem.getAll()
     sqappid   = current_app.config.get('SQ_APPLICATION_ID', '')
     if sqappid:
         squareurl = 'https://connect.squareup.com/oauth2/authorize?client_id={}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE,ORDERS_WRITE,ITEMS_READ&state={}'.format(sqappid, g.series)
 
-    return render_template('/admin/paymentaccounts.html', accounts=accounts, squareurl=squareurl)
+    return render_template('/admin/paymentaccounts.html', accounts=accounts, items=items, squareurl=squareurl)
 
 
 

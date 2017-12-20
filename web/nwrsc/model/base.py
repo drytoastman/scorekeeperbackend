@@ -1,11 +1,10 @@
-import json
 import logging
 import psycopg2 
 import psycopg2.extras
 
 from flask import g
 
-TABLES = ['drivers', 'cars', 'events', 'payments', 'paymentaccounts', 'secrets' ]
+TABLES = ['drivers', 'cars', 'events', 'payments', 'paymentaccounts', 'paymentitems', 'paymentsecrets' ]
 COLUMNS       = dict()
 PRIMARY_KEYS  = dict()
 NONPRIMARY    = dict()

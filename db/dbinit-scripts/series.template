@@ -99,7 +99,7 @@ CREATE TABLE paymentitems (
     accountid TEXT      NOT NULL REFERENCES paymentaccounts,
     name      TEXT      NOT NULL,
     price     INTEGER   NOT NULL DEFAULT 100,
-    currency  CHAR(5)   NOT NULL DEFAULT 'USD',
+    currency  CHAR(3)   NOT NULL DEFAULT 'USD',
     modified  TIMESTAMP NOT NULL DEFAULT now()
 );
 REVOKE ALL ON paymentitems FROM public;

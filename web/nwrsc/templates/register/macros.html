@@ -47,11 +47,6 @@
 {% macro  eventdisplay(ev, ecars, registered, paid, account, error='') %}
     <script type="text/javascript">
     gRegistered['{{ev.eventid}}'] = {{registered|to_json|safe}};
-    {% if account and account.attr['items'] %}
-    gItems ['{{ev.eventid}}'] = { options: {{ account.attr['items']|to_json|safe}}, required:{{ev.paymentRequired() and 'true' or 'false'}} };
-    {% else %}
-    gItems ['{{ev.eventid}}'] = { options: {}, required: 'false' };
-    {% endif %}
     </script>
 
     <div class='insidewrapper row'> {# have to reset row inside collapse it seems #}
@@ -102,7 +97,7 @@
             {%- if ev.mylimit > 0 or registered|length > 0 %}
             <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
             {%- endif %}
-            {%- if account.secret %}
+            {%- if account.secret and registered|length > 0 %}
             <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-toggle='modal' data-target='#paymentmodal'>Make Payment</button>
             {%- endif %}
             {%- if paid %}

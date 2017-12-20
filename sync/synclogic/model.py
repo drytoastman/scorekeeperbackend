@@ -26,6 +26,7 @@ TABLE_ORDER = [
     'settings',
     'indexlist',
     'paymentaccounts',
+    'paymentitems',
     'events',   
     'classlist',
     'classorder',
