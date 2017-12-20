@@ -154,7 +154,11 @@ BEGIN
     FOR schema IN SELECT nspname FROM pg_catalog.pg_namespace where nspname !~ '^pg_' and nspname not in ('information_schema', 'public') 
     LOOP
         PERFORM set_config('search_path', schema||',public', true);
-        EXECUTE seriesscript;
+        SELECT regexp_split_to_array(replace(replace(seriesscript, '<seriesname>', schema), '\r\n', ''), ';') INTO cmds;
+        FOR i in 1 .. array_upper(cmds, 1)
+        LOOP
+            EXECUTE cmds[i];
+        END LOOP;
     END LOOP;
     PERFORM set_config('search_path', 'public', true);
     EXECUTE publicscript;

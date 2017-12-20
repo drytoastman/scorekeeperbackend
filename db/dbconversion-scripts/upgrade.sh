@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd $1
 while true; do
     curversion=$(psql -U postgres -d scorekeeper -A -t -c "select version from version")
     found=0
@@ -15,10 +16,13 @@ while true; do
                     public=`cat $ent/public.sql | tr -d "\n" | sed "s/'/''/g"`
                 fi
                 if [ -f "$ent/series.sql" ]; then
-                    public=`cat $ent/series.sql | tr -d "\n" | sed "s/'/''/g"`
+                    series=`cat $ent/series.sql | tr -d "\n" | sed "s/'/''/g"`
                 fi
                 echo "Converting $inversion"
                 psql -U postgres -d scorekeeper -c "SELECT upgrade('$series', '$public', '$outversion');"
+                if [ $? -ne 0 ]; then
+                    exit
+                fi
                 found=1
             fi
         fi

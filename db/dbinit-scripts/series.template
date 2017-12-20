@@ -91,10 +91,25 @@ REVOKE ALL ON paymentaccounts FROM public;
 GRANT  ALL ON paymentaccounts TO <seriesname>;
 CREATE TRIGGER payaccmod AFTER INSERT OR UPDATE OR DELETE ON paymentaccounts FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
 CREATE TRIGGER payaccuni BEFORE UPDATE ON paymentaccounts FOR EACH ROW EXECUTE PROCEDURE updatechecks('accountid');
-COMMENT ON TABLE paymentaccounts IS 'the list of configured merchant data available for online payment options, this is NOT synced between nodes';
+COMMENT ON TABLE paymentaccounts IS 'the list of configured merchant data available for online payment options';
 
 
-CREATE TABLE secrets (
+CREATE TABLE paymentitems (
+    itemid    TEXT      PRIMARY KEY,
+    accountid TEXT      NOT NULL REFERENCES paymentaccounts,
+    name      TEXT      NOT NULL,
+    price     INTEGER   NOT NULL DEFAULT 100,
+    currency  CHAR(5)   NOT NULL DEFAULT 'USD',
+    modified  TIMESTAMP NOT NULL DEFAULT now()
+);
+REVOKE ALL ON paymentitems FROM public;
+GRANT  ALL ON paymentitems TO <seriesname>;
+CREATE TRIGGER payitmmod AFTER INSERT OR UPDATE OR DELETE ON paymentitems FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
+CREATE TRIGGER payitmuni BEFORE UPDATE ON paymentitems FOR EACH ROW EXECUTE PROCEDURE updatechecks('accountid');
+COMMENT ON TABLE paymentitems IS 'the list of configured items for an account';
+
+
+CREATE TABLE paymentsecrets (
     accountid TEXT      PRIMARY KEY,
     secret    TEXT      NOT NULL DEFAULT '',
     modified  TIMESTAMP NOT NULL DEFAULT now()
@@ -102,6 +117,15 @@ CREATE TABLE secrets (
 REVOKE ALL ON secrets FROM public;
 GRANT ALL  ON secrets TO localuser;
 COMMENT ON TABLE secrets IS 'Local only table for payment account details that only need to be on the main server, localuser required to access, no remotes';
+
+
+CREATE TABLE tempcache (
+    key       TEXT      PRIMARY KEY,
+    data      JSONB     NOT NULL DEFAULT '{}'
+);
+REVOKE ALL ON tempcache FROM public;
+GRANT ALL  ON tempcache TO localuser;
+COMMENT ON TABLE tempcache IS 'Local only table that can be used for caching data on the webserver, only needs to be on the main server, localuser required to access, no remotes';
 
 
 CREATE TABLE events (
@@ -129,7 +153,7 @@ REVOKE ALL ON events FROM public;
 GRANT  ALL ON events TO <seriesname>;
 CREATE TRIGGER  eventmod AFTER  INSERT OR UPDATE OR DELETE ON events FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
 CREATE TRIGGER  eventuni BEFORE UPDATE ON events FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid');
-COMMENT ON TABLE events IS 'The list of events for this series, attr includes location, sponsor, host, chair, designer, snail, costs, notes, etc';
+COMMENT ON TABLE events IS 'The list of events for this series, attr includes location, sponsor, host, chair, designer, snail, notes, etc';
 
 
 CREATE TABLE cars (
@@ -189,10 +213,9 @@ COMMENT ON TABLE timertimes IS 'The list of all times received by data entry via
 
 CREATE TABLE payments (
     txid      TEXT      PRIMARY KEY,
-    accountid TEXT      NOT NULL REFERENCES paymentaccounts,
+    itemid    TEXT      NOT NULL REFERENCES paymentitems,
     driverid  UUID      NOT NULL REFERENCES public.drivers,
     eventid   UUID      NOT NULL REFERENCES events, 
-    amount    FLOAT     NOT NULL DEFAULT 0.0,
     modified  TIMESTAMP NOT NULL DEFAULT now()
 );
 REVOKE ALL ON payments FROM public;
