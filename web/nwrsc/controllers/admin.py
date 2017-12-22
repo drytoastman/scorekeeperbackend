@@ -338,13 +338,15 @@ def uniqueattend():
         e.drivers = Attendance.newForEvent(e)
     return render_template('/admin/attendance.html', title='unique attendance', events=g.events)
 
+
 @Admin.route("/payments")
 def payments():
-    """ return the list of payments for profiles for an event """
-    payments = defaultdict(lambda: defaultdict(list))
-    for p in Payment.getAllOnline():
-        payments[p.eventid][p.driverid].append(p)
-    return render_template('/admin/payments.html', payments=payments, events=g.events)
+    return render_template('/admin/payments.html', events=g.events)
+
+@Admin.route("/registrationlist")
+def registrationlist():
+    reg = Registration.getAllFlat()
+    return json_encode(reg)
 
 
 @Admin.route("/contactlist")
