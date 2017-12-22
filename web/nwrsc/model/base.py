@@ -4,19 +4,36 @@ import psycopg2.extras
 
 from flask import g
 
-TABLES = ['drivers', 'cars', 'events', 'payments', 'paymentaccounts', 'paymentitems', 'paymentsecrets' ]
+TABLES = ['drivers', 'cars', 'events', 'paymentaccounts', 'paymentitems', 'paymentsecrets', 'registered' ]
 COLUMNS       = dict()
 PRIMARY_KEYS  = dict()
 NONPRIMARY    = dict()
 UPDATES       = dict()
 INSERTS       = dict()
 UPSERTS       = dict()
+DELETES       = dict()
 
 log = logging.getLogger(__name__)
 
 # setup uuid for postgresql
 psycopg2.extras.register_uuid()
 psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
+
+def whereprimary(table):
+    return " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[table])
+
+def setnonprimary(table):
+    return ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[table])
+
+def columnlist(table):
+    return ",".join(COLUMNS[table])
+
+def primarylist(table):
+    return ",".join(PRIMARY_KEYS[table])
+
+def insertcolumns(table):
+    return ",".join("%({})s".format(x) for x in COLUMNS[table])
+
 
 class AttrBase(object):
 
@@ -48,14 +65,15 @@ class AttrBase(object):
                     COLUMNS[table] = [row[0] for row in cur.fetchall()]
                     NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
 
-                    UPDATES[table] = "UPDATE {} SET {},modified=now() WHERE {}".format(table, ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[table]), " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[table]))
-                    INSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now())".format(table, ",".join(COLUMNS[table]), ",".join(["%({})s".format(x) for x in COLUMNS[table]]))
+                    DELETES[table] = "DELETE FROM {} WHERE {}".format(table, whereprimary(table))
+                    UPDATES[table] = "UPDATE {} SET {},modified=now() WHERE {}".format(table, setnonprimary(table), whereprimary(table))
+                    INSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now())".format(table, columnlist(table), insertcolumns(table)) 
                     UPSERTS[table] = "INSERT INTO {} ({},modified) VALUES ({}, now()) ON CONFLICT ({}) DO UPDATE SET {},modified=now()".format(
                                                     table, 
-                                                    ",".join(COLUMNS[table]),
-                                                    ",".join(["%({})s".format(x) for x in COLUMNS[table]]),
-                                                    ",".join(PRIMARY_KEYS[table]),
-                                                    ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[table]))
+                                                    columnlist(table),
+                                                    insertcolumns(table),
+                                                    primarylist(table),
+                                                    setnonprimary(table))
 
 
     def __init__(self, **kwargs):
@@ -65,6 +83,7 @@ class AttrBase(object):
     def insert(self):
         with g.db.cursor() as cur:
             self.cleanAttr()
+            self.fillMissing()
             cur.execute(INSERTS[self.TABLENAME], self.__dict__)
             g.db.commit()
 
@@ -78,6 +97,11 @@ class AttrBase(object):
         with g.db.cursor() as cur:
             self.cleanAttr()
             cur.execute(UPDATES[self.TABLENAME], self.__dict__)
+            g.db.commit()
+
+    def delete(self):
+        with g.db.cursor() as cur:
+            cur.execute(DELETES[self.TABLENAME], self.__dict__)
             g.db.commit()
 
     @property
@@ -112,6 +136,11 @@ class AttrBase(object):
                 self.attr.update(v)
             else:
                 setattr(self, k, v)
+
+    def fillMissing(self):
+        for name in self.columns:
+            if not hasattr(self, name):
+                setattr(self, name, None)
 
     def cleanAttr(self):
         """ Remove nulls, blanks, zeros, etc to reduce attr size """

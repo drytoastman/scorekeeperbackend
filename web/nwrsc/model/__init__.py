@@ -8,5 +8,5 @@ from .result import Result
 from .rungroups import RunGroups
 from .series import Series
 from .settings import Settings
-from .simple import Attendance, Audit, Challenge, NumberEntry, Payment, PaymentAccount, PaymentItem, PaymentSecret, Registration, Run, RunOrder, TempCache, TimerTimes
+from .simple import Attendance, Audit, Challenge, NumberEntry, PaymentAccount, PaymentItem, PaymentSecret, Registration, Run, RunOrder, TempCache, TimerTimes
 

@@ -7,7 +7,7 @@ import squareconnect
 import time
 
 import itsdangerous
-from flask import abort, Blueprint, current_app, flash, g, get_template_attribute, redirect, request, render_template, session, url_for
+from flask import abort, Blueprint, current_app, flash, g, get_template_attribute, redirect, request, render_template, Response, session, stream_with_context, url_for
 from flask_mail import Message
 
 from nwrsc.model import *
@@ -33,6 +33,7 @@ def setup():
             g.seriesname = Settings.get('seriesname')
     else:
         g.driver = None
+
 
 ####################################################################
 # Authenticated functions
@@ -118,78 +119,85 @@ def events():
     events   = Event.byDate()
     cars     = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
     registered = defaultdict(list)
-    payments   = defaultdict(float)
     pitems     = defaultdict(list)
     accounts   = dict()
+    showpay    = dict()
     for r in Registration.getForDriver(g.driver.driverid):
         registered[r.eventid].append(r)
     for e in events:
         decorateEvent(e, len(registered[e.eventid]))
-    for p in Payment.getForDriver(g.driver.driverid):
-        payments[p.eventid] += p.amount
     for i in PaymentItem.getAll():
         pitems[i.accountid].append(i)
     for e in events:
         accounts[e.eventid] = PaymentAccount.get(e.accountid)
+        showpay[e.eventid] = e.accountid is not None and any(r.txid is None for r in registered[e.eventid])
 
-    return render_template('register/events.html', events=events, cars=cars, registered=registered, payments=payments, accounts=accounts, pitems=pitems)
+    log.warning(showpay)
+    return render_template('register/events.html', events=events, cars=cars, registered=registered, accounts=accounts, showpay=showpay, pitems=pitems)
 
 
 def _renderSingleEvent(event, error):
-    """ INTERNAL: For returning HTML for a single event div in response to updates/payments """
+    """ INTERNAL: For returning HTML for a single event div in response to updates """
     cars    = {c.carid:c for c in Car.getForDriver(g.driver.driverid)}
     reg     = [ r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == event.eventid ]
-    payments= Payment.getForDriverEvent(g.driver.driverid, event.eventid)
     account = PaymentAccount.get(event.accountid)
+    showpay = event.accountid is not None and any(r.txid is None for r in reg)
     decorateEvent(event, len(reg))
-    if payments:
-        paid = sum(p.amount for p in payments)
-    else:
-        paid = 0.0
 
     eventdisplay = get_template_attribute('/register/macros.html', 'eventdisplay')
-    return eventdisplay(event, cars, reg, paid, account, error)
-
-
-def _matchPaymentsToRegistration(event, carids):
-    """ INTERNAL: For matching event payments to registered entries when either side changes """
-    payments = Payment.getForDriverEvent(g.driver.driverid, event.eventid)
-    pairs    = [[cid, None] for cid in carids]
-    total    = 0
-    idx      = 0
-    """
-    for p in payments:  # reassign payments to registrations
-        total += p.amount
-        while total >= minpay and idx < len(pairs):
-            pairs[idx][1] = p.txid
-            idx += 1
-            total -= minpay
-            log.info("{}, {}".format(total, minpay))
-    """
-
-    Registration.update(event.eventid, pairs, g.driver.driverid)
+    return eventdisplay(event, cars, reg, showpay, error)
 
 
 @Register.route("/<series>/eventspost", methods=['POST'])
 def eventspost():
     """ Handles a add/change request from the user """
     if not g.driver: raise NotLoggedInException()
+    error = ""
 
     try:
-        error   = ""
-        eventid = uuid.UUID(request.form['eventid'])
-        event   = Event.get(eventid)
-        carids  = [uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True]
-        curreg  = len([r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == eventid])
-        decorateEvent(event, curreg) # Figure out limit with current registration
-        if len(carids) > event.mylimit:
-            error = "Limit hit outside session, request aborted"
-        else:
-            _matchPaymentsToRegistration(event, carids)
+        eventid  = uuid.UUID(request.form['eventid'])
+        event    = Event.get(eventid)
+        curreg   = {r.carid:r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == event.eventid}
+        oldids   = set(curreg.keys())
+        newids   = set([uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True])
+
+        toadd    = set([Registration(carid=x, eventid=eventid) for x in newids - oldids])
+        nochange = set([curreg[x] for x in newids & oldids])
+        todel    = set([curreg[x] for x in oldids - newids])
+
+        # If any of the deleted cars had a payment, we need to move that to an open unchanged or new registration, favor old registrations
+        for delr in todel:
+            if not delr.txid: continue
+            for otherr in list(nochange) + list(toadd):
+                log.warning("check {}".format(otherr))
+                if not getattr(otherr, 'txid', None):
+                    otherr.txid     = delr.txid
+                    otherr.txtime   = delr.txtime
+                    otherr.itemname = delr.itemname
+                    otherr.amount   = delr.amount
+                    if otherr in nochange:
+                        # Change logging requires primary key updates to delete and then insert, delete only uses primary key
+                        todel.add(otherr) 
+                        toadd.add(otherr)
+                    break
+            else:
+                raise FlashableException("Change aborted, no available registered cars to move previous payment to")
+
+        # Check any limits with current registration
+        mycount = len(curreg) + len(toadd) - len(todel)
+        decorateEvent(event, mycount)
+        if mycount > event.mylimit:
+            raise FlashableException("Limit hit outside session, request aborted")
+
+        for r in todel: r.delete()
+        for r in toadd: r.insert()
+
+    except FlashableException as fe:
+        error = str(fe)
     except Exception as e:
         g.db.rollback()
-        log.warning("exception in events post: " + str(e), exc_info=e)
-        return "<div class='error'>{}</div>".format(e)
+        error = "Exception in processing has been logged"
+        log.warning("exception in events post", exc_info=e)
 
     return json_encode({'html': _renderSingleEvent(event, error)})
 
@@ -200,23 +208,23 @@ def payment():
     if not g.driver: raise NotLoggedInException()
 
     error = ""
-    log.warning(request.form)
     try:
         eventid = uuid.UUID(request.form.get('eventid', None))
         event   = Event.get(eventid)
         account = PaymentAccount.get(event.accountid)
-        items   = PaymentItem.getForAccount(event.accountid)
+        items   = {i.itemid:i for i in PaymentItem.getForAccount(event.accountid)}
+        if not len([1 for k,v in request.form.items() if k.startswith('pay-') and v]):
+            raise Exception("No payment options selected")
 
         if account.type == 'square':
-
-            # FINISH ME, what to add for referenceid, same as idempotency_key and store in table?
-            order    = squareconnect.models.CreateOrderRequest(line_items = [])
+            refid    = "{}-order-{}".format(g.series, TempCache.nextorder())
+            order    = squareconnect.models.CreateOrderRequest(reference_id=refid, line_items = [])
             checkout = squareconnect.models.CreateCheckoutRequest(
                         order = order,
-                        idempotency_key = str(uuid.uuid1()),
+                        idempotency_key = refid,
                         redirect_url    = url_for('.paymentcomplete', eventid=eventid, _external=True),
-                        ask_for_shipping_address = True,
                         pre_populate_buyer_email = g.driver.email,
+                        ask_for_shipping_address = True,
                         pre_populate_shipping_address = squareconnect.models.Address(
                             address_line_1 = g.driver.attr.get('address',''),
                             locality       = g.driver.attr.get('city', ''),
@@ -227,14 +235,22 @@ def payment():
                             last_name      = g.driver.lastname
                         ))
             
-            itemcounts = defaultdict(int)
-            for key,itemid in request.form.items():
-                if not key.startswith('pay-') or not itemid:
-                    continue
-                carid = uuid.UUID(key[4:])
-                itemcounts[itemid] += 1
+            cache = { 
+                'refid': refid,
+                'eventid': str(eventid),
+                'accountid': account.accountid,
+                'type': account.type,
+                'cars': {}
+            }
+            purchase = defaultdict(int)
 
-            for itemid, count in itemcounts.items():
+            for key,itemid in request.form.items():
+                if not key.startswith('pay-') or not itemid: continue
+                carid = uuid.UUID(key[4:])
+                cache['cars'][str(carid)] = {'name': items[itemid].name, 'amount':items[itemid].price/100 }
+                purchase[itemid] += 1
+
+            for itemid, count in purchase.items():
                 if not count: continue
                 order.line_items.append(
                     squareconnect.models.CreateOrderRequestLineItem(
@@ -242,10 +258,11 @@ def payment():
                         note="{} - {}".format(event.date.strftime("%m/%d/%Y"), event.name),
                         quantity=str(count)))
 
-            log.warning(checkout)
-            squareconnect.configuration.access_token = account.secret
-            response = squareconnect.apis.checkout_api.CheckoutApi().create_checkout(account.accountid, checkout)
-            log.warning(response)
+            client   = squareconnect.ApiClient(header_name='Authorization', header_value='Bearer '+account.secret)
+            response = squareconnect.apis.checkout_api.CheckoutApi(api_client=client).create_checkout(account.accountid, checkout)
+            cache['checkoutid'] = response.checkout.id
+            TempCache.put(cache['refid'], cache)
+
             return json_encode({'redirect': response.checkout.checkout_page_url})
 
         else:
@@ -259,21 +276,60 @@ def payment():
     return json_encode({'html': _renderSingleEvent(event, error)})
 
 
-@Register.route("/<series>/paymentcomplete/<uuid:eventid>")
+@Register.route("/<series>/paymentcomplete")
 def paymentcomplete():
     if not g.driver: raise NotLoggedInException()
     
-    event   = Event.get(g.eventid)
-    account = PaymentAccount.get(event.accountid)
+    try:
+        transactionid = request.args.get('transactionId', 'NoTransactionId')
+        referenceid   = request.args.get('referenceId',   'NoReferenceId')
+        cached        = TempCache.get(referenceid)
 
-    squareconnect.configuration.access_token = account.secret
-    response = squareconnect.apis.transactions_api.TransactionsApi().retrieve_transaction(account.accountid, request.args['transactionId'])
-    return str(response)
+        if not cached:
+            raise FlashableException("Missing order data to confirm payment with for reference '{}'".format(referenceid))
+        if cached.get('verified', False):
+            raise FlashableException("Order {} has already been verified".format(referenceid))
 
-#    if not response.errors and response.transaction:
-#        _matchPaymentsToRegistration(event, [r.carid for r in Registration.getForDriver(g.driver.driverid) if r.eventid == g.eventid])
-    #return "'{}', '{}', '{}'".format(request.args['checkoutId'], request.args['referenceId'], request.args['transactionId'])
-    #return "TBD"
+        eventid  = uuid.UUID(cached['eventid'])
+        event    = Event.get(eventid)
+        account  = PaymentAccount.get(event.accountid)
+        client   = squareconnect.ApiClient(header_name='Authorization', header_value='Bearer '+account.secret)
+        response = None
+
+        # Square may call us back but there seems to be a delay before we can load the transaction to check, we retry at longer intervals
+        for ii in range(5):
+            time.sleep(ii+0.1)
+            try:
+                response = squareconnect.apis.transactions_api.TransactionsApi(api_client=client).retrieve_transaction(account.accountid, transactionid)
+                break
+            except:
+                log.warning("transaction verification failed for {}".format(transactionid))
+
+        if not response:
+            raise FlashableException("Unable to verify transaction {} with Square, contact the administrator".format(transactionid))
+
+        for reg in Registration.getForDriver(g.driver.driverid):
+            caridstr = str(reg.carid)
+            if reg.eventid != eventid or caridstr not in cached['cars']:
+                continue
+            if reg.txid and reg.txid != transactionid:
+                flash("Warning: Overwrote transaction {} with {}".format(reg.txid, transactionid))
+            reg.txid     = transactionid
+            reg.txtime   = datetime.datetime.strptime(response.transaction.created_at, '%Y-%m-%dT%H:%M:%SZ')
+            reg.itemname = cached['cars'][caridstr]['name']
+            reg.amount   = cached['cars'][caridstr]['amount']
+            reg.update()
+
+        cached['verified'] = True
+        TempCache.put(referenceid, cached)
+
+    except FlashableException as fe:
+        flash(str(fe))
+    except Exception as e:
+        flash("Exception in processing has been logged")
+        log.warning(str(e), exc_info=e)
+            
+    return redirect(url_for(".events"))
 
 
 @Register.route("/<series>/usednumbers")

@@ -31,7 +31,6 @@ TABLE_ORDER = [
     'classlist',
     'classorder',
     'cars',
-    'payments',
     'registered',
     'runorder',
     'runs',

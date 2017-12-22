@@ -8,7 +8,7 @@ import threading
 import time
 from traceback import format_tb
 
-from flask import Flask, request, abort, g, current_app, render_template, send_from_directory
+from flask import Flask, request, abort, g, current_app, message_flashed, render_template, send_from_directory
 from flask_compress import Compress
 from flask_assets import Environment, Bundle
 from flask_bcrypt import Bcrypt
@@ -171,6 +171,10 @@ def create_app():
     def displayable(e):
         log.info(e.content, exc_info=e.__cause__ and e or None)
         return render_template("common/simple.html", header=e.header, content=e.content)
+
+    @message_flashed.connect_via(theapp)
+    def log_flashes(sender, message, category):
+       log.warning("Flashed: " + message)
 
     if not theapp.debug:
         @theapp.errorhandler(Exception)

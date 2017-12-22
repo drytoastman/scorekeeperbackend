@@ -1,4 +1,7 @@
 
+class FlashableException(Exception):
+    pass
+
 class ArchivedSeriesException(Exception):
     pass
 

@@ -119,6 +119,11 @@ GRANT ALL  ON secrets TO localuser;
 COMMENT ON TABLE secrets IS 'Local only table for payment account details that only need to be on the main server, localuser required to access, no remotes';
 
 
+CREATE SEQUENCE ordercounter;
+REVOKE ALL ON ordercounter FROM public;
+GRANT ALL  ON ordercounter TO localuser;
+COMMENT ON SEQUENCE ordercounter IS 'Unsynced counter for main server when counting orders for series payments';
+
 CREATE TABLE tempcache (
     key       TEXT      PRIMARY KEY,
     data      JSONB     NOT NULL DEFAULT '{}'
@@ -211,25 +216,14 @@ CREATE TRIGGER timuni BEFORE UPDATE ON timertimes FOR EACH ROW EXECUTE PROCEDURE
 COMMENT ON TABLE timertimes IS 'The list of all times received by data entry via whatever timer is active';
 
 
-CREATE TABLE payments (
-    txid      TEXT      PRIMARY KEY,
-    itemid    TEXT      NOT NULL REFERENCES paymentitems,
-    driverid  UUID      NOT NULL REFERENCES public.drivers,
-    eventid   UUID      NOT NULL REFERENCES events, 
-    modified  TIMESTAMP NOT NULL DEFAULT now()
-);
-REVOKE ALL ON payments FROM public;
-GRANT  ALL ON payments TO <seriesname>;
-CREATE TRIGGER paymod AFTER INSERT OR UPDATE OR DELETE ON payments FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
-CREATE TRIGGER payuni BEFORE UPDATE ON payments FOR EACH ROW EXECUTE PROCEDURE updatechecks('txid');
-COMMENT ON TABLE payments IS 'The list of driver payments for events';
-
-
 CREATE TABLE registered (
-    eventid  UUID         NOT NULL REFERENCES events, 
-    carid    UUID         NOT NULL REFERENCES cars, 
-    txid     TEXT         REFERENCES payments,
-    modified TIMESTAMP    NOT NULL DEFAULT now(),
+    eventid    UUID      NOT NULL REFERENCES events, 
+    carid      UUID      NOT NULL REFERENCES cars, 
+    txid       TEXT,
+    txtime     TIMESTAMP,
+    itemname   TEXT,
+    amount     FLOAT,
+    modified   TIMESTAMP NOT NULL DEFAULT now(),
     PRIMARY KEY (eventid, carid)
 );
 CREATE INDEX ON registered(eventid);

@@ -66,6 +66,13 @@ span.payments {
     }
 }
 
+.eventcarlist {
+    .error {
+        text-align: left;
+        margin-left: 1rem;
+    }
+}
+
 /* Some adjustments when bootstrap adjusts at the sm boundary */
 
 @media (min-width: 768px) {
@@ -257,8 +264,9 @@ span.payments {
     }
 
     .alert {
+        display: inline-block;
         margin: 0.3rem 0;
-        padding: 0.3rem;
+        padding: 0.3rem 0.5rem;
     }
 }
     
@@ -299,6 +307,15 @@ span.payments {
     input[type=checkbox] {
         margin: 0.5rem;
         margin-left: auto;
+    }
+}
+
+
+#paymentmodal {
+    .cardisplay {
+        line-height: normal;
+        text-align: right;
+        margin: 0.2rem 0;
     }
 }
 

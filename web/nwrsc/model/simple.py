@@ -86,22 +86,6 @@ class NumberEntry(AttrBase):
             return [cls(**x) for x in cur.fetchall()]
 
 
-class Payment(AttrBase):
-    TABLENAME = "payments"
-
-    @classmethod
-    def getAllOnline(cls):
-        return cls.getall("SELECT * FROM payments p JOIN drivers d ON p.driverid=d.driverid WHERE p.accountid!='onsite'")
-
-    @classmethod
-    def getForDriver(cls, driverid):
-        return cls.getall("SELECT * FROM payments WHERE driverid=%s", (driverid,))
-
-    @classmethod
-    def getForDriverEvent(cls, driverid, eventid):
-        return cls.getall("SELECT * FROM payments WHERE driverid=%s and eventid=%s", (driverid, eventid))
-
-
 class PaymentAccount(AttrBase):
     TABLENAME = "paymentaccounts"
 
@@ -141,6 +125,7 @@ class PaymentSecret(AttrBase):
 
 
 class Registration(AttrBase):
+    TABLENAME = "registered"
 
     @classmethod
     def getForEvent(cls, eventid, txrequired=False):
@@ -159,21 +144,6 @@ class Registration(AttrBase):
     @classmethod
     def getForSeries(cls, series, driverid):
         return cls.getall("SELECT c.*,e.eventid,e.date,e.name FROM {}.registered r JOIN {}.cars c ON r.carid=c.carid JOIN {}.events e ON e.eventid=r.eventid WHERE c.driverid=%s ORDER BY e.date".format(series,series,series), (driverid,))
-
-    @classmethod
-    def update(cls, eventid, pairs, verifyid):
-        with g.db.cursor() as cur:
-            cur.execute("DELETE from registered where eventid=%s and carid in (select carid from cars where driverid=%s)", (eventid, verifyid))
-            log.info(pairs)
-            for pair in pairs:
-                cur.execute("INSERT INTO registered (eventid, carid, txid) VALUES (%s, %s, %s)", (eventid, pair[0], pair[1]))
-            g.db.commit()
-
-    @classmethod
-    def delete(cls, eventid, carid):
-        with g.db.cursor() as cur:
-            cur.execute("DELETE from registered where eventid=%s and carid=%s", (eventid, carid))
-            g.db.commit()
 
 
 class Run(AttrBase):
@@ -233,16 +203,24 @@ class RunOrder(AttrBase):
 class TempCache():
 
     @classmethod
-    def get(key):
+    def nextorder(cls):
         with g.db.cursor() as cur:
-            cur.execute("SELECT data FROM tempcache WHERE key=%s", (key, ))
+            cur.execute("SELECT nextval('ordercounter')")
             return cur.fetchone()[0]
 
     @classmethod
-    def put(key, data):
+    def get(cls, key):
+        with g.db.cursor() as cur:
+            cur.execute("SELECT data FROM tempcache WHERE key=%s", (key, ))
+            ret = cur.fetchone()
+            return ret and ret[0] or None
+
+    @classmethod
+    def put(cls, key, data):
         with g.db.cursor() as cur:
             jtext = json.dumps(data)
             cur.execute("INSERT INTO tempcache (key, data) VALUES (%s, %s) ON CONFLICT (key) DO UPDATE SET data=%s", (key, jtext, jtext))
+            g.db.commit()
 
         
 class TimerTimes():
