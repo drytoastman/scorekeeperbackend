@@ -2,9 +2,10 @@ from collections import defaultdict
 import datetime
 import itertools
 import logging
-import uuid
+import paypalrestsdk
 import squareconnect
 import time
+import uuid
 
 import itsdangerous
 from flask import abort, Blueprint, current_app, flash, g, get_template_attribute, redirect, request, render_template, Response, session, stream_with_context, url_for
@@ -132,7 +133,6 @@ def events():
         accounts[e.eventid] = PaymentAccount.get(e.accountid)
         showpay[e.eventid] = e.accountid is not None and any(r.txid is None for r in registered[e.eventid])
 
-    log.warning(showpay)
     return render_template('register/events.html', events=events, cars=cars, registered=registered, accounts=accounts, showpay=showpay, pitems=pitems)
 
 
@@ -199,7 +199,7 @@ def eventspost():
         error = "Exception in processing has been logged"
         log.warning("exception in events post", exc_info=e)
 
-    return json_encode({'html': _renderSingleEvent(event, error)})
+    return _renderSingleEvent(event, error)
 
 
 @Register.route("/<series>/payment", methods=['POST'])
@@ -208,76 +208,178 @@ def payment():
     if not g.driver: raise NotLoggedInException()
 
     error = ""
+    event = None
     try:
         eventid = uuid.UUID(request.form.get('eventid', None))
         event   = Event.get(eventid)
         account = PaymentAccount.get(event.accountid)
         items   = {i.itemid:i for i in PaymentItem.getForAccount(event.accountid)}
         if not len([1 for k,v in request.form.items() if k.startswith('pay-') and v]):
-            raise Exception("No payment options selected")
+            return json_encode({'error': 'No payment options selected'})
 
-        if account.type == 'square':
-            refid    = "{}-order-{}".format(g.series, TempCache.nextorder())
-            order    = squareconnect.models.CreateOrderRequest(reference_id=refid, line_items = [])
-            checkout = squareconnect.models.CreateCheckoutRequest(
-                        order = order,
-                        idempotency_key = refid,
-                        redirect_url    = url_for('.paymentcomplete', eventid=eventid, _external=True),
-                        pre_populate_buyer_email = g.driver.email,
-                        ask_for_shipping_address = True,
-                        pre_populate_shipping_address = squareconnect.models.Address(
-                            address_line_1 = g.driver.attr.get('address',''),
-                            locality       = g.driver.attr.get('city', ''),
-                            administrative_district_level_1 = g.driver.attr.get('state', ''),
-                            postal_code    = g.driver.attr.get('zip', ''),
-                            country        = g.driver.attr.get('country', 'US'),
-                            first_name     = g.driver.firstname,
-                            last_name      = g.driver.lastname
-                        ))
-            
-            cache = { 
-                'refid': refid,
-                'eventid': str(eventid),
-                'accountid': account.accountid,
-                'type': account.type,
-                'cars': {}
-            }
-            purchase = defaultdict(int)
+        cache = { 
+            'refid':     "{}-order-{}".format(g.series, TempCache.nextorder()),
+            'eventid':   str(event.eventid),
+            'accountid': account.accountid,
+            'type':      account.type,
+            'cars':      {}
+        }
 
-            for key,itemid in request.form.items():
-                if not key.startswith('pay-') or not itemid: continue
-                carid = uuid.UUID(key[4:])
-                cache['cars'][str(carid)] = {'name': items[itemid].name, 'amount':items[itemid].price/100 }
-                purchase[itemid] += 1
+        purchase = defaultdict(int)
+        for key,itemid in request.form.items():
+            if not key.startswith('pay-') or not itemid: continue
+            carid = uuid.UUID(key[4:])
+            cache['cars'][str(carid)] = {'name': items[itemid].name, 'amount':items[itemid].price/100 }
+            purchase[items[itemid]] += 1
 
-            for itemid, count in purchase.items():
-                if not count: continue
-                order.line_items.append(
-                    squareconnect.models.CreateOrderRequestLineItem(
-                        catalog_object_id=itemid,
-                        note="{} - {}".format(event.date.strftime("%m/%d/%Y"), event.name),
-                        quantity=str(count)))
+        return {'square': _squarepayment,
+                'paypal': _paypalpayment,
+        }.get(account.type,   _unknownpayment)(event, account, purchase, cache)
 
-            client   = squareconnect.ApiClient(header_name='Authorization', header_value='Bearer '+account.secret)
-            response = squareconnect.apis.checkout_api.CheckoutApi(api_client=client).create_checkout(account.accountid, checkout)
-            cache['checkoutid'] = response.checkout.id
-            TempCache.put(cache['refid'], cache)
-
-            return json_encode({'redirect': response.checkout.checkout_page_url})
-
-        else:
-            error = "Unknown account type = {}".format(account.type)
-            log.warning(error)
+        return response
 
     except Exception as e:
         error = str(e)
         log.warning(error, exc_info=e)
 
-    return json_encode({'html': _renderSingleEvent(event, error)})
+    return json_encode({'error': error})
 
 
-@Register.route("/<series>/paymentcomplete")
-def paymentcomplete():
+def _unknownpayment(event, account, purchase, cache):
+    raise Exception("Unknown account type '{}'".format(account.type))
+
+
+def _paypalpayment(event, account, purchase, cache):
+
+    items = []
+    total = 0
+    for item, count in purchase.items():
+        if not count: continue
+        items.append({
+            "name":        item.name,
+            "description": "{} - {}".format(event.date.strftime("%m/%d/%Y"), event.name),
+            "quantity":    str(count),
+            "price":       "{0:.2f}".format(item.price/100.0),
+            "currency":    "USD"
+        })
+        total += count * item.price
+
+    order = {
+        "intent": "sale",
+        "payer": { "payment_method": "paypal"},
+        "redirect_urls": {
+            "return_url": url_for('.paypalexecute'),
+            "cancel_url": url_for('.events') },
+        "transactions": [{
+            "reference_id": cache['refid'],
+            "item_list": { "items": items },
+            "amount":  {
+                "currency": "USD",
+                "total":    "{0:.2f}".format(total/100.0)
+            }
+            #"description": "Scorekeeper Online Payment"
+        }]
+    }
+
+    localapi = paypalrestsdk.Api({'mode': 'sandbox', 'client_id': account.accountid, 'client_secret': account.secret})
+    payment  = paypalrestsdk.Payment(order, api=localapi)
+    if payment.create():
+        TempCache.put(payment.id, cache)
+        return json_encode({'paymentID': payment.id})
+    else:
+        raise FlashableException(payment.error)
+
+
+def _applyPayment(event, cached, newtxid, newtxtime):
+    for reg in Registration.getForDriver(g.driver.driverid):
+        caridstr = str(reg.carid)
+        if reg.eventid != event.eventid or caridstr not in cached['cars']:
+            continue
+        if reg.txid and reg.txid != newtxid:
+            flash("Warning: Overwrote transaction {} with {}".format(reg.txid, newtxid))
+        reg.txid     = newtxid 
+        reg.txtime   = datetime.datetime.strptime(newtxtime, '%Y-%m-%dT%H:%M:%SZ')
+        reg.itemname = cached['cars'][caridstr]['name']
+        reg.amount   = cached['cars'][caridstr]['amount']
+        reg.update()
+
+
+@Register.route("/<series>/paypalexecute", methods=['POST'])
+def paypalexecute():
+    if not g.driver: raise NotLoggedInException()
+    
+    try:
+        log.warning("XXXXX: " + str(request.form))
+        paymentid = request.form.get('paymentID', 'NoPaymentId')
+        payerid   = request.form.get('payerID',   'NoPayerId')
+        cached    = TempCache.get(paymentid)
+
+        if not cached:
+            raise FlashableException("Missing order data to confirm payment with for paymentid '{}'".format(paymentid))
+        if cached.get('verified', False):
+            raise FlashableException("Payment {} has already been executed".format(paymentid))
+
+        eventid   = uuid.UUID(cached['eventid'])
+        event     = Event.get(eventid)
+        account   = PaymentAccount.get(event.accountid)
+
+        localapi = paypalrestsdk.Api({'mode': 'sandbox', 'client_id': account.accountid, 'client_secret': account.secret})
+        payment  = paypalrestsdk.Payment.find(paymentid, api=localapi)
+        if not payment.execute({"payer_id": payerid}):
+            raise FlashableError("Payment Error: " + payment.error)
+
+        _applyPayment(event, cached, paymentid, payment.create_time)
+        cached['verified'] = True
+        TempCache.put(paymentid, cached)
+
+
+    except FlashableException as fe:
+        flash(str(fe))
+    except Exception as e:
+        flash("Exception in processing has been logged")
+        log.warning(str(e), exc_info=e)
+
+    return json_encode({'redirect': url_for(".events")})
+
+
+
+def _squarepayment(event, account, purchase, cache):
+    order    = squareconnect.models.CreateOrderRequest(reference_id=cache['refid'], line_items = [])
+    checkout = squareconnect.models.CreateCheckoutRequest(
+                order = order,
+                idempotency_key = cache['refid'],
+                redirect_url    = url_for('.sqaurepaymentcomplete', eventid=event.eventid, _external=True),
+                pre_populate_buyer_email = g.driver.email,
+                ask_for_shipping_address = True,
+                pre_populate_shipping_address = squareconnect.models.Address(
+                    address_line_1 = g.driver.attr.get('address',''),
+                    locality       = g.driver.attr.get('city', ''),
+                    administrative_district_level_1 = g.driver.attr.get('state', ''),
+                    postal_code    = g.driver.attr.get('zip', ''),
+                    country        = g.driver.attr.get('country', 'US'),
+                    first_name     = g.driver.firstname,
+                    last_name      = g.driver.lastname
+                ))
+    
+    for item, count in purchase.items():
+        if not count: continue
+        order.line_items.append(
+            squareconnect.models.CreateOrderRequestLineItem(
+                catalog_object_id=item.itemid,
+                note="{} - {}".format(event.date.strftime("%m/%d/%Y"), event.name),
+                quantity=str(count)))
+
+    client   = squareconnect.ApiClient(header_name='Authorization', header_value='Bearer '+account.secret)
+    response = squareconnect.apis.checkout_api.CheckoutApi(api_client=client).create_checkout(account.accountid, checkout)
+    cache['checkoutid'] = response.checkout.id
+    TempCache.put(cache['refid'], cache)
+
+    return json_encode({'redirect': response.checkout.checkout_page_url})
+
+
+
+@Register.route("/<series>/sqaurepaymentcomplete")
+def sqaurepaymentcomplete():
     if not g.driver: raise NotLoggedInException()
     
     try:

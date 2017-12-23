@@ -20,9 +20,14 @@ x = setup(
         "icalendar",
         "libsass",
         "ReportLab",
+        "paypalrestsdk",
         "psycopg2",
         "python-dateutil",
         "squareconnect"
+    ],
+
+    dependency_links = [
+        "git+git://github.com/drytoastman/connect-python-sdk.git@master#egg=squareconnect"
     ],
 
     packages=find_packages(),

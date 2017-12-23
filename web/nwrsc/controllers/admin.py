@@ -343,10 +343,9 @@ def uniqueattend():
 def payments():
     return render_template('/admin/payments.html', events=g.events)
 
-@Admin.route("/registrationlist")
-def registrationlist():
-    reg = Registration.getAllFlat()
-    return json_encode(reg)
+@Admin.route("/paymentlist")
+def paymentlist():
+    return json_encode(Registration.getAllPayments())
 
 
 @Admin.route("/contactlist")
@@ -355,8 +354,7 @@ def contactlist():
 
 @Admin.route("/activitylist")
 def activitylist():
-    activity = Attendance.getActivity()
-    return json_encode(list(activity.values()))
+    return json_encode(list(Attendance.getActivity().values()))
 
 
 @Admin.route("/event/<uuid:eventid>/entryadmin")

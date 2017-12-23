@@ -32,7 +32,7 @@
 {% set istr = g.classdata.getIndexStr(car) -%}
 <span class='code'>{{car.classcode}}/{{car.number}} {{istr and "("+istr+")" or ""}}
 {% if   paid %}<span class='label paid'>{{paid}}</span>{% endif %}
-{% if unpaid %}<span class='label unpaid'>Pending Payment</span>{% endif %}
+{% if unpaid %}<span class='label unpaid'>Payment Required</span>{% endif %}
 </span>
 <span class='desc'>{{car.attr.year}} {{car.attr.make}} {{car.attr.model}} {{car.attr.color}}</span> 
 </div>

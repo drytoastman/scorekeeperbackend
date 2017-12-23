@@ -8,20 +8,20 @@ var thetable   = null;
 
 $(document).ready(function(){
 	thetable = $('#paymenttable').DataTable({ 
-        ajax: { url:"{{url_for(".registrationlist")}}", dataSrc: ''},
+        ajax: { url:"{{url_for(".paymentlist")}}", dataSrc: ''},
         lengthMenu: [[15, 30, 50, -1], [15, 30, 50, "All"]],
         iDisplayLength: -1,
         autoWidth: false,
         columns: [
             { data: 'firstname' },
             { data: 'lastname' },
-            { data: 'email', render: displayemail },
+            { data: 'email',    render: displayemail },
             { data: 'name' },
             { data: 'date'  },
-            { data: 'txid' },
-            { data: 'txtime' },
-            { data: 'itemname' },
-            { data: 'amount', render: $.fn.dataTable.render.number( ',', '.', 2, '$' ) }
+            { data: 'txid',     defaultContent: '' },
+            { data: 'txtime',   defaultContent: '' },
+            { data: 'itemname', defaultContent: '' },
+            { data: 'amount',   defaultContent: '', render: $.fn.dataTable.render.number( ',', '.', 2, '$' ) }
         ],
         sDom: '<"dtheader"fi>rt<"clear">'
     });

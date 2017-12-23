@@ -138,8 +138,8 @@ class Registration(AttrBase):
             return [Entrant(**x) for x in cur.fetchall()]
 
     @classmethod
-    def getAllFlat(cls):
-        return cls.getall("SELECT r.*,c.*,d.*,e.name,e.date FROM registered r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid JOIN events e ON r.eventid=e.eventid")
+    def getAllPayments(cls):
+        return cls.getall("SELECT r.*,c.*,d.*,e.name,e.date FROM registered r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid JOIN events e ON r.eventid=e.eventid WHERE txid IS NOT NULL")
 
     @classmethod
     def getForDriver(cls, driverid):
