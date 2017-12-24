@@ -18,15 +18,11 @@ from jinja2 import ChoiceLoader, FunctionLoader
 from werkzeug.debug.tbtools import get_current_traceback
 from werkzeug.contrib.profiler import ProfilerMiddleware
 
-from nwrsc.controllers.admin import Admin
-from nwrsc.controllers.entranteditor import drivers # loads routes
-from nwrsc.controllers.dynamic import Announcer
-from nwrsc.controllers.feed import Xml, Json
-from nwrsc.controllers.register import Register
-from nwrsc.controllers.results import Results
-from nwrsc.lib.encoding import to_json
-from nwrsc.lib.misc import *
-from nwrsc.model import AttrBase, Series, Settings
+
+from .controllers import *
+from .lib.encoding import to_json
+from .lib.misc import *
+from .model import AttrBase, Series, Settings
 
 log = logging.getLogger(__name__)
 HASHTML = re.compile(r'(<!--.*?-->|<[^>]*>)')

@@ -1,27 +1,23 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
-import dateutil.parser
 import glob
-import http.client
 import io
-import json
 import logging
 import operator
 import os
 import psycopg2
 import re
-import squareconnect
 import uuid
 
-from flask import Blueprint, current_app, escape, flash, g, redirect, request, render_template, Response, send_from_directory, session, url_for
+from flask import current_app, escape, flash, g, redirect, request, render_template, Response, send_from_directory, session, url_for
 
+from nwrsc.controllers.blueprints import *
 from nwrsc.lib.encoding import csv_encode, json_encode
 from nwrsc.lib.forms import *
 from nwrsc.lib.misc import *
 from nwrsc.model import *
 
 log      = logging.getLogger(__name__)
-Admin    = Blueprint("Admin", __name__)
 ADMINKEY = 'admin'
 AUTHKEY  = 'auth'
 SUPERKEY = 'authSuper'
@@ -339,15 +335,6 @@ def uniqueattend():
     return render_template('/admin/attendance.html', title='unique attendance', events=g.events)
 
 
-@Admin.route("/payments")
-def payments():
-    return render_template('/admin/payments.html', events=g.events)
-
-@Admin.route("/paymentlist")
-def paymentlist():
-    return json_encode(Registration.getAllPayments())
-
-
 @Admin.route("/contactlist")
 def contactlist():
     return render_template('/admin/contactlist.html', events=g.events)
@@ -448,158 +435,4 @@ def newseries():
         form.name.data = g.series
         form.copysettings.data = True
     return render_template('/admin/newseries.html', form=form)
-
-
-@Admin.route("/delaccount", methods=['POST'])
-def delaccount():
-    log.debug("Delete " + request.form['accountid'])
-    PaymentAccount.delete(request.form['accountid'])
-    return ""
-
-
-@Admin.route("/accounts", methods=['GET', 'POST'])
-def accounts():
-    action = request.form.get('submit')
-
-    if action == 'Select Location':
-        try:
-            tdata = current_app.usts.loads(request.form['tdata'], max_age=36000) # 10 hour expiry
-            ldata = current_app.usts.loads(request.form['ldata'], max_age=36000)
-            location = ldata[request.form['locationid']]
-
-            p = PaymentAccount()
-            p.accountid = location['id']
-            p.name      = location['name']
-            p.type      = "square"
-            p.attr      = { 'expires': tdata['expires_at'], 'merchantid': tdata['merchant_id'] } 
-            p.upsert()
-
-            for _,item in location['items'].items():
-                i = PaymentItem()
-                i.itemid    = item['itemid']
-                i.accountid = location['id']
-                i.name      = item['name']
-                i.price     = item['price']
-                i.currency  = item['currency']
-                i.upsert()
- 
-            s = PaymentSecret()
-            s.accountid = p.accountid
-            s.secret    = tdata['access_token']
-            s.upsert()
-        except Exception as e:
-            g.db.rollback()
-            log.warning(e, exc_info=e)
-            flash("Inserting new payment account failed: " + str(e))
-        return redirect(url_for('.accounts'))
-
-    squareurl =  ''
-    accounts  = PaymentAccount.getAllOnline()
-    items     = PaymentItem.getAll()
-    sqappid   = current_app.config.get('SQ_APPLICATION_ID', '')
-    if sqappid:
-        squareurl = 'https://connect.squareup.com/oauth2/authorize?client_id={}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE,ORDERS_WRITE,ITEMS_READ&state={}'.format(sqappid, g.series)
-
-    return render_template('/admin/paymentaccounts.html', accounts=accounts, items=items, squareurl=squareurl)
-
-
-
-@Admin.endpoint("Admin.squareoauth")
-def squareoauth():
-    """ Special endpoint out of the normal URL pattern space as it has to be statically set in the Square control panel """
-    g.series = request.args.get('state', '')
-    if not isSuperAuth() and not isAuth(g.series):
-        raise NotLoggedInException()
-    with g.db.cursor() as cur:
-        cur.execute("SET search_path=%s,'public'; commit; begin", (g.series,))
-
-    try:
-        authorization_code = request.args.get('code', None)
-        if not authorization_code:
-            flash('Authorization Failed')
-            return redirect(url_for('.accounts'))
-
-        tokenresponse = square_oauth_gettoken(authorization_code)
-        tokenresponse['expires_at'] = str(dateutil.parser.parse(tokenresponse['expires_at']))
-        squareconnect.configuration.access_token = tokenresponse['access_token']
-
-        # Obtain the list of locations and items
-        locresponse = squareconnect.apis.locations_api.LocationsApi().list_locations()
-        if locresponse.errors:
-            raise Exception(locresponse.errors)
-
-        catresponse = squareconnect.apis.catalog_api.CatalogApi().list_catalog()
-        if catresponse.errors:
-            raise Exception(catesponse.errors)
-
-        # Prepare a reduced list of locations and their associated items
-        locations = dict()
-        for l in locresponse.locations:
-            if l.status.lower() not in ('active',):
-                continue
-
-            loc = {
-                   'id': l.id,
-                 'name': l.name,
-                'items': dict()
-            }
-            locations[l.id] = loc
-
-            for obj in catresponse.objects:
-                if obj.is_deleted or not obj.type == 'ITEM':
-                    continue
-                if obj.present_at_all_locations or loc['id'] in obj.present_at_location_ids:
-                    idata = obj.item_data
-                    var0  = idata.variations[0]
-                    vdata = var0.item_variation_data
-                    loc['items'][var0.id] = {
-                            'name': idata.name,
-                     'description': idata.description,
-                          'itemid': var0.id,
-                           'price': vdata.price_money.amount,
-                        'currency': vdata.price_money.currency
-                    }
-
-        tdata = current_app.usts.dumps(tokenresponse)
-        ldata = current_app.usts.dumps(locations)
-        return render_template('/admin/locationselect.html', locations=locations, tdata=tdata, ldata=ldata)
-
-    except Exception as e:
-        log.warning(e)
-        if len(e.args):
-           flash(e.args[0])
-        elif hasattr(e, 'body'):
-            flash(e.body)
-        else:
-            flash(str(e))
-        return redirect(url_for('.accounts'))
-
-
-def square_oauth_gettoken(authorization_code):
-    """ Perform the second half of the oauth process, why is this not in their SDK? """
-
-    appid     = current_app.config.get('SQ_APPLICATION_ID', '')
-    appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
-    if not appid or not appsecret:
-        raise Exception('There is no square applcation setup in the local configuration')
-
-    oauth_headers = {
-      'Authorization': 'Client '+appsecret,
-      'Accept':        'application/json',
-      'Content-Type':  'application/json'
-    }
-
-    oauth_request = {
-      'client_id': appid,
-      'client_secret': appsecret,
-      'code': authorization_code,
-    }
-
-    connection = http.client.HTTPSConnection('connect.squareup.com')
-    connection.request('POST', '/oauth2/token', json.dumps(oauth_request), oauth_headers)
-    response = json.loads(connection.getresponse().read())
-    if not response.get('access_token', ''):
-        raise Exception('Code exchange failed: ' + str(response))
-
-    return response
 

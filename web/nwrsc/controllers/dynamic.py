@@ -9,13 +9,14 @@ import urllib
 import uuid
 import math
 
-from flask import Blueprint, abort, current_app, g, get_template_attribute, request, render_template
+from flask import abort, current_app, g, get_template_attribute, request, render_template
+
+from nwrsc.controllers.blueprints import *
 from nwrsc.lib.encoding import json_encode
 from nwrsc.model import *
 from nwrsc.lib.misc import ArchivedSeriesException, csvlist
 
 log = logging.getLogger(__name__)
-Announcer = Blueprint("Announcer", __name__) 
 
 MAX_WAIT = 30
 

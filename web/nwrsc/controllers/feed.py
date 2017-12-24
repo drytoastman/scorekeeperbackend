@@ -6,14 +6,13 @@
 """
 
 import logging
-from flask import Blueprint, request, g, escape, make_response
+from flask import request, g, escape, make_response
+
+from nwrsc.controllers.blueprints import *
 from nwrsc.lib.encoding import json_encode, json_raw, xml_encode
 from nwrsc.model import Result
 
 log  = logging.getLogger(__name__)
-Xml  = Blueprint("Xml", __name__)
-Json = Blueprint("Json", __name__) 
-
 
 @Json.route("/")
 def jsoninfo():
