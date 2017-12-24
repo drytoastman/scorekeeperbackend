@@ -265,3 +265,15 @@ class ArchiveForm(MyFlaskForm):
     name         = MyStringField(  'Enter Series Name', [Length(min=6, max=12)])
     submit       = SubmitField(    'Archive')
 
+class PayPalAccountForm(MyFlaskForm):
+    name       = MyStringField(  'Account Name', [Length(min=4)])
+    accountid  = MyStringField(  'Client Id')
+    secret     = MyStringField(  'Client Secret')
+    submit     = SubmitField(    'Add PayPal Account')
+
+class PaymentItemForm(MyFlaskForm):
+    accountid  = HiddenField(  'accountid')
+    name       = MyStringField('Item Name',      [Length(min=4)])
+    price      = FloatField(   'Price')
+    submit     = SubmitField(  'Add Item')
+

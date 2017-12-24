@@ -13,6 +13,7 @@ from flask import current_app, flash, g, redirect, render_template, request, url
 from .admin import isAuth, isSuperAuth
 from .blueprints import *
 from ..lib.encoding import json_encode
+from ..lib.forms import formIntoAttrBase, PayPalAccountForm, PaymentItemForm
 from ..lib.misc import *
 from ..model import *
 
@@ -267,15 +268,30 @@ def paymentlist():
 @Admin.route("/delaccount", methods=['POST'])
 def delaccount():
     log.debug("Delete " + request.form['accountid'])
-    PaymentAccount.delete(request.form['accountid'])
-    return ""
+    try:
+        PaymentAccount.delete(request.form['accountid'])
+    except Exception as e:
+        log.warning("Delete account error", exc_info=e)
+        return json_encode({'error': str(e)})
+    return json_encode({"success": True})
+
+@Admin.route("/delitem", methods=['POST'])
+def delitem():
+    try:
+        PaymentItem.delete(request.form['itemid'])
+    except Exception as e:
+        log.warning("Delete item error", exc_info=e)
+        return json_encode({'error': str(e)})
+    return json_encode({"success": True})
 
 
 @Admin.route("/accounts", methods=['GET', 'POST'])
 def accounts():
     action = request.form.get('submit')
+    ppacctform = PayPalAccountForm()
+    itemform   = PaymentItemForm()
 
-    if action == 'Select Location':
+    if action == 'Select Location': # Finishing Square OAuth
         try:
             tdata = current_app.usts.loads(request.form['tdata'], max_age=36000) # 10 hour expiry
             ldata = current_app.usts.loads(request.form['ldata'], max_age=36000)
@@ -307,6 +323,38 @@ def accounts():
             flash("Inserting new payment account failed: " + str(e))
         return redirect(url_for('.accounts'))
 
+    elif action == 'Add PayPal Account':
+
+        if ppacctform.validate():
+            p = PaymentAccount()
+            p.accountid = ppacctform.accountid.data
+            p.name      = ppacctform.name.data
+            p.type      = "paypal"
+            p.attr      = { }
+            p.insert()
+
+            s = PaymentSecret()
+            s.accountid = ppacctform.accountid.data
+            s.secret    = ppacctform.secret.data
+            s.insert()
+        else:
+            flashformerrors(ppacctform)
+        return redirect(url_for('.accounts'))
+
+    elif action == 'Add Item':
+
+        if itemform.validate():
+            item = PaymentItem()
+            item.itemid    = str(uuid.uuid1())
+            item.accountid = itemform.accountid.data
+            item.name      = itemform.name.data
+            item.price     = itemform.price.data * 100
+            item.currency  = "USD"
+            item.insert()
+        else:
+            flashformerrors(itemform)
+        return redirect(url_for('.accounts'))
+
     squareurl =  ''
     accounts  = PaymentAccount.getAllOnline()
     items     = PaymentItem.getAll()
@@ -314,8 +362,7 @@ def accounts():
     if sqappid:
         squareurl = 'https://connect.squareup.com/oauth2/authorize?client_id={}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE,ORDERS_WRITE,ITEMS_READ&state={}'.format(sqappid, g.series)
 
-    return render_template('/admin/paymentaccounts.html', accounts=accounts, items=items, squareurl=squareurl)
-
+    return render_template('/admin/paymentaccounts.html', accounts=accounts, items=items, squareurl=squareurl, ppacctform=ppacctform, itemform=itemform)
 
 
 @Admin.endpoint("Admin.squareoauth")

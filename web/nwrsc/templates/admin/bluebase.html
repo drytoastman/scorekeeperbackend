@@ -1,4 +1,5 @@
 {% extends "common/base.html" %}
+{% import "common/macros.html" as m %}
 {% block headers %}
 {%- assets "admin.css" %}
 <link rel="stylesheet" href="{{ASSET_URL}}" /> 
@@ -92,10 +93,10 @@ $(document).ready(function(){ shownavmenu('#navbarNav', '#seriesdropdownlink'); 
   </div>
 </nav>
 
-<div class='formerror'>
-{% for msg in get_flashed_messages() %}
-<div class='error'>{{msg}}</div>
-{% endfor %}
+<div class='row justify-content-center'>
+<div class='col text-center'>
+<div>{{ m.errordisplay() }}</div>
+</div>
 </div>
 
 {% endblock content %}

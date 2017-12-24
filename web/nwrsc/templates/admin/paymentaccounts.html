@@ -4,14 +4,35 @@
 {{super()}}
 <script>
 $(document).ready(function(){
-    $('#accounttable tbody').on('click', 'button', function() {
+    $('#accounttable .delete').on('click', function() {
         var row = $(this).closest('tr');
         $.post('{{url_for('.delaccount')}}', {accountid: $(this).data('accountid')}, function ( response ) {
-            row.remove();
+            if (response.success)
+                row.remove();
+            else
+                $('.formerror').append($('<div>').addClass('error').text(response.error ? response.error : response));
         }).fail(function(xhr, textStatus, errorThrown) {
             alert(xhr.responseText);
         });
     });
+
+    $('#accounttable .cutbutton').on('click', function() {
+        var row = $(this).closest('tr');
+        $.post('{{url_for('.delitem')}}', {itemid: $(this).data('itemid')}, function ( response ) {
+            if (response.success)
+                row.remove();
+            else
+                $('.formerror').append($('<div>').addClass('error').text(response.error ? response.error : response));
+        }).fail(function(xhr, textStatus, errorThrown) {
+            alert(xhr.responseText);
+        });
+    });
+
+    $('#itemmodal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        $(this).find('input[name=accountid]').val(button.data('accountid'));
+    })
+
 });
 </script>
 {% endblock headers %}
@@ -26,24 +47,35 @@ $(document).ready(function(){
 {% for a in accounts %}
 <tr>
     <td>{{a.name}}</td>
-    <td>{{a.accountid}}</td>
+    <td>{{a.accountid|truncate(30)}}</td>
     <td>{{a.type}}</td>
     <td>
     <table style='width: 100%'>
     {% for item in items %}
     {% if item['accountid'] == a.accountid %}
-        <tr><td>{{ item.name }}</td><td>{{ "${0:.2f}".format(item.price/100) }}</td></tr>
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ "${0:.2f}".format(item.price/100) }}</td>
+            <td>{% if a.type != 'square' %}<button class='cutbutton' data-itemid='{{item.itemid}}'><i class="fa fa-times-circle text-center"></i>{% endif %}</td>
+        </tr>
     {% endif %}
     {% endfor %}
     </table>
+    {% if a.type != 'square' %}
+        <button class='btn btn-outline-admin small w-100' data-toggle='modal' data-accountid='{{a.accountid}}' data-target='#itemmodal'>Add Item</button>
+    {% endif %}
     </td>
-    <td><button class="btn btn-admin small" data-accountid='{{a.accountid}}'>Del</button></td>
+    <td><button class="btn btn-admin small delete" data-accountid='{{a.accountid}}'>Delete Account</button></td>
 </tr>
 {% endfor %}
 </table>
 
-<button class='btn btn-admin' {{ not squareurl and "disabled" or "" }} onclick="location.href='{{squareurl}}'">(Re)Setup A Square Location</button>
+<button class='btn btn-admin' {{ not squareurl and "disabled" or "" }} onclick="location.href='{{squareurl}}'">Setup/Update A Square Location</button>
+<button class='btn btn-outline-admin' data-toggle='modal' data-target='#paypalmodal'>Add Paypal App</button>
 </div>
+
+{{m.modal('paypalmodal', 'Add PayPayl App', ppacctform.html('paypalform', url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
+{{m.modal('itemmodal',   'Add Item',        itemform.html(  'itemform',   url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
 
 {% endblock content %}
 

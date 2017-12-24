@@ -33,6 +33,16 @@ button.small {
     margin: 0 0.5rem 0 0.5rem;
 }
 
+.cutbutton {
+    color: darken($basecolor, 10%);
+    background: inherit;
+    border: none;
+
+    &:hover  { color: lighten($basecolor, 5%); } 
+    &:active { color: lighten($basecolor, 20%); } 
+    &:focus  { outline: none !important; }
+}
+
 #classlistform {
     input[type=checkbox] {
         height: 1.5rem;

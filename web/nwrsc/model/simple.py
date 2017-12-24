@@ -119,6 +119,13 @@ class PaymentItem(AttrBase):
     def getForAccount(cls, accountid):
         return cls.getall("SELECT * FROM paymentitems where accountid=%s", (accountid,))
 
+    @classmethod
+    def delete(cls, itemid):
+        with g.db.cursor() as cur:
+            cur.execute("delete from paymentitems where itemid=%s", (itemid, ))
+            g.db.commit()
+
+
 
 class PaymentSecret(AttrBase):
     TABLENAME = "paymentsecrets"
