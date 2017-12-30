@@ -187,46 +187,6 @@ function eventRelativeSubmit(form)
 }
 
 
-function paymentSubmit(ppresolve, ppreject)
-{
-    // Use .then() and wait as paypal wants this function to return the payment id
-    $('#paymentform .error').text("");
-    return $.ajax({
-        dataType: 'json',
-        url:      '{{url_for('.payment')}}',
-        data:     $('#paymentform').serialize(),
-        method:   'POST'}).then(function(data, txtstatus, xhr) {
-            if (data.paymentID) {
-                return data.paymentID; 
-            } else if (data.redirect) {
-                window.location.href = data.redirect;
-            } else {
-                $('#paymentform .error').text(data.error ? data.error : "An error occured");
-            }
-        }).fail(function(xhr, status, error) { 
-            $('#paymentform .error').text("Server returned code " + xhr.status);
-            if (typeof ppreject == "function") {
-                ppreject(xhr.status);
-            }
-        });
-}
-
-
-function paypalAuthorize(data, actions)
-{
-    return paypal.request.post('{{url_for('.paypalexecute')}}', {
-            paymentID: data.paymentID,
-            payerID: data.payerID
-        }).then(function (data) { 
-            if (data.redirect)  {
-                window.location.href = data.redirect;
-            } else {
-                window.alert('something failed, how did I get here?');
-            }
-        });
-}
-
-
 function initpaymentform(id, eventid)
 {
     var me = $(id);
