@@ -164,3 +164,129 @@ function loginPage()
 	});
 }
 
+
+// Submit change requests via AJAX and then update the event section separately
+function eventRelativeSubmit(form)
+{
+    form.closest('.modal').modal('hide');
+    var eventid = form.find('input[name=eventid]').val();
+    var targetdiv = $('#eventtog'+eventid);
+    var sheight = targetdiv.height();
+    targetdiv.html('<i class="fa fa-spinner fa-pulse fa-3x fa-fw text-center"></i>');
+    targetdiv.height(sheight);
+
+    $.ajax({
+        dataType: "html",
+        url: form.attr('action'),
+        data: form.serialize(),
+        method: 'POST',
+        success: function(data) { targetdiv.html(data); },
+        error: function(xhr, stat, error) { targetdiv.html('<div class="error">'+xhr.responseText+'</div>'); },
+        complete: function(xhr) { targetdiv.height('auto'); }
+    });
+}
+
+
+function paymentSubmit(ppresolve, ppreject)
+{
+    // Use .then() and wait as paypal wants this function to return the payment id
+    $('#paymentform .error').text("");
+    return $.ajax({
+        dataType: 'json',
+        url:      '{{url_for('.payment')}}',
+        data:     $('#paymentform').serialize(),
+        method:   'POST'}).then(function(data, txtstatus, xhr) {
+            if (data.paymentID) {
+                return data.paymentID; 
+            } else if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                $('#paymentform .error').text(data.error ? data.error : "An error occured");
+            }
+        }).fail(function(xhr, status, error) { 
+            $('#paymentform .error').text("Server returned code " + xhr.status);
+            if (typeof ppreject == "function") {
+                ppreject(xhr.status);
+            }
+        });
+}
+
+
+function paypalAuthorize(data, actions)
+{
+    return paypal.request.post('{{url_for('.paypalexecute')}}', {
+            paymentID: data.paymentID,
+            payerID: data.payerID
+        }).then(function (data) { 
+            if (data.redirect)  {
+                window.location.href = data.redirect;
+            } else {
+                window.alert('something failed, how did I get here?');
+            }
+        });
+}
+
+
+function initpaymentform(id, eventid)
+{
+    var me = $(id);
+    var itemlist = gItems[gAccounts[eventid].id];
+    var type = gAccounts[eventid].type;
+    var regcars = gRegistered[eventid];
+
+    me.find('.paypal-row').hide();
+    me.find('.square-row').hide();
+    me.find('.'+type+'-row').show();
+    me.find('.error').text("");
+    me.find('input[name=eventid]').val(eventid);
+
+    me.find('select').each(function(index) {
+        var select = $(this);
+        var container = select.closest("div.row");
+
+        select.find('option').remove(); 
+        select.append($('<option>').attr('value', '').text('No Payment'));
+
+        // If the car isn't registered or already paid, hide from the available list
+        try {
+            var rowid = container.attr('id').substring(7);
+            var found = false;
+            $.each(regcars, function() {
+                if (this.carid != rowid) return;
+                if (this.txid) throw 'Already paid';
+                found = true;
+            });
+            
+            if (!found) throw 'Not registered';
+        } catch (e) {
+            container.css('display', 'none');
+            return;
+        }
+
+        container.css('display', 'flex');
+        $.each(itemlist, function() {
+            select.append($('<option>').attr('value', this.itemid).text(this.name + " - $" + (this.price/100).toFixed(2)));
+        });
+    });
+}
+
+
+function initregform(id, eventid, limit, msg)
+{
+    var me = $(id);
+    var checkmax = function() {
+        var dodisable = (me.find(":checked").length >= limit);
+        me.find('input[type=checkbox]:unchecked').prop('disabled', dodisable);
+        me.find('.statuslabel').html( dodisable && msg || "");
+    };
+
+    me.find('input[name=eventid]').val(eventid);
+    me.find('input[type=checkbox]').prop('checked', false).prop('disabled', false).click(checkmax);
+    gRegistered[eventid].forEach(function (regentry) {
+        me.find("input[name="+regentry.carid+"]").prop('checked', true);
+    });
+
+    checkmax();
+}
+
+

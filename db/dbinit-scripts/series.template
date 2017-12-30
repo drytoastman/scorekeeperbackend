@@ -114,9 +114,9 @@ CREATE TABLE paymentsecrets (
     secret    TEXT      NOT NULL DEFAULT '',
     modified  TIMESTAMP NOT NULL DEFAULT now()
 );
-REVOKE ALL ON secrets FROM public;
-GRANT ALL  ON secrets TO localuser;
-COMMENT ON TABLE secrets IS 'Local only table for payment account details that only need to be on the main server, localuser required to access, no remotes';
+REVOKE ALL ON paymentsecrets FROM public;
+GRANT ALL  ON paymentsecrets TO localuser;
+COMMENT ON TABLE paymentsecrets IS 'Local only table for payment account details that only need to be on the main server, localuser required to access, no remotes';
 
 
 CREATE SEQUENCE ordercounter;
