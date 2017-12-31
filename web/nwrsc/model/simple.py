@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import datetime
 import json
 import logging
+import operator
 import uuid
 
 from flask import g
@@ -131,26 +132,42 @@ class PaymentSecret(AttrBase):
     TABLENAME = "paymentsecrets"
 
 
+class Payment(AttrBase):
+    TABLENAME = "payments"
+
+    @classmethod
+    def getAll(cls):
+        return cls.getall("SELECT p.*,c.*,d.*,e.name,e.date FROM payments p JOIN cars c ON p.carid=c.carid JOIN drivers d ON c.driverid=d.driverid JOIN events e ON p.eventid=e.eventid")
+
+
 class Registration(AttrBase):
     TABLENAME = "registered"
 
     @classmethod
-    def getForEvent(cls, eventid, txrequired=False):
+    def getForEvent(cls, eventid, paymentRequired=False):
         with g.db.cursor() as cur:
-            base = "SELECT d.*,c.*,r.*,r.modified as regmodified, d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s"
-            if txrequired:
-                cur.execute(base + " and r.txid IS NOT NULL ORDER BY c.number", (eventid,))
-            else:
-                cur.execute(base + " ORDER BY c.number", (eventid,))
-            return [Entrant(**x) for x in cur.fetchall()]
+            cur.execute("SELECT d.*,c.*,r.*,r.modified as regmodified, d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s", (eventid,))
+            ret = {x['carid']:Entrant(**x, payments=[]) for x in cur.fetchall()}
 
-    @classmethod
-    def getAllPayments(cls):
-        return cls.getall("SELECT r.*,c.*,d.*,e.name,e.date FROM registered r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid JOIN events e ON r.eventid=e.eventid WHERE txid IS NOT NULL")
+            cur.execute("SELECT * FROM payments WHERE eventid=%s", (eventid,))
+            for p in cur.fetchall():
+                if p.carid in ret:
+                    ret[p.carid].payments.append(p)
 
+            if paymentRequired:
+                ret = filter(lambda x: len(x.payments) > 0, ret)
+            return ret
+                
     @classmethod
     def getForDriver(cls, driverid):
-        return cls.getall("SELECT r.* FROM registered r JOIN cars c on r.carid=c.carid WHERE c.driverid=%s", (driverid,))
+        with g.db.cursor() as cur:
+            ret = cls.getall("SELECT r.* FROM registered r JOIN cars c on r.carid=c.carid WHERE c.driverid=%s", (driverid,))
+            for r in ret:
+                r.payments = []
+                cur.execute("SELECT * FROM payments WHERE eventid=%s and carid=%s", (r.eventid, r.carid))
+                for p in cur.fetchall():
+                    r.payments.append(Payment(**p))
+        return ret
 
     @classmethod
     def getForSeries(cls, series, driverid):

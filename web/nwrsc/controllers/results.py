@@ -203,7 +203,7 @@ def grid():
             for d in l:
                 groups.put(Entrant(**d))
     else: # number
-        for e in Registration.getForEvent(g.eventid):
+        for e in Registration.getForEvent(g.eventid, g.event.paymentRequired()):
             groups.put(e)
 
     groups.sort(order)

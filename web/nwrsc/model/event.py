@@ -35,14 +35,16 @@ class Event(AttrBase):
     def isOpen(self):    return self.hasOpened() and not self.hasClosed()
 
     def getRegisteredCount(self):
-        base = "SELECT count(carid) FROM registered WHERE eventid=%s"
-        if self.paymentRequired(): base += " and txid IS NOT NULL"
-        return self.getval(base, (self.eventid,))
+        if self.paymentRequired(): 
+            return self.getval("SELECT count(r.carid) FROM registered r JOIN payments p ON r.eventid=p.eventid and r.carid=p.carid WHERE r.eventid=%s", (self.eventid,))
+        else:
+            return self.getval("SELECT count(carid) FROM registered WHERE eventid=%s", (self.eventid,))
 
     def getRegisteredDriverCount(self):
-        base = "SELECT count(distinct(c.driverid)) FROM registered r JOIN cars c ON r.carid=c.carid WHERE r.eventid=%s"
-        if self.paymentRequired(): base += " and txid IS NOT NULL"
-        return self.getval(base, (self.eventid,))
+        if self.paymentRequired():
+            return self.getval("SELECT count(distinct(c.driverid)) FROM registered r JOIN payments p ON r.eventid=p.eventid and r.carid=p.carid JOIN cars c ON r.carid=c.carid WHERE r.eventid=%s", (self.eventid,))
+        else:
+            return self.getval("SELECT count(distinct(c.driverid)) FROM registered r JOIN cars c ON r.carid=c.carid WHERE r.eventid=%s", (self.eventid,))
 
     @classmethod
     def new(cls):

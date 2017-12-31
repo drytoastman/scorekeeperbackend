@@ -128,7 +128,7 @@ def events():
         pitems[i.accountid].append(i)
     for e in events:
         accounts[e.eventid] = PaymentAccount.get(e.accountid)
-        showpay[e.eventid] = e.accountid is not None and any(r.txid is None for r in registered[e.eventid])
+        showpay[e.eventid] = e.accountid is not None and any(len(r.payments) == 0 for r in registered[e.eventid])
 
     return render_template('register/events.html', events=events, cars=cars, registered=registered, accounts=accounts, showpay=showpay, pitems=pitems)
 
@@ -138,7 +138,7 @@ def _renderSingleEvent(event, error):
     cars    = {c.carid:c for c in Car.getForDriver(g.driver.driverid)}
     reg     = [ r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == event.eventid ]
     account = PaymentAccount.get(event.accountid)
-    showpay = event.accountid is not None and any(r.txid is None for r in reg)
+    showpay = event.accountid is not None and any(len(r.payments) == 0 for r in reg)
     decorateEvent(event, len(reg))
 
     eventdisplay = get_template_attribute('/register/macros.html', 'eventdisplay')

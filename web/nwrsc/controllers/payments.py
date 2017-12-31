@@ -263,7 +263,7 @@ def payments():
 
 @Admin.route("/paymentlist")
 def paymentlist():
-    return json_encode(Registration.getAllPayments())
+    return json_encode(Payment.getAll())
 
 @Admin.route("/delaccount", methods=['POST'])
 def delaccount():

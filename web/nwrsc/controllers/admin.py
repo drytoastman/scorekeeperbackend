@@ -375,7 +375,7 @@ def rungroups():
             flash(str(e))
         return redirect(url_for('.rungroups'))
     groups = RunGroups.getForEvent(g.eventid)
-    for e in Registration.getForEvent(g.eventid):
+    for e in Registration.getForEvent(g.eventid, g.event.paymentRequired()):
         groups.put(e)
     return render_template('/admin/editrungroups.html', groups=groups)
 
@@ -388,7 +388,7 @@ def cards():
     if type == 'blank':
         registered = []
     else:
-        registered = Registration.getForEvent(g.eventid)
+        registered = Registration.getForEvent(g.eventid, g.event.paymentRequired())
         for r in registered:
             r.__dict__.update(r.dattr)
             r.__dict__.update(r.cattr)

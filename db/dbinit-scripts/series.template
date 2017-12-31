@@ -219,19 +219,32 @@ COMMENT ON TABLE timertimes IS 'The list of all times received by data entry via
 CREATE TABLE registered (
     eventid    UUID      NOT NULL REFERENCES events, 
     carid      UUID      NOT NULL REFERENCES cars, 
-    txid       TEXT,
-    txtime     TIMESTAMP,
-    itemname   TEXT,
-    amount     FLOAT,
     modified   TIMESTAMP NOT NULL DEFAULT now(),
     PRIMARY KEY (eventid, carid)
 );
-CREATE INDEX ON registered(eventid);
 REVOKE ALL ON registered FROM public;
 GRANT  ALL ON registered TO <seriesname>;
 CREATE TRIGGER regmod AFTER INSERT OR UPDATE OR DELETE ON registered FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
 CREATE TRIGGER reguni BEFORE UPDATE ON registered FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'carid');
 COMMENT ON TABLE registered IS 'The list of cars registered for events';
+
+
+CREATE TABLE payments (
+    payid      UUID      PRIMARY KEY,
+    eventid    UUID      NOT NULL REFERENCES events, 
+    carid      UUID      NOT NULL REFERENCES cars, 
+    txtype     TEXT,
+    txid       TEXT,
+    txtime     TIMESTAMP,
+    itemname   TEXT,
+    amount     FLOAT,
+    modified   TIMESTAMP NOT NULL DEFAULT now()
+);
+REVOKE ALL ON payments FROM public;
+GRANT  ALL ON payments TO <seriesname>;
+CREATE TRIGGER paymod AFTER INSERT OR UPDATE OR DELETE ON payments FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
+CREATE TRIGGER payuni BEFORE UPDATE ON payments FOR EACH ROW EXECUTE PROCEDURE updatechecks('payid');
+COMMENT ON TABLE payments IS 'The list of payments made, there is potential partial online/partial onsite for multiple payments for one registration';
 
 
 CREATE TABLE runorder (
