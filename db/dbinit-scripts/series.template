@@ -233,6 +233,7 @@ CREATE TABLE payments (
     payid      UUID      PRIMARY KEY,
     eventid    UUID      NOT NULL REFERENCES events, 
     carid      UUID      NOT NULL REFERENCES cars, 
+    refid      TEXT,
     txtype     TEXT,
     txid       TEXT,
     txtime     TIMESTAMP,

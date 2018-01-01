@@ -145,18 +145,20 @@ def _squarepayment(event, account, purchase, cache):
 
 
 
-def _applyPayment(event, cached, newtxid, newtxtime):
-    for reg in Registration.getForDriver(g.driver.driverid):
-        caridstr = str(reg.carid)
-        if reg.eventid != event.eventid or caridstr not in cached['cars']:
-            continue
-        if reg.txid and reg.txid != newtxid:
-            flash("Warning: Overwrote transaction {} with {}".format(reg.txid, newtxid))
-        reg.txid     = newtxid 
-        reg.txtime   = datetime.datetime.strptime(newtxtime, '%Y-%m-%dT%H:%M:%SZ')
-        reg.itemname = cached['cars'][caridstr]['name']
-        reg.amount   = cached['cars'][caridstr]['amount']
-        reg.update()
+def _recordPayment(cached, newtxid, newtxtime):
+    p         = Payment()
+    p.payid   = uuid.uuid1()
+    p.eventid = uuid.UUID(cached['eventid'])
+    p.refid   = cached['refid']
+    p.txtype  = cached['type']
+    p.txid    = newtxid
+    p.txtime  = newtxtime
+
+    for caridstr, entry in cached['cars'].items():
+        p.carid    = uuid.UUID(caridstr)
+        p.itemname = entry['name']
+        p.amount   = entry['amount']
+        p.insert()
 
 
 @Register.route("/<series>/paypalexecute", methods=['POST'])
@@ -164,7 +166,6 @@ def paypalexecute():
     if not g.driver: raise NotLoggedInException()
     
     try:
-        log.warning("XXXXX: " + str(request.form))
         paymentid = request.form.get('paymentID', 'NoPaymentId')
         payerid   = request.form.get('payerID',   'NoPayerId')
         cached    = TempCache.get(paymentid)
@@ -183,10 +184,9 @@ def paypalexecute():
         if not payment.execute({"payer_id": payerid}):
             raise FlashableError("Payment Error: " + payment.error)
 
-        _applyPayment(event, cached, paymentid, payment.create_time)
+        _recordPayment(cached, paymentid, datetime.datetime.strptime(payment.create_time, '%Y-%m-%dT%H:%M:%SZ'))
         cached['verified'] = True
         TempCache.put(paymentid, cached)
-
 
     except FlashableException as fe:
         flash(str(fe))
@@ -230,18 +230,7 @@ def sqaurepaymentcomplete():
         if not response:
             raise FlashableException("Unable to verify transaction {} with Square, contact the administrator".format(transactionid))
 
-        for reg in Registration.getForDriver(g.driver.driverid):
-            caridstr = str(reg.carid)
-            if reg.eventid != eventid or caridstr not in cached['cars']:
-                continue
-            if reg.txid and reg.txid != transactionid:
-                flash("Warning: Overwrote transaction {} with {}".format(reg.txid, transactionid))
-            reg.txid     = transactionid
-            reg.txtime   = datetime.datetime.strptime(response.transaction.created_at, '%Y-%m-%dT%H:%M:%SZ')
-            reg.itemname = cached['cars'][caridstr]['name']
-            reg.amount   = cached['cars'][caridstr]['amount']
-            reg.update()
-
+        _recordPayment(cached, transactionid, datetime.datetime.strptime(response.transaction.created_at, '%Y-%m-%dT%H:%M:%SZ'))
         cached['verified'] = True
         TempCache.put(referenceid, cached)
 
