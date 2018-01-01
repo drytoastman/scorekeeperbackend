@@ -213,7 +213,7 @@ function initpaymentform(id, eventid)
             var found = false;
             $.each(regcars, function() {
                 if (this.carid != rowid) return;
-                if (this.txid) throw 'Already paid';
+                if (this.payments > 0) throw 'Already paid';
                 found = true;
             });
             

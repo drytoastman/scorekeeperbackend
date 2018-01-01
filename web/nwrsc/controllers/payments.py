@@ -6,6 +6,7 @@ import json
 import logging
 import paypalrestsdk
 import squareconnect
+import time
 import uuid
 
 from flask import current_app, flash, g, redirect, render_template, request, url_for
@@ -142,7 +143,6 @@ def _squarepayment(event, account, purchase, cache):
     TempCache.put(cache['refid'], cache)
 
     return json_encode({'redirect': response.checkout.checkout_page_url})
-
 
 
 def _recordPayment(cached, newtxid, newtxtime):

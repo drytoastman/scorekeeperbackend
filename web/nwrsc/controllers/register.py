@@ -158,20 +158,21 @@ def eventspost():
         oldids   = set(curreg.keys())
         newids   = set([uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True])
 
-        toadd    = set([Registration(carid=x, eventid=eventid) for x in newids - oldids])
+        toadd    = set([Registration(carid=x, eventid=eventid, payments=[]) for x in newids - oldids])
         nochange = set([curreg[x] for x in newids & oldids])
         todel    = set([curreg[x] for x in oldids - newids])
 
         # If any of the deleted cars had a payment, we need to move that to an open unchanged or new registration, favor old registrations
         for delr in todel:
-            if not delr.txid: continue
+            if not len(delr.payments): continue
             for otherr in list(nochange) + list(toadd):
-                log.warning("check {}".format(otherr))
-                if not getattr(otherr, 'txid', None):
-                    otherr.txid     = delr.txid
-                    otherr.txtime   = delr.txtime
-                    otherr.itemname = delr.itemname
-                    otherr.amount   = delr.amount
+                if not len(otherr.payments):
+                    for p in delr.payments:
+                        otherr.payments.append(p)
+                        p.carid = otherr.carid
+                        p.update()
+                    delr.payments = []
+
                     if otherr in nochange:
                         # Change logging requires primary key updates to delete and then insert, delete only uses primary key
                         todel.add(otherr) 

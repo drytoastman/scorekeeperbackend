@@ -46,7 +46,11 @@
 
 {% macro  eventdisplay(ev, ecars, registered, showpayment, error='') %}
     <script type="text/javascript">
-    gRegistered['{{ev.eventid}}'] = {{registered|to_json|safe}};
+    gRegistered['{{ev.eventid}}'] = [
+        {% for reg in registered -%}
+        { carid: '{{reg.carid}}', payments: {{reg.payments|length}} },
+        {% endfor -%}
+    ];
     </script>
 
     <div class='insidewrapper row'> {# have to reset row inside collapse it seems #}
