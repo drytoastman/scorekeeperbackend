@@ -249,7 +249,7 @@ def default():
 def eventedit():
     """ Process edit event form submission """
     form = EventSettingsForm()
-    form.accountid.choices = [(a.accountid, a.name) for a in PaymentAccount.getAllOnline()]
+    form.accountid.choices = [(a.accountid, a.name) for a in PaymentAccount.getAll()]
     if request.form:
         if form.validate():
             newevent = Event()
@@ -268,7 +268,7 @@ def eventedit():
 def createevent():
     """ Present form to create a new event """
     form = EventSettingsForm()
-    form.accountid.choices = [(a.accountid, a.name) for a in PaymentAccount.getAllOnline()]
+    form.accountid.choices = [(a.accountid, a.name) for a in PaymentAccount.getAll()]
     if request.form:
         if form.validate():
             newevent = Event()

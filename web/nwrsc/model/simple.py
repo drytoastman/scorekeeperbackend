@@ -91,8 +91,8 @@ class PaymentAccount(AttrBase):
     TABLENAME = "paymentaccounts"
 
     @classmethod
-    def getAllOnline(cls):
-        return cls.getall("SELECT p.*,s.secret FROM paymentaccounts p LEFT JOIN paymentsecrets s ON s.accountid=p.accountid WHERE p.accountid!='onsite' ORDER BY name")
+    def getAll(cls):
+        return cls.getall("SELECT p.*,s.secret FROM paymentaccounts p LEFT JOIN paymentsecrets s ON s.accountid=p.accountid ORDER BY name")
 
     @classmethod
     def get(cls, accountid):

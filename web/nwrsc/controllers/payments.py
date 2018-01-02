@@ -349,7 +349,7 @@ def accounts():
         return redirect(url_for('.accounts'))
 
     squareurl =  ''
-    accounts  = PaymentAccount.getAllOnline()
+    accounts  = PaymentAccount.getAll()
     items     = PaymentItem.getAll()
     sqappid   = current_app.config.get('SQ_APPLICATION_ID', '')
     if sqappid:
