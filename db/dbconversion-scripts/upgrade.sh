@@ -1,5 +1,11 @@
 #!/bin/bash
 
+set -e
+if [ $# -ne 1 ]; then 
+    echo "Usage is: upgrade.sh <converstion directory root>"
+    exit
+fi
+
 cd $1
 while true; do
     curversion=$(psql -U postgres -d scorekeeper -A -t -c "select version from version")

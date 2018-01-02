@@ -1,6 +1,6 @@
 DROP TABLE secrets;
-DROP TABLE payments;
 DROP TABLE registered;
+DROP TABLE payments;
 
 CREATE TABLE paymentitems (
     itemid    TEXT      PRIMARY KEY,
