@@ -137,7 +137,7 @@ class Payment(AttrBase):
 
     @classmethod
     def getAll(cls):
-        return cls.getall("SELECT p.*,c.*,d.*,e.name,e.date FROM payments p JOIN cars c ON p.carid=c.carid JOIN drivers d ON c.driverid=d.driverid JOIN events e ON p.eventid=e.eventid")
+        return cls.getall("SELECT p.*,c.*,d.firstname,d.lastname,d.email,e.name,e.date FROM payments p JOIN cars c ON p.carid=c.carid JOIN drivers d ON c.driverid=d.driverid JOIN events e ON p.eventid=e.eventid ORDER BY p.txtime")
 
 
 class Registration(AttrBase):

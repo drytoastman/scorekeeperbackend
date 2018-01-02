@@ -8,6 +8,7 @@ import paypalrestsdk
 import squareconnect
 import time
 import uuid
+import pytz
 
 from flask import current_app, flash, g, redirect, render_template, request, url_for
 
@@ -252,7 +253,10 @@ def payments():
 
 @Admin.route("/paymentlist")
 def paymentlist():
-    return json_encode(Payment.getAll())
+    payments = Payment.getAll()
+    for p in payments:
+        p.txtime = p.txtime.astimezone(datetime.timezone.utc).astimezone(pytz.timezone('US/Pacific'))
+    return json_encode(payments)
 
 @Admin.route("/delaccount", methods=['POST'])
 def delaccount():

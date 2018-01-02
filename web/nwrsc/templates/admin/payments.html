@@ -19,10 +19,10 @@ $(document).ready(function(){
             { data: 'name' },
             { data: 'date'  },
             { data: 'txtype',   defaultContent: '' },
-            { data: 'refid' },
+            { data: 'refid',    defaultContent: '' },
             { data: 'txid',     defaultContent: '' },
-            { data: 'txtime',   defaultContent: '' },
-            { data: 'itemname', defaultContent: '' },
+            { data: 'txtime',   defaultContent: '', render: function (s) { return new Date(s).toLocaleString(); } },
+            { data: 'itemname', defaultContent: ''},
             { data: 'amount',   defaultContent: '', render: $.fn.dataTable.render.number( ',', '.', 2, '$' ) }
         ],
         sDom: '<"dtheader"fi>rt<"clear">'
