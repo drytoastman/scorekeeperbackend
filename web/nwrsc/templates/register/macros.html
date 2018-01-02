@@ -93,7 +93,16 @@
         <div class='error'>{{error}}</div>
         <ol>
         {%- for reg in registered %}
-            <li>{{carDisplay(ecars[reg.carid], ev.paymentRequired() and reg.payments|length == 0, reg.payments|length and "Paid - " + reg.payments[0].itemname or "")}}</li>
+            {% if reg.payments|length %}
+                {% if reg.payments[0].itemname %}
+                    {% set paidlabel = "Paid - " + reg.payments[0].itemname %}
+                {% else %}
+                    {% set paidlabel = "Paid" %}
+                {% endif %}
+            {% else %}
+                {% set paidlabel = "" %}
+            {% endif %}
+            <li>{{carDisplay(ecars[reg.carid], ev.paymentRequired() and reg.payments|length == 0, paidlabel)}}</li>
         {%- endfor %}
         </ol>
 
