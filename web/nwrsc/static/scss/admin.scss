@@ -4,6 +4,7 @@ $basecolor : #28a745;
 @import "../extern/bootstrap-4.0.0b.scss";
 @import "../extern/datatables-1.10.16-bootstrap4.scss";
 @import "../extern/datatables-select-1.2.3-bootstrap4.scss";
+@import "../extern/datatables-buttons-1.5.1-bootstrap4.scss";
 @import "../extern/flatpickr.scss";
 @import "common.scss";
 
@@ -56,9 +57,6 @@ button.small {
 
     .dtheader div {
         display: inline-block;
-    }
-    .validwrapper {
-        margin-left: 1rem;
     }
     .dataTable {
         margin: auto;

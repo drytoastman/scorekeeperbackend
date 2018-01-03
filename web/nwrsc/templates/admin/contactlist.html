@@ -18,6 +18,8 @@ ul input {
     width: 1.2rem;
     vertical-align: middle;
 }
+.dt-buttons { margin-left: 1rem; }
+.validwrapper { margin-left: 0.3rem; }
 </style>
 <script>
 var emailregex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
@@ -73,6 +75,10 @@ $(document).ready(function(){
         lengthMenu: [[15, 30, 50, -1], [15, 30, 50, "All"]],
         iDisplayLength: -1,
         autoWidth: false,
+        buttons: [
+            { extend: 'copyHtml5', className: 'btn btn-outline-admin', text: 'Copy To Clipboard' },
+            { extend: 'csvHtml5',  className: 'btn btn-outline-admin', text: 'Export To CSV' }
+        ],
         columns: [
             { data: 'firstname', width: '30%' },
             { data: 'lastname',  width: '30%' },
@@ -80,7 +86,7 @@ $(document).ready(function(){
             { data: 'runs',      width: '0%', visible: false },
             { data: 'reg',       width: '0%', visible: false }
         ],
-        sDom: '<"dtheader"fi>rt<"clear">'
+        sDom: '<"dtheader"fiB>rt<"clear">'
     });
 
     $('.dtheader').append("<div class='validwrapper'><button class='btn btn-outline-admin' onclick='copyemail()'>Copy Valid Email</button></div>");

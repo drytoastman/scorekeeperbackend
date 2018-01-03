@@ -218,7 +218,7 @@ def create_app():
     jquerymod  = Bundle("extern/jquery.sortable-1.12.1.js", "extern/jquery.validate-1.16.js")
     bootstrap  = Bundle("extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js")
     flatpickr  = Bundle("extern/flatpickr.js")
-    datatables = Bundle("extern/datatables-1.10.16.js",  "extern/datatables-1.10.16-bootstrap4.js", "extern/datatables-select-1.2.3.js")
+    datatables = Bundle("extern/datatables-1.10.16.js",  "extern/datatables-1.10.16-bootstrap4.js", "extern/datatables-select-1.2.3.js", "extern/datatables-buttons-1.5.1.js", "extern/datatables-buttons-1.5.1-bootstrap4.js", "extern/datatables-buttons-1.5.1-html5.js")
 
     assets.register('admin.js',     Bundle(jquery, jquerymod, bootstrap, flatpickr, datatables, "js/common.js", "js/admin.js", filters="rjsmin", output="admin.js"))
     assets.register('announcer.js', Bundle(jquery, bootstrap, "js/announcer.js",                                               filters="rjsmin", output="announcer.js"))

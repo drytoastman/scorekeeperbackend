@@ -3,6 +3,10 @@
 
 {% block headers %}
 {{super()}}
+<style>
+.dt-buttons { margin-left: 1rem; }
+</style>
+
 <script>
 var thetable   = null;
 
@@ -12,6 +16,10 @@ $(document).ready(function(){
         lengthMenu: [[15, 30, 50, -1], [15, 30, 50, "All"]],
         iDisplayLength: -1,
         autoWidth: false,
+        buttons: [
+            { extend: 'copyHtml5', className: 'btn btn-outline-admin', text: 'Copy To Clipboard' },
+            { extend: 'csvHtml5',  className: 'btn btn-outline-admin', text: 'Export To CSV' }
+        ],
         columns: [
             { data: 'firstname' },
             { data: 'lastname' },
@@ -25,7 +33,7 @@ $(document).ready(function(){
             { data: 'itemname', defaultContent: ''},
             { data: 'amount',   defaultContent: '', render: $.fn.dataTable.render.number( ',', '.', 2, '$' ) }
         ],
-        sDom: '<"dtheader"fi>rt<"clear">'
+        sDom: '<"dtheader"fi B>rt<"clear">'
     });
 });
 </script>
