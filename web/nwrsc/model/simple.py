@@ -155,9 +155,9 @@ class Registration(AttrBase):
                     retdict[p['carid']].payments.append(p)
 
             if paymentRequired:
-                return filter(lambda x: len(x.payments) > 0, retdict.values())
+                return list(filter(lambda x: len(x.payments) > 0, retdict.values()))
             else:
-                return retdict.values()
+                return list(retdict.values())
 
     @classmethod
     def getForDriver(cls, driverid):
