@@ -1,7 +1,7 @@
 import uuid
 import json
 
-from flask import g
+from flask import current_app, g
 from .base import AttrBase
 
 class Driver(AttrBase):
@@ -29,11 +29,12 @@ class Driver(AttrBase):
         return cls.getall("SELECT * FROM drivers WHERE lower(firstname)=%s and lower(lastname)=%s", (first.strip().lower(), last.strip().lower()))
 
     @classmethod
-    def new(cls, first, last, email, user, pwhash):
+    def new(cls, first, last, email, user, password):
         with g.db.cursor() as cur:
             newid = uuid.uuid1()
+            hashedpw = current_app.hasher.generate_password_hash(password).decode('utf-8')
             cur.execute("INSERT INTO drivers (driverid,firstname,lastname,email,username,password) "
-                        "VALUES (%s,%s,%s,%s,%s,%s)", (newid, first, last, email, user, pwhash))
+                        "VALUES (%s,%s,%s,%s,%s,%s)", (newid, first, last, email, user, hashedpw))
             g.db.commit()
             return newid
 
@@ -56,7 +57,8 @@ class Driver(AttrBase):
     @classmethod
     def updatepassword(cls, driverid, username, password):
         with g.db.cursor() as cur:
-            cur.execute("UPDATE drivers SET username=%s,password=%s,modified=now() WHERE driverid=%s", (username, password, driverid))
+            hashedpw = current_app.hasher.generate_password_hash(password).decode('utf-8')
+            cur.execute("UPDATE drivers SET username=%s,password=%s,modified=now() WHERE driverid=%s", (username, hashedpw, driverid))
             g.db.commit()
 
     @classmethod

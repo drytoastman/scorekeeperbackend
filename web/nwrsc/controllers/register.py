@@ -247,11 +247,15 @@ def login():
 
     if login.submit.data:
         if login.validate_on_submit():
-            user = Driver.byUsername(login.username.data)
-            if user and user.password == login.password.data:
-                session['driverid'] = user.driverid
-                return redirect_series(login.gotoseries.data)
-            flash("Invalid username/password")
+            try:
+                user = Driver.byUsername(login.username.data)
+                if user and current_app.hasher.check_password_hash(user.password, login.password.data):
+                    session['driverid'] = user.driverid
+                    return redirect_series(login.gotoseries.data)
+                flash("Invalid username/password")
+            except Exception as e:
+                log.warning("password check error", exc_info=e)
+                flash("Error: " + str(e))
         else:
             flashformerrors(login)
 
