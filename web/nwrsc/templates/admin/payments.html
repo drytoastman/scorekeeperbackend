@@ -17,8 +17,8 @@ $(document).ready(function(){
         iDisplayLength: -1,
         autoWidth: false,
         buttons: [
-            { extend: 'copyHtml5', className: 'btn btn-outline-admin', text: 'Copy To Clipboard' },
-            { extend: 'csvHtml5',  className: 'btn btn-outline-admin', text: 'Export To CSV' }
+            { extend: 'copyHtml5', className: 'btn btn-outline-admin', text: 'Copy To Clipboard', exportOptions: { columns: ':visible' } },
+            { extend: 'csvHtml5',  className: 'btn btn-outline-admin', text: 'Export To CSV', title: 'payments', exportOptions: { columns: ':visible'} }
         ],
         columns: [
             { data: 'firstname' },
