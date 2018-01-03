@@ -4,39 +4,7 @@
 {% block headers %}
 {{super()}}
 <script>
-
-{% set cda = classdata.getJSONArrays() %}
-var thetable = Object();
-var currentcars = Object();
-var gClasses = {{cda[0]|safe}};
-var gIndexes = {{cda[1]|safe}};
- 
-function resizescroll() {
-	$('.dataTables_scrollBody').css('height', $(window).height() - ($('body').height() - $('.dataTables_scrollBody').height())- 10);
-}
-
-$(document).ready(function(){
-    thetable = $('#drivertable').DataTable({ 
-        ajax: { url:"{{url_for(".getdrivers")}}", dataSrc: ''},
-        paging: false,
-        scrollY: "100",
-        select: {
-            style: 'os',
-        },
-        rowId: 'driverid',
-        columns: [
-            { data: 'firstname' },
-            { data: 'lastname' },
-        ],
-        sDom: '<"dtheader"f>rt<"clear">'
-    }).on('select.dt deselect.dt', function () {
-        rebuildInfoContainer();
-    });
-
-	resizescroll();
-	$( window ).resize(function() { resizescroll(); });
-    $('#profileform, #carform').submit(modalupdate);
-});
+{% include 'admin/drivers.js' %}
 </script>
 <style>
 .carseries {
