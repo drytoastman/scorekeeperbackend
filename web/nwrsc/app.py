@@ -69,28 +69,35 @@ def create_app():
     def hashtml(val):
         return HASHTML.search(val) is not None
 
+    def any2bool(v):
+        if type(v) is bool:
+            return v
+        if type(v) is str:
+            return v.lower() in ("yes", "true", "t", "1")
+        return v is not None
 
     ### Configuration
     theapp = Flask("nwrsc")
     theapp.config.update({
-        "DEBUG":                  bool(os.environ.get('DEBUG',     False)),
-        "PROFILE":                bool(os.environ.get('PROFILE',   False)),
-        "DBHOST":                      os.environ.get('DBHOST',    '/var/run/postgresql'),
-        "DBPORT":                  int(os.environ.get('DBPORT',    5432)),
-        "DBUSER":                      os.environ.get('DBUSER',    'localuser'),
-        "SHOWLIVE":               bool(os.environ.get('SHOWLIVE',  True)),
-        "SECRET_KEY":                  os.environ.get('SECRET',    'replaced by environment in deployed docker-compose files'),
-        "ASSETS_DEBUG":           bool(os.environ.get('DEBUG',     False)),
-        "MAIL_USE_TLS":           bool(os.environ.get('MAIL_USE_TLS',  False)),
-        "MAIL_USE_SSL":           bool(os.environ.get('MAIL_USE_SSL',  False)),
-        "MAIL_SERVER":                 os.environ.get('MAIL_SERVER',   None),
-        "MAIL_PORT":                   os.environ.get('MAIL_PORT',     None),
-        "MAIL_USERNAME":               os.environ.get('MAIL_USERNAME', None),
-        "MAIL_PASSWORD":               os.environ.get('MAIL_PASSWORD', None),
-        "MAIL_DEFAULT_SENDER":         os.environ.get('MAIL_DEFAULT_SENDER', None),
-        "SUPER_ADMIN_PASSWORD":        os.environ.get('SUPER_ADMIN_PASSWORD', None),
-        "SQ_APPLICATION_ID":           os.environ.get('SQ_APPLICATION_ID', None),
-        "SQ_APPLICATION_SECRET":       os.environ.get('SQ_APPLICATION_SECRET', None),
+        "DEBUG":                  any2bool(os.environ.get('DEBUG',     False)),
+        "PROFILE":                any2bool(os.environ.get('PROFILE',   False)),
+        "DBHOST":                          os.environ.get('DBHOST',    '/var/run/postgresql'),
+        "DBPORT":                      int(os.environ.get('DBPORT',    5432)),
+        "DBUSER":                          os.environ.get('DBUSER',    'localuser'),
+        "SHOWLIVE":               any2bool(os.environ.get('SHOWLIVE',  True)),
+        "SECRET_KEY":                      os.environ.get('SECRET',    'replaced by environment in deployed docker-compose files'),
+        "ASSETS_DEBUG":           any2bool(os.environ.get('DEBUG',     False)),
+        "MAIL_USE_TLS":           any2bool(os.environ.get('MAIL_USE_TLS',  False)),
+        "MAIL_USE_SSL":           any2bool(os.environ.get('MAIL_USE_SSL',  False)),
+        "MAIL_SERVER":                     os.environ.get('MAIL_SERVER',   None),
+        "MAIL_PORT":                       os.environ.get('MAIL_PORT',     None),
+        "MAIL_USERNAME":                   os.environ.get('MAIL_USERNAME', None),
+        "MAIL_PASSWORD":                   os.environ.get('MAIL_PASSWORD', None),
+        "MAIL_DEFAULT_SENDER":             os.environ.get('MAIL_DEFAULT_SENDER', None),
+        "SUPER_ADMIN_PASSWORD":            os.environ.get('SUPER_ADMIN_PASSWORD', None),
+        "SQ_APPLICATION_ID":               os.environ.get('SQ_APPLICATION_ID', None),
+        "SQ_APPLICATION_SECRET":           os.environ.get('SQ_APPLICATION_SECRET', None),
+        "IS_MAIN_SERVER":         any2bool(os.environ.get('IS_MAIN_SERVER', False)),
         "LOGGER_HANDLER_POLICY":  "None",
     })
     theapp.config['TEMPLATES_AUTO_RELOAD'] = theapp.config['DEBUG']

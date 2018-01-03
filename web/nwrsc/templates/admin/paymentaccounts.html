@@ -70,8 +70,15 @@ $(document).ready(function(){
 {% endfor %}
 </table>
 
+{% if ismainserver %}
 <button class='btn btn-admin' {{ not squareurl and "disabled" or "" }} onclick="location.href='{{squareurl}}'">Setup/Update A Square Location</button>
 <button class='btn btn-outline-admin' data-toggle='modal' data-target='#paypalmodal'>Add Paypal App</button>
+{% else %}
+<small>
+New accounts can only be added on main server as authentication tokens are only stored there
+</small>
+{% endif %}
+
 </div>
 
 {{m.modal('paypalmodal', 'Add PayPayl App', ppacctform.html('paypalform', url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
