@@ -72,6 +72,12 @@ class Index(AttrBase):
             cur.execute("select * from indexlist order by indexcode")
             return [Index(**x) for x in cur.fetchall()]
 
+    @classmethod
+    def activeIndexes(cls):
+        with g.db.cursor() as cur:
+            cur.execute("select distinct indexcode from cars")
+            return sorted([x[0] for x in cur.fetchall()])
+
 
 class ClassData(object):
 

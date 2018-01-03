@@ -32,7 +32,9 @@ $(document).ready(function(){
   </button>
   <div class="dropdown-menu">
     {% for l in lists %}
-    <a class="dropdown-item" href="{{url_for('.indexreset', index=l)}}" onclick="return confirm('This will overwrite all current index values, is this okay?')">{{l.replace('_', ' ')}}</a>
+    <a class="dropdown-item" href="{{url_for('.indexreset', index=l)}}" onclick="return confirm(
+        'This will overwrite all current index values, additional fill indexes of 1.234 will be created for cars with indexes not in the selected list, is this okay?'
+    )">{{l.replace('_', ' ')}}</a>
     {% endfor %}
   </div>
 </span>

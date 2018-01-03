@@ -208,6 +208,9 @@ def indexreset():
         prefix = index.replace('_', ' ')
         with open(os.path.join(current_app.root_path, 'static/indexlists', '{}.json'.format(index))) as fp:
             indexes = json.load(fp)
+            active = Index.activeIndexes()
+            for missing in set(active) - set(indexes):
+                indexes[missing] = 1.234  # filler index for things that are missing
             ClassData.get().updateIndexesTo({k:Index(indexcode=k, value=v, descrip='{} {}'.format(prefix, k)) for k,v in indexes.items()})
     except Exception as e:
         flash("Exception loading indexes from file: {}".format(e))
