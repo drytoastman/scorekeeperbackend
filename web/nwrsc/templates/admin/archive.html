@@ -23,7 +23,11 @@ Archive will make sure all the results, raw and calculated, are stored for retri
 To continue, type the name of the series into the box and click Archive.
 </p>
 
+{% if ismainerver: %}
 {{ form.html('archiveform', url_for('.archive'), 'post', 'btn-admin', 'col-md-3', 'col-md-4') | safe }}
+{% else %}
+<small>Series archiving is only available on the main server</small>
+{% endif %}
 
 </div>
 {% endblock %}

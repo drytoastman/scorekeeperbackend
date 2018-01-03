@@ -313,7 +313,7 @@ def archive():
         except Exception as e:
             flash("Unable to delete series: {}".format(e))
 
-    return render_template("/admin/archive.html", form=form)
+    return render_template("/admin/archive.html", form=form, ismainserver=current_app.config['IS_MAIN_SERVER'])
 
 
 @Admin.route("/seriesattend")
