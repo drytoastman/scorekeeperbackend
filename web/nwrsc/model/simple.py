@@ -146,18 +146,19 @@ class Registration(AttrBase):
     @classmethod
     def getForEvent(cls, eventid, paymentRequired=False):
         with g.db.cursor() as cur:
-            cur.execute("SELECT d.*,c.*,r.*,r.modified as regmodified, d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s", (eventid,))
-            ret = {x['carid']:Entrant(**x, payments=[]) for x in cur.fetchall()}
+            cur.execute("SELECT d.firstname,d.lastname,d.email,c.*,r.*,r.modified as regmodified, d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s", (eventid,))
+            retdict = {x['carid']:Entrant(**x, payments=[]) for x in cur.fetchall()}
 
             cur.execute("SELECT * FROM payments WHERE eventid=%s", (eventid,))
             for p in cur.fetchall():
-                if p.carid in ret:
-                    ret[p.carid].payments.append(p)
+                if p['carid'] in retdict:
+                    retdict[p['carid']].payments.append(p)
 
             if paymentRequired:
-                ret = filter(lambda x: len(x.payments) > 0, ret)
-            return ret
-                
+                return filter(lambda x: len(x.payments) > 0, retdict.values())
+            else:
+                return retdict.values()
+
     @classmethod
     def getForDriver(cls, driverid):
         with g.db.cursor() as cur:

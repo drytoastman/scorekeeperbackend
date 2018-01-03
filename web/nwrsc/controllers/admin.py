@@ -357,7 +357,7 @@ def registered():
     ret = Registration.getForEvent(g.eventid)
     for r in ret:
         r.cdesc = ' '.join(filter(None, [r.cattr.get(k, None) for k in ('year', 'make', 'model', 'color')]))
-    return json_encode(ret)
+    return json_encode(list(ret))
 
 @Admin.route("/event/<uuid:eventid>/delreg", methods=['POST'])
 def delreg():
