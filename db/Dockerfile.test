@@ -1,2 +1,2 @@
 FROM drytoastman/scdb:latest
-COPY testdata/* /tmp/
+COPY testdata/*.sql /docker-entrypoint-initdb.d/
