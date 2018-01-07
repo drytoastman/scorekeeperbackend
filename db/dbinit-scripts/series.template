@@ -152,7 +152,8 @@ CREATE TABLE events (
     ispractice    BOOLEAN     NOT NULL DEFAULT FALSE, 
     accountid     TEXT        REFERENCES paymentaccounts,
     attr          JSONB       NOT NULL,
-    modified      TIMESTAMP   NOT NULL DEFAULT now()
+    modified      TIMESTAMP   NOT NULL DEFAULT now(),
+    created       TIMESTAMP   NOT NULL DEFAULT now()
 );
 REVOKE ALL ON events FROM public;
 GRANT  ALL ON events TO <seriesname>;
@@ -170,6 +171,7 @@ CREATE TABLE cars (
 	useclsmult    BOOLEAN     NOT NULL,
     attr          JSONB       NOT NULL,
     modified      TIMESTAMP   NOT NULL DEFAULT now(),
+    created       TIMESTAMP   NOT NULL DEFAULT now(),
     CONSTRAINT validcardata CHECK (number > 0)
 );
 CREATE INDEX ON cars(driverid);
