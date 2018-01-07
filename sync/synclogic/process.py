@@ -52,43 +52,43 @@ class MergeProcess():
         log.info("Sync DB models initialized")
 
         while not done:
-            try:
-                signalled = False
-                with DataInterface.connectLocal(self.uselocalhost) as localdb:
-                    # Reset our world on each loop
-                    me = MergeServer.getLocal(localdb)
-                    me.updateSeriesFrom(localdb)
-                    for series in me.mergestate.keys():
-                        me.updateCacheFrom(localdb, series)
-
-                    passwords = DataInterface.loadPasswords(localdb)
-
-                    # Check if there are any timeouts for servers to merge with
-                    for remote in MergeServer.getActive(localdb):
-                        if remote.nextcheck < datetime.datetime.utcnow():
-                            try:
-                                remote.serverStart()
-                                self.mergeWith(localdb, me, remote, passwords)
-                                remote.serverDone()
-                            except Exception as e:
-                                log.error("Caught exception merging with {}: {}".format(remote, e), exc_info=e)
-                                remote.serverError(str(e))
-
-                    # Don't hang out in idle transaction from selects
-                    localdb.rollback()
-
-            except (NoDatabaseException, NoLocalHostServer) as ie:
-                log.debug(type(ie).__name__)
-
-            except Exception as e:
-                log.error("Caught exception in main loop: {}".format(e), exc_info=e)
-
+            self.runonce()
             # Wait for 10 seconds before rescanning.  Wake immediately if something is dropped in the queue
             try: done = self.wakequeue.get(timeout=10)
             except: pass
 
 
+    def runonce(self):
+        try:
+            signalled = False
+            with DataInterface.connectLocal(self.uselocalhost) as localdb:
+                # Reset our world on each loop
+                me = MergeServer.getLocal(localdb)
+                me.updateSeriesFrom(localdb)
+                for series in me.mergestate.keys():
+                    me.updateCacheFrom(localdb, series)
 
+                passwords = DataInterface.loadPasswords(localdb)
+
+                # Check if there are any timeouts for servers to merge with
+                for remote in MergeServer.getActive(localdb):
+                    if remote.nextcheck < datetime.datetime.utcnow():
+                        try:
+                            remote.serverStart()
+                            self.mergeWith(localdb, me, remote, passwords)
+                            remote.serverDone()
+                        except Exception as e:
+                            log.error("Caught exception merging with {}: {}".format(remote, e), exc_info=e)
+                            remote.serverError(str(e))
+
+                # Don't hang out in idle transaction from selects
+                localdb.rollback()
+
+        except (NoDatabaseException, NoLocalHostServer) as ie:
+            log.debug(type(ie).__name__)
+
+        except Exception as e:
+            log.error("Caught exception in main loop: {}".format(e), exc_info=e)
 
 
 

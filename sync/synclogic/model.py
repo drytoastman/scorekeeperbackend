@@ -113,10 +113,14 @@ class DataInterface(object):
                     "port": 54329,
                   "dbname": "scorekeeper",
         "application_name": "syncremote",
-           # Must addhost, user and password
+           # Must add host, user and password
         }
         try:
-            address = server.address or server.hostname
+            if ':' in server.address:  # If address has a port specified, use it
+                (address, port) = server.address.split(':')
+                args['port'] = port
+            else:
+                address = server.address or server.hostname
             db = psycopg2.connect(host=address, user=user, password=password, connect_timeout=server.ctimeout, **args)
             with db.cursor() as cur:
                 cur.execute("set idle_in_transaction_session_timeout=5000")
