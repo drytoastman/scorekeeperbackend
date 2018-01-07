@@ -1,0 +1,1 @@
+ALTER TABLE drivers ADD COLUMN created NOT NULL DEFAULT now();

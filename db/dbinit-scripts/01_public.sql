@@ -216,6 +216,7 @@ CREATE TABLE drivers (
     optoutmail BOOLEAN     NOT NULL DEFAULT FALSE,
     attr       JSONB       NOT NULL DEFAULT '{}', 
     modified   TIMESTAMP   NOT NULL DEFAULT now(),
+    created    TIMESTAMP   NOT NULL DEFAULT now(),
     CONSTRAINT uniqueusername UNIQUE (username)
 );
 CREATE INDEX ON drivers(lower(firstname));
