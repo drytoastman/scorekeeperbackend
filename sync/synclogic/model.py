@@ -6,6 +6,7 @@ import datetime
 import hashlib
 import json
 import logging
+import operator
 import psycopg2
 import psycopg2.extras
 import random
@@ -242,23 +243,28 @@ class DataInterface(object):
 class LoggedObject():
     """ An object loaded from the log data insert and following updates across multiple machines """
 
-    def __init__(self, table, pk, data):
-        self.table = table
-        self.pk    = pk
-        self.initial = data
-        self.updates = []
-        self.deleted = False
+    def __init__(self, table, pk):
+        self.table    = table
+        self.pk       = pk
+        self.inittime = None
+        self.initial  = None
+        self.updates  = []
+        self.deleted  = False
 
-    def insert(self, newdata):
-        if newdata != self.initial:
-            log.warning("Inserts on two different machines with different data {}, {}".format(self.initial, newdata))
+    def insert(self, when, newdata):
+        if not self.initial or when < self.inittime:
+            if 'created' not in newdata: # Hacky fix for missing columns
+                newdata['created'] = "1970-01-01T00:00:00"
+            self.inittime = when
+            self.initial  = newdata
 
     def update(self, time, olddata, newdata):
         oldattr = olddata.pop('attr')
         newattr = newdata.pop('attr')
-        odiff = dict(set(newdata.items()) - set(olddata.items()))
-        adiff = dict(set(newattr.items()) - set(oldattr.items()))
-        self.updates.append((time, odiff, adiff))
+        odiff = dict(set(newdata.items()) - set(olddata.items()))  # Differences in object columns
+        adiff = dict(set(newattr.items()) - set(oldattr.items()))  # Additions/Differences in attr
+        adel  = oldattr.keys() - newattr.keys()                    # Attr keys that were deleted
+        self.updates.append((time, odiff, adiff, adel))
 
     def delete(self):
         self.deleted = True
@@ -267,9 +273,12 @@ class LoggedObject():
         if self.deleted:
             return None
         data = self.initial.copy()
-        for (time, odiff, adiff) in sorted(self.updates):
+        for (time, odiff, adiff, adel) in sorted(self.updates, key=operator.itemgetter(0)):
             data.update(odiff)
             data['attr'].update(adiff)
+            for key in adel:
+                data['attr'].pop(key, None)
+
         return PresentObject(self.table, self.pk, data)
 
 
@@ -282,9 +291,8 @@ class LoggedObject():
                 if obj['action'] == 'I':
                     pk = tuple([obj['newdata'][k] for k in PRIMARY_KEYS[table]])
                     if pk not in objdict:
-                        objdict[pk] = LoggedObject(table, pk, obj['newdata'])
-                    else:
-                        objdict[pk].insert(obj['newdata'])
+                        objdict[pk] = LoggedObject(table, pk)
+                    objdict[pk].insert(obj['otime'], obj['newdata'])
 
                 elif obj['action'] == 'U':
                     pk = tuple([obj['newdata'][k] for k in PRIMARY_KEYS[table]])

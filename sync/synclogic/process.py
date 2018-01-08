@@ -264,12 +264,8 @@ class MergeProcess():
         LoggedObject.loadFrom(loggedobj, localdb,  logtable, table, when)
         LoggedObject.loadFrom(loggedobj, remotedb, logtable, table, when)
 
-        toupdate = list()
-        for pk,lo in loggedobj.items():
-            newo = lo.finalize()
-            if newo:
-                toupdate.append(newo)
-
+        # Create update objects and then update into both sides
+        toupdate = [lo.finalize() for lo in loggedobj.values() if lo]
         DataInterface.update(localdb, toupdate)
         DataInterface.update(remotedb, toupdate)
 

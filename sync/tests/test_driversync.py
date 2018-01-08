@@ -77,22 +77,35 @@ def test_driversync(testdbs):
     # Modify email and zip on A
     with synca.cursor() as cur:
         cur.execute("UPDATE drivers SET email=%s,attr=%s,modified=now() where driverid=%s", ('newemail', json.dumps({'address': '123', 'zip': '98222'}), driverid,))
-        cur.execute("UPDATE mergeservers SET lastcheck='epoch', nextcheck='epoch'")
-        synca.commit()
     time.sleep(0.1)
 
-    # Sync again
-    merge.runonce()
+    sync_and_verify_driver(synca, syncb, merge, driverid,
+        (('firstname', 'newfirst'), ('lastname', 'newlast'), ('email', 'newemail')),
+        (('address', '123'), ('zip', '98222')))
 
-    # Load drivers from both sides and verify that they are as intended
+    # Delete zip
+    with synca.cursor() as cur:
+        cur.execute("UPDATE drivers SET attr=%s,modified=now() where driverid=%s", (json.dumps({'address': '123'}), driverid,))
+    time.sleep(0.1)
+
+    sync_and_verify_driver(synca, syncb, merge, driverid,
+        (('firstname', 'newfirst'), ('lastname', 'newlast'), ('email', 'newemail')),
+        (('address', '123'), ('zip', None)))
+
+
+def sync_and_verify_driver(synca, syncb, merge, driverid, coltuple, attrtuple):
+    # Sync and then load drivers from both sides and verify that they are as intended
     with synca.cursor() as cura, syncb.cursor() as curb:
+        cura.execute("UPDATE mergeservers SET lastcheck='epoch', nextcheck='epoch'")
+        synca.commit()
+        merge.runonce()
         cura.execute("SELECT *  FROM drivers WHERE driverid=%s", (driverid,))
         curb.execute("SELECT *  FROM drivers WHERE driverid=%s", (driverid,))
         da = cura.fetchone()
         db = curb.fetchone()
 
-    for key, expected in (('firstname', 'newfirst'), ('lastname', 'newlast'), ('email', 'newemail')):
+    for key, expected in coltuple: 
         assert da[key] == expected
-    for key, expected in (('address', '123'), ('zip', '98222')):
-        assert da['attr'][key] == expected
+    for key, expected in attrtuple: 
+        assert da['attr'].get(key, None) == expected
 
