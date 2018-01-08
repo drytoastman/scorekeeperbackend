@@ -34,7 +34,7 @@ def testdbs():
         subprocess.run(["docker", "kill"] + [x[0] for x in TESTDBS], stdout=subprocess.DEVNULL)
         raise Exception("Unable to initialize data interface")
 
-    args = { 'host':"127.0.0.1", 'port':6432, 'user':'postgres', 'dbname':'scorekeeper', 'connect_timeout':2, 'cursor_factory':psycopg2.extras.DictCursor }
+    args = { 'host':"127.0.0.1", 'port':6432, 'user':'postgres', 'dbname':'scorekeeper', 'connect_timeout':20, 'cursor_factory':psycopg2.extras.DictCursor }
 
     synca = psycopg2.connect(**args)
     with synca.cursor() as cur:
@@ -48,35 +48,43 @@ def testdbs():
         cur.execute("SELECT verify_series('testseries')")
         syncb.commit()
 
-    yield (synca, syncb)
+    # Do an initial merge
+    merge = MergeProcess(["--uselocalhost"])
+    merge.runonce()
+
+    yield (synca, syncb, merge)
 
     subprocess.run(["docker", "kill"] + [x[0] for x in TESTDBS], stdout=subprocess.DEVNULL)
 
 
+
 def test_driversync(testdbs):
     driverid = '00000000-0000-0000-0000-000000000001'
-    m = MergeProcess(["--uselocalhost"])
-    m.runonce()
+    (synca, syncb, merge) = testdbs
 
-    (synca, syncb) = testdbs
+    # Modify firstname and address on A
     with synca.cursor() as cur:
         cur.execute("UPDATE drivers SET firstname=%s,attr=%s,modified=now() where driverid=%s", ('newfirst', json.dumps({'address': '123'}), driverid,))
         synca.commit()
     time.sleep(0.1)
 
+    # Modify lastname and zip on B
     with syncb.cursor() as cur:
         cur.execute("UPDATE drivers SET lastname=%s,attr=%s,modified=now() where driverid=%s", ('newlast', json.dumps({'zip': '98111'}), driverid,))
         syncb.commit()
     time.sleep(0.1)
 
+    # Modify email and zip on A
     with synca.cursor() as cur:
         cur.execute("UPDATE drivers SET email=%s,attr=%s,modified=now() where driverid=%s", ('newemail', json.dumps({'address': '123', 'zip': '98222'}), driverid,))
         cur.execute("UPDATE mergeservers SET lastcheck='epoch', nextcheck='epoch'")
         synca.commit()
     time.sleep(0.1)
 
-    m.runonce()
+    # Sync again
+    merge.runonce()
 
+    # Load drivers from both sides and verify that they are as intended
     with synca.cursor() as cura, syncb.cursor() as curb:
         cura.execute("SELECT *  FROM drivers WHERE driverid=%s", (driverid,))
         curb.execute("SELECT *  FROM drivers WHERE driverid=%s", (driverid,))
