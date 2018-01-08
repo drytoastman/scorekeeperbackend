@@ -4,7 +4,7 @@ script: pytest
 sudo: required
 services: [docker]
 install:
-    - pip install sync/requirements.txt
+    - pip install -r sync/requirements.txt
 
 after_success:
     if [ ! -z "$TRAVIS_TAG" ]; then
