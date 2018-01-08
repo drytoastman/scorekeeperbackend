@@ -3,6 +3,8 @@ python: ['3.6']
 script: pytest
 sudo: required
 services: [docker]
+install:
+    - pip install sync/requirements.txt
 
 after_success:
     if [ ! -z "$TRAVIS_TAG" ]; then

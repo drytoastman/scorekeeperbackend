@@ -40,6 +40,10 @@ TABLE_ORDER = [
     'challengeruns',
 ]
 
+ADVANCED_TABLES = [
+    'drivers'
+]
+
 COLUMNS       = dict()
 PRIMARY_KEYS  = dict()
 NONPRIMARY    = dict()
@@ -234,6 +238,67 @@ class DataInterface(object):
             cur1.close()
 
 
+
+class LoggedObject():
+    """ An object loaded from the log data insert and following updates across multiple machines """
+
+    def __init__(self, table, pk, data):
+        self.table = table
+        self.pk    = pk
+        self.initial = data
+        self.updates = []
+        self.deleted = False
+
+    def insert(self, newdata):
+        if newdata != self.initial:
+            log.warning("Inserts on two different machines with different data {}, {}".format(self.initial, newdata))
+
+    def update(self, time, olddata, newdata):
+        oldattr = olddata.pop('attr')
+        newattr = newdata.pop('attr')
+        odiff = dict(set(newdata.items()) - set(olddata.items()))
+        adiff = dict(set(newattr.items()) - set(oldattr.items()))
+        self.updates.append((time, odiff, adiff))
+
+    def delete(self):
+        self.deleted = True
+
+    def finalize(self):
+        if self.deleted:
+            return None
+        data = self.initial.copy()
+        for (time, odiff, adiff) in sorted(self.updates):
+            data.update(odiff)
+            data['attr'].update(adiff)
+        return PresentObject(self.table, self.pk, data)
+
+
+    @classmethod
+    def loadFrom(cls, objdict, db, src, table, when):
+        with db.cursor() as cur:
+            cur.execute("SELECT * FROM {} WHERE tablen=%s and otime>=%s ORDER BY otime".format(src), (table, when))
+            for obj in cur.fetchall():
+
+                if obj['action'] == 'I':
+                    pk = tuple([obj['newdata'][k] for k in PRIMARY_KEYS[table]])
+                    if pk not in objdict:
+                        objdict[pk] = LoggedObject(table, pk, obj['newdata'])
+                    else:
+                        objdict[pk].insert(obj['newdata'])
+
+                elif obj['action'] == 'U':
+                    pk = tuple([obj['newdata'][k] for k in PRIMARY_KEYS[table]])
+                    objdict[pk].update(obj['otime'], obj['olddata'], obj['newdata'])
+
+                elif obj['action'] == 'D':
+                    pk = tuple([obj['olddata'][k] for k in PRIMARY_KEYS[table]])
+                    objdict[pk].deleted()
+
+                else:
+                    log.warning("How did we get here?")
+
+
+
 class PresentObject():
 
     def __init__(self, table, pk, data):
@@ -241,6 +306,7 @@ class PresentObject():
         self.pk = pk
         self.data = data
         self.modified = data['modified']
+        self.created = data.get('created', None)
 
     def __repr__(self):
         return "PresentObject ({}, {}, {})".format(self.table, self.pk, self.data)
@@ -250,6 +316,14 @@ class PresentObject():
         if len(d) == 0:
             return datetime.datetime(2017, 1, 1)
         return min([v.modified for v in d.values()])
+
+    @classmethod
+    def mincreatetime(cls, *lists):
+        mintime = datetime.datetime(9999, 1, 1)
+        for l in lists:
+            if len(l):
+                mintime = min(mintime, min([v.created for v in l]))
+        return mintime
 
     @classmethod
     def loadPresent(cls, db, table):

@@ -229,10 +229,14 @@ class MergeProcess():
         log.debug("Performing updates/deletes")
         for t in reversed(TABLE_ORDER):
             assert not signalled, "Quit signal received"
-            remote.seriesStatus(series, "Update/Delete {}".format(t))
-            DataInterface.update(localdb,  localupdate[t])
-            DataInterface.update(remotedb, remoteupdate[t])
+            remote.seriesStatus(series, "Update {}".format(t))
+            if t in ADVANCED_TABLES:
+                self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t])
+            else:
+                DataInterface.update(localdb,  localupdate[t])
+                DataInterface.update(remotedb, remoteupdate[t])
 
+            remote.seriesStatus(series, "Delete {}".format(t))
             remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
             localundelete[t].extend(DataInterface.delete(remotedb, remotedelete[t]))
 
@@ -251,4 +255,21 @@ class MergeProcess():
                 DataInterface.insert(localdb, localundelete[t])
 
         return unfinished
+
+
+    def advancedMerge(self, localdb, remotedb, table, localupdates, remoteupdates):
+        when = PresentObject.mincreatetime(localupdates, remoteupdates)
+        loggedobj= dict()
+        logtable = table == 'drivers' and 'publiclog' or 'serieslog'
+        LoggedObject.loadFrom(loggedobj, localdb,  logtable, table, when)
+        LoggedObject.loadFrom(loggedobj, remotedb, logtable, table, when)
+
+        toupdate = list()
+        for pk,lo in loggedobj.items():
+            newo = lo.finalize()
+            if newo:
+                toupdate.append(newo)
+
+        DataInterface.update(localdb, toupdate)
+        DataInterface.update(remotedb, toupdate)
 

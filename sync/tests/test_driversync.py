@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import json
-import logging
 import os
 import psycopg2
 import psycopg2.extras
@@ -15,14 +14,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../
 from synclogic.process import MergeProcess
 from synclogic.model import DataInterface
 
-logging.getLogger().setLevel(logging.DEBUG)
-log = logging.getLogger(__name__)
-
-
-TESTDBS = (('synca', 'drytoastman/scdb:testdb', '6432:6432'), ('syncb', 'drytoastman/scdb:latest', '7432:6432'))
 
 @pytest.fixture(scope="session")
 def testdbs():
+    TESTDBS = (('synca', 'drytoastman/scdb:testdb', '6432:6432'), ('syncb', 'drytoastman/scdb:latest', '7432:6432'))
+
     for name, image, port in TESTDBS:
         p = subprocess.run(["docker", "run", "-d", "--rm", "--name", name, "-p", port, image], stdout=subprocess.DEVNULL)
         if p.returncode != 0:
