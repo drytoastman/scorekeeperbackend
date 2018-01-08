@@ -18,6 +18,7 @@ from synclogic.model import DataInterface
 @pytest.fixture(scope="session")
 def testdbs():
     TESTDBS = (('synca', 'drytoastman/scdb:testdb', '6432:6432'), ('syncb', 'drytoastman/scdb:latest', '7432:6432'))
+    cargs = { 'host':"127.0.0.1", 'user':'postgres', 'dbname':'scorekeeper', 'connect_timeout':20, 'cursor_factory':psycopg2.extras.DictCursor }
 
     for name, image, port in TESTDBS:
         p = subprocess.run(["docker", "run", "-d", "--rm", "--name", name, "-p", port, image], stdout=subprocess.DEVNULL)
@@ -26,7 +27,10 @@ def testdbs():
 
     for ii in range(10):
         try:
+            # Introspection needed by MergeProcess
             DataInterface.initialize(True)
+            synca = psycopg2.connect(**cargs, port=6432)
+            syncb = psycopg2.connect(**cargs, port=7432)
             break
         except Exception as e:
             time.sleep(1)
@@ -34,15 +38,11 @@ def testdbs():
         subprocess.run(["docker", "kill"] + [x[0] for x in TESTDBS], stdout=subprocess.DEVNULL)
         raise Exception("Unable to initialize data interface")
 
-    args = { 'host':"127.0.0.1", 'port':6432, 'user':'postgres', 'dbname':'scorekeeper', 'connect_timeout':20, 'cursor_factory':psycopg2.extras.DictCursor }
 
-    synca = psycopg2.connect(**args)
     with synca.cursor() as cur:
         cur.execute("INSERT INTO mergeservers(serverid, hostname, address, ctimeout, hoststate) VALUES ('00000000-0000-0000-1111-000000000000', 'syncb', '127.0.0.1:7432', 2, 'A')")
         synca.commit()
 
-    args['port'] = 7432
-    syncb = psycopg2.connect(**args)
     with syncb.cursor() as cur:
         cur.execute("SELECT verify_user('testseries', 'testseries')")
         cur.execute("SELECT verify_series('testseries')")
