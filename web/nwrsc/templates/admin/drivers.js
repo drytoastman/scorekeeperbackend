@@ -123,7 +123,7 @@ function rebuildInfoContainer()
                     for (did in seriesact) {
                         otherseriesact |= (did != driverid) && seriesact[did];
                     }
-                    targetdiv.append(buildEntrantTable(driver, data[driverid]['cars'], data[driverid]['series'], caract > 0, (drivercount<2) || (otherseriesact>0)));
+                    targetdiv.append(buildEntrantTable(driver, data[driverid]['cars'], data[driverid]['series'], ((caract > 0) || (data[driverid]['series'].length > 0)), (drivercount<2) || (otherseriesact>0)));
                 }
             },
             error: function(xhr, stat, error) {
