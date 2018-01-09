@@ -197,7 +197,7 @@ def indexlist():
         for key, idx in sorted(classdata.indexlist.items()):
             form.indexlist.append_entry(idx)
 
-    lists = [os.path.basename(s[:-5]) for s in glob.glob(os.path.join(current_app.root_path, 'static/indexlists/*.json'))]
+    lists = sorted([os.path.basename(s[:-5]) for s in glob.glob(os.path.join(current_app.root_path, 'static/indexlists/*.json'))])
     return render_template('/admin/indexlist.html', form=form, lists=lists)
 
 

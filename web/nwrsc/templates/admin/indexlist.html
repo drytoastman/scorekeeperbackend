@@ -26,8 +26,10 @@ $(document).ready(function(){
 
 
 {% macro controlrow() %}
+<button class='btn btn-outline-admin addbutton'>Add Row</button>
+<input  class='btn btn-admin' type='submit' value="Save">
 <span class="dropdown">
-  <button class="btn btn-outline-admin dropdown-toggle" type="button" data-toggle="dropdown">
+  <button class="btn btn-admin dropdown-toggle" type="button" data-toggle="dropdown">
     Reset To Pax/RTP
   </button>
   <div class="dropdown-menu">
@@ -38,8 +40,6 @@ $(document).ready(function(){
     {% endfor %}
   </div>
 </span>
-<button class='btn btn-outline-admin addbutton'>Add Row</button>
-<input  class='btn btn-admin' type='submit' value="Save">
 {% endmacro %}
 
 
