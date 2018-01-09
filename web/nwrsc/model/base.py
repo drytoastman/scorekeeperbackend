@@ -60,7 +60,7 @@ class AttrBase(object):
                                 "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
                     PRIMARY_KEYS[table] = [row[0] for row in cur.fetchall()]
 
-                    cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s AND table_schema IN %s AND column_name NOT IN ('modified', 'username', 'password')", (table, testseries))
+                    cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s AND table_schema IN %s AND column_name NOT IN ('created', 'modified', 'username', 'password')", (table, testseries))
                     
                     COLUMNS[table] = [row[0] for row in cur.fetchall()]
                     NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
