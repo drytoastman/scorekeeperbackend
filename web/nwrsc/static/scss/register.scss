@@ -156,10 +156,11 @@ span.payments {
     }
 
     .icallink {
-        position: absolute;
-        left: 1rem;
-        top: 0.5rem;
-        font-size: 1rem;
+        .fa-calendar {
+            vertical-align: initial;
+            padding: 0px 0.4rem;
+            font-size: 1.2rem;
+        }
     }
 
     .eventtitle {
@@ -169,12 +170,6 @@ span.payments {
         .date {
             font-weight: bold;
         }
-    }
-
-    .fa-calendar {
-        vertical-align: initial;
-        padding: 0px 0.4rem;
-        font-size: 1.4rem;
     }
 
     ol {
