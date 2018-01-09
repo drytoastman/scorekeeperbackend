@@ -255,7 +255,7 @@ def payments():
 def paymentlist():
     payments = Payment.getAll()
     for p in payments:
-        p.txtime = p.txtime.astimezone(datetime.timezone.utc).astimezone(pytz.timezone('US/Pacific'))
+        p.txtime = p.txtime.astimezone(datetime.timezone.utc).astimezone(pytz.timezone('US/Pacific')).replace(tzinfo=None, microsecond=0)
     return json_encode(payments)
 
 @Admin.route("/delaccount", methods=['POST'])
