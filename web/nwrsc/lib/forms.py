@@ -215,7 +215,7 @@ class ClassListForm(MyFlaskForm):
 
 
 class SettingsForm(MyFlaskForm):
-    seriesname          = MyStringField('Series Name',        [Length(min=2, max=32)])
+    seriesname          = MyStringField('Series Name',        [Length(min=2, max=64)])
     largestcarnumber    = IntegerField( 'Largest Car Number', [Required()])
     minevents           = IntegerField( 'Min Events',         [InputRequired()])
     dropevents          = IntegerField( 'Drop X Events',      [InputRequired()])
