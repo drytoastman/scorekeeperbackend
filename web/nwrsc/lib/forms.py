@@ -154,6 +154,13 @@ class DriverForm(MyFlaskForm):
     ephone    = MyStringField('Emerg Phone',   [Length(max=64)])
     submit    = SubmitField(  'Update')
 
+class PasswordChangeForm(MyFlaskForm):
+    driverid    = HiddenField(    'driverid')
+    oldpassword = MyPasswordField('Current Password', [Length(min=6, max=32)])
+    newpassword = MyPasswordField('New Password', [Length(min=6, max=32)])
+    submit      = SubmitField(    'Change Password')
+
+
 class CarForm(MyFlaskForm):
     driverid    = HiddenField(  'driverid')
     carid       = HiddenField(  'carid')

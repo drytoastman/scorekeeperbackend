@@ -53,18 +53,41 @@ def series():
 @Register.route("/<series>/profile")
 def profile():
     if not g.driver: return login()
-    form        = DriverForm()
-    upcoming    = getAllUpcoming(g.driver.driverid)
-    attrBaseIntoForm(g.driver, form)
-    return render_template('register/profile.html', form=form, upcoming=upcoming, surpressmenu=True)
+
+    profileform  = DriverForm(prefix='driver')
+    upcoming     = getAllUpcoming(g.driver.driverid)
+    attrBaseIntoForm(g.driver, profileform)
+
+    passwordform = PasswordChangeForm(prefix='password')
+    passwordform.driverid.data = g.driver.driverid
+
+    return render_template('register/profile.html', profileform=profileform, passwordform=passwordform, upcoming=upcoming, surpressmenu=True)
+
 
 @Register.route("/profilepost", methods=['POST'])
 @Register.route("/<series>/profilepost", methods=['POST'])
 def profilepost():
-    form = DriverForm()
+    if not g.driver: return login()
+
+    form = DriverForm(prefix='driver')
     if form.validate_on_submit():
         formIntoAttrBase(form, g.driver)
         g.driver.update()
+    flashformerrors(form)
+    return redirect(url_for('.profile'))
+
+
+@Register.route("/passwordupdate ", methods=['POST'])
+@Register.route("/<series>/passwordupdate", methods=['POST'])
+def passwordupdate():
+    if not g.driver: return login()
+
+    form = PasswordChangeForm(prefix='password')
+    if form.validate_on_submit():
+        if current_app.hasher.check_password_hash(g.driver.password, form.oldpassword.data):
+            Driver.updatepassword(g.driver.driverid, g.driver.username, form.newpassword.data)
+        else:
+            flash("Incorrect old password")
     flashformerrors(form)
     return redirect(url_for('.profile'))
 

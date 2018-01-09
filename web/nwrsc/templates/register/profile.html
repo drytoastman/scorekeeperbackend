@@ -13,6 +13,7 @@
 <div class='title'>Profile For All Series</div>
 {{rm.driverDisplay(g.driver)}}
 <button class='editprofile btn btn-outline-register' title='Edit Profile' data-toggle='modal' data-target='#profilemodal'>Edit Profile</button>
+<button class='changepassword btn btn-outline-register' title='Change Password' data-toggle='modal' data-target='#passwordmodal'>Change Password</button>
 </div>
 
 <div class='col-md-6'>
@@ -42,6 +43,7 @@ Upcoming Entries For All Series
 </div> {# row #}
 </div> {# container #}
 
-{{m.modal('profilemodal', 'Profile Editor', form.html('profileform', url_for('.profilepost'), 'post', 'btn-register', 'col-md-4', 'col-md-8'))}}
+{{m.modal('profilemodal', 'Profile Editor', profileform.html('profileform', url_for('.profilepost'), 'post', 'btn-register', 'col-md-4', 'col-md-8'))}}
+{{m.modal('passwordmodal', 'Password Change', passwordform.html('passwordform', url_for('.passwordupdate'), 'post', 'btn-register', 'col-md-4', 'col-md-8'))}}
 
 {% endblock content %}
