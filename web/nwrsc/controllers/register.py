@@ -87,7 +87,7 @@ def passwordupdate():
         if current_app.hasher.check_password_hash(g.driver.password, form.oldpassword.data):
             Driver.updatepassword(g.driver.driverid, g.driver.username, form.newpassword.data)
         else:
-            flash("Incorrect old password")
+            flash("Incorrect current password")
     flashformerrors(form)
     return redirect(url_for('.profile'))
 
@@ -151,7 +151,7 @@ def events():
         pitems[i.accountid].append(i)
     for e in events:
         accounts[e.eventid] = PaymentAccount.get(e.accountid)
-        showpay[e.eventid] = e.accountid is not None and any(len(r.payments) == 0 for r in registered[e.eventid])
+        showpay[e.eventid]  = accounts[e.eventid] and accounts[e.eventid].secret and any(len(r.payments) == 0 for r in registered[e.eventid])
 
     return render_template('register/events.html', events=events, cars=cars, registered=registered, accounts=accounts, showpay=showpay, pitems=pitems)
 
@@ -161,7 +161,7 @@ def _renderSingleEvent(event, error):
     cars    = {c.carid:c for c in Car.getForDriver(g.driver.driverid)}
     reg     = [ r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == event.eventid ]
     account = PaymentAccount.get(event.accountid)
-    showpay = event.accountid is not None and any(len(r.payments) == 0 for r in reg)
+    showpay = account and account.secret and any(len(r.payments) == 0 for r in reg)
     decorateEvent(event, len(reg))
 
     eventdisplay = get_template_attribute('/register/macros.html', 'eventdisplay')
