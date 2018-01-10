@@ -322,7 +322,7 @@ def login():
 
 @Register.route("/emailsent")
 def emailsent():
-    return render_template("common/simple.html", content="An email as been sent with a link to finish your registration/reset.")
+    return render_template("/register/emailsent.html", email=current_app.config['MAIL_DEFAULT_SENDER'])
 
 
 @Register.route("/finish")

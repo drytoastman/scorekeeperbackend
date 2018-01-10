@@ -1,0 +1,16 @@
+{% extends "register/bluebase.html" %}
+{% block headers %}
+<style>
+.content, h2 { 
+    margin: 2rem auto;
+    max-width: 60rem;
+}
+</style>
+{% endblock headers %}
+{% block content %}
+<h2>Email Sent</h2>
+<div class='content'>
+An email from <a href='mailto:{{email}}'>{{email}}</a> has been sent with a link to finish your registration/reset.
+If nothing arrives in quick order, check your spam/junk folder.
+</div>
+{% endblock content %}
