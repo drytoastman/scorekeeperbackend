@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# pip3 install --upgrade google-cloud-storage
+
 import argparse
 import datetime
 import gzip
