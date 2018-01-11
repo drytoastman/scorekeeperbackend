@@ -1,4 +1,4 @@
-{% extends "common/base.html" %}
+{% extends "admin/bluebase.html" %}
 {% block headers %}
 {{super()}}
 <style type="text/css">
@@ -7,6 +7,8 @@ li > ul { columns: 3; }
 </style>
 {% endblock headers %}
 {% block content %}
+{{ super() }}
+<div class='container'>
 <h2>Used Number List</h2>
 <ul>
 {% for code,subdict in numbers|dictsort %}
@@ -17,5 +19,6 @@ li > ul { columns: 3; }
     </ul>
     </li>
 {% endfor %}
+</div>
 {% endblock content %}
 

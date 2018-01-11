@@ -29,9 +29,8 @@ PATHKEY  = 'origpath'
 def recordPath():
     if ADMINKEY not in session:
         session[ADMINKEY] = {}
-    if PATHKEY not in session[ADMINKEY]:
-        session[ADMINKEY][PATHKEY] = request.path
-        session.modified = True
+    session[ADMINKEY][PATHKEY] = request.path
+    session.modified = True
 
 def clearPath():
     if ADMINKEY not in session:
@@ -74,6 +73,7 @@ def setup():
     """ Every page underneath here requires a password """
     g.title = 'Scorekeeper Admin'
     g.activeseries = Series.active()
+    authendpoints = ('Admin.login', 'Admin.slogin')
 
     if request.endpoint == 'Admin.squareoauth': # special URL without g.series
         return
@@ -82,11 +82,13 @@ def setup():
         return render_template('/admin/bluebase.html')
 
     g.superauth = isSuperAuth()
-    if not g.superauth and not isAuth(g.series):
+    if not g.superauth and not isAuth(g.series) and request.endpoint not in authendpoints:
         recordPath()
         return login()
 
-    clearPath()
+    if request.endpoint not in authendpoints:
+        clearPath()
+
     g.events  = Event.byDate()
     if g.eventid:
         g.event=Event.get(g.eventid)
@@ -336,7 +338,7 @@ def uniqueattend():
     """ return the list of new entrants attending each event """
     for e in g.events:
         e.drivers = Attendance.newForEvent(e)
-    return render_template('/admin/attendance.html', title='unique attendance', events=g.events)
+    return render_template('/admin/attendance.html', title='Unique Attendance', events=g.events)
 
 
 @Admin.route("/contactlist")

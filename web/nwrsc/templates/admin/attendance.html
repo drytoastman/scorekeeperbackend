@@ -1,4 +1,4 @@
-{% extends "common/base.html" %}
+{% extends "admin/bluebase.html" %}
 {% block headers %}
 {{super()}}
 <style type="text/css">
@@ -23,6 +23,8 @@ li > ul {
 {% endblock headers %}
 
 {% block content %}
+{{super()}}
+<div class='container'>
 <h2>{{title}}</h2>
 <ul>
 {% for event in events %}
@@ -36,4 +38,5 @@ li > ul {
     </li>
 {% endfor %}
 </ul>
+</div>
 {% endblock content %}
