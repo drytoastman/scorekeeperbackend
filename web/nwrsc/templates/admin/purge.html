@@ -1,0 +1,56 @@
+{% extends "admin/bluebase.html" %}
+{% block headers %}
+{{super()}}
+<style>
+ul {
+    list-style: none;
+    columns: 3;
+}
+li {
+    padding: 5px 0px; 
+}
+input[type=checkbox] {
+    vertical-align: middle;
+    transform: scale(1.5);
+}
+span {
+    padding: 0px 8px;
+}
+</style>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+
+<div class='container'>
+
+<h2>Purge Tool</h2>
+
+<p>
+This tool will remove cars that haven't been active.  You can select series and/or classes.
+Regardless of selection, drivers and cars active in this series will not be touched.
+For any class that you select, all of the car entries are removed,
+EXCEPT for those active in the current series. This is intended for major cleaning such as time only
+classes, generally at the beginning of the year.
+</p>
+
+<form action="{{url_for('.purge')}}" method='post'>
+Years
+<select>
+{% for ii in range(5) %}
+<option>{{ii+1}}</option>
+{% endfor %}
+</select>
+
+<ul>
+{% for code in classdata.classlist|sort %}
+<li><label><input type='checkbox' name='c-{{code}}'/>{{code}}</label></li>
+{% endfor %}
+</ul>
+
+<input class='btn btn-admin' type='submit' value='Purge'/>
+
+</form>
+</div>
+
+{% endblock content %}

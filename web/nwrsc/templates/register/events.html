@@ -128,7 +128,7 @@ var gItems = {{pitems|to_json|safe}};
         </div>
         {% for c in cars.values() %}
         <div class='row align-items-center'>
-        <input class="col-2" name="{{c.carid}}" type="checkbox" value="y"/>
+        <input class="col-2" name="{{c.carid}}" id="{{c.carid}}" type="checkbox" value="y"/>
         <label class="col-10" for="{{c.carid}}">{{rm.carDisplay(c)}}</label>
         </div>
         {% endfor %}
