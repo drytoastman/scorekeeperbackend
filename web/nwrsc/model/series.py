@@ -1,4 +1,5 @@
 import collections
+import datetime
 import logging
 import operator
 import re
@@ -89,4 +90,83 @@ class Series(object):
                 cur.execute("DROP SCHEMA {} CASCADE".format(g.series))
                 cur.execute("DROP USER {}".format(g.series))
             db.commit()
+
+
+    @classmethod
+    def archivedSeriesWithin(cls, historyyears):
+        allseries = Series.byYear()
+        activeseries = Series.active()
+        thisyear = datetime.date.today().year
+        ret = list()
+        for year, serieslist in allseries.items():
+            try:    seriesyear = int(year)
+            except: seriesyear = thisyear
+            ret.extend([s for s in serieslist if s not in activeseries and thisyear-seriesyear < historyyears])
+        return ret
+
+
+    @classmethod
+    def _updateActivityFromArchive(cls, store, key, years):
+        with g.db.cursor() as cur:
+            for series in Series.archivedSeriesWithin(years):
+                cur.execute("select data->'events' from results where name='info' and series=%s", (series,))
+                events = cur.fetchone()[0]
+                for e in events:
+                    cur.execute("select data from results where name=%s", (e['eventid'],))
+                    if cur.rowcount == 0:
+                        continue
+                    results = cur.fetchone()[0]
+                    for code, entries in results.items():
+                        for entrant in entries:
+                            val = entrant[key]
+                            if val in store:
+                                store[val] = max(ret[val], e['date'])
+
+
+    @classmethod
+    def getDriverActivity(cls):
+        """ Return a dict of driverid to most recent activity """
+        epoch = datetime.date(1970, 1, 1)
+        ret = collections.defaultdict(lambda: epoch)
+        with g.db.cursor() as cur:
+            # Look through the active series
+            for series in Series.active():
+                cur.execute("SET search_path=%s,'public'", (series,))
+                cur.execute("SELECT d.driverid, MAX(e.date) as runmax, MAX(e1.date) as regmax FROM drivers d LEFT JOIN cars c ON c.driverid=d.driverid " +
+                            "LEFT JOIN runs r on r.carid=c.carid LEFT JOIN events e ON r.eventid=e.eventid "+
+                            "LEFT JOIN registered r1 ON r1.carid=c.carid LEFT JOIN events e1 ON r1.eventid=e1.eventid GROUP BY d.driverid")
+
+                for r in cur.fetchall():
+                    ret[r['driverid']] = max(ret[r['driverid']], r['runmax'] or epoch, r['regmax'] or epoch)
+
+            # Any archived series that are less than 7 years old (need to search JSON data)
+            Series._updateActivityFromArchive(ret, 'driverid', 5)
+
+        return ret
+
+
+    @classmethod
+    def getCarActivity(cls):
+        """ Return a dict of carid to most recent activity of cars in the given series """
+        ret = dict()
+        epoch = datetime.date(1970, 1, 1)
+        with g.db.cursor() as cur:
+            # The current series
+            cur.execute("SET search_path=%s,'public'", (g.series,))
+            cur.execute("SELECT MAX(e.date),c.carid FROM cars c LEFT JOIN runs r ON r.carid=c.carid LEFT JOIN events e ON r.eventid=e.eventid GROUP BY c.carid")
+            for r in cur.fetchall():
+                ret[r['carid']] = r['max'] or epoch
+
+            # Any other active series
+            for series in Series.active():
+                cur.execute("SET search_path=%s,'public'", (series,))
+                cur.execute("SELECT MAX(e.date),c.carid FROM cars c LEFT JOIN runs r ON r.carid=c.carid LEFT JOIN events e ON r.eventid=e.eventid GROUP BY c.carid")
+                for r in cur.fetchall():
+                    if r['carid'] in ret:
+                        ret[r['carid']] = max(ret[r['carid']], r['max'] or epoch)
+
+            # Any archived series that are less than 7 years old (need to search JSON data)
+            Series._updateActivityFromArchive(ret, 'carid', 5)
+
+        return ret
 
