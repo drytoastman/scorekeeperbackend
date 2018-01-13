@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 import glob
 import io
 import json
@@ -441,4 +441,33 @@ def newseries():
         form.name.data = g.series
         form.copysettings.data = True
     return render_template('/admin/newseries.html', form=form)
+
+
+@Admin.route("/carpurge", methods=['GET', 'POST'])
+def carpurge():
+    thisyear = date.today().year
+    lastyear = thisyear - 7
+    if request.form:
+        count = 0
+        if 'purgeclass' in request.form:
+            data = dict(request.form)
+            data.pop('purgeclass', None)
+            count = Car.deleteByClass(tuple(data.keys()))
+
+        elif 'purgeyear' in request.form:
+            untilyear = int(request.form.get('year', lastyear))
+            for carid, activity in Series.getCarActivity(untilyear).items():
+                if activity.year < untilyear:
+                    try:  # Use constraints to stop us from deleteing in use cars
+                        Car.delete(carid)
+                        count += 1
+                    except Exception as e:
+                        g.db.rollback() 
+                        log.info("Not deleteing car {}: {}".format(carid, e))
+
+        flash("Deleted {} cars".format(count))
+        return redirect(url_for('.carpurge'))
+
+    classdata = ClassData.get()
+    return render_template('/admin/carpurge.html', classdata=classdata, years=range(thisyear, lastyear, -1))
 

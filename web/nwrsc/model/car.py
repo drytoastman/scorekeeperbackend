@@ -39,6 +39,15 @@ class Car(AttrBase):
             return cur.rowcount
 
     @classmethod
+    def deleteByClass(cls, codes):
+        with g.db.cursor() as cur:
+            cur.execute("DELETE FROM cars WHERE classcode IN %s AND carid NOT IN " + 
+                        "(SELECT carid FROM runs UNION SELECT carid FROM registered UNION SELECT carid FROM payments UNION SELECT carid FROM challengeruns)",
+                        (codes,))
+            g.db.commit()
+            return cur.rowcount
+
+    @classmethod
     def deleteWCheck(cls, carid, verifyid):
         with g.db.cursor() as cur:
             cur.execute("DELETE FROM cars WHERE carid=%s and driverid=%s", (carid, verifyid))

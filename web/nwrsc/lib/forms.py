@@ -265,7 +265,7 @@ class SeriesForm(MyFlaskForm):
     password     = MyPasswordField('Password',    [Length(min=4, max=12)])
     copysettings = BooleanField(   'Copy Settings')
     copyclasses  = BooleanField(   'Copy Classes/Indexes')
-    copycars     = BooleanField(   'Copy Copy Cars')
+    copycars     = BooleanField(   'Copy Cars')
     submit       = SubmitField(    'Create')
 
 class ArchiveForm(MyFlaskForm):

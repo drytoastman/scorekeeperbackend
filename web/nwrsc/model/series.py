@@ -93,7 +93,7 @@ class Series(object):
 
 
     @classmethod
-    def archivedSeriesWithin(cls, historyyears):
+    def archivedSeriesWithin(cls, untilyear):
         allseries = Series.byYear()
         activeseries = Series.active()
         thisyear = datetime.date.today().year
@@ -101,14 +101,14 @@ class Series(object):
         for year, serieslist in allseries.items():
             try:    seriesyear = int(year)
             except: seriesyear = thisyear
-            ret.extend([s for s in serieslist if s not in activeseries and thisyear-seriesyear < historyyears])
+            ret.extend([s for s in serieslist if s not in activeseries and seriesyear >= untilyear])
         return ret
 
 
     @classmethod
-    def _updateActivityFromArchive(cls, store, key, years):
+    def _updateActivityFromArchive(cls, store, key, untilyear):
         with g.db.cursor() as cur:
-            for series in Series.archivedSeriesWithin(years):
+            for series in Series.archivedSeriesWithin(untilyear):
                 cur.execute("select data->'events' from results where name='info' and series=%s", (series,))
                 events = cur.fetchone()[0]
                 for e in events:
@@ -124,7 +124,7 @@ class Series(object):
 
 
     @classmethod
-    def getDriverActivity(cls):
+    def getDriverActivity(cls, untilyear):
         """ Return a dict of driverid to most recent activity """
         epoch = datetime.date(1970, 1, 1)
         ret = collections.defaultdict(lambda: epoch)
@@ -139,14 +139,14 @@ class Series(object):
                 for r in cur.fetchall():
                     ret[r['driverid']] = max(ret[r['driverid']], r['runmax'] or epoch, r['regmax'] or epoch)
 
-            # Any archived series that are less than 7 years old (need to search JSON data)
-            Series._updateActivityFromArchive(ret, 'driverid', 5)
+            # Any archived series that are less than X years old (need to search JSON data)
+            Series._updateActivityFromArchive(ret, 'driverid', untilyear)
 
         return ret
 
 
     @classmethod
-    def getCarActivity(cls):
+    def getCarActivity(cls, untilyear):
         """ Return a dict of carid to most recent activity of cars in the given series """
         ret = dict()
         epoch = datetime.date(1970, 1, 1)
@@ -165,8 +165,8 @@ class Series(object):
                     if r['carid'] in ret:
                         ret[r['carid']] = max(ret[r['carid']], r['max'] or epoch)
 
-            # Any archived series that are less than 7 years old (need to search JSON data)
-            Series._updateActivityFromArchive(ret, 'carid', 5)
+            # Any archived series that are less than X years old (need to search JSON data)
+            Series._updateActivityFromArchive(ret, 'carid', untilyear)
 
         return ret
 
