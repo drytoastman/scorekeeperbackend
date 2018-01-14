@@ -355,7 +355,7 @@ def accounts():
     if sqappid:
         squareurl = 'https://connect.squareup.com/oauth2/authorize?client_id={}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE,ORDERS_WRITE,ITEMS_READ&state={}'.format(sqappid, g.series)
 
-    return render_template('/admin/paymentaccounts.html', accounts=accounts, items=items, squareurl=squareurl, ppacctform=ppacctform, itemform=itemform, ismainserver=current_app.config['IS_MAIN_SERVER'])
+    return render_template('/admin/paymentaccounts.html', accounts=accounts, items=items, squareurl=squareurl, ppacctform=ppacctform, itemform=itemform)
 
 
 @Admin.endpoint("Admin.squareoauth")

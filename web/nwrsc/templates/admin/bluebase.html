@@ -79,14 +79,16 @@ $(document).ready(function(){ shownavmenu('#navbarNav', '#seriesdropdownlink'); 
           </div>
         </li>
 
+        {% if g.mainserver %}
         <li id="advanceddropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="advanceddropdownlink" data-toggle="dropdown">Advanced</a>
           <div class="dropdown-menu">
             <a class='dropdown-item' href='{{url_for('.drivers')}}'>Driver/Car Editor</a>
-            <a class='dropdown-item' href='{{url_for('.carpurge')}}'>Car Purge Tool</a>
+            <a class='dropdown-item' href='{{url_for('.purge')}}'>Purge Tool</a>
             <a class='dropdown-item' href='{{url_for('.archive')}}'>Archive Series</a>
           </div>
         </li>
+        {% endif %}
 
         {% endif %}
 

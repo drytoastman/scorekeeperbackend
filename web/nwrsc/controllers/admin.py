@@ -17,6 +17,7 @@ from nwrsc.lib.encoding import csv_encode, json_encode
 from nwrsc.lib.forms import *
 from nwrsc.lib.misc import *
 from nwrsc.model import *
+from nwrsc.model.superauth import SuperAuth
 
 log      = logging.getLogger(__name__)
 ADMINKEY = 'admin'
@@ -74,12 +75,17 @@ def setup():
     g.title = 'Scorekeeper Admin'
     g.activeseries = Series.active()
     authendpoints = ('Admin.login', 'Admin.slogin')
+    mainserverendpoints = ('Admin.drivers', 'Admin.purge', 'Admin.archive')
 
     if request.endpoint == 'Admin.squareoauth': # special URL without g.series
         return
 
     if not g.series:
         return render_template('/admin/bluebase.html')
+
+    g.mainserver = True #current_app.config['IS_MAIN_SERVER']
+    if not g.mainserver and request.endpoint in mainserverendpoints:
+        return "This is not available off of the main server"
 
     g.superauth = isSuperAuth()
     if not g.superauth and not isAuth(g.series) and request.endpoint not in authendpoints:
@@ -315,7 +321,7 @@ def archive():
         except Exception as e:
             flash("Unable to delete series: {}".format(e))
 
-    return render_template("/admin/archive.html", form=form, ismainserver=current_app.config['IS_MAIN_SERVER'])
+    return render_template("/admin/archive.html", form=form)
 
 
 @Admin.route("/seriesattend")
@@ -443,8 +449,8 @@ def newseries():
     return render_template('/admin/newseries.html', form=form)
 
 
-@Admin.route("/carpurge", methods=['GET', 'POST'])
-def carpurge():
+@Admin.route("/purge", methods=['GET', 'POST'])
+def purge():
     thisyear = date.today().year
     lastyear = thisyear - 7
     if request.form:
@@ -466,8 +472,28 @@ def carpurge():
                         log.info("Not deleteing car {}: {}".format(carid, e))
 
         flash("Deleted {} cars".format(count))
-        return redirect(url_for('.carpurge'))
+        return redirect(url_for('.purge'))
 
     classdata = ClassData.get()
-    return render_template('/admin/carpurge.html', classdata=classdata, years=range(thisyear, lastyear, -1))
+    return render_template('/admin/purge.html', superauth=g.superauth, classdata=classdata, years=range(thisyear, lastyear, -1))
+
+
+@Admin.route("/purgedriver", methods=['POST'])
+def purgedriver():
+    if not g.superauth:
+        flash("Driver purge is only available with SuperAuth")
+        return redirect(url_for('.purge'))
+
+    untilyear = int(request.form.get('year', date.today().year - 7))
+    count = 0
+    for driverid, activity in Series.getDriverActivity(untilyear).items():
+        if activity.year < untilyear:
+            try:  # Use constraints to stop us from deleteing in use drivers
+                SuperAuth.deleteDriver(driverid)
+                count += 1
+            except Exception as e:
+                g.db.rollback() 
+                log.info("Not deleteing driver {}: {}".format(driverid, e))
+    flash("Deleted {} drivers".format(count))
+    return redirect(url_for('.purge'))
 

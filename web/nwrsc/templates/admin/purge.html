@@ -1,0 +1,100 @@
+{% extends "admin/bluebase.html" %}
+{% block headers %}
+{{super()}}
+<style>
+ul.columns {
+    list-style: none;
+    column-width: 10rem;
+    column-gap: 0;
+    padding: 0;
+    margin: 0.2rem 0;
+}
+ul.columns li {
+    padding: 4px 0px;
+}
+label {
+    font-weight: normal !important;
+}
+input[type=checkbox] {
+    vertical-align: middle;
+    margin-right: 0.5rem;
+    height: 1.2rem;
+    width: 1.2rem;
+    -moz-transform: scale(1.2);
+}
+input[type=submit] {
+    display: block;
+    width: 12rem;
+}
+select {
+    font-size: 1.0rem;
+    padding: 1px;
+    margin: 1px;
+}
+h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.3rem;
+}
+p {
+    margin-bottom: 0.3rem;
+}
+
+</style>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+
+<div class='container'>
+
+<h3>Purge Tool</h3>
+<p>This tool will remove entire groups of cars or drivers, either by class name or most recent activity.</p>
+
+
+<h4>Purge Cars by Class</h4>
+<form action="{{url_for('.purge')}}" method='post'>
+<p>Remove cars from the selected classes.  Cars with activity in the current series will not be removed</p>
+<ul class='columns'>
+{% for code in classdata.classlist|sort %}
+<li><label><input type='checkbox' name='{{code}}'/>{{code}}</label></li>
+{% endfor %}
+</ul>
+<input class='btn btn-admin' type='submit' name='purgeclass' value='Purge Cars By Class'/>
+</form>
+
+
+<h4>Purge Cars by Year</h4>
+<form action="{{url_for('.purge')}}" method='post'>
+<p>
+Remove cars from the current series that don't have activity in this or any other series up to a given year.
+Activity searches are done based on the car id. Search for cars without activity back to and including 
+<select name="year">
+{% for year in years %}
+<option>{{year}}</option>
+{% endfor %}
+</select>
+</p>
+<input class='btn btn-admin' type='submit' name='purgeyear' value='Purge Cars By Year'/>
+</form>
+
+
+<h4>Purge Drivers by Year</h4>
+{% if g.superauth %}
+<form action="{{url_for('.purgedriver')}}" method='post'>
+<p>
+Search for and remove drivers without activity back to and including 
+<select name="year">
+{% for year in years %}
+<option>{{year}}</option>
+{% endfor %}
+</select>
+</p>
+<input class='btn btn-admin' type='submit' name='purgeyear' value='Purge Drivers By Year'/>
+</form>
+{% else %}
+To run the purge driver tool you must <a href='{{url_for('.slogin')}}'>get SuperAuth</a>.
+{% endif %}
+
+</div>
+<br/>
+{% endblock content %}

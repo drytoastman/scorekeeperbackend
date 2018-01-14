@@ -70,7 +70,7 @@ $(document).ready(function(){
 {% endfor %}
 </table>
 
-{% if ismainserver %}
+{% if g.mainserver %}
 <button class='btn btn-admin' {{ not squareurl and "disabled" or "" }} onclick="location.href='{{squareurl}}'">Setup/Update A Square Location</button>
 <button class='btn btn-outline-admin' data-toggle='modal' data-target='#paypalmodal'>Add Paypal App</button>
 {% else %}
