@@ -2,9 +2,6 @@
 {% block headers %}
 {{super()}}
 <style type="text/css">
-body {
-    font-family: sans-serif;
-}
 ul {
     list-style: none;
 }
@@ -12,7 +9,7 @@ li > ul {
     columns: 3;
 }
 .ename, .count {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: bold;
 }
 .name {
@@ -25,12 +22,12 @@ li > ul {
 {% block content %}
 {{super()}}
 <div class='container'>
-<h2>{{title}}</h2>
+<h3>{{title}}</h3>
 <ul>
 {% for event in events %}
     <li><span class='ename'>{{event.name}}</span> 
     {% if event.date %}- <span class='edate'>{{event.date.strftime('%a %b %d, %Y')}}</span>{% endif %}
-    (<span class='count'>{{event.drivers|length}}</span>)<ul>
+    - <span class='count'>{{event.drivers|length}}</span><ul>
     {% for driver in event.drivers -%}
         <li><span class='name'>{{driver.lastname.title()}}, {{driver.firstname.title()}}</span> - <span class='membership'>{{driver.membership}}</span></li>
     {% endfor %}

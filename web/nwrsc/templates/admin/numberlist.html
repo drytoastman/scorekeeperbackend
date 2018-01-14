@@ -9,7 +9,7 @@ li > ul { columns: 3; }
 {% block content %}
 {{ super() }}
 <div class='container'>
-<h2>Used Number List</h2>
+<h3>Used Number List</h3>
 <ul>
 {% for code,subdict in numbers|dictsort %}
 	<li>{{code}}<ul>
