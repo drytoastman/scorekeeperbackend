@@ -134,7 +134,9 @@ def login():
 @Admin.endpoint("Admin.base")
 @Admin.route("/")
 def index():
-    return render_template('/admin/status.html')
+    for e in g.events:
+        e.registration = Registration.getForEvent(e.eventid, e.paymentRequired())
+    return render_template('/admin/status.html', today=datetime.date.today())
 
 @Admin.route("/event/<uuid:eventid>/")
 def event():

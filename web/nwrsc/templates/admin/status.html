@@ -1,7 +1,50 @@
 {% extends "admin/bluebase.html" %}
+{% block headers %}
+{{super()}}
+<style>
+div.event { margin-left: 1rem; margin-bottom: 0.7rem; }
+div.info { margin-left: 2rem; font-family: FreeMono, monospace; }
+.event > .title { font-size: 1.1rem; font-weight: bold; }
+.open, .closed { font-weight: bold; font-size: 1.1rem; }
+.open { color: green; }
+.closed { color: red; }
+</style>
+{% endblock headers %}
+
 {% block content %}
 {{super()}}
 <div class='container'>
-Put series status here someday
+<h4>Upcoming Events in {{g.series}}</h4>
+{% for e in g.events %}
+{% if e.date >= today %}
+
+<div class='event'>
+    <span class='title'>{{e.name}}</span> - {{e.date.strftime("%a %b %d")}}
+
+    <div class='info'>
+    {% if not e.hasOpened() %}
+    &nbsp;Opens - {{e.regopened|timeprint("%a %b %d %I:%M %p %Z")}}
+    {% elif e.isOpen() %}
+    <span class='open'>Open</span>
+    {% endif %}
+    </div>
+
+    <div class='info'>
+    {% if not e.hasClosed() %}
+    Closes - {{e.regclosed|timeprint("%a %b %d %I:%M %p %Z")}}
+    {% else %}
+    <span class='closed'>Closed</span>
+    {% endif %}
+    </div>
+
+    <div class='info'>
+    {% if e.hasOpened() %}
+    {{e.registration|length}} Entries
+    {% endif %}
+    </div>
+</div>
+
+{% endif %}
+{% endfor %}
 </div>
 {% endblock %}
