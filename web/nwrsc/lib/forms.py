@@ -1,8 +1,10 @@
+import datetime
 from functools import partial
 import logging
 from operator import attrgetter
+import pytz
 
-from flask import request, flash, url_for
+from flask import current_app, flash, request, url_for
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, DateField, DateTimeField, FieldList, FloatField, Form, FormField, HiddenField, PasswordField, SelectField, StringField, SubmitField, TextAreaField
 from wtforms.fields.html5 import EmailField, IntegerField, URLField
@@ -39,6 +41,25 @@ class MyEmailField(EmailField):
     def __call__(self, **kwargs):
         kwargs.setdefault('required', 1)
         return EmailField.__call__(self, **kwargs)
+
+class TZDateTimeField(DateTimeField):
+    def _value(self):
+        if self.raw_data:
+            return ' '.join(self.raw_data)
+        else:
+            tz = pytz.timezone(current_app.config['UI_TIME_ZONE'])
+            return self.data and self.data.astimezone(datetime.timezone.utc).astimezone(tz).strftime(self.format) or ''
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            date_str = ' '.join(valuelist)
+            try:
+                tz = pytz.timezone(current_app.config['UI_TIME_ZONE'])
+                self.data = tz.localize(datetime.datetime.strptime(date_str, self.format)).astimezone(datetime.timezone.utc)
+            except ValueError:
+                self.data = None
+                raise ValueError(self.gettext('Not a valid datetime value'))
+
 
 class BlankSelectField(SelectField):
 
@@ -238,8 +259,8 @@ class EventSettingsForm(MyFlaskForm):
     eventid       = HiddenField(  'eventid')
     name          = MyStringField('Event Name',  [Length(min=4, max=32)])
     date          = DateField(    'Event Date',             render_kw={'title':'The date of the event'})  
-    regopened     = DateTimeField('Registration Opens',     render_kw={'title':'When registration should open'}, format='%Y-%m-%d %H:%M')
-    regclosed     = DateTimeField('Registration Closes',    render_kw={'title':'When registration should close'}, format='%Y-%m-%d %H:%M')
+    regopened     = TZDateTimeField('Registration Opens',   render_kw={'title':'When registration should open'}, format='%Y-%m-%d %H:%M')
+    regclosed     = TZDateTimeField('Registration Closes',  render_kw={'title':'When registration should close'}, format='%Y-%m-%d %H:%M')
     perlimit      = IntegerField( 'Per Driver Entry Limit', render_kw={'title':'Limit to the number of entries a single driver can register (0=nolimit)'})
     totlimit      = IntegerField( 'Total Entry Limit',      render_kw={'title':'The total limit for all registrations for the event (0=nolimit)'})
     accountid     = BlankSelectField('Payment Account')

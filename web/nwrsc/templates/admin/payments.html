@@ -29,7 +29,7 @@ $(document).ready(function(){
             { data: 'txtype',   defaultContent: '' },
             { data: 'refid',    defaultContent: '' },
             { data: 'txid',     defaultContent: '' },
-            { data: 'txtime',   defaultContent: '', render: function (s) { return new Date(s).toLocaleString(); } },
+            { data: 'txtime',   defaultContent: '' },
             { data: 'itemname', defaultContent: ''},
             { data: 'amount',   defaultContent: '', render: $.fn.dataTable.render.number( ',', '.', 2, '$' ) }
         ],

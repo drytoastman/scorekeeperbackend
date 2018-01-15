@@ -8,13 +8,12 @@ import paypalrestsdk
 import squareconnect
 import time
 import uuid
-import pytz
 
 from flask import current_app, flash, g, redirect, render_template, request, url_for
 
 from .admin import isAuth, isSuperAuth
 from .blueprints import *
-from ..lib.encoding import json_encode
+from ..lib.encoding import json_encode, time_print
 from ..lib.forms import formIntoAttrBase, PayPalAccountForm, PaymentItemForm
 from ..lib.misc import *
 from ..model import *
@@ -255,7 +254,7 @@ def payments():
 def paymentlist():
     payments = Payment.getAll()
     for p in payments:
-        p.txtime = p.txtime.astimezone(datetime.timezone.utc).astimezone(pytz.timezone('US/Pacific')).replace(tzinfo=None, microsecond=0)
+        p.txtime = time_print(p.txtime, '%Y-%m-%d %H:%M %Z') 
     return json_encode(payments)
 
 @Admin.route("/delaccount", methods=['POST'])

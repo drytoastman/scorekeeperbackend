@@ -13,7 +13,7 @@ import uuid
 from flask import current_app, escape, flash, g, redirect, request, render_template, Response, send_from_directory, session, url_for
 
 from nwrsc.controllers.blueprints import *
-from nwrsc.lib.encoding import csv_encode, json_encode
+from nwrsc.lib.encoding import csv_encode, json_encode, time_print 
 from nwrsc.lib.forms import *
 from nwrsc.lib.misc import *
 from nwrsc.model import *
@@ -364,13 +364,15 @@ def entryadmin():
 def registered():
     ret = Registration.getForEvent(g.eventid)
     for r in ret:
+        r.regmodified = time_print(r.regmodified, '%Y-%m-%d %H:%M %Z') 
         r.cdesc = ' '.join(filter(None, [r.cattr.get(k, None) for k in ('year', 'make', 'model', 'color')]))
     return json_encode(list(ret))
 
 @Admin.route("/event/<uuid:eventid>/delreg", methods=['POST'])
 def delreg():
     carid = uuid.UUID(request.form.get('carid', None))
-    Registration.delete(g.eventid, carid)
+    if not Registration.delete(g.eventid, carid):
+        return "Delete Failed", 403
     return ""
 
 @Admin.route("/event/<uuid:eventid>/rungroups", methods=['GET', 'POST'])

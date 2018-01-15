@@ -1,10 +1,17 @@
 
 import csv
+import datetime
 import re
 import json
 import icalendar
 import io
-from flask import escape, make_response
+from flask import current_app, escape, make_response
+import pytz
+
+def time_print(pgdt, fmt):
+    """ Collect local time zone based printing in one place, expects one of our timezoneless UTC based times from postgres """
+    tz = pytz.timezone(current_app.config['UI_TIME_ZONE'])
+    return pgdt.astimezone(datetime.timezone.utc).astimezone(tz).strftime(fmt)
 
 def xml_encode(data, wrapper=None):
     response = make_response(XMLEncoder().encode(data, wrapper))

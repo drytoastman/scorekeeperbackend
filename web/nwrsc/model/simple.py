@@ -174,6 +174,13 @@ class Registration(AttrBase):
     def getForSeries(cls, series, driverid):
         return cls.getall("SELECT c.*,e.eventid,e.date,e.name FROM {}.registered r JOIN {}.cars c ON r.carid=c.carid JOIN {}.events e ON e.eventid=r.eventid WHERE c.driverid=%s ORDER BY e.date".format(series,series,series), (driverid,))
 
+    @classmethod
+    def delete(cls, eventid, carid):
+        with g.db.cursor() as cur:
+            cur.execute("DELETE FROM registered WHERE eventid=%s and carid=%s", (eventid, carid))
+            g.db.commit()
+            return cur.rowcount > 0
+
 
 class Run(AttrBase):
 

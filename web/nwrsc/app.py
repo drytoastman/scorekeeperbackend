@@ -20,7 +20,7 @@ from werkzeug.contrib.profiler import ProfilerMiddleware
 
 
 from .controllers import *
-from .lib.encoding import to_json
+from .lib.encoding import time_print, to_json
 from .lib.misc import *
 from .model import AttrBase, Series, Settings
 
@@ -98,6 +98,7 @@ def create_app():
         "SQ_APPLICATION_ID":               os.environ.get('SQ_APPLICATION_ID', None),
         "SQ_APPLICATION_SECRET":           os.environ.get('SQ_APPLICATION_SECRET', None),
         "IS_MAIN_SERVER":         any2bool(os.environ.get('IS_MAIN_SERVER', False)),
+        "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE', 'US/Pacific'),
         "LOGGER_HANDLER_POLICY":  "None",
     })
     theapp.config['TEMPLATES_AUTO_RELOAD'] = theapp.config['DEBUG']
@@ -191,6 +192,7 @@ def create_app():
 
 
     #### Jinja 
+    theapp.jinja_env.filters['timeprint'] = time_print
     theapp.jinja_env.filters['t3'] = t3
     theapp.jinja_env.filters['d2'] = d2
     theapp.jinja_env.filters['msort'] = msort

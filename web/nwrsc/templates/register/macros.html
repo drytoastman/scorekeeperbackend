@@ -61,9 +61,9 @@
 
     <dl>
     {%- if not ev.hasOpened() %}
-    <dt>Opens</dt><dd>{{ev.regopened.strftime('%b %d at %I:%M%p')}}</dd>
+    <dt>Opens</dt><dd>{{ev.regopened|timeprint('%b %d %I:%M %p %Z')}}</dd>
     {%- endif %}
-    <dt>{{ev.hasClosed() and "Closed" or "Closes"}}</dt><dd>{{ev.regclosed.strftime('%b %d %I:%M %p')}}</dd>
+    <dt>{{ev.hasClosed() and "Closed" or "Closes"}}</dt><dd>{{ev.regclosed|timeprint('%b %d %I:%M %p %Z')}}</dd>
 
     {%- for k, v in ev.attr.items() -%}
     {%- if k not in ('paymentreq', 'notes') and v %}
