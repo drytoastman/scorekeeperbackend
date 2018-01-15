@@ -81,7 +81,8 @@ New accounts can only be added on main server as authentication tokens are only 
 
 </div>
 
-{{m.modal('paypalmodal', 'Add PayPayl App', ppacctform.html('paypalform', url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
+{{m.modal('paypalmodal', 'Add PayPayl App', '<p>This for PayPal apps, not account email or password</p>' + 
+                                            ppacctform.html('paypalform', url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
 {{m.modal('itemmodal',   'Add Item',        itemform.html(  'itemform',   url_for('.accounts'), 'post', 'btn-admin', 'col-md-4', 'col-md-7'))}}
 
 {% endblock content %}
