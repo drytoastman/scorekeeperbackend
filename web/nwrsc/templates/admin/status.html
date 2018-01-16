@@ -19,7 +19,7 @@ div.info { margin-left: 2rem; font-family: FreeMono, monospace; }
 {% if e.date >= today %}
 
 <div class='event'>
-    <span class='title'>{{e.name}}</span> - {{e.date.strftime("%a %b %d")}}
+    <span class='title'>{{e.name}}</span> - {{e.attr.location}} - {{e.date.strftime("%a %b %d")}}
 
     <div class='info'>
     {% if not e.hasOpened() %}
