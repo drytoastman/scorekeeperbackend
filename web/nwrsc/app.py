@@ -4,7 +4,6 @@ import os
 import logging
 import re
 import sys
-import threading
 import time
 from traceback import format_tb
 
@@ -115,6 +114,7 @@ def create_app():
     theapp.register_blueprint(Results,   url_prefix="/results/<series>")
     theapp.register_blueprint(Xml,       url_prefix="/xml/<series>")
     theapp.add_url_rule('/admin/squareoauth', "Admin.squareoauth")
+    theapp.add_url_rule('/admin/cron',   "Admin.cron")
     theapp.add_url_rule('/admin/',       "Admin.base")
     theapp.add_url_rule('/results/',     "Results.base")
 
@@ -146,7 +146,8 @@ def create_app():
 
     @theapp.after_request
     def logrequest(response):
-        log.info("%s %s?%s %s %s (%s)" % (request.method, request.path, request.query_string, response.status_code, response.content_length, response.content_encoding))
+        if request.remote_addr != '127.0.0.1':
+            log.info("%s %s?%s %s %s (%s)" % (request.method, request.path, request.query_string, response.status_code, response.content_length, response.content_encoding))
         return response
 
 

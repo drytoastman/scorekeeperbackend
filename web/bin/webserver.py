@@ -5,8 +5,11 @@ from cheroot.workers import threadpool
 import logging
 import nwrsc.app 
 import os
+import requests
 import signal
 import sys
+import threading
+import time
 
 server = None
 
@@ -27,6 +30,16 @@ def patchinit(orig):
 def justdie(self, timeout=None):
     return
 
+class CronThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.daemon = True
+
+    def run(self):
+        while True:
+            time.sleep(3600) # Sleep an hour
+            requests.get('http://localhost/admin/cron')
+
 if __name__ == '__main__':
     pidfile = os.path.expanduser('~/nwrscwebserver.pid')
     signal.signal(signal.SIGABRT, removepid)
@@ -37,6 +50,7 @@ if __name__ == '__main__':
 
     level = getattr(logging, os.environ.get('LOG_LEVEL', 'INFO'), logging.INFO)
     debug = bool(os.environ.get('DEBUG', False))
+    cron  = bool(os.environ.get('DOCRON', False))
     port  = int(os.environ.get('PORT', 80))
 
     nwrsc.app.logging_setup(level, debug)
@@ -44,6 +58,9 @@ if __name__ == '__main__':
     nwrsc.app.model_setup(theapp)
 
     print("webserver INFO: starting server", file=sys.stderr)
+    if cron:
+       CronThread().start()
+
     if theapp.debug:
         theapp.run(host='0.0.0.0', port=port, threaded=True)
     else:

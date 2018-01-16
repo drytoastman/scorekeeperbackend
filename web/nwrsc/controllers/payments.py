@@ -9,7 +9,7 @@ import squareconnect
 import time
 import uuid
 
-from flask import current_app, flash, g, redirect, render_template, request, url_for
+from flask import abort, current_app, flash, g, redirect, render_template, request, url_for
 
 from .admin import isAuth, isSuperAuth
 from .blueprints import *
@@ -357,6 +357,44 @@ def accounts():
     return render_template('/admin/paymentaccounts.html', accounts=accounts, items=items, squareurl=squareurl, ppacctform=ppacctform, itemform=itemform)
 
 
+@Admin.endpoint("Admin.cron")
+def cron():
+    if request.remote_addr != '127.0.0.1':
+        abort(404)
+
+    log.info("Payments cron")
+    with g.db.cursor() as cur:
+        for s in Series.active():
+            cur.execute("SET search_path=%s,'public'; commit; begin", (s,))
+            for p in PaymentAccount.getAll():
+                if 'expires' not in p.attr:
+                    continue
+                if p.type != 'square':  # Only do square renewals right now
+                    continue
+                expiresin = (dateutil.parser.parse(p.attr['expires']).replace(tzinfo=None) - datetime.datetime.now()).total_seconds()
+                if expiresin > 10800: # More than 3 hours to expiry, ignore it
+                    continue
+
+                try:
+                    log.info("{} {} expires in {} seconds, renewing".format(s, p.accountid, expiresin))
+                    response = square_oauth_renewtoken(p.secret)
+                    p.attr['expires'] = str(dateutil.parser.parse(response['expires_at']))
+                    p.update()
+
+                    s = PaymentSecret()
+                    s.accountid = p.accountid
+                    s.secret    = response['access_token']
+                    s.upsert()
+
+                except Exception as e:
+                    log.warning("{} - {} renewal failure: {}".format(s, p.accountid, e))
+                    if expiresin < 0:
+                        log.warning("Removing payment account as renewal failed too many times")
+                        PaymentAccount.delete(p.accountid)
+
+    return ""
+
+
 @Admin.endpoint("Admin.squareoauth")
 def squareoauth():
     """ Special endpoint out of the normal URL pattern space as it has to be statically set in the Square control panel """
@@ -452,6 +490,32 @@ def square_oauth_gettoken(authorization_code):
     response = json.loads(connection.getresponse().read())
     if not response.get('access_token', ''):
         raise Exception('Code exchange failed: ' + str(response))
+
+    return response
+
+
+def square_oauth_renewtoken(token):
+    """ Perform the second half of the oauth process, why is this not in their SDK? """
+    appid     = current_app.config.get('SQ_APPLICATION_ID', '')
+    appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
+    if not appid or not appsecret:
+        raise Exception('There is no square applcation setup in the local configuration')
+
+    oauth_headers = {
+      'Authorization': 'Client '+appsecret,
+      'Accept':        'application/json',
+      'Content-Type':  'application/json'
+    }
+
+    oauth_request = {
+      'access_token': token,
+    }
+
+    connection = http.client.HTTPSConnection('connect.squareup.com')
+    connection.request('POST', '/oauth2/clients/'+appid+'/access-token/renew', json.dumps(oauth_request), oauth_headers)
+    response = json.loads(connection.getresponse().read())
+    if not response.get('access_token', ''):
+        raise Exception('Code renewal failed: ' + str(response))
 
     return response
 

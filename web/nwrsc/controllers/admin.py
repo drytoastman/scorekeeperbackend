@@ -74,10 +74,11 @@ def setup():
     """ Every page underneath here requires a password """
     g.title = 'Scorekeeper Admin'
     g.activeseries = Series.active()
+    outsideendpoints = ('Admin.cron', 'Admin.squareoauth')
     authendpoints = ('Admin.login', 'Admin.slogin')
     mainserverendpoints = ('Admin.drivers', 'Admin.purge', 'Admin.archive')
 
-    if request.endpoint == 'Admin.squareoauth': # special URL without g.series
+    if request.endpoint in outsideendpoints: # special URL without g.series
         return
 
     if not g.series:
