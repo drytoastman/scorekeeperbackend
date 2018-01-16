@@ -374,7 +374,7 @@ def registered():
 @Admin.route("/event/<uuid:eventid>/delreg", methods=['POST'])
 def delreg():
     carid = uuid.UUID(request.form.get('carid', None))
-    if not Registration.delete(g.eventid, carid):
+    if not Registration.deleteById(g.eventid, carid):
         return "Delete Failed", 403
     return ""
 
@@ -470,7 +470,7 @@ def purge():
             for carid, activity in Series.getCarActivity(untilyear).items():
                 if activity.year < untilyear:
                     try:  # Use constraints to stop us from deleteing in use cars
-                        Car.delete(carid)
+                        Car.deleteById(carid)
                         count += 1
                     except Exception as e:
                         g.db.rollback() 

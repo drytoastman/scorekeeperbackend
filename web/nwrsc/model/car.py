@@ -32,7 +32,7 @@ class Car(AttrBase):
         self.activity = Car.getval("SELECT COUNT(ids) FROM (SELECT distinct(eventid) FROM registered WHERE carid=%s UNION SELECT distinct(eventid) FROM runs WHERE carid=%s) AS ids ", (self.carid, self.carid))
 
     @classmethod
-    def delete(cls, carid):
+    def deleteById(cls, carid):
         with g.db.cursor() as cur:
             cur.execute("DELETE FROM cars WHERE carid=%s", (carid,))
             g.db.commit()

@@ -46,12 +46,12 @@ def deleteitem():
     try:
         if 'carid' in request.form:
             carid = uuid.UUID(request.form['carid'])
-            ret = g.superauth and SuperAuth.deleteCar(request.form['series'], carid) or Car.delete(carid)
+            ret = g.superauth and SuperAuth.deleteCar(request.form['series'], carid) or Car.deleteById(carid)
             if ret <= 0:
                 raise Exception("Delete returned < 1 rows (%s)", ret)
         elif 'driverid' in request.form:
             driverid = uuid.UUID(request.form['driverid'])
-            ret = g.superauth and SuperAuth.deleteDriver(driverid) or Driver.delete(driverid)
+            ret = g.superauth and SuperAuth.deleteDriver(driverid) or Driver.deleteById(driverid)
             if ret != 1:
                 raise Exception("Delete returned %s not 1", ret)
         else:

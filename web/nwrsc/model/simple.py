@@ -101,7 +101,7 @@ class PaymentAccount(AttrBase):
         return cls.getunique("select p.*,s.secret from paymentaccounts p LEFT JOIN paymentsecrets s ON s.accountid=p.accountid where p.accountid=%s", (accountid, ))
 
     @classmethod
-    def delete(cls, accountid):
+    def deleteById(cls, accountid):
         with g.db.cursor() as cur:
             cur.execute("delete from paymentsecrets  where accountid=%s", (accountid, ))
             cur.execute("delete from paymentitems    where accountid=%s", (accountid, ))
@@ -121,7 +121,7 @@ class PaymentItem(AttrBase):
         return cls.getall("SELECT * FROM paymentitems where accountid=%s", (accountid,))
 
     @classmethod
-    def delete(cls, itemid):
+    def deleteById(cls, itemid):
         with g.db.cursor() as cur:
             cur.execute("delete from paymentitems where itemid=%s", (itemid, ))
             g.db.commit()
@@ -175,7 +175,7 @@ class Registration(AttrBase):
         return cls.getall("SELECT c.*,e.eventid,e.date,e.name FROM {}.registered r JOIN {}.cars c ON r.carid=c.carid JOIN {}.events e ON e.eventid=r.eventid WHERE c.driverid=%s ORDER BY e.date".format(series,series,series), (driverid,))
 
     @classmethod
-    def delete(cls, eventid, carid):
+    def deleteById(cls, eventid, carid):
         with g.db.cursor() as cur:
             cur.execute("DELETE FROM registered WHERE eventid=%s and carid=%s", (eventid, carid))
             g.db.commit()

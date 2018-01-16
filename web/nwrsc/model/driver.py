@@ -47,7 +47,7 @@ class Driver(AttrBase):
             g.db.commit()
 
     @classmethod
-    def delete(cls, driverid):
+    def deleteById(cls, driverid):
         with g.db.cursor() as cur:
             cur.execute("DELETE FROM cars WHERE driverid=%s", (driverid,))
             cur.execute("DELETE FROM drivers WHERE driverid=%s", (driverid,))

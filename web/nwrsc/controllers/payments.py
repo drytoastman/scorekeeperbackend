@@ -261,7 +261,7 @@ def paymentlist():
 def delaccount():
     log.debug("Delete " + request.form['accountid'])
     try:
-        PaymentAccount.delete(request.form['accountid'])
+        PaymentAccount.deleteById(request.form['accountid'])
     except Exception as e:
         log.warning("Delete account error", exc_info=e)
         return json_encode({'error': str(e)})
@@ -270,7 +270,7 @@ def delaccount():
 @Admin.route("/delitem", methods=['POST'])
 def delitem():
     try:
-        PaymentItem.delete(request.form['itemid'])
+        PaymentItem.deleteById(request.form['itemid'])
     except Exception as e:
         log.warning("Delete item error", exc_info=e)
         return json_encode({'error': str(e)})
@@ -390,7 +390,7 @@ def cron():
                     log.warning("{} - {} renewal failure: {}".format(s, p.accountid, e))
                     if expiresin < 0:
                         log.warning("Removing payment account as renewal failed too many times")
-                        PaymentAccount.delete(p.accountid)
+                        PaymentAccount.deleteById(p.accountid)
 
     return ""
 

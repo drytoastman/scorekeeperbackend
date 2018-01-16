@@ -12,7 +12,7 @@ class Event(AttrBase):
     TABLENAME = "events"
 
     def delete(self):
-        """ delete registrations and the event itself, if there are runs or other references, it will throw an IntegrityError """
+        """ Override base to delete registrations and the event itself, if there are runs or other references, it will throw an IntegrityError """
         with g.db.cursor() as cur:
             cur.execute("delete from registered where eventid=%s", (self.eventid,))
             cur.execute("delete from events where eventid=%s", (self.eventid,))
