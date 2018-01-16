@@ -230,7 +230,7 @@ def usednumbers():
     if classcode is None:
         return "missing data in request"
     superuniquenumbers = Settings.get("superuniquenumbers")
-    return json_encode(sorted(list(Car.usedNumbers(g.driver.driverid, classcode, superuniquenumbers=superuniquenumbers))))
+    return json_encode(sorted(list(Car.usedNumbers(g.driver.driverid, classcode, superuniquenumbers))))
 
 
 @Register.route("/logout")
