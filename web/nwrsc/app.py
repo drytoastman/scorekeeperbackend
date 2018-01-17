@@ -263,23 +263,25 @@ class ReverseProxied(object):
         return self.app(environ, start_response)
 
 
-def logging_setup(level=logging.INFO, debug=False):
+def logging_setup(level=logging.INFO, debug=False, filename='/var/log/scweb.log'):
     fmt  = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S')
     root = logging.getLogger()
     root.setLevel(level)
     root.handlers = []
 
-    fhandler = logging.handlers.RotatingFileHandler('/var/log/scweb.log', maxBytes=1000000, backupCount=10)
-    fhandler.setFormatter(fmt)
-    fhandler.setLevel(level)
-    root.addHandler(fhandler)
-    logging.getLogger('werkzeug').setLevel(logging.WARN)
+    if filename:
+        fhandler = logging.handlers.RotatingFileHandler('/var/log/scweb.log', maxBytes=1000000, backupCount=10)
+        fhandler.setFormatter(fmt)
+        fhandler.setLevel(level)
+        root.addHandler(fhandler)
 
     if debug:
         shandler = logging.StreamHandler()
         shandler.setFormatter(fmt)
         shandler.setLevel(level)
         root.addHandler(shandler)
+
+    logging.getLogger('werkzeug').setLevel(logging.WARN)
 
 
 def model_setup(app):
