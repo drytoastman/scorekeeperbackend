@@ -30,7 +30,7 @@ def database(request):
 
 
 @pytest.fixture(scope="session")
-def webapp(): #database):
+def webapp(database):
     nwrsc.app.logging_setup(logging.DEBUG, True, None)
     theapp = nwrsc.app.create_app()
     theapp.config['DBHOST'] = HOST
