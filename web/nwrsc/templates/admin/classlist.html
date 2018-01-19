@@ -25,10 +25,9 @@ $(document).ready(function(){
 <td class='clsindexcol'>{{field['indexcode']}}</td>
 <td class='multcol'>{{field['classmultiplier']}}</td>
 <td class='flagcol'>{{field['usecarflag']}}</td>
-<td>{{field['caridxrestrict']}}</td>
+<td>{{field['caridxrestrict'](title=m.restrictformat(g.classdata, field.classcode.data))}}</td>
 <td class='limitcol'>{{field['countedruns']}}</td>
 <td><button class="btn btn-outline-admin small deleterow">Del</button></td>
-<td></td>
 </tr>
 {% endmacro %}
 
@@ -70,6 +69,7 @@ Each class has a short code and a full string description.  The description is o
 <th class='flagcol'>Require<br/>Car Flag</th>
 <th>Index<br/>Restrict</th>
 <th>Counted<br/>Runs</th>
+<th></th>
 </tr>
 
 {% for field in form.classlist %}

@@ -220,7 +220,7 @@ class ClassForm(Form):
     indexcode       = SelectField(  'ClassIndex',                       render_kw={'title':"Entire class is indexed by this index code"})
     classmultiplier = FloatField(   'ClassMultiplier',                  render_kw={'title':"This multiplier is applied to entire class, i.e. street tire factor", "size":3})
     usecarflag      = BooleanField( 'Use Car Flag',                     render_kw={'title':"Require that the car flag is checked for the additional multiplier to be applied"})
-    caridxrestrict  = MyStringField('Restricted Index String',          render_kw={'title':"{{m.restrictformat(classdata, cls)}}"})
+    caridxrestrict  = MyStringField('Restricted Index String')
     countedruns     = IntegerField( 'Counted Runs', widget=TextInput(), render_kw={'title':"Limit number of counted runs for this class", "size":2})
 
     def __init__(self, indexlist, *args, **kwargs):

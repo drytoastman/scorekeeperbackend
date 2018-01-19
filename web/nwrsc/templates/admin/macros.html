@@ -1,8 +1,7 @@
-{% macro restrictformat(classdata, cls) %}
-    {% set res = classdata.restrictedIndexes(cls.classcode) %}
-    Classes {{res[0]|sort}}
-    Flags {{res[1]|sort}}
-    {#"indexdisallow(%s)  flagdisallow(%s)" % ((', '.join(sorted(r[0]))), (', '.join(sorted(r[1])))) #}
+{% macro restrictformat(classdata, classcode) %}
+    {% set res = classdata.restrictedIndexes(classcode) %}
+    Classes = {{res[0]|sort|join(', ')}}
+    Flags = {{res[1]|sort|join(', ')}}
 {% endmacro %}
 
 {% macro textbox(index, name, size, obj) %}

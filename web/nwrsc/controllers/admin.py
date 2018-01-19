@@ -163,8 +163,8 @@ def restricthelp():
 
 @Admin.route("/classlist", methods=['POST', 'GET'])
 def classlist():
-    classdata = ClassData.get()
-    ClassListForm.setIndexes(classdata.indexlist)
+    g.classdata = ClassData.get()
+    ClassListForm.setIndexes(g.classdata.indexlist)
     form = ClassListForm()
     if request.form:
         if form.validate():
@@ -179,9 +179,9 @@ def classlist():
         else:
             flashformerrors(form)
     else:
-        classdata = ClassData.get()
-        classdata.classlist.pop('HOLD', None)
-        for key, cls in sorted(classdata.classlist.items()):
+        g.classdata = ClassData.get()
+        g.classdata.classlist.pop('HOLD', None)
+        for key, cls in sorted(g.classdata.classlist.items()):
             form.classlist.append_entry(cls)
 
     return render_template('/admin/classlist.html', form=form)
