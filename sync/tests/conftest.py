@@ -51,11 +51,13 @@ def syncdbs(request, syncdata):
 
     with synca.cursor() as cur:
         cur.execute("INSERT INTO mergeservers(serverid, hostname, address, ctimeout, hoststate) VALUES ('00000000-0000-0000-1111-000000000000', 'syncb', '127.0.0.1:7432', 2, 'A')")
+        cur.execute("SET search_path=%s,'public'", (syncdata.series, ))
         synca.commit()
 
     with syncb.cursor() as cur:
         cur.execute("SELECT verify_user(%s, %s)", (syncdata.series, syncdata.series))
         cur.execute("SELECT verify_series(%s)", (syncdata.series, ))
+        cur.execute("SET search_path=%s,'public'", (syncdata.series, ))
         syncb.commit()
 
     # Do an initial merge

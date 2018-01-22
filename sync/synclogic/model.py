@@ -148,7 +148,14 @@ class DataInterface(object):
         if len(objs) == 0: return
         stmt = "INSERT INTO {} ({}) VALUES ({})".format(objs[0].table, ",".join(COLUMNS[objs[0].table]), ",".join(["%({})s".format(x) for x in COLUMNS[objs[0].table]]))
         with db.cursor() as cur:
-            psycopg2.extras.execute_batch(cur, stmt, [o.data for o in objs])
+            try:
+                cur.execute("SAVEPOINT insert_savepoint")
+                psycopg2.extras.execute_batch(cur, stmt, [o.data for o in objs])
+            except psycopg2.IntegrityError as e:
+                if e.pgcode == '23503':  # Foreign Key constraint, other stuff needs to happen before we do this
+                    cur.execute("ROLLBACK TO SAVEPOINT insert_savepoint")
+                else:
+                    raise e
 
     @classmethod
     def update(cls, db, objs):
@@ -296,11 +303,13 @@ class LoggedObject():
 
                 elif obj['action'] == 'U':
                     pk = tuple([obj['newdata'][k] for k in PRIMARY_KEYS[table]])
-                    objdict[pk].update(obj['otime'], obj['olddata'], obj['newdata'])
+                    if pk in objdict:
+                        objdict[pk].update(obj['otime'], obj['olddata'], obj['newdata'])
 
                 elif obj['action'] == 'D':
                     pk = tuple([obj['olddata'][k] for k in PRIMARY_KEYS[table]])
-                    objdict[pk].deleted()
+                    if pk in objdict:
+                        objdict[pk].delete()
 
                 else:
                     log.warning("How did we get here?")
