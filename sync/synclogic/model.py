@@ -145,7 +145,7 @@ class DataInterface(object):
 
     @classmethod
     def insert(cls, db, objs):
-        if len(objs) == 0: return
+        if len(objs) == 0: return True
         stmt = "INSERT INTO {} ({}) VALUES ({})".format(objs[0].table, ",".join(COLUMNS[objs[0].table]), ",".join(["%({})s".format(x) for x in COLUMNS[objs[0].table]]))
         with db.cursor() as cur:
             try:
@@ -154,15 +154,27 @@ class DataInterface(object):
             except psycopg2.IntegrityError as e:
                 if e.pgcode == '23503':  # Foreign Key constraint, other stuff needs to happen before we do this
                     cur.execute("ROLLBACK TO SAVEPOINT insert_savepoint")
+                    return False
                 else:
                     raise e
+        return True
 
     @classmethod
     def update(cls, db, objs):
-        if len(objs) == 0: return
+        if len(objs) == 0: return True
         stmt = "UPDATE {} SET {} WHERE {}".format(objs[0].table, ", ".join("{}=%({})s".format(k,k) for k in NONPRIMARY[objs[0].table]), " AND ".join("{}=%({})s".format(k, k) for k in PRIMARY_KEYS[objs[0].table]))
         with db.cursor() as cur:
-            psycopg2.extras.execute_batch(cur, stmt, [o.data for o in objs])
+            try:
+                cur.execute("SAVEPOINT update_savepoint")
+                psycopg2.extras.execute_batch(cur, stmt, [o.data for o in objs])
+            except psycopg2.IntegrityError as e:
+                if e.pgcode == '23503':  # Foreign Key constraint, other stuff needs to happen before we do this
+                    cur.execute("ROLLBACK TO SAVEPOINT update_savepoint")
+                    return False
+                else:
+                    raise e
+        return True
+
 
     @classmethod
     def delete(cls, db, objs):

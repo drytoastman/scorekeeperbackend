@@ -6,6 +6,7 @@ import time
 from helpers import *
 
 def test_driversync(syncdbs, syncdata):
+    """ Dealing with the advanced merge on the driver table """
     (synca, syncb, merge) = syncdbs
     cruft1 = dict(driverid="c2c32a70-f0fa-11e7-9c7f-5e155307955f", firstname="X")
     cruft2 = dict(driverid="c2c32a70-f0fa-11e7-9c7f-5e155307955f", firstname="Y")
@@ -56,30 +57,4 @@ def test_driversync(syncdbs, syncdata):
 
     sync(synca, syncb, merge)
     verify_driver(synca, syncb, syncdata.driverid, None, None)
-
-
-def XXXtest_driverwfkey(syncdbs, syncdata):
-    """ Merge drivers, delete on one while linking to a car on the other, should undelete driver and maintain car """
-    (synca, syncb, merge) = syncdbs
-    testid  = '00000000-0000-0000-0000-000000000042'
-    testcid = '00000000-0000-0000-0000-000000000043'
-
-    # Insert remote
-    with syncb.cursor() as cur:
-        cur.execute("INSERT INTO drivers (driverid, firstname, lastname, email, username) VALUES (%s, 'first', 'last', 'email', 'other')", (testid,))
-    time.sleep(0.5)
-
-    sync(synca, syncb, merge)
-    verify_driver(synca, syncb, testid, (('firstname', 'first'), ('lastname', 'last'), ('email', 'email')), ())
-
-    with synca.cursor() as cur:
-        cur.execute("DELETE FROM drivers WHERE driverid=%s", (testid,))
-    time.sleep(0.5)
-    with syncb.cursor() as cur:
-        cur.execute("INSERT INTO cars (carid, driverid, classcode, indexcode, number, useclsmult, attr, modified) VALUES (%s, %s, 'c1', 'i1', 2, 'f', '{}', now())", (testcid, testid))
-    time.sleep(0.5)
-
-    sync(synca, syncb, merge)
-    verify_driver(synca, syncb, testid, (('firstname', 'first'), ('lastname', 'last'), ('email', 'email')), ())
-    verify_car(synca, syncb, testcid, (('classcode', 'c1'),), ())
 

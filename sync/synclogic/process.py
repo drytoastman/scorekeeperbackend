@@ -217,13 +217,16 @@ class MergeProcess():
 
         # Have to insert data starting from the top of any foreign key links
         # And then update/delete from the bottom of the same links
+        unfinished = set()
 
         # Insert order first (top down)
         for t in TABLE_ORDER:
             assert not signalled, "Quit signal received"
             remote.seriesStatus(series, "Insert {}".format(t))
-            DataInterface.insert(localdb,  localinsert[t])
-            DataInterface.insert(remotedb, remoteinsert[t])
+            if not DataInterface.insert(localdb,  localinsert[t]):
+                unfinished.add(t)
+            if not DataInterface.insert(remotedb, remoteinsert[t]):
+                unfinished.add(t)
 
         # Update/delete order next (bottom up)
         log.debug("Performing updates/deletes")
@@ -233,8 +236,10 @@ class MergeProcess():
             if t in ADVANCED_TABLES:
                 self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t])
             else:
-                DataInterface.update(localdb,  localupdate[t])
-                DataInterface.update(remotedb, remoteupdate[t])
+                if not DataInterface.update(localdb,  localupdate[t]):
+                    unfinished.add(t)
+                if not DataInterface.update(remotedb, remoteupdate[t]):
+                    unfinished.add(t)
 
             remote.seriesStatus(series, "Delete {}".format(t))
             remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
@@ -242,7 +247,6 @@ class MergeProcess():
 
         # If we have foreign key violations trying to delete, we need to readd those back to the opposite site and redo the merge
         # The only time this should ever occur is with the drivers table as its shared between series
-        unfinished = set()
         for t in remoteundelete:
             if len(remoteundelete[t]) > 0:
                 remote.seriesStatus(series, "R-undelete {}".format(t))
