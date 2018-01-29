@@ -427,19 +427,33 @@ class MergeServer(object):
                 log.warning("Multiple localhost entries in the database")
             return cls(cur.fetchone(), db)
 
-    
+
+    def update(self, *args):
+        # Record select changes in the mergeservers table
+        stmt = "UPDATE mergeservers SET {} WHERE serverid=%(serverid)s".format(", ".join("{}=%({})s".format(k,k) for k in args))
+        vals = dict(serverid=self.serverid)
+        for k in args:
+            if k == 'mergestate':
+                vals[k] = json.dumps(self.mergestate)
+            else:
+                vals[k] = getattr(self, k)
+
+        with self.db.cursor() as localcur:
+            localcur.execute(stmt, vals)
+            self.db.commit()
+
 
     def seriesStart(self, series):
         """ Called when we start merging a given series with this remote server """
         self.mergestate[series].pop('error', None)
         self.mergestate[series]['syncing'] = True
-        self._updateMergeState()
+        self.update('mergestate')
 
     def seriesStatus(self, series, status):
         """ Called with current status for the given series while merging with this remote server """
         log.debug("seriesstatus: %s", status)
         self.mergestate[series]['progress'] = status
-        self._updateMergeState()
+        self.update('mergestate')
 
     def seriesDone(self, series, error):
         """ Called when we are done merging the given series with this remote server, error is None for when successful """
@@ -453,8 +467,7 @@ class MergeServer(object):
                 self.mergestate[series]['error'] = error
         self.mergestate[series].pop('progress', None)
         self.mergestate[series].pop('syncing', None)
-        self._updateMergeState()
-
+        self.update('mergestate')
 
 
     def serverStart(self):
@@ -467,30 +480,25 @@ class MergeServer(object):
             self.mergestate[series]['error'] = error
         if self.hoststate == '1':
             self.hoststate = 'I'
-        with self.db.cursor() as localcur:
-            localcur.execute("UPDATE mergeservers SET hoststate=%s, mergestate=%s WHERE serverid=%s", (self.hoststate, json.dumps(self.mergestate), self.serverid))
-            self.db.commit()
+            self.update('hoststate') # hoststate ownership is shared with frontend
+        self.update('mergestate')
     
     def serverDone(self):
         """ Called when the merge with the remote server completes without any exceptions """
         if self.hoststate == '1':
             self.hoststate = 'I'
+            self.update('hoststate') # hoststate ownership is shared with frontend
         self.lastcheck = datetime.datetime.utcnow()
         if self.hoststate in ('A', '1'):
             self.nextcheck = self.lastcheck + datetime.timedelta(seconds=(self.waittime + random.uniform(-5, +5)))
         else:
             self.nextcheck = datetime.datetime.utcfromtimestamp(0)
-        with self.db.cursor() as localcur:
-            localcur.execute("UPDATE mergeservers SET lastcheck=%s, nextcheck=%s, hoststate=%s WHERE serverid=%s", (self.lastcheck, self.nextcheck, self.hoststate, self.serverid))
-            self.db.commit()
-
+        self.update('lastcheck', 'nextcheck', 'mergestate') # nextcheck ownership is shared with frontend
 
 
     def recordConnectFailure(self):
-        with self.db.cursor() as localcur:
-            self.cfailures += 1
-            localcur.execute("UPDATE mergeservers SET cfailures=%s WHERE serverid=%s", (self.cfailures, self.serverid))
-            self.db.commit()
+        self.cfailures += 1
+        self.update('cfailures')
 
     def updateSeriesFrom(self, scandb):
         """ Update the mergestate dict related to deleted or added series """
@@ -505,7 +513,7 @@ class MergeServer(object):
             del self.mergestate[deleted]
         for added in serieslist - cachedseries:
             self.mergestate[added] = {'lastchange':0, 'totalhash':'', 'hashes':{}}
-        self._updateMergeState()
+        self.update('mergestate')
 
     def updateCacheFrom(self, scandb, series):
         """ Do any necessary updating of hash data """
@@ -560,11 +568,5 @@ class MergeServer(object):
             if lastchange is not None:
                 seriesstate['lastchange'] = lastchange
 
-        self._updateMergeState()
-
-    def _updateMergeState(self):
-        # Record changes in the mergeservers table
-        with self.db.cursor() as localcur:
-            localcur.execute("UPDATE mergeservers SET mergestate=%s WHERE serverid=%s", (json.dumps(self.mergestate), self.serverid))
-            self.db.commit()
+        self.update('mergestate')
 
