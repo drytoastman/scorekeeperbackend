@@ -270,7 +270,7 @@ def logging_setup(level=logging.INFO, debug=False, filename='/var/log/scweb.log'
     root.handlers = []
 
     if filename:
-        fhandler = logging.handlers.RotatingFileHandler('/var/log/scweb.log', maxBytes=1000000, backupCount=10)
+        fhandler = logging.handlers.RotatingFileHandler(filename, maxBytes=1000000, backupCount=10)
         fhandler.setFormatter(fmt)
         fhandler.setLevel(level)
         root.addHandler(fhandler)

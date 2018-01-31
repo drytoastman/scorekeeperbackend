@@ -35,7 +35,7 @@ def database(request, webdata):
 
 @pytest.fixture(scope="module")
 def webapp(database, webdata):
-    nwrsc.app.logging_setup(logging.DEBUG, True, None)
+    nwrsc.app.logging_setup(level=logging.DEBUG, debug=True, filename=None)
     theapp = nwrsc.app.create_app()
     theapp.config['DBHOST'] = webdata.host
     theapp.config['DBPORT'] = webdata.port

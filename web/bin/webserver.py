@@ -53,7 +53,7 @@ if __name__ == '__main__':
     cron  = bool(os.environ.get('DOCRON', False))
     port  = int(os.environ.get('PORT', 80))
 
-    nwrsc.app.logging_setup(level, debug)
+    nwrsc.app.logging_setup(level=level, debug=debug)
     theapp = nwrsc.app.create_app()
     nwrsc.app.model_setup(theapp)
 
