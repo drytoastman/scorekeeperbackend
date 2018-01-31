@@ -34,10 +34,11 @@ def create_app():
         if values is not None:
             g.series = values.pop('series', None)
             g.eventid = values.pop('eventid', None)
+            g.challengeid = values.pop('challengeid', None)
 
     def urldefaults(endpoint, values):
         """ Make sure series,eventid from the subapp URLs are available for url_for relative calls """
-        for u in ('series', 'eventid'):
+        for u in ('series', 'eventid', 'challengeid'):
             if u not in values and getattr(g, u) and current_app.url_map.is_endpoint_expecting(endpoint, u):
                 values[u] = getattr(g, u)
 

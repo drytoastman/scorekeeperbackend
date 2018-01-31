@@ -5,6 +5,7 @@
 from operator import itemgetter
 import logging
 import re
+import uuid
 
 from flask import request, render_template, get_template_attribute, make_response, g
 
@@ -30,6 +31,15 @@ def setup():
             g.event = g.seriesinfo.getEvent(g.eventid)
             if g.event is None:
                 raise InvalidEventException()
+
+        elif g.challengeid:
+            g.challenge = g.seriesinfo.getChallenge(g.challengeid)
+            if g.challenge is None:
+                raise InvalidEventException()
+            g.event = g.seriesinfo.getEvent(uuid.UUID(g.challenge.eventid))
+            if g.event is None:
+                raise InvalidEventException()
+
     elif len(g.seriesyears) == 1:
         g.year = next(iter(g.seriesyears))
     else:
@@ -47,9 +57,8 @@ def event():
         raise InvalidEventException()
     results = Result.getEventResults(g.eventid)
     active  = results.keys()
-    event   = g.seriesinfo.getEvent(g.eventid)
     challenges = g.seriesinfo.getChallengesForEvent(g.eventid)
-    return render_template('results/eventindex.html', event=event, active=active, challenges=challenges, isactive=(g.seriestype==Series.ACTIVE))
+    return render_template('results/eventindex.html', event=g.event, active=active, challenges=challenges, isactive=(g.seriestype==Series.ACTIVE))
 
 ## Basic results display
 
@@ -147,30 +156,27 @@ def _loadChallengeResults(challengeid, load=True):
         raise InvalidChallengeException()
     return (challenge, load and Result.getChallengeResults(challengeid) or None)
 
-@Results.route("/challenge/<uuid:challengeid>/bracket")
-def bracket(challengeid):
-    (challenge, results) = _loadChallengeResults(challengeid, load=False)
-    (coords, size) = Bracket.coords(challenge.depth)
-    return render_template('/challenge/bracketbase.html', challengeid=challengeid, coords=coords, size=size)
 
-@Results.route("/challenge/<uuid:challengeid>/bracketimg")
-def bracketimg(challengeid):
-    (challenge, results) = _loadChallengeResults(challengeid)
-    response = make_response(Bracket.image(challenge.depth, results))
-    response.headers['Content-type'] = 'image/png'
-    return response
+RANK1 =  [ 1 ]
+RANK2 =  [ 2, 1 ]
+RANK4 =  [ 3, 2, 4, 1 ]
+RANK8 =  [ 6, 3, 7, 2, 5, 4, 8, 1 ]
+RANK16 = [ 11, 6, 14, 3, 10, 7, 15, 2, 12, 5, 13, 4, 9, 8, 16, 1 ]
+RANK32 = [ 22, 11, 27, 6, 19, 14, 30, 3, 23, 10, 26, 7, 18, 15, 31, 2, 21, 12, 28, 5, 20, 13, 29, 4, 24, 9, 25, 8, 17, 16, 32, 1 ]
+RANKS = RANK32 + RANK16 + RANK8 + RANK4 + RANK2 + RANK1 + [0]
+RANKS.reverse()
+
+@Results.route("/challenge/<uuid:challengeid>/bracket")
+def bracket():
+    (challenge, results) = _loadChallengeResults(g.challengeid)
+    challenge.baserounds = int(2**(challenge.depth-1))
+    return render_template('/challenge/bracket.html', event=g.event, challenge=challenge, results=results, ranks=RANKS)
 
 @Results.route("/challenge/<uuid:challengeid>/bracketround/<int:round>")
-def bracketround(challengeid, round):
-    (challenge, results) = _loadChallengeResults(challengeid)
+def bracketround(round):
+    (challenge, results) = _loadChallengeResults(g.challengeid)
     roundReport = get_template_attribute('/challenge/challengemacros.html', 'roundReport')
     return roundReport(results[round])
-
-@Results.route("/challenge/<uuid:challengeid>/")
-def challenge(challengeid):
-    (challenge, results) = _loadChallengeResults(challengeid)
-    log.debug("{}, {}".format(challenge, results))
-    return render_template('/challenge/challengereport.html', results=results, chal=challenge)
 
 @Results.route("/event/<uuid:eventid>/audit")
 def audit():

@@ -78,7 +78,6 @@ ul.wrap {
 	<li><a href='{{url_for('.dialins', order='prodiff')}}'>Dialins By Class Diff</a></li>
 	{%for ch in challenges %}
 		<li><a href='{{url_for('.bracket', challengeid=ch.challengeid)}}'>{{ch.name}} Bracket</a></li>
-		<li><a href='{{url_for('.challenge', challengeid=ch.challengeid)}}'>{{ch.name}} Details</a></li>
 	{%else%}
         <!-- No challenges created yet. -->
     {%endfor%}

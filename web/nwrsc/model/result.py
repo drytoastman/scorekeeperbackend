@@ -82,14 +82,11 @@ class Result(object):
 
     @classmethod
     def getChallengeResults(cls, challengeid):
-        log.debug(type(challengeid))
         if cls._needUpdate(True, ('challengerounds', 'challengeruns'), challengeid):
             cls._updateChallengeResults(challengeid)
         ret = dict() # Have to convert back to dict as JSON can't store using ints as keys
-        log.debug("1: %s", ret)
         for rnd in cls._loadResults(challengeid, asstring=False):
             ret[rnd['round']] = rnd
-        log.debug("2: %s", ret)
         return ret
 
     @classmethod
