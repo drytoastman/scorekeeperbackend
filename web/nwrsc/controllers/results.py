@@ -11,7 +11,6 @@ from flask import request, render_template, get_template_attribute, make_respons
 
 from nwrsc.controllers.blueprints import *
 from nwrsc.model import Audit, Entrant, Result, Registration, RunGroups, Series
-from nwrsc.lib.bracket import Bracket
 from nwrsc.lib.misc import ArchivedSeriesException, csvlist, InvalidChallengeException, InvalidEventException
 
 log = logging.getLogger(__name__)
