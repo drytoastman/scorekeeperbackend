@@ -9,6 +9,7 @@ app = nwrsc.app.create_app()
 with app.app_context():
     g.series = ''
     g.eventid = ''
+    g.challengeid = ''
     for bundle in app.jinja_env.assets_environment:
         print(bundle.urls())
 
