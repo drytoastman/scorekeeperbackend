@@ -44,6 +44,7 @@ table {
         text-align: left; 
 		font-size: 1.0rem;
         padding-left: 0.6rem;
+        padding-right: 0.2rem;
     }
 
     tr.subhead th { 
@@ -125,12 +126,15 @@ table.dialins {
 
 // Special table for challenge report
 table.challengeround {
-    margin-bottom: 20px;
+    margin: 1px;
+    td {
+        white-space: nowrap;
+    }
+    tr.head th {
+        font-size: 0.8rem;
+    }
 	tr.winner td {
 	    background: lighten(adjust-hue($basecolor, 10), 40%);
-	}
-	td.entrant {
-	    width: 180px;
 	}
 	span.dial {
 		font-weight: bold;
@@ -142,6 +146,8 @@ table.challengeround {
 	}
 }
 
+//table.challengeround { margin: 0px; width: auto; }
+//table.challengeround td.entrant { width: auto; }
 
 /* For printing: use the whole page, remove excess columns and clear background colors */
 @media print {

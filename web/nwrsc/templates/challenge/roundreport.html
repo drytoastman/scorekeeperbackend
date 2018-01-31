@@ -1,0 +1,69 @@
+
+{%- macro driverCell(e) -%}
+	<td class='entrant' rowspan=2>
+	{% if e.firstname %}
+	<span class='name'>{{e.firstname}} {{e.lastname}}</span><br/>
+	<span class='class'>{{e.classcode}}</span> <span class='index'>({{e.indexcode}})</span>
+	{% endif %}
+	</td>
+    <td rowspan=2>
+    <span class='dial'>{{e.dial|t3}}</span>
+    </td>
+{%- endmacro -%}
+
+{%- macro runRow(dial, run) -%}
+	{% if not run %}
+		<td></td><td></td><td></td><td></td>
+	{% else %}
+		<td>{{run.reaction|t3}}</td>
+		<td>{{run.sixty|t3}}</td>
+		<td>{{run.raw|t3}} (+{{run.cones}})</td>
+		{% if run.status != "OK" %}
+			<td>{{run.status}}</td>
+		{% else %}
+			<td>{{(run.net - dial)|t3}}</td>
+		{% endif %}
+	{% endif %}
+{%- endmacro -%}
+
+{%- macro runTotal(dial, left, right, newdial) -%}
+	<td rowspan=2>
+	{% if not left or not right %}
+	{% elif left.status != "OK" and left.status != "" %}
+		{{left.status}}
+	{% elif right.status != "OK" and right.status != "" %}
+		{{right.status}}
+	{% elif left.net == 0.0 or right.net == 0.0 %}
+	{% else %}
+		{{"%+0.3f"%(left.net + right.net - (2*dial))}}
+	{% endif %}
+
+	{% if newdial != dial and newdial != 0.0 %}
+		<br/><span class='dial'>New: {{newdial|t3}}</span>
+	{% endif %}
+    </td>
+{%- endmacro -%}
+
+<table class='challengeround'>
+<tr class='head'><th colspan=2>Entrant<th><th>Reac<th>Sixty<th>Time<th>Diff<th>Total</tr>
+<tr{{round.winner == 1 and " class='winner'"|safe or ""}}>
+{{driverCell(round.e1)}}
+<td>L</td>
+{{runRow(round.e1.dial, round.e1.left)}}
+{{runTotal(round.e1.dial, round.e1.left, round.e1.right, round.e1.newdial)}}
+</tr>
+<tr{{round.winner == 1 and " class='winner'"|safe or ""}}>
+<td>R</td>
+{{runRow(round.e1.dial, round.e1.right)}}
+</tr>
+<tr{{round.winner == 2 and " class='winner'"|safe or ""}}>
+{{driverCell(round.e2)}}
+<td>L</td>
+{{runRow(round.e2.dial, round.e2.left)}}
+{{runTotal(round.e2.dial, round.e2.left, round.e2.right, round.e2.newdial)}}
+</tr>
+<tr{{round.winner == 2 and " class='winner'"|safe or ""}}>
+<td>R</td>
+{{runRow(round.e2.dial, round.e2.right)}}
+</tr>
+</table>

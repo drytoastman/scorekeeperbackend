@@ -169,13 +169,12 @@ RANKS.reverse()
 def bracket():
     (challenge, results) = _loadChallengeResults(g.challengeid)
     challenge.baserounds = int(2**(challenge.depth-1))
-    return render_template('/challenge/bracket.html', event=g.event, challenge=challenge, results=results, ranks=RANKS)
+    return render_template('/challenge/bracket.html', disablemetascale=True, event=g.event, challenge=challenge, results=results, ranks=RANKS)
 
 @Results.route("/challenge/<uuid:challengeid>/bracketround/<int:round>")
 def bracketround(round):
     (challenge, results) = _loadChallengeResults(g.challengeid)
-    roundReport = get_template_attribute('/challenge/challengemacros.html', 'roundReport')
-    return roundReport(results[round])
+    return render_template('/challenge/roundreport.html', round=results[round])
 
 @Results.route("/event/<uuid:eventid>/audit")
 def audit():

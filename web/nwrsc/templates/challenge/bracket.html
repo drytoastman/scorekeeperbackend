@@ -3,20 +3,34 @@
 {% block headers %}
 {{super()}}
 <style type="text/css">
-/* Override a few things just for the popup display */
-#popup {
+#cover {
+    display: none;
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0,0,0,0.2);
+}
+
+#popupcontent {
 	display:none;
 	position: absolute; 
 	background: white; 
 	font-size: 0.8em;
 	border: 1px ridge #999999;
 }
-table.challengeround { margin: 0px; width: auto; }
-table.challengeround td.entrant { width: auto; }
 
-#bracket {
+.bracket {
     display:flex;
     flex-direction:row;
+}
+
+.third {
+    margin-top: -{{challenge.depth+1}}rem;
+    margin-left: {{11*(challenge.depth-1)+1}}rem;
 }
 
 .round {
@@ -24,76 +38,68 @@ table.challengeround td.entrant { width: auto; }
     display:flex;
     flex-direction:column;
     justify-content:center;
-    width:12rem;
+    min-width:11rem;
     list-style:none;
     padding:0;
 }
 
-.round .spacer {
-    flex-grow: .5; 
-}
+.round .spacer               { flex-grow: 2.50; }
+.round .runoff.spacer        { flex-grow: 4.00; }
+.round .final.spacer         { flex-grow: 4.00; }
+.round li.runoff             { flex-grow: 0.01; }
+.round li.spacer:first-child { flex-grow: 1.25; }
+.round li.spacer:last-child  { flex-grow: 1.25; }
 
-.round .runoff.spacer {
-    flex-grow: 1.25;
-}
+li.runoff           { padding-left: 7px; }
+li.runoff.winner    { font-weight: bold; }
+li.runoff span.dial { float: right; margin-right: 5px; }
 
-li.runoff {
-    padding-left: 7px;
-}
+li.runoff  span.rank { display: none; }
+ul.round-0 span.rank { display: inline; font-size: 0.7rem; margin-left: -7px; }
 
-li.runoff.winner {
-    font-weight: bold;
-}
-
-li.runoff span.dial {
-    float: right;
-    margin-right: 5px;
-}
-
-li.runoff span.rank {
-    display: none;
-}
-
-ul.round-0 span.rank {
-    display: inline;
-}
-
-li.runoff.top {
-    border-bottom:1px solid #aaa;
-}
-
-li.runoff.spacer {  
-    border-right: 1px solid #aaa;
-    min-height: 3rem;
-}
-
-li.runoff.bottom { 
-    border-top: 1px solid #aaa;
-}
+li.runoff.top    { border-bottom:1px solid #aaa; }
+li.runoff.spacer { border-right: 1px solid #aaa; }
+li.runoff.bottom { border-top:   1px solid #aaa; }
 
 </style>
 
 <script type="text/javascript">
-function mousein(ev, rnd)
+function openround(ev, rnd)
 {	
-	pop = document.getElementById("popup");
-	pop.style.left = (ev.clientX-10)+"px";
-	pop.style.top = (ev.clientY-10)+"px";
-	pop.style.display = 'block';
-	pop.innerHTML = "<h4>loading round data...</h4>";
-	$('#popup').load('{{url_for('.bracketround', challengeid=g.challengeid, round=999)}}'.replace('999', rnd));
+    $("#cover").show();
+    $("#popupcontent").css("left", (ev.clientX-30)+"px").css("top", (ev.clientY-30)+"px").show().html("<h4>loading round data...</h4>");
+	$('#popupcontent').load('{{url_for('.bracketround', challengeid=g.challengeid, round=999)}}'.replace('999', rnd));
 }
+
+function closeround(ev)
+{
+    $("#cover").hide();
+    $("#popupcontent").hide();
+}
+
 </script>
 {% endblock headers %}
+
+
+{% macro edisplay(e, top=true, rndnum=0, winner=False) %}
+    <li class="runoff {{top and 'top' or 'bottom'}} {{ winner and 'winner' or ''}}" onclick="openround(event, {{rndnum}})">
+        <span class='rank'>{{ ranks[rndnum*2+(top|int)] }}</span>
+        {{ e.firstname }} {{ e.lastname }}
+        <span class='dial'>{{ e.dial and e.dial|t3 or "" }}&nbsp;</span>
+    </li>
+{% endmacro %}
+
 
 {% block content %}
 {{super()}}
 <div class='container'>
-<div id='popup' onclick='style.display="none";'></div>
+<div id='cover' onclick='closeround(event)'>
+<div id='popupcontent' onclick='closeround(event)'>
+</div>
+</div>
 
 <h3>{{challenge.name}}</h3>
-<div id="bracket">
-    {% set rnd = (challenge.baserounds*2) - 1 %}
+<div class="bracket">
     {% for d1 in range(challenge.depth) %}
         <ul class="round round-{{d1}}">
         {% set rounds = (challenge.baserounds/(2**d1))|int %}
@@ -101,17 +107,34 @@ function mousein(ev, rnd)
             {% set rndnum = rounds*2 - d2 - 1 %}
             {% set rnd = results[rndnum] %}
 		    <li class="spacer">&nbsp;</li>
-		    <li class="runoff top {{rnd.winner==1 and 'winner' or ''}}"    onclick="mousein(event, {{rndnum}})">
-                <span class='rank'>{{ ranks[rndnum*2+1]}}</span> {{ rnd.e1.firstname }} {{ rnd.e1.lastname }} <span class='dial'>{{ rnd.e1.dial }}</span>
-            </li>
-		    <li class="runoff spacer" onclick="mousein(event, {{rndnum}})">&nbsp;</li>
-            <li class="runoff bottom {{rnd.winner==2 and 'winner' or ''}}" onclick="mousein(event, {{rndnum}})">
-                <span class='rank'>{{ ranks[rndnum*2]}}</span> {{ rnd.e2.firstname }} {{ rnd.e2.lastname }} <span class='dial'>{{ rnd.e2.dial }}</span>
-            </li>
-		    <li class="spacer">&nbsp;</li>
-            {% endfor %}
+            {{ edisplay(rnd.e1, true,  rndnum, rnd.winner==1) }}
+		    <li class="runoff spacer" onclick="openround(event, {{rndnum}})">&nbsp;</li>
+            {{ edisplay(rnd.e2, false, rndnum, rnd.winner==2) }}
+        {% endfor %}
+		<li class="spacer">&nbsp;</li>
         </ul>
     {% endfor %}
+    <ul class="round">
+		<li class="spacer">&nbsp;</li>
+        {{ edisplay(results[0].e1, true, 0, true) }}
+		<li class="spacer">&nbsp;</li>
+    </ul>
+
+</div>
+
+<div class="bracket third">
+    <ul class="round">
+        <li class="spacer">&nbsp;</li>
+        {{ edisplay(results[99].e1, true,  99, results[99].winner==1) }}
+        <li class="runoff spacer" onclick="openround(event, {{rndnum}})">&nbsp;</li>
+        {{ edisplay(results[99].e2, false, 99, results[99].winner==2) }}
+        <li class="spacer">&nbsp;</li>
+    </ul>
+    <ul class="round">
+        <li class="spacer">&nbsp;</li>
+        {{ edisplay(results[0].e2, true, 0, true) }}
+        <li style="flex-grow:4;">&nbsp;</li>
+    </ul>
 </div>
 </div>
 
