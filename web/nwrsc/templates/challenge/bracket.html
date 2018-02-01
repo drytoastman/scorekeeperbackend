@@ -3,24 +3,22 @@
 {% block headers %}
 {{super()}}
 <style type="text/css">
-#cover {
-    display: none;
-    position: absolute;
-    margin: 0;
-    padding: 0;
+#popupcontent {
+	display: none;
+    position: fixed;
     left: 0;
     top: 0;
-    height: 100%;
-    width: 100%;
-    background-color: rgba(0,0,0,0.2);
-}
-
-#popupcontent {
-	display:none;
-	position: absolute; 
-	background: white; 
+    height: 100vh;
+    width: 100vw;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.25);
 	font-size: 0.8em;
 	border: 1px ridge #999999;
+}
+
+#popupcontent table {
+    background: white;
 }
 
 .bracket {
@@ -66,14 +64,12 @@ li.runoff.bottom { border-top:   1px solid #aaa; }
 <script type="text/javascript">
 function openround(ev, rnd)
 {	
-    $("#cover").show();
-    $("#popupcontent").css("left", (ev.clientX-30)+"px").css("top", (ev.clientY-30)+"px").show().html("<h4>loading round data...</h4>");
+    $("#popupcontent").css({"display":"flex"}).show().html("<h4>loading round data...</h4>");
 	$('#popupcontent').load('{{url_for('.bracketround', challengeid=g.challengeid, round=999)}}'.replace('999', rnd));
 }
 
 function closeround(ev)
 {
-    $("#cover").hide();
     $("#popupcontent").hide();
 }
 
@@ -82,8 +78,11 @@ function closeround(ev)
 
 
 {% macro edisplay(e, top=true, rndnum=0, winner=False) %}
-    <li class="runoff {{top and 'top' or 'bottom'}} {{ winner and 'winner' or ''}}" onclick="openround(event, {{rndnum}})">
-        <span class='rank'>{{ ranks[rndnum*2+(top|int)] }}</span>
+    <li class="runoff {{top and 'top' or 'bottom'}} {{ winner and 'winner' or ''}}"
+        {% if rndnum %}
+         onclick="openround(event, {{rndnum}})"
+        {% endif %}
+        ><span class='rank'>{{ ranks[rndnum*2+(top|int)] }}</span>
         {{ e.firstname }} {{ e.lastname }}
         <span class='dial'>{{ e.dial and e.dial|t3 or "" }}&nbsp;</span>
     </li>
@@ -93,10 +92,7 @@ function closeround(ev)
 {% block content %}
 {{super()}}
 <div class='container'>
-<div id='cover' onclick='closeround(event)'>
-<div id='popupcontent' onclick='closeround(event)'>
-</div>
-</div>
+<div id='popupcontent' onclick='closeround(event)'></div>
 
 <h3>{{challenge.name}}</h3>
 <div class="bracket">
@@ -126,7 +122,7 @@ function closeround(ev)
     <ul class="round">
         <li class="spacer">&nbsp;</li>
         {{ edisplay(results[99].e1, true,  99, results[99].winner==1) }}
-        <li class="runoff spacer" onclick="openround(event, {{rndnum}})">&nbsp;</li>
+        <li class="runoff spacer" onclick="openround(event, 99)">&nbsp;</li>
         {{ edisplay(results[99].e2, false, 99, results[99].winner==2) }}
         <li class="spacer">&nbsp;</li>
     </ul>

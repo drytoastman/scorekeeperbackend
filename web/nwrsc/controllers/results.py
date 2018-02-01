@@ -26,6 +26,7 @@ def setup():
         g.seriesinfo = Result.getSeriesInfo()
         g.settings = g.seriesinfo.getSettings()
         g.events = g.seriesinfo.getEvents()
+        log.debug(g.eventid)
         if g.eventid:
             g.event = g.seriesinfo.getEvent(g.eventid)
             if g.event is None:
@@ -84,7 +85,7 @@ def _resultsforclasses(clslist=None, grplist=None):
         ispost         = False
         results        = { k: resultsbase[k] for k in (set(clslist) & set(resultsbase.keys())) }
 
-    return render_template('results/eventresults.html', ispost=ispost, results=results)
+    return render_template('results/eventresults.html', event=g.event, ispost=ispost, results=results)
 
 
 @Results.route("/event/<uuid:eventid>/byclass")
@@ -133,7 +134,7 @@ def tt():
 def champ():
     results = Result.getChampResults()
     events  = [x for x in g.events if not x.ispractice]
-    return render_template('/results/champ.html', results=results, settings=g.settings, classdata=g.seriesinfo.getClassData(), events=events)
+    return render_template('/results/champ.html', event="x", results=results, settings=g.settings, classdata=g.seriesinfo.getClassData(), events=events)
 
 
 ## ProSolo related data (Challenge and Dialins)
@@ -169,7 +170,7 @@ RANKS.reverse()
 def bracket():
     (challenge, results) = _loadChallengeResults(g.challengeid)
     challenge.baserounds = int(2**(challenge.depth-1))
-    return render_template('/challenge/bracket.html', disablemetascale=True, event=g.event, challenge=challenge, results=results, ranks=RANKS)
+    return render_template('/challenge/bracket.html', event=g.event, challenge=challenge, results=results, ranks=RANKS)
 
 @Results.route("/challenge/<uuid:challengeid>/bracketround/<int:round>")
 def bracketround(round):

@@ -1,8 +1,9 @@
 {% extends "results/bluebase.html" %}
 
 {% block content %}
+{{super()}}
 <div class='container-fluid'>
-<h2 style='margin-bottom:0px'>{{event.name}} - Dialins</h2>
+<h3 style='margin-bottom:0px'>{{event.name}} - Dialins</h3>
 <h4 style='margin-top:0px'>Ordered by {{orderkey}}</h4>
 
 <table class='dialins'>
@@ -37,7 +38,7 @@
     <td>{{e.firstname}} {{e.lastname}}</td>
     <td>{{e.classcode}}</td>
     <td>{{e.indexstr}}</td>
-    <td>{{e.indexval}}</td>
+    <td>{{e.indexval|t3}}</td>
     <td class="{{orderkey=='net'     and 'sort' or ''}}">{{e.net|t3}}</td>
     <td class="{{orderkey=='prodiff' and 'sort' or ''}}">{{e.prodiff|t3}}</td>
     <td>{{e.bonusdial|t3}}</td>

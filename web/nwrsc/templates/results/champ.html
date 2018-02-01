@@ -1,10 +1,11 @@
 {% extends "results/bluebase.html" %}
 
 {% block content %}
+{{super()}}
 
 <div class='container-fluid'>
 <!-- Series info -->
-<h3 class='seriesname'>{{settings.seriesname}}</h3>
+<h3 class='seriesname'>{{settings.seriesname}} Championship Points</h3>
 {% if settings.minevents > 0 %}
 <div class='minwarning'>(Min Attendance of {{settings.minevents}} Events To Place)</div>
 {% endif %}
