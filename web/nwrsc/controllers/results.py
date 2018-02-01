@@ -128,7 +128,7 @@ def tt():
     header   = "Top {} Times ({} Runs) for {}".format(indexed and "Indexed" or "", counted and "Counted" or "All", event.name)
     table    = Result.getTopTimesTable(classdata, Result.getEventResults(g.eventid), *keys)
 
-    return render_template('/results/toptimes.html', header=header, table=table)
+    return render_template('/results/toptimes.html', event=g.event, header=header, table=table)
 
 @Results.route("/champ/")
 def champ():
