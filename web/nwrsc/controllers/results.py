@@ -107,14 +107,17 @@ def post():
 
 @Results.route("/event/<uuid:eventid>/dist")
 def dist():
+    attr    = request.args.get('attr', 'net')
     results = Result.getEventResults(g.eventid)
     binnet  = collections.defaultdict(int)
     labels  = list()
     values  = list()
     for cls,res in results.items():
         for ent in res:
-            if ent['net'] < 999:
-                binnet[round(ent['net']*2)/2] += 1
+            if attr == 'net' and ent['indexval'] >= 1.000:
+                continue
+            if ent[attr] < 100:
+                binnet[round(ent[attr]*2)/2] += 1
 
     idx = min(binnet.keys())
     end = max(binnet.keys())
@@ -123,7 +126,12 @@ def dist():
         values.append(binnet[idx])
         idx += 0.5
 
-    return render_template("/results/chart.html", event=g.event, title='Net Distribution', labels=labels, values=values)
+    title = {
+        'net': 'PAX Distribution',
+        'pen': 'Net Distribution'
+    }[attr]
+
+    return render_template("/results/chart.html", event=g.event, title=title, labels=labels, values=values)
 
 
 @Results.route("/event/<uuid:eventid>/tt")
