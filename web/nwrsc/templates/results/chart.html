@@ -8,41 +8,28 @@
 $(document).ready(function(){
 var ctx = document.getElementById("myChart");
 var myChart = new Chart(ctx, {
-    type: 'horizontalBar',
+    type: 'bar',
     data: {
         labels: {{labels}},
         datasets: [{
             label: 'net',
             data: {{values}},
-            backgroundColor: 'rgba(50,120,200,0.4)',
-            borderColor:     'rgba(50,120,200,0.5)',
-            borderWidth: 1,
-        }]
+            backgroundColor: 'rgba(90, 200, 160, 0.5)',
+            borderWidth: 0,
+        }],
     },
     options: {
-        title: {
-            display: true,
-            text: '{{title}}',
-        },
         legend: {
             display: false,
         },
         scales: {
             xAxes: [{
+                barPercentage: 1.25,
                 ticks: {
                     beginAtZero: true,
-                    fontSize: 8
+                    fontSize: 9
                 }
             }],
-            yAxes: [{
-                ticks: {
-                    callback: function(label, index, labels) {
-                        mod = (this.height < 200) ? 4 : ((this.height < 400) ? 2 : 1);
-                        if (label % mod === 0)
-                            return label;
-                    },
-                }
-            }]
         }
     }
 });
@@ -53,6 +40,7 @@ var myChart = new Chart(ctx, {
 {% block content %}
 {{super()}}
 <div class='container'>
+<h4>{{title}}</h4>
 <canvas id="myChart"></canvas>
 </div>
 {% endblock content %}

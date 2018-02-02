@@ -86,7 +86,7 @@ def _resultsforclasses(clslist=None, grplist=None):
         ispost         = False
         results        = { k: resultsbase[k] for k in (set(clslist) & set(resultsbase.keys())) }
 
-    return render_template('results/eventresults.html', event=g.event, ispost=ispost, results=results)
+    return render_template('results/eventresults.html', event=g.event, ispost=ispost, results=results, disablemetascale=True)
 
 
 @Results.route("/event/<uuid:eventid>/byclass")
@@ -108,24 +108,23 @@ def post():
 @Results.route("/event/<uuid:eventid>/dist")
 def dist():
     results = Result.getEventResults(g.eventid)
-    data = collections.defaultdict(int)
-    labels = list()
-    values = list()
+    binnet  = collections.defaultdict(int)
+    labels  = list()
+    values  = list()
     for cls,res in results.items():
         for ent in res:
             if ent['net'] < 999:
-                log.debug("{} - {}".format(ent['net'], round(ent['net']*2)/2))
-                data[round(ent['net']*2)/2] += 1
+                binnet[round(ent['net']*2)/2] += 1
 
-    sd = sorted(data.keys())
-    idx = min(data.keys())
-    end = max(data.keys())
+    idx = min(binnet.keys())
+    end = max(binnet.keys())
     while idx <= end:
         labels.append(idx)
-        values.append(data[idx])
+        values.append(binnet[idx])
         idx += 0.5
 
-    return render_template("/results/chart.html", event=g.event, title='Net Distribution (rounded to 0.5)', labels=labels, values=values)
+    return render_template("/results/chart.html", event=g.event, title='Net Distribution', labels=labels, values=values)
+
 
 @Results.route("/event/<uuid:eventid>/tt")
 def tt():
@@ -151,13 +150,13 @@ def tt():
     header   = "Top {} Times ({} Runs) for {}".format(indexed and "Indexed" or "", counted and "Counted" or "All", event.name)
     table    = Result.getTopTimesTable(classdata, Result.getEventResults(g.eventid), *keys)
 
-    return render_template('/results/toptimes.html', event=g.event, header=header, table=table)
+    return render_template('/results/toptimes.html', event=g.event, header=header, table=table, disablemetascale=True)
 
 @Results.route("/champ/")
 def champ():
     results = Result.getChampResults()
     events  = [x for x in g.events if not x.ispractice]
-    return render_template('/results/champ.html', event="x", results=results, settings=g.settings, classdata=g.seriesinfo.getClassData(), events=events)
+    return render_template('/results/champ.html', event="x", results=results, settings=g.settings, classdata=g.seriesinfo.getClassData(), events=events, disablemetascale=True)
 
 
 ## ProSolo related data (Challenge and Dialins)
@@ -171,7 +170,7 @@ def dialins():
     results = Result.getEventResults(g.eventid)
     entrants = [e for cls in results.values() for e in cls]
     entrants.sort(key=itemgetter(orderkey))
-    return render_template('/challenge/dialins.html', orderkey=orderkey, event=g.event, entrants=entrants)
+    return render_template('/challenge/dialins.html', orderkey=orderkey, event=g.event, entrants=entrants, disablemetascale=True)
 
 def _loadChallengeResults(challengeid, load=True):
     challenge = g.seriesinfo.getChallenge(challengeid)
@@ -193,7 +192,7 @@ RANKS.reverse()
 def bracket():
     (challenge, results) = _loadChallengeResults(g.challengeid)
     challenge.baserounds = int(2**(challenge.depth-1))
-    return render_template('/challenge/bracket.html', event=g.event, challenge=challenge, results=results, ranks=RANKS)
+    return render_template('/challenge/bracket.html', event=g.event, challenge=challenge, results=results, ranks=RANKS, disablemetascale=True)
 
 @Results.route("/challenge/<uuid:challengeid>/bracketround/<int:round>")
 def bracketround(round):
