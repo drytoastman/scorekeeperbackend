@@ -38,6 +38,7 @@ ul.wrap {
 <h5>Results</h5>
 <ul>
 <li><a href='{{url_for('.post')}}'>Event Results</a></li>
+<li><a href='{{url_for('.dist')}}'>Net Distribution</a></li>
 <li><a href='{{url_for('.champ')}}'>Championship</a></li>
 {%if config.SHOWLIVE and isactive %}
 <li><a href="{{url_for('Announcer.index')}}">Announcer Panel</a></li>

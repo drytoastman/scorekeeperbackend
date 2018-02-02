@@ -7,6 +7,7 @@ import icalendar
 import io
 from flask import current_app, escape, make_response
 import pytz
+import types
 
 def time_print(pgdt, fmt):
     """ Collect local time zone based printing in one place, expects one of our timezoneless UTC based times from postgres """
@@ -69,7 +70,7 @@ class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         if hasattr(o, 'getPublicFeed'):
             return o.getPublicFeed()
-        elif isinstance(o, set):
+        elif isinstance(o, (set, types.GeneratorType)):
             return list(o)
         else:
             return str(o)

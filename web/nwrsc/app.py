@@ -227,7 +227,7 @@ def create_app():
     assets.register('admin.js',     Bundle(jquery, jquerymod, bootstrap, flatpickr, datatables, "js/common.js", "js/admin.js", filters="rjsmin", output="admin.js"))
     assets.register('announcer.js', Bundle(jquery, bootstrap, "js/announcer.js",                                               filters="rjsmin", output="announcer.js"))
     assets.register('register.js',  Bundle(jquery, jquerymod, bootstrap, "js/common.js", "js/register.js",                     filters="rjsmin", output="register.js"))
-    assets.register('results.js',   Bundle(jquery, bootstrap, "js/common.js",                                                  filters="rjsmin", output="results.js"))
+    assets.register('results.js',   Bundle(jquery, bootstrap, "extern/Chart-2.7.1.js", "js/common.js",                         filters="rjsmin", output="results.js"))
 
     assets.register('admin.css',         Bundle("scss/admin.scss",         depends="scss/*.scss", filters="libsass,cssmin", output="admin.css"))
     assets.register('announcer.css',     Bundle("scss/announcer.scss",     depends="scss/*.scss", filters="libsass,cssmin", output="announcer.css"))

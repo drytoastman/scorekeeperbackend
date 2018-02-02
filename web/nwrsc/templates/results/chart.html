@@ -1,0 +1,59 @@
+{% extends "results/bluebase.html" %}
+
+{% block headers %}
+{{super()}}
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+var ctx = document.getElementById("myChart");
+var myChart = new Chart(ctx, {
+    type: 'horizontalBar',
+    data: {
+        labels: {{labels}},
+        datasets: [{
+            label: 'net',
+            data: {{values}},
+            backgroundColor: 'rgba(50,120,200,0.4)',
+            borderColor:     'rgba(50,120,200,0.5)',
+            borderWidth: 1,
+        }]
+    },
+    options: {
+        title: {
+            display: true,
+            text: '{{title}}',
+        },
+        legend: {
+            display: false,
+        },
+        scales: {
+            xAxes: [{
+                ticks: {
+                    beginAtZero: true,
+                    fontSize: 8
+                }
+            }],
+            yAxes: [{
+                ticks: {
+                    callback: function(label, index, labels) {
+                        mod = (this.height < 100) ? 4 : (this.height < 200) ? 2 : 1;
+                        if (label % mod === 0)
+                            return label;
+                    },
+                }
+            }]
+        }
+    }
+});
+});
+</script>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<canvas id="myChart"></canvas>
+</div>
+{% endblock content %}
+

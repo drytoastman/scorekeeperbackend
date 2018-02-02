@@ -2,8 +2,9 @@
   This is the code for the results pages. Everything should be taken from the results table so
   that it continues to work after old series are expunged.
 """
-from operator import itemgetter
+import collections
 import logging
+from operator import itemgetter
 import re
 import uuid
 
@@ -103,6 +104,28 @@ def bygroup():
 @Results.route("/event/<uuid:eventid>/post")
 def post():
     return _resultsforclasses()
+
+@Results.route("/event/<uuid:eventid>/dist")
+def dist():
+    results = Result.getEventResults(g.eventid)
+    data = collections.defaultdict(int)
+    labels = list()
+    values = list()
+    for cls,res in results.items():
+        for ent in res:
+            if ent['net'] < 999:
+                log.debug("{} - {}".format(ent['net'], round(ent['net']*2)/2))
+                data[round(ent['net']*2)/2] += 1
+
+    sd = sorted(data.keys())
+    idx = min(data.keys())
+    end = max(data.keys())
+    while idx <= end:
+        labels.append(idx)
+        values.append(data[idx])
+        idx += 0.5
+
+    return render_template("/results/chart.html", event=g.event, title='Net Distribution (rounded to 0.5)', labels=labels, values=values)
 
 @Results.route("/event/<uuid:eventid>/tt")
 def tt():
