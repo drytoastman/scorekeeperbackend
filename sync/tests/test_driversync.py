@@ -20,7 +20,9 @@ def test_driversync(syncdbs, syncdata):
     # Modify lastname and zip on B, insert some spurious log data that isn't relavant to us
     with syncb.cursor() as cur:
         cur.execute("UPDATE drivers SET lastname=%s,attr=%s,modified=now() where driverid=%s", ('newlast', json.dumps({'zip': '98111'}), syncdata.driverid,))
-        cur.execute("INSERT INTO publiclog (usern, app, tablen, action, otime, ltime, olddata, newdata) VALUES ('x', 'y', 'drivers', 'U', now(), now(), %s, %s)", (json.dumps(cruft1), json.dumps(cruft2)))
+        cur.execute("INSERT INTO publiclog (usern, app, tablen, action, otime, ltime, olddata, newdata) VALUES ('x', 'y', 'drivers', 'I', now(), now(), '{}', %s)", (json.dumps(cruft1),))
+        time.sleep(0.1)
+        cur.execute("INSERT INTO publiclog (usern, app, tablen, action, otime, ltime, olddata, newdata) VALUES ('x', 'y', 'drivers', 'U', now(), now(), %s, %s)",   (json.dumps(cruft1), json.dumps(cruft2)))
         time.sleep(0.1)
         cur.execute("INSERT INTO publiclog (usern, app, tablen, action, otime, ltime, olddata, newdata) VALUES ('x', 'y', 'drivers', 'D', now(), now(), %s, '{}')", (json.dumps(cruft2),))
         syncb.commit()
@@ -57,4 +59,5 @@ def test_driversync(syncdbs, syncdata):
 
     sync(synca, syncb, merge)
     verify_driver(synca, syncb, syncdata.driverid, None, None)
+    verify_driver(synca, syncb, cruft1['driverid'], None, None)
 

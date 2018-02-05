@@ -268,7 +268,6 @@ class LoggedObject():
         self.inittime = None
         self.initial  = None
         self.updates  = []
-        self.deleted  = False
 
     def insert(self, when, newdata):
         if not self.initial or when < self.inittime:
@@ -278,19 +277,14 @@ class LoggedObject():
             self.initial  = newdata
 
     def update(self, time, olddata, newdata):
-        oldattr = olddata.pop('attr')
-        newattr = newdata.pop('attr')
+        oldattr = olddata.pop('attr', dict())
+        newattr = newdata.pop('attr', dict())
         odiff = dict(set(newdata.items()) - set(olddata.items()))  # Differences in object columns
         adiff = dict(set(newattr.items()) - set(oldattr.items()))  # Additions/Differences in attr
         adel  = oldattr.keys() - newattr.keys()                    # Attr keys that were deleted
         self.updates.append((time, odiff, adiff, adel))
 
-    def delete(self):
-        self.deleted = True
-
     def finalize(self):
-        if self.deleted:
-            return None
         data = self.initial.copy()
         for (time, odiff, adiff, adel) in sorted(self.updates, key=operator.itemgetter(0)):
             data.update(odiff)
@@ -302,26 +296,35 @@ class LoggedObject():
 
 
     @classmethod
-    def loadFrom(cls, objdict, db, src, table, when):
+    def loadFrom(cls, objdict, db, pkset, src, table, when):
         with db.cursor() as cur:
             cur.execute("SELECT * FROM {} WHERE tablen=%s and otime>=%s ORDER BY otime".format(src), (table, when))
             for obj in cur.fetchall():
 
+                def tryuuid(txt):
+                    try: return uuid.UUID(txt)
+                    except: return txt
+
+                def pkfromjson(data):
+                    return tuple([tryuuid(data[k]) for k in PRIMARY_KEYS[table]])
+
+
                 if obj['action'] == 'I':
-                    pk = tuple([obj['newdata'][k] for k in PRIMARY_KEYS[table]])
-                    if pk not in objdict:
+                    pk = pkfromjson(obj['newdata'])
+                    if pk not in objdict and pk in pkset:
                         objdict[pk] = LoggedObject(table, pk)
-                    objdict[pk].insert(obj['otime'], obj['newdata'])
+                    if pk in objdict:
+                        objdict[pk].insert(obj['otime'], obj['newdata'])
 
                 elif obj['action'] == 'U':
-                    pk = tuple([obj['newdata'][k] for k in PRIMARY_KEYS[table]])
+                    pk = pkfromjson(obj['newdata'])
                     if pk in objdict:
                         objdict[pk].update(obj['otime'], obj['olddata'], obj['newdata'])
 
                 elif obj['action'] == 'D':
-                    pk = tuple([obj['olddata'][k] for k in PRIMARY_KEYS[table]])
+                    pk = pkfromjson(obj['olddata'])
                     if pk in objdict:
-                        objdict[pk].delete()
+                        raise Exception("LoggedObject delete is invalid")
 
                 else:
                     log.warning("How did we get here?")

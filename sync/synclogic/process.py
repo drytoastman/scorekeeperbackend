@@ -263,10 +263,11 @@ class MergeProcess():
 
     def advancedMerge(self, localdb, remotedb, table, localupdates, remoteupdates):
         when = PresentObject.mincreatetime(localupdates, remoteupdates)
+        pkset = set([l.pk for l in localupdates]) | set([r.pk for r in remoteupdates])
         loggedobj= dict()
         logtable = table == 'drivers' and 'publiclog' or 'serieslog'
-        LoggedObject.loadFrom(loggedobj, localdb,  logtable, table, when)
-        LoggedObject.loadFrom(loggedobj, remotedb, logtable, table, when)
+        LoggedObject.loadFrom(loggedobj, localdb,  pkset, logtable, table, when)
+        LoggedObject.loadFrom(loggedobj, remotedb, pkset, logtable, table, when)
 
         # Create update objects and then update into both sides
         toupdate = [lo.finalize() for lo in loggedobj.values() if lo]
