@@ -67,7 +67,6 @@ def _resultsforclasses(clslist=None, grplist=None):
     """ Show our class results """
     resultsbase = Result.getEventResults(g.eventid)
     g.classdata = g.seriesinfo.getClassData() 
-    g.event     = g.seriesinfo.getEvent(g.eventid)
 
     if clslist is None and grplist is None:
         ispost         = True

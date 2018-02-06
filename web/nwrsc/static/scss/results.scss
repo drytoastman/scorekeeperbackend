@@ -146,22 +146,21 @@ table.challengeround {
 	}
 }
 
-//table.challengeround { margin: 0px; width: auto; }
-//table.challengeround td.entrant { width: auto; }
-
 /* For printing: use the whole page, remove excess columns and clear background colors */
 @media print {
     .container-fluid {
         margin: 0;
     }
 
-    th {
+    th, td, tr, a {
         color: black !important;
-		background: none;
+        background: none;
+        background-color: transparent !important;
+        max-width: 10rem;
     }
 
-	.caryear, .cardesc {
-		display: none;
-	}
+    .caryear, .cardesc {
+        display: none;
+    }
 }
 
