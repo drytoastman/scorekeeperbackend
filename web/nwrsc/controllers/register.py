@@ -328,7 +328,7 @@ def emailsent():
 @Register.route("/finish")
 def finish():
     try:
-        req = current_app.usts.loads(request.args['token'], max_age=3600) # 1 hour expiry
+        req = current_app.usts.loads(request.args['token'], max_age=86400) # 1 day expiry
     except Exception as e:
         raise DisplayableError(header="Confirmation Error", content="Sorry, this confirmation token failed (%s)" % e.__class__.__name__) from e
 
@@ -349,7 +349,7 @@ def reset():
 
     elif request.method == 'GET':
         try:
-            req = current_app.usts.loads(request.args['token'], max_age=3600) # 1 hour expiry
+            req = current_app.usts.loads(request.args['token'], max_age=86400) # 1 day expiry
         except Exception as e:
             raise DisplayableError(header="Confirmation Error", content="Sorry, this confirmation token failed (%s)" % e.__class__.__name__) from e
     
