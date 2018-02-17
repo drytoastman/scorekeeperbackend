@@ -101,6 +101,8 @@ def loadAnnouncerResults(carid, mini):
             return "No result data for carid {}".format(cid)
         if mini:
             decchamp = ""
+        elif event.ispractice:
+            decchamp = "practice event"
         elif classdata.classlist[driver['classcode']].champtrophy:
             decchamp = Result.getDecoratedChampResults(champ, driver)
         else:
