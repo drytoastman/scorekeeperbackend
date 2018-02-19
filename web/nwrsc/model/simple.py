@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime
+import datetime
 import json
 import logging
 import operator
@@ -190,18 +190,20 @@ class Run(AttrBase):
         return value
 
     @classmethod
-    def getLast(self, eventid, modified=0, classcodes=[]):
-        base = "SELECT {} c.classcode,MAX(r.modified) as modified, r.carid FROM runs r JOIN cars c ON r.carid=c.carid " \
-                "WHERE {} r.eventid=%s and r.modified > to_timestamp(%s) GROUP BY r.carid, c.classcode ORDER BY {} "
-        if len(classcodes) > 0:
-            sql = base.format("DISTINCT ON (c.classcode) ", "c.classcode IN %s AND ", "c.classcode,modified DESC")
-            val = (tuple(classcodes), g.eventid, modified)
-        else:
-            sql = base.format("", "", "modified DESC LIMIT 1")
-            val = (g.eventid, modified)
+    def getLast(self, eventid, moddt):
+        """ Search through serialog rather than tables so that we can pick up deletes as well as regular insert/update """
+        ret = dict()
+        today = datetime.datetime.today().replace(hour=0) # somewhere just after midnight today is our limit of how far back to go
+        if moddt < today:
+            moddt = today
+
         with g.db.cursor() as cur:
-            cur.execute(sql, val)
-            return [Run(**x) for x in cur.fetchall()]
+            cur.execute("select s.ltime,c.carid,c.classcode from serieslog s JOIN cars c ON c.carid=uuid(s.newdata->>'carid') OR c.carid=uuid(s.olddata->>'carid') where s.tablen='runs' AND s.ltime > %s ORDER BY s.ltime", (moddt,))
+            for row in cur.fetchall():
+                entry = dict(carid=row['carid'], modified=row['ltime'])
+                ret[row['classcode']] = entry
+                ret['last_entry']     = entry
+        return ret
 
 
 class RunOrder(AttrBase):
