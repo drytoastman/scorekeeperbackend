@@ -218,6 +218,12 @@ def create_app():
 
     ### WebAssets
     assets = Environment(theapp)
+
+    # Hopefully temp fix until webassets puts out a new release
+    from webassets.filter import register_filter
+    from nwrsc.lib.rcssmin import RCSSMin
+    register_filter(RCSSMin)
+
     jquery     = Bundle("extern/jquery-3.2.0.js")
     jquerymod  = Bundle("extern/jquery.sortable-1.12.1.js", "extern/jquery.validate-1.16.js")
     bootstrap  = Bundle("extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js")
@@ -229,11 +235,11 @@ def create_app():
     assets.register('register.js',  Bundle(jquery, jquerymod, bootstrap, "js/common.js", "js/register.js",                     filters="rjsmin", output="register.js"))
     assets.register('results.js',   Bundle(jquery, bootstrap, "extern/Chart-2.7.1.js", "js/common.js",                         filters="rjsmin", output="results.js"))
 
-    assets.register('admin.css',         Bundle("scss/admin.scss",         depends="scss/*.scss", filters="libsass,cssmin", output="admin.css"))
-    assets.register('announcer.css',     Bundle("scss/announcer.scss",     depends="scss/*.scss", filters="libsass,cssmin", output="announcer.css"))
-    assets.register('announcermini.css', Bundle("scss/announcermini.scss", depends="scss/*.scss", filters="libsass,cssmin", output="announcermini.css"))
-    assets.register('results.css',       Bundle("scss/results.scss",       depends="scss/*.scss", filters="libsass,cssmin", output="results.css"))
-    assets.register('register.css',      Bundle("scss/register.scss",      depends="scss/*.scss", filters="libsass,cssmin", output="register.css"))
+    assets.register('admin.css',         Bundle("scss/admin.scss",         depends="scss/*.scss", filters="libsass,rcssmin", output="admin.css"))
+    assets.register('announcer.css',     Bundle("scss/announcer.scss",     depends="scss/*.scss", filters="libsass,rcssmin", output="announcer.css"))
+    assets.register('announcermini.css', Bundle("scss/announcermini.scss", depends="scss/*.scss", filters="libsass,rcssmin", output="announcermini.css"))
+    assets.register('results.css',       Bundle("scss/results.scss",       depends="scss/*.scss", filters="libsass,rcssmin", output="results.css"))
+    assets.register('register.css',      Bundle("scss/register.scss",      depends="scss/*.scss", filters="libsass,rcssmin", output="register.css"))
 
 
     ### Crypto, Compression, Mail and optional Profiling

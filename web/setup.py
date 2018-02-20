@@ -16,13 +16,13 @@ x = setup(
         "Flask-Mail",
         "Flask-WTF",
         "cheroot",
-        "cssmin",
         "icalendar",
         "libsass",
         "ReportLab",
         "paypalrestsdk",
         "psycopg2",
         "python-dateutil",
+        "rcssmin",
         "squareconnect"
     ],
 
