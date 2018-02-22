@@ -235,11 +235,11 @@ def create_app():
     assets.register('register.js',  Bundle(jquery, jquerymod, bootstrap, "js/common.js", "js/register.js",                     filters="rjsmin", output="register.js"))
     assets.register('results.js',   Bundle(jquery, bootstrap, "extern/Chart-2.7.1.js", "js/common.js",                         filters="rjsmin", output="results.js"))
 
-    assets.register('admin.css',         Bundle("scss/admin.scss",         depends="scss/*.scss", filters="libsass,rcssmin", output="admin.css"))
-    assets.register('announcer.css',     Bundle("scss/announcer.scss",     depends="scss/*.scss", filters="libsass,rcssmin", output="announcer.css"))
-    assets.register('announcermini.css', Bundle("scss/announcermini.scss", depends="scss/*.scss", filters="libsass,rcssmin", output="announcermini.css"))
-    assets.register('results.css',       Bundle("scss/results.scss",       depends="scss/*.scss", filters="libsass,rcssmin", output="results.css"))
-    assets.register('register.css',      Bundle("scss/register.scss",      depends="scss/*.scss", filters="libsass,rcssmin", output="register.css"))
+    assets.register('admin.css',         Bundle("scss/admin.scss",         depends="scss/*.scss", filters="libsass", output="admin.css"))
+    assets.register('announcer.css',     Bundle("scss/announcer.scss",     depends="scss/*.scss", filters="libsass", output="announcer.css"))
+    assets.register('announcermini.css', Bundle("scss/announcermini.scss", depends="scss/*.scss", filters="libsass", output="announcermini.css"))
+    assets.register('results.css',       Bundle("scss/results.scss",       depends="scss/*.scss", filters="libsass", output="results.css"))
+    assets.register('register.css',      Bundle("scss/register.scss",      depends="scss/*.scss", filters="libsass", output="register.css"))
 
 
     ### Crypto, Compression, Mail and optional Profiling
