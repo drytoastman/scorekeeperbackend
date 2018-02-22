@@ -1,0 +1,61 @@
+{% extends "common/base.html" %}
+
+{% block headers %}
+{{super()}}
+{%- assets "docs.css" %}
+<link rel="stylesheet" href="{{ASSET_URL}}" /> 
+{%- endassets -%}
+{% assets "docs.js" %}
+    <script type="text/javascript" src="{{ASSET_URL}}"></script>
+{% endassets %}
+{% endblock headers %}
+
+{% block content %}
+<nav class="navbar navbar-expand-md navbar-dark bg-results d-print-none">
+  <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class='navbar-brand'><img src='/static/images/cone.png'/>Scorekeeper Docs</div>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">System</a>
+          <div class="dropdown-menu">
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="changes.md")}}">Changes From Previous Version</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="install.md")}}">Installing</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="nondatabase.md")}}">Non-Database Installs</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="backup.md")}}">Making Backups</a>
+          </div>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">Applications</a>
+          <div class="dropdown-menu">
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="sync.md")}}">Syncing Databases</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="registration.md")}}">Using Registration</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="dataentry.md")}}">Using DataEntry</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="paymentaccounts.md")}}">Setting Up Square/Paypal</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="runningpro.md")}}">Running a ProSolo</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="challenge.md")}}">Running a Challenge</a>
+          </div>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">Website</a>
+          <div class="dropdown-menu">
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="paymentaccounts.md")}}">Setting Up Square/Paypal</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="onlineregadmin.md")}}">Online Event Administration</a>
+          </div>
+        </li>
+
+    </ul>
+  </div>
+</nav>
+
+<div class='container-fluid'>
+{{content}}
+</div>
+
+{% endblock content %}
+

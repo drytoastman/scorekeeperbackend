@@ -110,6 +110,7 @@ def create_app():
     theapp.add_url_rule('/',             'toresults', redirect_to='/results')
     theapp.register_blueprint(Admin,     url_prefix="/admin/<series>")
     theapp.register_blueprint(Announcer, url_prefix="/announcer/<series>")
+    theapp.register_blueprint(Docs,      url_prefix="/docs")
     theapp.register_blueprint(Json,      url_prefix="/json/<series>")
     theapp.register_blueprint(Register,  url_prefix="/register")
     theapp.register_blueprint(Results,   url_prefix="/results/<series>")
@@ -232,12 +233,14 @@ def create_app():
 
     assets.register('admin.js',     Bundle(jquery, jquerymod, bootstrap, flatpickr, datatables, "js/common.js", "js/admin.js", filters="rjsmin", output="admin.js"))
     assets.register('announcer.js', Bundle(jquery, bootstrap, "js/announcer.js",                                               filters="rjsmin", output="announcer.js"))
+    assets.register('docs.js',      Bundle(jquery, bootstrap, "js/common.js",                                                  filters="rjsmin", output="docs.js"))
     assets.register('register.js',  Bundle(jquery, jquerymod, bootstrap, "js/common.js", "js/register.js",                     filters="rjsmin", output="register.js"))
     assets.register('results.js',   Bundle(jquery, bootstrap, "extern/Chart-2.7.1.js", "js/common.js",                         filters="rjsmin", output="results.js"))
 
     assets.register('admin.css',         Bundle("scss/admin.scss",         depends="scss/*.scss", filters="libsass", output="admin.css"))
     assets.register('announcer.css',     Bundle("scss/announcer.scss",     depends="scss/*.scss", filters="libsass", output="announcer.css"))
     assets.register('announcermini.css', Bundle("scss/announcermini.scss", depends="scss/*.scss", filters="libsass", output="announcermini.css"))
+    assets.register('docs.css',          Bundle("scss/docs.scss",          depends="scss/*.scss", filters="libsass", output="docs.css"))
     assets.register('results.css',       Bundle("scss/results.scss",       depends="scss/*.scss", filters="libsass", output="results.css"))
     assets.register('register.css',      Bundle("scss/register.scss",      depends="scss/*.scss", filters="libsass", output="register.css"))
 

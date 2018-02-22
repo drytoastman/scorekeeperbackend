@@ -14,6 +14,7 @@ x = setup(
         "Flask-Bcrypt",
         "Flask-Compress",
         "Flask-Mail",
+        "Flask-Markdown",
         "Flask-WTF",
         "cheroot",
         "icalendar",

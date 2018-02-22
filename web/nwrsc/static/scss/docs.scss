@@ -1,0 +1,37 @@
+$basecolor: #c4ac11;
+$subheadgray: #ccc;
+
+@import "../extern/bootstrap-4.0.0b.scss";
+@import "common.scss";
+
+@include bootstraptheme("results", $basecolor);
+
+.container-fluid {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.2rem; }
+h5 { font-size: 1.0rem; }
+
+
+@media print {
+    .container-fluid {
+        margin: 0;
+    }
+
+    th, td, tr, a {
+        color: black !important;
+        background: none;
+        background-color: transparent !important;
+        max-width: 10rem;
+    }
+
+    .caryear, .cardesc {
+        display: none;
+    }
+}
+

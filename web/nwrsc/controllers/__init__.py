@@ -4,6 +4,7 @@ from .blueprints import *
 __all__ = [x for x in dir(blueprints) if "__" not in x]
 
 from . import admin
+from . import docs
 from . import dynamic
 from . import entranteditor
 from . import feed

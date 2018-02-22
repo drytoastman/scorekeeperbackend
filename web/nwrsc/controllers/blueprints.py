@@ -10,4 +10,5 @@ Xml       = Blueprint("Xml",       __name__)
 Json      = Blueprint("Json",      __name__) 
 Register  = Blueprint("Register",  __name__) 
 Results   = Blueprint("Results",   __name__)
+Docs      = Blueprint("Docs",      __name__)
 
