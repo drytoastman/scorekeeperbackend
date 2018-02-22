@@ -124,6 +124,8 @@ def create_app():
     def favicon(): return send_from_directory('static/images', 'cone.png')
     @theapp.route('/robots.txt')
     def robots(): return send_from_directory('static', 'robots.txt')
+    @theapp.route('/model/resultsfeed.yaml')
+    def resultsfeed(): return send_from_directory('model', 'resultsfeed.yaml')
 
 
     ## Before, After and Teardown request

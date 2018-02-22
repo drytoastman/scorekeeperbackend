@@ -3,6 +3,8 @@ recursive-include nwrsc/static/js *
 recursive-include nwrsc/static/scss *
 recursive-include nwrsc/static/extern *
 recursive-include nwrsc/static/indexlists *
+recursive-include nwrsc/static/swaggerui *
 recursive-include nwrsc/templates *
 include nwrsc/static/robots.txt
 include nwrsc/lib/*.ttf
+include nwrsc/model/*.yaml

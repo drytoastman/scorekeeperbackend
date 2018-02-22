@@ -1,0 +1,83 @@
+host: scorekeeper.wwscc.org
+basePath: /json/
+schemes: [https]
+swagger: '2.0'
+info:
+  description: This is the source for results data from a scorekeeper server
+  version: 2.0.0
+  title: Scorekeeper Feed
+  contact:
+    email: drytoastman@gmail.com
+
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+paths:
+  /:
+    get:
+      summary: list the series available
+      operationId: listSeries
+      description: |
+        Provides the list of series available on the server
+      produces:
+      - application/json
+      - text/xml
+      responses:
+        200:
+          description: request ok
+          schema:
+            type: array
+            items:
+              type: string
+
+  /{series}/:
+    get:
+      summary: get the basic series info
+      operationId: getSeriesInfo
+      description: |
+        Provides the series events, challenges, classes, indexes and settings
+      produces:
+      - application/json
+      - text/xml
+      responses:
+        200:
+          description: request ok
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SeriesInfo'
+      parameters:
+      - in: path
+        name: series
+        description: the series name
+        required: true
+        type: string
+
+definitions:
+  SeriesInfo:
+    type: object
+    properties:
+      settings:
+        type: array
+        items:
+          type: string
+      events:
+        type: array
+        items:
+          type: string
+      challenges:
+        type: array
+        items:
+          type: string
+      classes:
+        type: array
+        items:
+          type: string
+      indexes:
+        type: array
+        items:
+          type: string
+          
+
+

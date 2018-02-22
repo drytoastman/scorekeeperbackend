@@ -20,24 +20,28 @@
     <ul class="navbar-nav">
 
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">System</a>
+          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">General</a>
           <div class="dropdown-menu">
-          <a class="dropdown-item" href="{{url_for(".docpage", selection="changes.md")}}">Changes From Previous Version</a>
-          <a class="dropdown-item" href="{{url_for(".docpage", selection="install.md")}}">Installing</a>
-          <a class="dropdown-item" href="{{url_for(".docpage", selection="nondatabase.md")}}">Non-Database Installs</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="installwindows.md")}}">Windows Install</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="install.md")}}">Manual Install</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="nondatabase.md")}}">Java Only Install</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="notesonuse.md")}}">General Use Notes</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="sync.md")}}">Syncing Databases</a>
           <a class="dropdown-item" href="{{url_for(".docpage", selection="backup.md")}}">Making Backups</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="debugdump.md")}}">Collecting Debug Data</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="runningpro.md")}}">Running a ProSolo</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="changes.md")}}">Changes</a>
           </div>
         </li>
 
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">Applications</a>
           <div class="dropdown-menu">
-          <a class="dropdown-item" href="{{url_for(".docpage", selection="sync.md")}}">Syncing Databases</a>
-          <a class="dropdown-item" href="{{url_for(".docpage", selection="registration.md")}}">Using Registration</a>
-          <a class="dropdown-item" href="{{url_for(".docpage", selection="dataentry.md")}}">Using DataEntry</a>
-          <a class="dropdown-item" href="{{url_for(".docpage", selection="paymentaccounts.md")}}">Setting Up Square/Paypal</a>
-          <a class="dropdown-item" href="{{url_for(".docpage", selection="runningpro.md")}}">Running a ProSolo</a>
-          <a class="dropdown-item" href="{{url_for(".docpage", selection="challenge.md")}}">Running a Challenge</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="registration.md")}}">Registration</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="dataentry.md")}}">DataEntry</a>
+          <a class="dropdown-item" href="{{url_for(".docpage", selection="challenge.md")}}">Challenge</a>
           </div>
         </li>
 
@@ -53,7 +57,7 @@
   </div>
 </nav>
 
-<div class='container-fluid'>
+<div class='container-fluid markdown'>
 {{content}}
 </div>
 

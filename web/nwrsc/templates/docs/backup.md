@@ -9,7 +9,8 @@ local database is saved in $HOME/scorekeeper/$VERSION/backup/ with a date and sc
 ### Manual
 You can also manually make a backup from the Scorekeeper Status Window using File &rarr; Backup Database.
 
-Either of these backups can be restored from the Scorekeeper Status Window using File &rarr; Import Backup Data.
+### Restoring
+Either of the above backups can be restored from the Scorekeeper Status Window using File &rarr; Import Backup Data.
 
 ## Online Backups
 
