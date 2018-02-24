@@ -10,7 +10,5 @@ web/nwrsc/static/*.js
 web/nwrsc/static/*.css
 web/nwrsc/static/.webassets-cache
 web/nwrsc/static/swaggerui
-web/nwrsc/api/models/*
-!web/nwrsc/api/models/base_model_.py
 build
 dist
