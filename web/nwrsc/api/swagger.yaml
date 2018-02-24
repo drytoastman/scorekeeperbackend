@@ -1,27 +1,17 @@
-basePath: /api
-schemes: [https,http]
 swagger: '2.0'
+basePath: /api
+#produces: [application/json, application/xml, text/xml]
 info:
-  description: This is the source for results data from a scorekeeper server
-  version: "1.0.0"
-  title: Scorekeeper Feed
-  contact:
-    email: drytoastman@gmail.com
-
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Scorekeeper
+  description: This API is currently just a source for results data from a scorekeeper server
+  version: "2.0.0"
 
 paths:
   /:
     get:
       summary: list the series available
       operationId: listSeries
-      description: |
-        Provides the list of series available on the server
-      produces:
-      - application/json
-      - text/xml
+      description: get the list of series available on the server
       responses:
         200:
           description: request ok
@@ -36,11 +26,7 @@ paths:
     get:
       summary: get the basic series info
       operationId: getSeriesInfo
-      description: |
-        Provides the series events, challenges, classes, indexes and settings
-      produces:
-      - application/json
-      - text/xml
+      description: get the events, challenges, classes, indexes and settings for the series
       responses:
         200:
           description: request ok
@@ -53,7 +39,240 @@ paths:
         required: true
         type: string
 
+  /{series}/event/{eventid}:
+    get:
+      summary: get the results for an event
+      operationId: getEventResults
+      description: get the annotated results for all classes in the event
+      responses:
+        200:
+          description: request ok
+          schema:
+            $ref: '#/definitions/EventResults'
+      parameters:
+      - in: path
+        name: series
+        description: the series name
+        required: true
+        type: string
+      - in: path
+        name: eventid
+        description: the event UUID identifier
+        required: true
+        type: string
+
+
+
 definitions:
+
+ 
+  Run:
+    type: object
+    properties:
+      course:
+        type: integer
+        description: the course number
+        example: 1
+      run:
+        type: integer
+        description: the run number
+        example: 1
+      raw: 
+        type: number
+        format: float
+        description: the raw time from the timer
+        example: 59.773
+      cones:
+        type: integer
+        description: the number of cones hit
+        example: 1
+      gates: 
+        type: integer
+        description: the number of gates missed
+        example: 0
+      status:
+        type: string
+        description: the run status such as OK, DNF, DNS, etc
+        example: "OK"
+      pen: 
+        type: number
+        format: float
+        description: the raw time with just penalties applied
+        example: 61.773
+      net: 
+        type: number
+        format: float
+        description: "the net time including penalties and indexing, NOTE: the time displayed will be rounded to .001"
+        example: 50.595449
+      rorder:
+        type: integer
+        description: the run order compared to other runs on this course using the raw time of COUNTED runs, 1 is best
+        example: 3
+      norder:
+        type: integer
+        description: the run order compared to other runs on this course using the net time of COUNTED runs, 1 is best
+        example: 3
+      arorder:
+        type: integer
+        description: the run order compared to other runs on this course using the raw time of ALL runs, 1 is best
+        example: 3
+      anorder:
+        type: integer
+        description: the run order compared to other runs on this course using the net time of ALL runs, 1 is best
+        example: 3
+      modified: 
+        type: string
+        format: date-time
+        description: the mod time
+
+  ResultEntry:
+    type: object
+    properties:
+      driverid:
+        type: string
+        format: uuid
+        description: the UUID of the driver
+      carid:
+        type: string
+        format: uuid
+        description: the UUID of the car
+      firstname:
+        type: string
+        description: the driver firstname
+        example: John
+      lastname:
+        type: string
+        description: the driver lastname
+        example: Doe
+      year:
+        type: string
+        description: the car year
+        example: 2004
+      make:
+        type: string
+        description: the car make
+        example: Honda        
+      model:
+        type: string
+        description: the car model
+        example: S2000        
+      color:
+        type: string
+        description: the car color
+        example: Silver       
+      number:
+        type: integer
+        description: the car number
+        example: 99
+      classcode:
+        type: string
+        description: the car classcode (in series classlist)
+        example: S1
+      indexcode:
+        type: string
+        description: the car indexcode (in series indexlist)
+        example: BS
+      indexstr:
+        type: string
+        description: the displayed indexcode (may have indentifiers such as * if special handling is provided)
+        example: BS
+      useclsmult:
+        type: boolean
+        description: true if the flag is set that will selectively apply the classcode multiplier (not common)
+      indexval:
+        type: number
+        format: float
+        description: the compiled index value to use (includes zero or more of class index, car index and class multiplier)
+        example: 0.813
+      rungroup:
+        type: integer
+        description: the rungroup this entry ran in
+        example: 2
+      runs:
+        type: array
+        description: a two dimensional array of runs, first by course number, then by run number
+        items:
+            type: array
+            items:
+                $ref: '#/definitions/Run'
+      net:
+        type: number
+        format: float
+        description: the sum net time of the best COUNTED run from each course
+        example: 46.81254
+      pen:
+        type: number
+        format: float
+        description: the sum unindexed time of COUNTED runs from each course (includes penalties)
+        example: 57.58
+      netall:
+        type: number
+        format: float
+        description: the sum net time of the best run from each course
+        example: 46.81254
+      penall:
+        type: number
+        format: float
+        description: the sum unindexed time of the best run from each course (includes penalties)
+        example: 57.58
+      position:
+        type: integer
+        description: the finishing position in class
+        example: 3
+      diff1:
+        type: number
+        format: float
+        description: "the difference in time to first place: (net1 - netx)/indexval"
+        example: 1.234
+      diffn:
+        type: number
+        format: float
+        description: "the difference in time to the next position: (netn - netx)/indexval"
+        example: 0.432
+      pospoints:
+        type: integer
+        description: the championship points for the current position
+        example: 11
+      diffpoints:
+        type: number
+        format: float
+        description: the championship points based on difference from first
+        example: 98.123
+      points:
+        type: number
+        description: one of pospoints or diffpoints depending on the series settings
+        example: 98.123
+      trophy:
+        type: boolean
+        description: true if this position is awarded a trophy for the event
+      modified: 
+        type: string
+        format: date-time
+        description: the mod time
+        
+
+  ClassResults:
+    type: object
+    properties:
+      eventid:
+        type: string
+        format: uuid
+        description: the eventid for this class result
+      classcode:
+        type: string
+        description: the classcode for the result
+      entries:
+        type: array
+        description: a list of result entries
+        items:
+          $ref: '#/definitions/ResultEntry'
+
+
+  EventResults:
+    type: array
+    items:
+      $ref: '#/definitions/ClassResults'
+
 
   SeriesSettings:
     type: object
