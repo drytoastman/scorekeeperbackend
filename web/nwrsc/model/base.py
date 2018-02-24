@@ -154,19 +154,12 @@ class AttrBase(object):
                   type(v) is bool and not v:
                     del self.attr[k]
 
-    def feedFilter(self, key, value):
-        """ Override this function to filter our things that shouldn't end up in the public json/xml feed """
-        return value
-
-    def getPublicFeed(self):
+    def getAsDict(self):
         """ Return a single level dict of the attributes and values to create a feed for this object """
         d = dict()
         self.cleanAttr()
         for k,v in {**self.__dict__, **self.attr}.items():
             if k[0] == '_' or k == 'attr':
-                continue
-            v = self.feedFilter(k, v)
-            if v is None:
                 continue
             d[k] = v
         return d

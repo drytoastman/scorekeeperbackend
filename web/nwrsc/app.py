@@ -110,11 +110,10 @@ def create_app():
     theapp.add_url_rule('/',             'toresults', redirect_to='/results')
     theapp.register_blueprint(Admin,     url_prefix="/admin/<series>")
     theapp.register_blueprint(Announcer, url_prefix="/announcer/<series>")
+    theapp.register_blueprint(Api,       url_prefix="/api")
     theapp.register_blueprint(Docs,      url_prefix="/docs")
-    theapp.register_blueprint(Json,      url_prefix="/json/<series>")
     theapp.register_blueprint(Register,  url_prefix="/register")
     theapp.register_blueprint(Results,   url_prefix="/results/<series>")
-    theapp.register_blueprint(Xml,       url_prefix="/xml/<series>")
     theapp.add_url_rule('/admin/squareoauth', "Admin.squareoauth")
     theapp.add_url_rule('/admin/cron',   "Admin.cron")
     theapp.add_url_rule('/admin/',       "Admin.base")
@@ -124,8 +123,8 @@ def create_app():
     def favicon(): return send_from_directory('static/images', 'cone.png')
     @theapp.route('/robots.txt')
     def robots(): return send_from_directory('static', 'robots.txt')
-    @theapp.route('/model/resultsfeed.yaml')
-    def resultsfeed(): return send_from_directory('model', 'resultsfeed.yaml')
+    @theapp.route('/api/swagger.yaml')
+    def resultsfeed(): return send_from_directory('api', 'swagger.yaml')
 
 
     ## Before, After and Teardown request

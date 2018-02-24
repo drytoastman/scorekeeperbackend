@@ -1,0 +1,247 @@
+basePath: /api
+schemes: [https,http]
+swagger: '2.0'
+info:
+  description: This is the source for results data from a scorekeeper server
+  version: "1.0.0"
+  title: Scorekeeper Feed
+  contact:
+    email: drytoastman@gmail.com
+
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+paths:
+  /:
+    get:
+      summary: list the series available
+      operationId: listSeries
+      description: |
+        Provides the list of series available on the server
+      produces:
+      - application/json
+      - text/xml
+      responses:
+        200:
+          description: request ok
+          schema:
+            type: array
+            items:
+              type: string
+              description: series name
+              example: nwr2018
+
+  /{series}:
+    get:
+      summary: get the basic series info
+      operationId: getSeriesInfo
+      description: |
+        Provides the series events, challenges, classes, indexes and settings
+      produces:
+      - application/json
+      - text/xml
+      responses:
+        200:
+          description: request ok
+          schema:
+            $ref: '#/definitions/SeriesInfo'
+      parameters:
+      - in: path
+        name: series
+        description: the series name
+        required: true
+        type: string
+
+definitions:
+
+  SeriesSettings:
+    type: object
+    properties:
+      minevents:
+        type: integer
+        description: if > 0, the minimum number of events attended to make the championship list
+      dropevents:
+        type: integer
+        description: the number of events that can dropped for calculating championship points
+      seriesname:
+        type: string
+        description: the series name
+        example: "NWR Regional Series 2018"
+      pospointlist:
+        type: string
+        description: csv list of points assgined when using position for points
+        example: "20,16,13,11,9,7,6,5,4,3,2,1"
+      usepospoints:
+        type: boolean
+        description: true if points should be calculated based on position, not difference from first
+      indexafterpenalties:
+        type: boolean
+        description: true if any index value should be applied after penalties, rather than before
+
+  EventInfo:
+    type: object
+    properties:
+      eventdate: 
+        type: string
+        format: date
+        description: the date of the event
+        example: "2017-04-09"
+      modified: 
+        type: string
+        format: date-time
+        description: the mod time
+      name:
+        type: string
+        description: the event name
+        example: "Regional #1"
+      runs: 
+        type: integer
+        description: number of runs in the event
+        example: 3
+      ispro: 
+        type: boolean
+        description: true if a ProSolo event
+      conepen:
+        type: number
+        format: float
+        description: the penalty for hitting a cone
+        example: 2.0
+      courses:
+        type: integer
+        description: the number of courses in the event
+        example: 1
+      eventid: 
+        type: string
+        format: uuid
+        description: the event id
+        example: "b7cc2c8b-cb59-11e7-883c-0c4de9c60d73"
+      gatepen:
+        type: number
+        format: float
+        description: the penalty for missing a gate
+        example: 10.0
+      location: 
+        type: string
+        description: the event location
+        example: "Bremerton"
+      segments:
+        type: integer
+        description: the number of segments per course (not used yet)
+      ispractice:
+        type: boolean
+        description: true if this is a practice and does not count towards championship points
+      countedruns:
+        type: integer
+        description: if > 0, the number of runs that count towards class position and points
+
+  ClassInfo:
+    type: object
+    properties:
+      classcode:
+        type: string
+        description: the letter code for the class
+        example: ITO2
+      descrip:
+        type: string
+        description: the full class description
+        example: Second indexed time-only runs of the day
+      modified: 
+        type: string
+        format: date-time
+        description: the mod time
+      champtrophy:
+        type: boolean
+        description: true if this class is included in the overall championship list
+      eventtrophy:
+        type: boolean
+        description: true if this class get an event tropy
+      countedruns:
+        type: integer
+        description: if > 0, the limit to the number of runs that are counted for points
+      carindexed:
+        type: boolean
+        description: true if each car in the class has its own index to apply towards times
+      caridxrestrict:
+        type: string
+        description: formatted string that determine which indexcodes are allowed for this class
+      secondruns:
+        type: boolean
+        description: informational flag to indicate a class whose entrants are generally taking second runs of the day
+      indexcode:
+        type: string
+        description: an index that is applied to everyone in the class
+      classmultiplier:
+        type: number
+        format: float
+        description: a static multiplier that is applied to everyone in the class such as a street tire modifier
+      usecarflag:
+        type: boolean
+        description: true if flag in car entry must be set to apply classwide multiplier (i.e. street tire entries)
+   
+  IndexInfo:
+    type: object
+    properties:
+      indexcode:
+        type: string
+        description: the letter code for the index
+        example: CS
+      value:
+        type: number
+        format: float 
+        description: the index value
+        example: 0.805
+      descrip:
+        type: string
+        description: the full index description
+        example: 2018 PAX CS
+      modified: 
+        type: string
+        format: date-time
+        description: the mod time
+
+  SeriesInfo:
+    type: object
+    properties:
+      settings:
+        $ref: '#/definitions/SeriesSettings'
+      events:
+        type: array
+        items:
+          $ref: '#/definitions/EventInfo'
+      challenges:
+        type: array
+        items:
+          type: string
+      classes:
+        type: array
+        items:
+          $ref: '#/definitions/ClassInfo'
+      indexes:
+        type: array
+        items:
+          $ref: '#/definitions/IndexInfo'
+
+  Entry:
+    type: object
+    description: Format for SCCA report entry
+    properties:
+      FirstName:
+          type: string
+      LastName:
+          type: string
+      MemberNo:
+          type: string
+      Class:
+          type: string
+      Index:
+          type: string
+      Pos:
+          type: string
+      CarModel:
+          type: string
+      CarNo:
+          type: string
+      TotalTm:
+          type: string
+

@@ -43,12 +43,12 @@ class Settings(object):
 
     def save(self):
         with g.db.cursor() as cur:
-            for k, v in self.getPublicFeed().items():
+            for k, v in self.getAsDict().items():
                 strval = self._obj2db(k, v)
                 cur.execute("INSERT INTO settings (name, val) VALUES (%s, %s) ON CONFLICT (name) DO UPDATE SET val=%s,modified=now()", (k, strval, strval))
         g.db.commit()
 
-    def getPublicFeed(self):
+    def getAsDict(self):
         """ Return a single level dict of the attributes and values to create a feed for this object """
         d = dict()
         for k,v in self.__dict__.items():

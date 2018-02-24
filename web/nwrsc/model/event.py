@@ -18,11 +18,6 @@ class Event(AttrBase):
             cur.execute("delete from events where eventid=%s", (self.eventid,))
         g.db.commit()
 
-    def feedFilter(self, key, value):
-        if key in ('payments', 'snail'):
-            return None
-        return value
-
     def getCountedRuns(self):
         ret = getattr(self, 'counted', 0)
         if ret <= 0:

@@ -5,7 +5,7 @@ RUN wget https://github.com/swagger-api/swagger-ui/archive/v3.10.0.tar.gz
 RUN tar xf *.gz
 WORKDIR swagger-ui-3.10.0/dist
 RUN rm *.map
-RUN sed -i 's/http:\/\/petstore.swagger.io\/v2\/swagger.json/\/static\/swagger.yaml/' index.html
+RUN sed -i 's/http:\/\/petstore.swagger.io\/v2\/swagger.json/\/api\/swagger.yaml/' index.html
 
 
 FROM python:3.6.3-alpine3.6

@@ -1,6 +1,7 @@
-import logging
 import dateutil.parser
 import datetime
+import json
+import logging
 import uuid
 
 from flask import g
@@ -16,7 +17,6 @@ from .series import Series
 from .settings import Settings
 from .simple import Challenge, Run
 from nwrsc.lib.misc import csvlist
-from nwrsc.lib.encoding import JSONEncoder
 
 log = logging.getLogger(__name__)
 
@@ -31,17 +31,28 @@ class PosPoints(object):
         else:
             return self.ppoints[idx]
 
-# Creates an attribute for each entry in the list with the value of index+1 """
 def marklist(lst, label):
+    """ Creates an attribute for each entry in the list with the value of index+1 """
     for ii, entry in enumerate(lst):
         setattr(entry, label, ii+1)
 
-# When sorting raw, we need to ignore non-OK status runs
 def rawgetter(obj):
+    """ When sorting raw, we need to ignore non-OK status runs """
     if obj.status == "OK":
         return obj.raw
     return 999.999
-        
+
+
+class JSONEncoder(json.JSONEncoder):
+    """ Helper that calls getAsDict if available for getting json encoding """
+    def default(self, o):
+        if hasattr(o, 'getAsDict'):
+            return o.getAsDict()
+        elif isinstance(o, (set, types.GeneratorType)):
+            return list(o)
+        else:
+            return str(o)
+
 
 class Result(object):
     """ 
@@ -65,40 +76,37 @@ class Result(object):
         cls.getChampResults(True)
 
     @classmethod
-    def getSeriesInfo(cls, asstring=False):
+    def getSeriesInfo(cls):
         name = "info"
         if cls._needUpdate(False, ('classlist', 'indexlist', 'events', 'settings'), name):
             cls._updateSeriesInfo(name)
-        res = cls._loadResults(name, asstring)
-        if asstring:
-            return res
+        res = cls._loadResults(name)
         return SeriesInfo(res)
 
     @classmethod
-    def getEventResults(cls, eventid, asstring=False):
+    def getEventResults(cls, eventid):
         if cls._needUpdate(True, ('classlist', 'indexlist', 'events', 'cars', 'runs'), eventid):
             cls._updateEventResults(eventid)
-        return cls._loadResults(eventid, asstring)
+        return cls._loadResults(eventid)
 
     @classmethod
     def getChallengeResults(cls, challengeid):
         if cls._needUpdate(True, ('challengerounds', 'challengeruns'), challengeid):
             cls._updateChallengeResults(challengeid)
-        ret = dict() # Have to convert back to dict as JSON can't store using ints as keys
-        for rnd in cls._loadResults(challengeid, asstring=False):
+        ret = dict() # note: JSON can't store using ints as keys
+        for rnd in cls._loadResults(challengeid):
             ret[rnd['round']] = rnd
         return ret
 
     @classmethod
-    def getChampResults(cls, asstring=False):
+    def getChampResults(cls):
         """ returns a ChampClass list object """
         name = "champ"
         if cls._needUpdate(True, ('settings', 'classlist', 'indexlist', 'events', 'cars', 'runs'), name):
             cls._updateChampResults(name)
-        res = cls._loadResults(name, asstring)
-        if not asstring:
-            for k, v in res.items():
-                res[k] = ChampClass(v) # Rewrap the list with ChampClass for template function
+        res = cls._loadResults(name)
+        for k, v in res.items():
+            res[k] = ChampClass(v) # Rewrap the list with ChampClass for template function
         return res
 
     @classmethod
@@ -175,11 +183,9 @@ class Result(object):
         return False
 
     @classmethod
-    def _loadResults(cls, name, asstring):
+    def _loadResults(cls, name):
         with g.db.cursor() as cur:
-            key = "data"
-            if asstring: key += "::text"
-            cur.execute("select "+key+" from results where series=%s and name=%s::text", (g.series, name))
+            cur.execute("select data from results where series=%s and name=%s::text", (g.series, name))
             res = cur.fetchone()
             if res is not None:
                 return res['data']
@@ -765,10 +771,6 @@ class PointStorage(AttrBase):
         self.drop = []
         self.usingbest = 0
         AttrBase.__init__(self)
-
-    def feedFilter(self, k, v):
-        if k == 'usingbest': return None
-        return v
 
     def get(self, eventid):
         return self.events.get(eventid, None)

@@ -184,11 +184,6 @@ class Registration(AttrBase):
 
 class Run(AttrBase):
 
-    def feedFilter(self, key, value):
-        if key in ('carid', 'eventid'):
-            return None
-        return value
-
     @classmethod
     def getLast(self, eventid, moddt):
         """ Search through serialog rather than tables so that we can pick up deletes as well as regular insert/update """
