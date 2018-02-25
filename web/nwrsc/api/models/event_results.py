@@ -16,15 +16,26 @@ class EventResults(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self):  # noqa: E501
+    def __init__(self, eventid: str=None, classes: List[ClassResults]=None):  # noqa: E501
         """EventResults - a model defined in Swagger
 
+        :param eventid: The eventid of this EventResults.  # noqa: E501
+        :type eventid: str
+        :param classes: The classes of this EventResults.  # noqa: E501
+        :type classes: List[ClassResults]
         """
         self.swagger_types = {
+            'eventid': str,
+            'classes': List[ClassResults]
         }
 
         self.attribute_map = {
+            'eventid': 'eventid',
+            'classes': 'classes'
         }
+
+        self._eventid = eventid
+        self._classes = classes
 
     @classmethod
     def from_dict(cls, dikt) -> 'EventResults':
@@ -36,3 +47,45 @@ class EventResults(Model):
         :rtype: EventResults
         """
         return util.deserialize_model(dikt, cls)
+
+    @property
+    def eventid(self) -> str:
+        """Gets the eventid of this EventResults.
+
+
+        :return: The eventid of this EventResults.
+        :rtype: str
+        """
+        return self._eventid
+
+    @eventid.setter
+    def eventid(self, eventid: str):
+        """Sets the eventid of this EventResults.
+
+
+        :param eventid: The eventid of this EventResults.
+        :type eventid: str
+        """
+
+        self._eventid = eventid
+
+    @property
+    def classes(self) -> List[ClassResults]:
+        """Gets the classes of this EventResults.
+
+
+        :return: The classes of this EventResults.
+        :rtype: List[ClassResults]
+        """
+        return self._classes
+
+    @classes.setter
+    def classes(self, classes: List[ClassResults]):
+        """Sets the classes of this EventResults.
+
+
+        :param classes: The classes of this EventResults.
+        :type classes: List[ClassResults]
+        """
+
+        self._classes = classes

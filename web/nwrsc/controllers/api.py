@@ -8,6 +8,8 @@ import datetime
 import itertools
 import json
 import logging
+import uuid
+
 from flask import request, g, escape, make_response
 
 from nwrsc.controllers.blueprints import *
@@ -18,7 +20,6 @@ from nwrsc.api.models import *
 log  = logging.getLogger(__name__)
 
 from nwrsc.api.models.base_model_ import Model
-from nwrsc.api.models.series_info import SeriesInfo
 
 
 def model2dict(model):
@@ -40,6 +41,8 @@ class SwaggerJSONEncoder(json.JSONEncoder):
             return o.replace(microsecond=0).isoformat()+"Z"
         if isinstance(o, datetime.date):
             return o.isoformat()
+        if isinstance(o, uuid.UUID):
+            return str(o)
         return json.JSONEncoder.default(self, o)
 
 
@@ -59,8 +62,13 @@ class SwaggerXMLEncoder():
         else:                                 self._encodedata(data)
 
     def _encodelist(self, data):
-        if all(isinstance(x, (int,str)) for x in data):
-            self.bits.append(escape(','.join(map(str, data))))
+        if all(isinstance(x, (int,float,str)) for x in data):
+            self.bits.append("<rawlist>")
+            for d in data:
+                if isinstance(d, float): self.bits.append("<float>{}</int>".format(d))
+                elif isinstance(d, int): self.bits.append("<int>{}</int>".format(d))
+                elif isinstance(d, str): self.bits.append("<string>{}</string>".format(d))
+            self.bits.append("</rawlist>")
         else:
             for v in data:
                 self.toxml(v)
@@ -108,30 +116,51 @@ def api_encode(data):
     return response
 
 
+def format_classresults(code, data):
+    """ takes class results for a single classcode and creates the swagger modeled version """
+    from nwrsc.api.models.class_results import ClassResults
+    from nwrsc.api.models.result_entry  import ResultEntry
+    ret = ClassResults(classcode=code, entries=[])
+    if data:
+        for r in data:
+            r['runs'] = itertools.chain.from_iterable(r['runs']) # Flatten 2D array into 1D
+            ret.entries.append(ResultEntry.from_dict(r))
+    return ret
+
+
+
 @Api.route("/")
 def serieslist():
     return api_encode(sorted(itertools.chain.from_iterable(Series.byYear().values())))
 
+
 @Api.route("/<series>")
 def seriesinfo():
+    from nwrsc.api.models.series_info import SeriesInfo
     data = Result.getSeriesInfo()
     for e in data['events']:
-        e['eventdate'] = e['date']  # fix up name, date conflicts with date type in model definitions
+        e['eventdate'] = e['date']  # fix up name, 'date' conflicts with date type in model definitions
     return api_encode(SeriesInfo.from_dict(data))
 
+
 @Api.route("/<series>/event/<uuid:eventid>")
-def jsonevent():
-    return api_encode(Result.getEventResults(g.eventid))
+def eventresults():
+    from nwrsc.api.models.event_results import EventResults
+    return api_encode(EventResults(eventid=g.eventid, classes=[format_classresults(cls, results) for cls,results in Result.getEventResults(g.eventid).items()]))
+
+@Api.route("/<series>/event/<uuid:eventid>/<classcode>")
+def classresults(classcode):
+    return api_encode(format_classresults(classcode, Result.getEventResults(g.eventid).get(classcode, None)))
 
 @Api.route("/<series>/champ")
-def jsonchamp():
+def champresults():
     return api_encode(Result.getChampResults())
 
 @Api.route("/<series>/challenge/<uuid:challengeid>")
-def jsonchallenge(challengeid):
-    return api_encode(list(Result.getChallengeResults(challengeid).values()))
+def challengeresults():
+    return api_encode(list(Result.getChallengeResults(g.challengeid).values()))
 
-@Api.route("/<series>/event/<uuid:eventid>/scca")
+@Api.route("/<series>/scca/<uuid:eventid>")
 def scca():
     from nwrsc.api.models.entry import Entry
     results = Result.getEventResults(g.eventid)

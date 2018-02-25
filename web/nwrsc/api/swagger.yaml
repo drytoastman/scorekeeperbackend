@@ -1,6 +1,6 @@
 swagger: '2.0'
 basePath: /api
-#produces: [application/json, application/xml, text/xml]
+produces: [application/json, application/xml, text/xml]
 info:
   title: Scorekeeper
   description: This API is currently just a source for results data from a scorekeeper server
@@ -21,6 +21,7 @@ paths:
               type: string
               description: series name
               example: nwr2018
+
 
   /{series}:
     get:
@@ -61,11 +62,37 @@ paths:
         required: true
         type: string
 
+  /{series}/event/{eventid}/{classcode}:
+    get:
+      summary: get the results for an event for a specific class
+      operationId: getClassResults
+      description: get the annotated results for a single class in the event
+      responses:
+        200:
+          description: request ok
+          schema:
+            $ref: '#/definitions/ClassResults'
+      parameters:
+      - in: path
+        name: series
+        description: the series name
+        required: true
+        type: string
+      - in: path
+        name: eventid
+        description: the event UUID identifier
+        required: true
+        type: string
+      - in: path
+        name: classcode
+        description: the class to return
+        required: true
+        type: string
+
 
 
 definitions:
 
- 
   Run:
     type: object
     properties:
@@ -190,11 +217,9 @@ definitions:
         example: 2
       runs:
         type: array
-        description: a two dimensional array of runs, first by course number, then by run number
+        description: an array of runs
         items:
-            type: array
-            items:
-                $ref: '#/definitions/Run'
+            $ref: '#/definitions/Run'
       net:
         type: number
         format: float
@@ -254,13 +279,8 @@ definitions:
   ClassResults:
     type: object
     properties:
-      eventid:
-        type: string
-        format: uuid
-        description: the eventid for this class result
       classcode:
         type: string
-        description: the classcode for the result
       entries:
         type: array
         description: a list of result entries
@@ -269,9 +289,16 @@ definitions:
 
 
   EventResults:
-    type: array
-    items:
-      $ref: '#/definitions/ClassResults'
+    type: object
+    description: a list of result entries
+    properties:
+      eventid:
+        type: string
+        format: uuid
+      classes:
+        type: array
+        items:
+          $ref: '#/definitions/ClassResults'
 
 
   SeriesSettings:

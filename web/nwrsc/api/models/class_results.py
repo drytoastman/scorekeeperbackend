@@ -16,29 +16,24 @@ class ClassResults(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, eventid: str=None, classcode: str=None, entries: List[ResultEntry]=None):  # noqa: E501
+    def __init__(self, classcode: str=None, entries: List[ResultEntry]=None):  # noqa: E501
         """ClassResults - a model defined in Swagger
 
-        :param eventid: The eventid of this ClassResults.  # noqa: E501
-        :type eventid: str
         :param classcode: The classcode of this ClassResults.  # noqa: E501
         :type classcode: str
         :param entries: The entries of this ClassResults.  # noqa: E501
         :type entries: List[ResultEntry]
         """
         self.swagger_types = {
-            'eventid': str,
             'classcode': str,
             'entries': List[ResultEntry]
         }
 
         self.attribute_map = {
-            'eventid': 'eventid',
             'classcode': 'classcode',
             'entries': 'entries'
         }
 
-        self._eventid = eventid
         self._classcode = classcode
         self._entries = entries
 
@@ -54,33 +49,9 @@ class ClassResults(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def eventid(self) -> str:
-        """Gets the eventid of this ClassResults.
-
-        the eventid for this class result  # noqa: E501
-
-        :return: The eventid of this ClassResults.
-        :rtype: str
-        """
-        return self._eventid
-
-    @eventid.setter
-    def eventid(self, eventid: str):
-        """Sets the eventid of this ClassResults.
-
-        the eventid for this class result  # noqa: E501
-
-        :param eventid: The eventid of this ClassResults.
-        :type eventid: str
-        """
-
-        self._eventid = eventid
-
-    @property
     def classcode(self) -> str:
         """Gets the classcode of this ClassResults.
 
-        the classcode for the result  # noqa: E501
 
         :return: The classcode of this ClassResults.
         :rtype: str
@@ -91,7 +62,6 @@ class ClassResults(Model):
     def classcode(self, classcode: str):
         """Sets the classcode of this ClassResults.
 
-        the classcode for the result  # noqa: E501
 
         :param classcode: The classcode of this ClassResults.
         :type classcode: str
