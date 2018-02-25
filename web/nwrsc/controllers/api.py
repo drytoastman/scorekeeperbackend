@@ -127,6 +127,14 @@ def format_classresults(code, data):
             ret.entries.append(ResultEntry.from_dict(r))
     return ret
 
+def format_challengeresults(round, data):
+    from nwrsc.api.models.challenge_round import ChallengeRound
+    if data is None or round <= 0:
+        return ChallengeRound()
+    data['top']    = data['e1']
+    data['bottom'] = data['e2']
+    data['winner'] = { 1: 'top', 2: 'bottom' }.get(data['winner'], None)
+    return ChallengeRound.from_dict(data)
 
 
 @Api.route("/")
@@ -158,7 +166,14 @@ def champresults():
 
 @Api.route("/<series>/challenge/<uuid:challengeid>")
 def challengeresults():
-    return api_encode(list(Result.getChallengeResults(g.challengeid).values()))
+    from nwrsc.api.models.challenge_results import ChallengeResults
+    return api_encode(ChallengeResults(challengeid=g.challengeid, rounds=[format_challengeresults(round,data) for round,data in Result.getChallengeResults(g.challengeid).items()]))
+
+@Api.route("/<series>/challenge/<uuid:challengeid>/<int:round>")
+def roundresults(round):
+    from nwrsc.api.models.challenge_results import ChallengeResults
+    data = Result.getChallengeResults(g.challengeid).get(round, None)
+    return api_encode(format_challengeresults(round,data))
 
 @Api.route("/<series>/scca/<uuid:eventid>")
 def scca():

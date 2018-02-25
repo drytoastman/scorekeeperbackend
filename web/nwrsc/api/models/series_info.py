@@ -6,6 +6,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from nwrsc.api.models.base_model_ import Model
+from nwrsc.api.models.challenge_info import ChallengeInfo  # noqa: F401,E501
 from nwrsc.api.models.class_info import ClassInfo  # noqa: F401,E501
 from nwrsc.api.models.event_info import EventInfo  # noqa: F401,E501
 from nwrsc.api.models.index_info import IndexInfo  # noqa: F401,E501
@@ -19,7 +20,7 @@ class SeriesInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, settings: SeriesSettings=None, events: List[EventInfo]=None, challenges: List[str]=None, classes: List[ClassInfo]=None, indexes: List[IndexInfo]=None):  # noqa: E501
+    def __init__(self, settings: SeriesSettings=None, events: List[EventInfo]=None, challenges: List[ChallengeInfo]=None, classes: List[ClassInfo]=None, indexes: List[IndexInfo]=None):  # noqa: E501
         """SeriesInfo - a model defined in Swagger
 
         :param settings: The settings of this SeriesInfo.  # noqa: E501
@@ -27,7 +28,7 @@ class SeriesInfo(Model):
         :param events: The events of this SeriesInfo.  # noqa: E501
         :type events: List[EventInfo]
         :param challenges: The challenges of this SeriesInfo.  # noqa: E501
-        :type challenges: List[str]
+        :type challenges: List[ChallengeInfo]
         :param classes: The classes of this SeriesInfo.  # noqa: E501
         :type classes: List[ClassInfo]
         :param indexes: The indexes of this SeriesInfo.  # noqa: E501
@@ -36,7 +37,7 @@ class SeriesInfo(Model):
         self.swagger_types = {
             'settings': SeriesSettings,
             'events': List[EventInfo],
-            'challenges': List[str],
+            'challenges': List[ChallengeInfo],
             'classes': List[ClassInfo],
             'indexes': List[IndexInfo]
         }
@@ -109,22 +110,22 @@ class SeriesInfo(Model):
         self._events = events
 
     @property
-    def challenges(self) -> List[str]:
+    def challenges(self) -> List[ChallengeInfo]:
         """Gets the challenges of this SeriesInfo.
 
 
         :return: The challenges of this SeriesInfo.
-        :rtype: List[str]
+        :rtype: List[ChallengeInfo]
         """
         return self._challenges
 
     @challenges.setter
-    def challenges(self, challenges: List[str]):
+    def challenges(self, challenges: List[ChallengeInfo]):
         """Sets the challenges of this SeriesInfo.
 
 
         :param challenges: The challenges of this SeriesInfo.
-        :type challenges: List[str]
+        :type challenges: List[ChallengeInfo]
         """
 
         self._challenges = challenges

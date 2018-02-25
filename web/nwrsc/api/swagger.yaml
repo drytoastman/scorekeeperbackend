@@ -22,7 +22,6 @@ paths:
               description: series name
               example: nwr2018
 
-
   /{series}:
     get:
       summary: get the basic series info
@@ -89,6 +88,52 @@ paths:
         required: true
         type: string
 
+  /{series}/challenge/{challengeid}:
+    get:
+      summary: get the results for a ProSolo challenge
+      operationId: getChallengeResults
+      responses:
+        200:
+          description: request ok
+          schema:
+            $ref: '#/definitions/ChallengeResults'
+      parameters:
+      - in: path
+        name: series
+        description: the series name
+        required: true
+        type: string
+      - in: path
+        name: challengeid 
+        description: the challenge UUID identifier
+        required: true
+        type: string
+
+  /{series}/challenge/{challengeid}/{round}:
+    get:
+      summary: get the results for a particular ProSolo challenge round
+      operationId: getChallengeRoundResults
+      responses:
+        200:
+          description: request ok
+          schema:
+            $ref: '#/definitions/ChallengeRound'
+      parameters:
+      - in: path
+        name: series
+        description: the series name
+        required: true
+        type: string
+      - in: path
+        name: challengeid 
+        description: the challenge UUID identifier
+        required: true
+        type: string
+      - in: path
+        name: round
+        description: the challenge round number
+        required: true
+        type: integer
 
 
 definitions:
@@ -104,6 +149,16 @@ definitions:
         type: integer
         description: the run number
         example: 1
+      reaction: 
+        type: number
+        format: float
+        description: the reaction time (ProSolo)
+        example: 0.654
+      sixty: 
+        type: number
+        format: float
+        description: the sixty foot time (ProSolo)
+        example: 2.123
       raw: 
         type: number
         format: float
@@ -301,6 +356,85 @@ definitions:
           $ref: '#/definitions/ClassResults'
 
 
+  RoundEntry:
+    type: object
+    description: a single entrant in a round
+    properties:
+      carid:
+        type: string
+        format: uuid
+        description: the car identifier of the entrant
+      firstname:
+        type: string
+        description: entrant first name
+      lastname:
+        type: string
+        description: entrant last name
+      classcode:
+        type: string
+        description: the class of the entrant
+      indexcode:
+        type: string
+        description: the index of the entrant
+      dial:
+        type: number
+        format: float
+        description: the incoming dialin for this entrant,
+            the first round is calculated from event results, later rounds are the newdial carried forward
+      left:
+        description: the left run of the entrant for this round
+        $ref: '#/definitions/Run'
+      right:
+        description: the right run of the entrant for this round
+        $ref: '#/definitions/Run'
+      result:
+        type: number
+        format: float
+        description: the final difference value, (left net + right net) - (2 * dial)
+      newdial:
+        type: number
+        format: float
+        description: the dial for the next round, either the original dial or a calculated breakout if the round result was negative
+
+
+  ChallengeRound:
+    type: object
+    description: a single round in a challenge
+    properties:
+      round:
+        type: integer
+        description: the round number, 1 is the final, 2 and 3 are the semifinals, etc. 99 is 3rd place run off
+        example: 1
+      top:
+        description: the top entrant
+        $ref: '#/definitions/RoundEntry'
+      bottom:
+        description: the bottom entrant
+        $ref: '#/definitions/RoundEntry'
+      winner:
+        type: string
+        desciption: the winner of the round
+        example: top
+      detail:
+        type: string
+        decription: a string describing who won and why (difference, RL, DNF, etc)
+        example: Dieter wins by 24.085
+
+
+  ChallengeResults:
+    type: object
+    description: the challenge results
+    properties:
+      challengeid:
+        type: string
+        format: uuid
+        description: the challenge id 
+      rounds:
+        type: array
+        items:
+          $ref: '#/definitions/ChallengeRound'
+
+
   SeriesSettings:
     type: object
     properties:
@@ -381,6 +515,30 @@ definitions:
         type: integer
         description: if > 0, the number of runs that count towards class position and points
 
+  ChallengeInfo:
+    type: object
+    properties:
+      challengeid:
+        type: string
+        format: uuid
+        description: the challenge identifier
+      eventid:
+        type: string
+        format: uuid
+        description: the event identifier that this challenge is associated with
+      name:
+        type: string
+        description: the challenge name
+        example: Bonus Challenge
+      depth:
+        type: integer
+        description: the depth of the bracket, the max number of entries would be 2^depth
+        example: 3
+      modified: 
+        type: string
+        format: date-time
+        description: the mod time
+
   ClassInfo:
     type: object
     properties:
@@ -458,7 +616,7 @@ definitions:
       challenges:
         type: array
         items:
-          type: string
+          $ref: '#/definitions/ChallengeInfo'
       classes:
         type: array
         items:

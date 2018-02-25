@@ -15,13 +15,17 @@ class Run(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, course: int=None, run: int=None, raw: float=None, cones: int=None, gates: int=None, status: str=None, pen: float=None, net: float=None, rorder: int=None, norder: int=None, arorder: int=None, anorder: int=None, modified: datetime=None):  # noqa: E501
+    def __init__(self, course: int=None, run: int=None, reaction: float=None, sixty: float=None, raw: float=None, cones: int=None, gates: int=None, status: str=None, pen: float=None, net: float=None, rorder: int=None, norder: int=None, arorder: int=None, anorder: int=None, modified: datetime=None):  # noqa: E501
         """Run - a model defined in Swagger
 
         :param course: The course of this Run.  # noqa: E501
         :type course: int
         :param run: The run of this Run.  # noqa: E501
         :type run: int
+        :param reaction: The reaction of this Run.  # noqa: E501
+        :type reaction: float
+        :param sixty: The sixty of this Run.  # noqa: E501
+        :type sixty: float
         :param raw: The raw of this Run.  # noqa: E501
         :type raw: float
         :param cones: The cones of this Run.  # noqa: E501
@@ -48,6 +52,8 @@ class Run(Model):
         self.swagger_types = {
             'course': int,
             'run': int,
+            'reaction': float,
+            'sixty': float,
             'raw': float,
             'cones': int,
             'gates': int,
@@ -64,6 +70,8 @@ class Run(Model):
         self.attribute_map = {
             'course': 'course',
             'run': 'run',
+            'reaction': 'reaction',
+            'sixty': 'sixty',
             'raw': 'raw',
             'cones': 'cones',
             'gates': 'gates',
@@ -79,6 +87,8 @@ class Run(Model):
 
         self._course = course
         self._run = run
+        self._reaction = reaction
+        self._sixty = sixty
         self._raw = raw
         self._cones = cones
         self._gates = gates
@@ -147,6 +157,52 @@ class Run(Model):
         """
 
         self._run = run
+
+    @property
+    def reaction(self) -> float:
+        """Gets the reaction of this Run.
+
+        the reaction time (ProSolo)  # noqa: E501
+
+        :return: The reaction of this Run.
+        :rtype: float
+        """
+        return self._reaction
+
+    @reaction.setter
+    def reaction(self, reaction: float):
+        """Sets the reaction of this Run.
+
+        the reaction time (ProSolo)  # noqa: E501
+
+        :param reaction: The reaction of this Run.
+        :type reaction: float
+        """
+
+        self._reaction = reaction
+
+    @property
+    def sixty(self) -> float:
+        """Gets the sixty of this Run.
+
+        the sixty foot time (ProSolo)  # noqa: E501
+
+        :return: The sixty of this Run.
+        :rtype: float
+        """
+        return self._sixty
+
+    @sixty.setter
+    def sixty(self, sixty: float):
+        """Sets the sixty of this Run.
+
+        the sixty foot time (ProSolo)  # noqa: E501
+
+        :param sixty: The sixty of this Run.
+        :type sixty: float
+        """
+
+        self._sixty = sixty
 
     @property
     def raw(self) -> float:
