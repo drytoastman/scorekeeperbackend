@@ -135,6 +135,44 @@ paths:
         required: true
         type: integer
 
+  /{series}/champ:
+    get:
+      summary: get the championship results for the series
+      operationId: getChampResults
+      responses:
+        200:
+          description: request ok
+          schema:
+            $ref: '#/definitions/ChampResults'
+      parameters:
+      - in: path
+        name: series
+        description: the series name
+        required: true
+        type: string
+
+  /{series}/champ/{classcode}:
+    get:
+      summary: get the championship results for the series for a particular class
+      operationId: getClassChampResults
+      responses:
+        200:
+          description: request ok
+          schema:
+            $ref: '#/definitions/ClassChampResults'
+      parameters:
+      - in: path
+        name: series
+        description: the series name
+        required: true
+        type: string
+      - in: path
+        name: classcode
+        description: the class to return
+        required: true
+        type: string
+
+
 
 definitions:
 
@@ -625,6 +663,70 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/IndexInfo'
+
+
+  ChampEntry:
+    type: object
+    properties:
+      driverid:
+        type: string
+        format: uuid
+        description: the unique driver identifier
+      firstname:
+        type: string
+        description: the driver first name
+      lastname:
+        type: string
+        description: the driver last name
+      eventcount:
+        type: integer
+        description: the number of events attended
+      position:
+        type: integer
+        description: the finishing position, if enough events were attended, no value otherwise
+      points:
+        type: number
+        format: float
+        description: the final tally of points
+      events:
+        type: array
+        items:
+          type: object
+          properties:
+            eventdate:
+              type: string
+              description: the date of the event
+            drop:
+              type: boolean
+              description: true if this event was dropped from the final calculation
+            points:
+              type: number
+              format: float
+              description: the points earned at this event
+      tiebreakers:
+        type: array
+        description: the number of times finishing 1st, 2nd, 3rd and 4th.  Used for tiebreakers.
+        items:
+            type: integer
+
+  ClassChampResults:
+    type: object
+    properties:
+      classcode:
+        type: string
+        description: the classcode for the results
+      entries:
+        $ref: '#/definitions/ChampEntry'
+ 
+  ChampResults:
+    type: object
+    properties:
+      series:
+        type: string
+        description: the series
+      classes:
+        $ref: '#/definitions/ClassChampResults'
+    
 
   Entry:
     type: object

@@ -127,6 +127,16 @@ def format_classresults(code, data):
             ret.entries.append(ResultEntry.from_dict(r))
     return ret
 
+def format_classchampresults(code, data):
+    from nwrsc.api.models.class_champ_results import ClassChampResults
+    from nwrsc.api.models.champ_entry import ChampEntry
+    ret = ClassChampResults(classcode=code, entries=[])
+    if data:
+        for r in data:
+            ret.entries.append(ChampEntry.from_dict(r))
+    return ret
+
+
 def format_challengeresults(round, data):
     from nwrsc.api.models.challenge_round import ChallengeRound
     if data is None or round <= 0:
@@ -141,7 +151,6 @@ def format_challengeresults(round, data):
 def serieslist():
     return api_encode(sorted(itertools.chain.from_iterable(Series.byYear().values())))
 
-
 @Api.route("/<series>")
 def seriesinfo():
     from nwrsc.api.models.series_info import SeriesInfo
@@ -149,7 +158,6 @@ def seriesinfo():
     for e in data['events']:
         e['eventdate'] = e['date']  # fix up name, 'date' conflicts with date type in model definitions
     return api_encode(SeriesInfo.from_dict(data))
-
 
 @Api.route("/<series>/event/<uuid:eventid>")
 def eventresults():
@@ -159,10 +167,6 @@ def eventresults():
 @Api.route("/<series>/event/<uuid:eventid>/<classcode>")
 def classresults(classcode):
     return api_encode(format_classresults(classcode, Result.getEventResults(g.eventid).get(classcode, None)))
-
-@Api.route("/<series>/champ")
-def champresults():
-    return api_encode(Result.getChampResults())
 
 @Api.route("/<series>/challenge/<uuid:challengeid>")
 def challengeresults():
@@ -174,6 +178,16 @@ def roundresults(round):
     from nwrsc.api.models.challenge_results import ChallengeResults
     data = Result.getChallengeResults(g.challengeid).get(round, None)
     return api_encode(format_challengeresults(round,data))
+
+@Api.route("/<series>/champ")
+def champresults():
+    from nwrsc.api.models.champ_results import ChampResults
+    return api_encode(ChampResults(series=g.series, classes=[format_classchampresults(code, results) for code, results in Result.getChampResults().items()]))
+
+@Api.route("/<series>/champ/<classcode>")
+def classchampresults(classcode):
+    return api_encode(format_classchampresults(classcode, Result.getChampResults().get(classcode, None)))
+
 
 @Api.route("/<series>/scca/<uuid:eventid>")
 def scca():

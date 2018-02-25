@@ -276,7 +276,7 @@ class RoundEntry(Model):
     def result(self) -> float:
         """Gets the result of this RoundEntry.
 
-        the final difference value, (leftnet + rightnet) - (2*dial)  # noqa: E501
+        the final difference value, (left net + right net) - (2 * dial)  # noqa: E501
 
         :return: The result of this RoundEntry.
         :rtype: float
@@ -287,7 +287,7 @@ class RoundEntry(Model):
     def result(self, result: float):
         """Sets the result of this RoundEntry.
 
-        the final difference value, (leftnet + rightnet) - (2*dial)  # noqa: E501
+        the final difference value, (left net + right net) - (2 * dial)  # noqa: E501
 
         :param result: The result of this RoundEntry.
         :type result: float
