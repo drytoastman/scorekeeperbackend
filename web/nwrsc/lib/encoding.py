@@ -13,8 +13,17 @@ def time_print(pgdt, fmt):
     tz = pytz.timezone(current_app.config['UI_TIME_ZONE'])
     return pgdt.astimezone(datetime.timezone.utc).astimezone(tz).strftime(fmt)
 
+
+class JSONEncoderX(json.JSONEncoder):
+    """ Helper for some special cases """
+    def default(self, o):
+        if isinstance(o, (set, types.GeneratorType)):
+            return list(o)
+        else:
+            return str(o)
+
 def to_json(obj):
-    return json.JSONEncoder().encode(obj)
+    return JSONEncoderX().encode(obj)
 
 def json_encode(data):
     response = make_response(to_json(data))
