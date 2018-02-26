@@ -17,6 +17,8 @@ def time_print(pgdt, fmt):
 class JSONEncoderX(json.JSONEncoder):
     """ Helper for some special cases """
     def default(self, o):
+        if hasattr(o, 'getAsDict'):
+            return o.getAsDict()
         if isinstance(o, (set, types.GeneratorType)):
             return list(o)
         else:
