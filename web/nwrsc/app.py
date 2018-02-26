@@ -108,6 +108,7 @@ def create_app():
     theapp.url_value_preprocessor(preprocessor)
     theapp.url_defaults(urldefaults)
     theapp.add_url_rule('/',             'toresults', redirect_to='/results')
+    theapp.add_url_rule('/swaggerui/',   'toswagger', redirect_to='/swaggerui/index.html')
     theapp.register_blueprint(Admin,     url_prefix="/admin/<series>")
     theapp.register_blueprint(Announcer, url_prefix="/announcer/<series>")
     theapp.register_blueprint(Api,       url_prefix="/api")
