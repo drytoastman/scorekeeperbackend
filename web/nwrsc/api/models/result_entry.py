@@ -6,7 +6,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from nwrsc.api.models.base_model_ import Model
-from nwrsc.api.models.run import Run  # noqa: F401,E501
+from nwrsc.api.models.decorated_run import DecoratedRun  # noqa: F401,E501
 from nwrsc.api import util
 
 
@@ -16,7 +16,7 @@ class ResultEntry(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, driverid: str=None, carid: str=None, firstname: str=None, lastname: str=None, year: str=None, make: str=None, model: str=None, color: str=None, number: int=None, classcode: str=None, indexcode: str=None, indexstr: str=None, useclsmult: bool=None, indexval: float=None, rungroup: int=None, runs: List[Run]=None, net: float=None, pen: float=None, netall: float=None, penall: float=None, position: int=None, diff1: float=None, diffn: float=None, pospoints: int=None, diffpoints: float=None, points: float=None, trophy: bool=None, modified: datetime=None):  # noqa: E501
+    def __init__(self, driverid: str=None, carid: str=None, firstname: str=None, lastname: str=None, year: str=None, make: str=None, model: str=None, color: str=None, number: int=None, classcode: str=None, indexcode: str=None, indexstr: str=None, useclsmult: bool=None, indexval: float=None, rungroup: int=None, runs: List[DecoratedRun]=None, net: float=None, pen: float=None, netall: float=None, penall: float=None, position: int=None, diff1: float=None, diffn: float=None, pospoints: int=None, diffpoints: float=None, points: float=None, trophy: bool=None, modified: datetime=None):  # noqa: E501
         """ResultEntry - a model defined in Swagger
 
         :param driverid: The driverid of this ResultEntry.  # noqa: E501
@@ -50,7 +50,7 @@ class ResultEntry(Model):
         :param rungroup: The rungroup of this ResultEntry.  # noqa: E501
         :type rungroup: int
         :param runs: The runs of this ResultEntry.  # noqa: E501
-        :type runs: List[Run]
+        :type runs: List[DecoratedRun]
         :param net: The net of this ResultEntry.  # noqa: E501
         :type net: float
         :param pen: The pen of this ResultEntry.  # noqa: E501
@@ -92,7 +92,7 @@ class ResultEntry(Model):
             'useclsmult': bool,
             'indexval': float,
             'rungroup': int,
-            'runs': List[Run],
+            'runs': List[DecoratedRun],
             'net': float,
             'pen': float,
             'netall': float,
@@ -524,24 +524,24 @@ class ResultEntry(Model):
         self._rungroup = rungroup
 
     @property
-    def runs(self) -> List[Run]:
+    def runs(self) -> List[DecoratedRun]:
         """Gets the runs of this ResultEntry.
 
         an array of runs  # noqa: E501
 
         :return: The runs of this ResultEntry.
-        :rtype: List[Run]
+        :rtype: List[DecoratedRun]
         """
         return self._runs
 
     @runs.setter
-    def runs(self, runs: List[Run]):
+    def runs(self, runs: List[DecoratedRun]):
         """Sets the runs of this ResultEntry.
 
         an array of runs  # noqa: E501
 
         :param runs: The runs of this ResultEntry.
-        :type runs: List[Run]
+        :type runs: List[DecoratedRun]
         """
 
         self._runs = runs

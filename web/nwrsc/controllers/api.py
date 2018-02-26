@@ -133,6 +133,8 @@ def format_classchampresults(code, data):
     ret = ClassChampResults(classcode=code, entries=[])
     if data:
         for r in data:
+            r['events'] = [{'eventdate':d1[2:], 'points':p1, 'drop':d1 in r['points']['drop']} for d1,p1 in r['points']['events'].items()]
+            r['points'] = r['points']['total']
             ret.entries.append(ChampEntry.from_dict(r))
     return ret
 

@@ -15,7 +15,7 @@ class Run(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, course: int=None, run: int=None, reaction: float=None, sixty: float=None, raw: float=None, cones: int=None, gates: int=None, status: str=None, pen: float=None, net: float=None, rorder: int=None, norder: int=None, arorder: int=None, anorder: int=None, modified: datetime=None):  # noqa: E501
+    def __init__(self, course: int=None, run: int=None, reaction: float=None, sixty: float=None, raw: float=None, cones: int=None, gates: int=None, status: str=None, pen: float=None, net: float=None, modified: datetime=None):  # noqa: E501
         """Run - a model defined in Swagger
 
         :param course: The course of this Run.  # noqa: E501
@@ -38,14 +38,6 @@ class Run(Model):
         :type pen: float
         :param net: The net of this Run.  # noqa: E501
         :type net: float
-        :param rorder: The rorder of this Run.  # noqa: E501
-        :type rorder: int
-        :param norder: The norder of this Run.  # noqa: E501
-        :type norder: int
-        :param arorder: The arorder of this Run.  # noqa: E501
-        :type arorder: int
-        :param anorder: The anorder of this Run.  # noqa: E501
-        :type anorder: int
         :param modified: The modified of this Run.  # noqa: E501
         :type modified: datetime
         """
@@ -60,10 +52,6 @@ class Run(Model):
             'status': str,
             'pen': float,
             'net': float,
-            'rorder': int,
-            'norder': int,
-            'arorder': int,
-            'anorder': int,
             'modified': datetime
         }
 
@@ -78,10 +66,6 @@ class Run(Model):
             'status': 'status',
             'pen': 'pen',
             'net': 'net',
-            'rorder': 'rorder',
-            'norder': 'norder',
-            'arorder': 'arorder',
-            'anorder': 'anorder',
             'modified': 'modified'
         }
 
@@ -95,10 +79,6 @@ class Run(Model):
         self._status = status
         self._pen = pen
         self._net = net
-        self._rorder = rorder
-        self._norder = norder
-        self._arorder = arorder
-        self._anorder = anorder
         self._modified = modified
 
     @classmethod
@@ -341,98 +321,6 @@ class Run(Model):
         """
 
         self._net = net
-
-    @property
-    def rorder(self) -> int:
-        """Gets the rorder of this Run.
-
-        the run order compared to other runs on this course using the raw time of COUNTED runs, 1 is best  # noqa: E501
-
-        :return: The rorder of this Run.
-        :rtype: int
-        """
-        return self._rorder
-
-    @rorder.setter
-    def rorder(self, rorder: int):
-        """Sets the rorder of this Run.
-
-        the run order compared to other runs on this course using the raw time of COUNTED runs, 1 is best  # noqa: E501
-
-        :param rorder: The rorder of this Run.
-        :type rorder: int
-        """
-
-        self._rorder = rorder
-
-    @property
-    def norder(self) -> int:
-        """Gets the norder of this Run.
-
-        the run order compared to other runs on this course using the net time of COUNTED runs, 1 is best  # noqa: E501
-
-        :return: The norder of this Run.
-        :rtype: int
-        """
-        return self._norder
-
-    @norder.setter
-    def norder(self, norder: int):
-        """Sets the norder of this Run.
-
-        the run order compared to other runs on this course using the net time of COUNTED runs, 1 is best  # noqa: E501
-
-        :param norder: The norder of this Run.
-        :type norder: int
-        """
-
-        self._norder = norder
-
-    @property
-    def arorder(self) -> int:
-        """Gets the arorder of this Run.
-
-        the run order compared to other runs on this course using the raw time of ALL runs, 1 is best  # noqa: E501
-
-        :return: The arorder of this Run.
-        :rtype: int
-        """
-        return self._arorder
-
-    @arorder.setter
-    def arorder(self, arorder: int):
-        """Sets the arorder of this Run.
-
-        the run order compared to other runs on this course using the raw time of ALL runs, 1 is best  # noqa: E501
-
-        :param arorder: The arorder of this Run.
-        :type arorder: int
-        """
-
-        self._arorder = arorder
-
-    @property
-    def anorder(self) -> int:
-        """Gets the anorder of this Run.
-
-        the run order compared to other runs on this course using the net time of ALL runs, 1 is best  # noqa: E501
-
-        :return: The anorder of this Run.
-        :rtype: int
-        """
-        return self._anorder
-
-    @anorder.setter
-    def anorder(self, anorder: int):
-        """Sets the anorder of this Run.
-
-        the run order compared to other runs on this course using the net time of ALL runs, 1 is best  # noqa: E501
-
-        :param anorder: The anorder of this Run.
-        :type anorder: int
-        """
-
-        self._anorder = anorder
 
     @property
     def modified(self) -> datetime:

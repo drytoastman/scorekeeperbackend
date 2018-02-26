@@ -125,6 +125,8 @@ def create_app():
     def robots(): return send_from_directory('static', 'robots.txt')
     @theapp.route('/api/swagger.yaml')
     def resultsfeed(): return send_from_directory('api', 'swagger.yaml')
+    @theapp.route('/swaggerui/<path>')
+    def swaggerui(path): return send_from_directory('static/swaggerui', path)
 
 
     ## Before, After and Teardown request

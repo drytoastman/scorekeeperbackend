@@ -173,7 +173,6 @@ paths:
         type: string
 
 
-
 definitions:
 
   Run:
@@ -224,26 +223,34 @@ definitions:
         format: float
         description: "the net time including penalties and indexing, NOTE: the time displayed will be rounded to .001"
         example: 50.595449
-      rorder:
-        type: integer
-        description: the run order compared to other runs on this course using the raw time of COUNTED runs, 1 is best
-        example: 3
-      norder:
-        type: integer
-        description: the run order compared to other runs on this course using the net time of COUNTED runs, 1 is best
-        example: 3
-      arorder:
-        type: integer
-        description: the run order compared to other runs on this course using the raw time of ALL runs, 1 is best
-        example: 3
-      anorder:
-        type: integer
-        description: the run order compared to other runs on this course using the net time of ALL runs, 1 is best
-        example: 3
       modified: 
         type: string
         format: date-time
         description: the mod time
+
+
+  DecoratedRun:
+    allOf:
+    - $ref: '#/definitions/Run'
+    - type: object
+      properties:
+        rorder:
+          type: integer
+          description: the run order compared to other runs on this course using the raw time of COUNTED runs, 1 is best
+          example: 3
+        norder:
+          type: integer
+          description: the run order compared to other runs on this course using the net time of COUNTED runs, 1 is best
+          example: 3
+        arorder:
+          type: integer
+          description: the run order compared to other runs on this course using the raw time of ALL runs, 1 is best
+          example: 3
+        anorder:
+          type: integer
+          description: the run order compared to other runs on this course using the net time of ALL runs, 1 is best
+          example: 3
+   
 
   ResultEntry:
     type: object
@@ -312,7 +319,7 @@ definitions:
         type: array
         description: an array of runs
         items:
-            $ref: '#/definitions/Run'
+            $ref: '#/definitions/DecoratedRun'
       net:
         type: number
         format: float
