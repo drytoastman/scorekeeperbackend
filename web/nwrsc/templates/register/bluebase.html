@@ -30,7 +30,7 @@ shownavmenu('#navbarNav', '#seriesdropdownlink');
         <li id="seriesdropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="seriesdropdownlink" data-toggle="dropdown">{{g.series or "Select a Series"}}</a>
           <div class="dropdown-menu">
-          {% for s in g.activeseries %}
+          {% for s in g.activeseries|sort %}
               <a class="dropdown-item" href="{{url_for(g.selection, series=s)}}">{{s}}</a>
           {% endfor %}
           </div>
