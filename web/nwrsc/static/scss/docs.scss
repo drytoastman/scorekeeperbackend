@@ -16,10 +16,12 @@ $subheadgray: #ccc;
     }
 
     code {
-        margin-left: 1rem;
+        display: block;
+        margin-left: 2rem;
+        margin-right: 2rem;
         padding: 0.8rem;
         border: 1px solid #CCC;
-        background-color: #EEE;
+        background-color: #F6F6F6;
         color: #900;
     }
 

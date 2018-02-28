@@ -39,7 +39,7 @@ app that you setup from your paypal account.
 
 1. App Setup
 
-    To setup your app, see the paypal documentation at https://developer.paypal.com/docs/integration/admin/manage-apps/.  You may need
+    To setup your app, see the paypal documentation at <https://developer.paypal.com/docs/integration/admin/manage-apps/>.  You may need
     to setup developer access to do so.  The created app just needs to allow Accept Payments, nothing else.
 
 2. Add App To Scorekeeper

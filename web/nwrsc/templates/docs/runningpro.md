@@ -13,7 +13,7 @@
     * Timer => Pro Timer network, select the ProTimer service that is found.  If nothing is found, verify ProTimer is on and connected to the network and that firewalls are not an issue.
 
 4. Print out grid reports (after registration merges updates)
-    * Go to the admin page on the data entry machine (http://127.0.0.1/admin/), Event=>(EventName).  Click on Grid Order.  Drag and drop classes into their associated groups (1 or 2) and then click submit
+    * Go to the admin page on the data entry machine (<http://127.0.0.1/admin/>), Event=>(EventName).  Click on Grid Order.  Drag and drop classes into their associated groups (1 or 2) and then click submit
     * Click on the "grid report by number" shortcut to get the grid report on its own page and print for the grid chief.  A second copy can be made for timing if necessary.
 
 5. Proceed similar to regular data entry
@@ -24,7 +24,7 @@
     * Standard run group print out.  Should open two tabs in the browser, one for course 1 and one for course 2.
 
 7. After first half, print out new grid report
-    * Go to the results page on the data entry machine (http://127.0.0.1/results/)
+    * Go to the results page on the data entry machine (<http://127.0.0.1/results/>)
     * Select the current event and click on Grid Order by Standings and print out for grid chief
 
 8. Perform final audit
