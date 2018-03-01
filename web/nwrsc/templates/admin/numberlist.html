@@ -3,12 +3,12 @@
 {{super()}}
 <style type="text/css">
 ul { list-style: none; }
-li > ul { columns: 3; }
+li > ul { columns: 4; }
 </style>
 {% endblock headers %}
 {% block content %}
 {{ super() }}
-<div class='container'>
+<div class='container-fluid'>
 <h3>Used Number List</h3>
 <ul>
 {% for code,subdict in numbers|dictsort %}
