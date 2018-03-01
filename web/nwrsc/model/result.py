@@ -2,6 +2,7 @@ import dateutil.parser
 import datetime
 import json
 import logging
+import types
 import uuid
 
 from flask import g
