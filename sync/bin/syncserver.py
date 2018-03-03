@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
+import datetime
 import logging
 import logging.handlers
 import os
+import pytz
 import signal
 import synclogic
 import sys
@@ -11,7 +13,11 @@ import threading
 
 if __name__ == '__main__':
     level = getattr(logging, os.environ.get('LOG_LEVEL', 'INFO'), logging.INFO)
+    tz    = pytz.timezone(os.environ.get('UI_TIME_ZONE', 'US/Pacific'))
+
     fmt   = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S')
+    fmt.converter = lambda *args: datetime.datetime.fromtimestamp(args[0]).astimezone(tz).timetuple()
+
     root  = logging.getLogger()
     root.setLevel(level)
     root.handlers = []

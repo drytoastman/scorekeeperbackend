@@ -14,7 +14,7 @@ import time
 server = None
 
 def removepid(signum, frame):
-    print("webserver INFO: stopping server\n", file=sys.stderr)
+    logging.getLogger("webserver").info("stopping server")
     global server
     if server:
         server.stop()
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     theapp = nwrsc.app.create_app()
     nwrsc.app.model_setup(theapp)
 
-    print("webserver INFO: starting server", file=sys.stderr)
+    logging.getLogger("webserver").info("starting server")
     if cron:
        CronThread().start()
 

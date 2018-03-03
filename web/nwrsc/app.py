@@ -2,6 +2,7 @@ import datetime
 from operator import attrgetter
 import os
 import logging
+import pytz
 import re
 import sys
 import time
@@ -278,7 +279,12 @@ class ReverseProxied(object):
 
 
 def logging_setup(level=logging.INFO, debug=False, filename='/var/log/scweb.log'):
-    fmt  = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S')
+    # Have to reach into environ directly here as the app isnt necessarily created yet so we can read its config
+    tz  = pytz.timezone(os.environ.get('UI_TIME_ZONE', 'US/Pacific'))
+
+    fmt = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S')
+    fmt.converter = lambda *args: datetime.datetime.fromtimestamp(args[0]).astimezone(tz).timetuple()
+
     root = logging.getLogger()
     root.setLevel(level)
     root.handlers = []

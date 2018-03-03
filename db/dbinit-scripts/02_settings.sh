@@ -23,6 +23,7 @@ log_filename = 'scdb.log'
 log_truncate_on_rotation = off
 log_rotation_size = '10MB'
 log_line_prefix = '%t %a '
+log_timezone=$UI_TIME_ZONE
 log_statement = none
 log_min_duration_statement = 20
 password_encryption = off
