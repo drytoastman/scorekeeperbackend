@@ -278,13 +278,16 @@ class ReverseProxied(object):
         return self.app(environ, start_response)
 
 
+class DTFormatter(logging.Formatter):
+    """ Class to use datetime rather than time_struct for formatting so we can including time zone """
+    def formatTime(self, record, datefmt=None):
+        # Have to reach into environ directly here as the app isnt necessarily created yet so we can read its config
+        tz  = pytz.timezone(os.environ.get('UI_TIME_ZONE', 'US/Pacific'))
+        return datetime.datetime.fromtimestamp(record.created).astimezone(tz).strftime(datefmt)
+
+
 def logging_setup(level=logging.INFO, debug=False, filename='/var/log/scweb.log'):
-    # Have to reach into environ directly here as the app isnt necessarily created yet so we can read its config
-    tz  = pytz.timezone(os.environ.get('UI_TIME_ZONE', 'US/Pacific'))
-
-    fmt = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S')
-    fmt.converter = lambda *args: datetime.datetime.fromtimestamp(args[0]).astimezone(tz).timetuple()
-
+    fmt = DTFormatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S %Z')
     root = logging.getLogger()
     root.setLevel(level)
     root.handlers = []
