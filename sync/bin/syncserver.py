@@ -29,7 +29,7 @@ if __name__ == '__main__':
     root.setLevel(level)
     root.handlers = []
 
-    fhandler = logging.handlers.RotatingFileHandler('/var/log/scsync.log', maxBytes=1000000, backupCount=10)
+    fhandler = logging.handlers.RotatingFileHandler('/var/log/scsync.log', maxBytes=10000000, backupCount=10)
     fhandler.setFormatter(fmt)
     fhandler.setLevel(level)
     root.addHandler(fhandler)

@@ -154,7 +154,7 @@ def create_app():
     @theapp.after_request
     def logrequest(response):
         if request.remote_addr != '127.0.0.1':
-            log.info("%s %s?%s %s %s (%s)" % (request.method, request.path, request.query_string, response.status_code, response.content_length, response.content_encoding))
+            log.debug("%s %s?%s %s %s (%s)" % (request.method, request.path, request.query_string, response.status_code, response.content_length, response.content_encoding))
         return response
 
 
@@ -293,7 +293,7 @@ def logging_setup(level=logging.INFO, debug=False, filename='/var/log/scweb.log'
     root.handlers = []
 
     if filename:
-        fhandler = logging.handlers.RotatingFileHandler(filename, maxBytes=1000000, backupCount=10)
+        fhandler = logging.handlers.RotatingFileHandler(filename, maxBytes=10000000, backupCount=10)
         fhandler.setFormatter(fmt)
         fhandler.setLevel(level)
         root.addHandler(fhandler)
