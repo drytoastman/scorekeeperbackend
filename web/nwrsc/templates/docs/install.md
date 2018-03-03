@@ -7,13 +7,13 @@
 ## Installing
 1. Verify that the above requirements for Docker and Java based on your OS distribution
 
-1. Download the latest Scorekeeper jar from <https://github.com/drytoastman/scorekeeperfrontend/releases> to your computer
+1. Download the latest scorekeeper.jar from <https://github.com/drytoastman/scorekeeperfrontend/releases> to your computer
 
 1. Create a method to run the jarfile as so:
 
-    ```java -jar <jarfile>```
+    `java -jar <jarfile>`
 
-1. The first time you run a new version it will download the necessary docker images, showing the following status as it does so:
+1. The first time you run a new version it will take a few minutes to download the necessary docker images, showing the following status as it does so:
     * Init scweb
     * Init scsync
     * Init scdb
