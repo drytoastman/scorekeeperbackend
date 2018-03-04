@@ -2,19 +2,49 @@
 {% block headers %}
 {{super()}}
 <style type="text/css">
-ul { list-style: none; }
-li > ul { columns: 4; }
+ul.classes { 
+    list-style: none; 
+    padding: 0; 
+}
+ul.classes > li {
+    page-break-inside: avoid;
+}
+span.code {
+    font-weight: bold;
+}
+ul.entries {
+    list-style: none; 
+    column-count: 4;
+    padding: 0 0 0.3rem 0; 
+    font-size: 0.9rem; 
+    white-space: nowrap;
+}
+b {
+    text-align: right;
+    display: inline-block;
+    width: 2.1rem;
+}
+
+@media print {
+    .container-fluid {
+        margin: 0;
+        padding: 0;
+    }
+}
 </style>
 {% endblock headers %}
 {% block content %}
 {{ super() }}
 <div class='container-fluid'>
 <h3>Used Number List</h3>
-<ul>
+{% if request.user_agent.browser == 'safari' %}
+<span class='error'>Do not use Safari to print, it won't print columns</span>
+{% endif %}
+<ul class='classes'>
 {% for code,subdict in numbers|dictsort %}
-	<li>{{code}}<ul>
+	<li><span class='code'>{{code}}</span><ul class='entries'>
     {% for num,names in subdict|dictsort %}
-        <li>{{num}}: {{names|join(', ')}}</li>
+        <li><b>{{num}}</b>: {{names|join(', ')}}</li>
     {% endfor %}
     </ul>
     </li>
