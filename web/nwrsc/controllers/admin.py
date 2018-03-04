@@ -410,8 +410,8 @@ def cards():
             r.__dict__.update(r.cattr)
             r.quickentry = "{:010d}".format(r.carid.time_low)
         if type == 'lastname':
-            registered.sort(key=operator.attrgetter('firstname'))
-            registered.sort(key=operator.attrgetter('lastname'))
+            registered.sort(key=lambda m: getattr(m, 'firstname').lower())
+            registered.sort(key=lambda m: getattr(m, 'lastname').lower())
         elif type == 'classnumber':
             registered.sort(key=operator.attrgetter('number'))
             registered.sort(key=operator.attrgetter('classcode'))
