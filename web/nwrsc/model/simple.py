@@ -63,6 +63,9 @@ class Audit(object):
                 res.runs = [None] * event.runs
                 hold[res.carid] = res
 
+            if not hold:
+                return list()
+
             cur.execute("SELECT * FROM runs WHERE eventid=%s and course=%s and carid in %s", (event.eventid, course, tuple(hold.keys())))
             for run in [Run(**x) for x in cur.fetchall()]:
                 res = hold[run.carid]

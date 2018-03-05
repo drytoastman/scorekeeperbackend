@@ -1,13 +1,33 @@
 {% extends "results/bluebase.html" %}
 {% block content %}
 <div class='container-fluid'>
-<h3>
-Audit -
-{% if event.courses > 1 %}
-Course {{course}} - 
+<h3>Audit By {{order|title}}</h3>
+{# - Course {{course}}, Group {{group}}</h3> #}
+
+
+<div class='row text-center m-1 lead'>
+<div class='col'></div>
+<div class='col'>
+Course:
+{% for c in range(g.event.courses): %}
+{% if c+1 != course|int %}
+<a href='{{url_for('.audit', course=c+1, group=group)}}' class='d-print-none m-1'>{{c+1}}</a>
+{% else %}
+<span class='font-weight-bold m-1'>{{c+1}}</span>
 {% endif %}
-Run Group {{group}} - By {{order}}
-</h3>
+&nbsp;
+Group:
+{% endfor %}
+{% for g in range(4): %}
+{% if g+1 != group|int %}
+<a href='{{url_for('.audit', course=course, group=g+1)}}' class='d-print-none m-1'>{{g+1}}</a>
+{% else %}
+<span class='font-weight-bold m-1'>{{g+1}}</span>
+{% endif %}
+{% endfor %}
+</div>
+<div class='col'></div>
+</div>
 
 <table class='auditreport table-bordered'>
 <thead><tr class='subhead'>
