@@ -3,8 +3,8 @@
 {% block headers %}
 {{super()}}
 
+{% if values|length > 0 %}
 <script type="text/javascript">
-
 $(document).ready(function(){
 var ctx = document.getElementById("myChart");
 var myChart = new Chart(ctx, {
@@ -35,6 +35,7 @@ var myChart = new Chart(ctx, {
 });
 });
 </script>
+{% endif %}
 {% endblock headers %}
 
 {% block content %}

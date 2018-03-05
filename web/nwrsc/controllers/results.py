@@ -118,17 +118,20 @@ def dist():
             if ent[attr] < 100:
                 binnet[round(ent[attr]*2)/2] += 1
 
-    idx = min(binnet.keys())
-    end = max(binnet.keys())
-    while idx <= end:
-        labels.append(idx)
-        values.append(binnet[idx])
-        idx += 0.5
+    if len(binnet) > 0:
+        idx = min(binnet.keys())
+        end = max(binnet.keys())
+        while idx <= end:
+            labels.append(idx)
+            values.append(binnet[idx])
+            idx += 0.5
 
-    title = {
-        'net': 'PAX Distribution',
-        'pen': 'Net Distribution'
-    }[attr]
+        title = {
+            'net': 'PAX Distribution',
+            'pen': 'Net Distribution'
+        }[attr]
+    else:
+        title = "No Results Yet"
 
     return render_template("/results/chart.html", event=g.event, title=title, labels=labels, values=values)
 
