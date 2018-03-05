@@ -1,19 +1,22 @@
 {% extends "common/base.html" %}
-{% block headers %}
-{%- assets "results.css" %}
-<link rel="stylesheet" href="{{ASSET_URL}}" /> 
-{%- endassets -%}
-{% assets "results.js" %}
-    <script type="text/javascript" src="{{ASSET_URL}}"></script>
-{% endassets %}
+{% import 'common/macros.html' as m %}
 
+{% block headers %}
+{% assets "results.css" -%}
+<link rel="stylesheet" href="{{ASSET_URL}}" /> 
+{% endassets -%}
+{% assets "results.js" -%}
+    <script type="text/javascript" src="{{ASSET_URL}}"></script>
+{% endassets -%}
+
+{% if g.series -%}
 <style> 
 /* series custom css */
-{% if g.series %}
-{% include 'resultscss%'+g.series ignore missing %}
-{% endif %}
+{% include 'resultscss%'+g.series ignore missing -%}
 </style>
+{% endif %}
 
+{%- if not g.year or not g.series or not event -%}
 <script type="text/javascript">
 $(document).ready(function(){
 {% if not g.year -%}
@@ -25,7 +28,7 @@ shownavmenu('#navbarNav', '#eventdropdownlink');
 {% endif -%}
 });
 </script>
-
+{%- endif -%}
 {% endblock %}
 
 {% block content %}
@@ -33,7 +36,7 @@ shownavmenu('#navbarNav', '#eventdropdownlink');
   <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <div class='navbar-brand'><img src='/static/images/cone.png'/>Scorekeeper Results</div>
+  {{ m.navbarbrand('Scorekeeper Results') }}
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
 
@@ -41,7 +44,7 @@ shownavmenu('#navbarNav', '#eventdropdownlink');
         <li id="yeardropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="yeardropdownlink" data-toggle="dropdown">{{g.year or "Select a Year"}}</a>
           <div class="dropdown-menu">
-          {% for y in g.seriesyears %}
+          {% for y in g.seriesyears -%}
               <a class="dropdown-item" href="{{url_for(".base", year=y)}}">{{y}}</a>
           {% endfor %}
           </div>
@@ -52,7 +55,7 @@ shownavmenu('#navbarNav', '#eventdropdownlink');
         <li id="seriesdropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="seriesdropdownlink" data-toggle="dropdown">{{g.series or "Select a Series"}}</a>
           <div class="dropdown-menu">
-          {% for s in g.seriesyears[g.year] %}
+          {% for s in g.seriesyears[g.year] -%}
               <a class="dropdown-item" href="{{url_for(".index", series=s)}}">{{s}}</a>
           {% endfor %}
           </div>
@@ -63,7 +66,7 @@ shownavmenu('#navbarNav', '#eventdropdownlink');
         <li id="eventdropdown" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="eventdropdownlink" data-toggle="dropdown">{{event and event.name or "Select an Event"}}</a>
           <div class="dropdown-menu">
-          {%for event in g.events|sort(attribute='date') %}
+          {%for event in g.events|sort(attribute='date') -%}
               <a class="dropdown-item" href='{{url_for('.event', eventid=event.eventid)}}'>{{event.name}}</a>
           {% endfor  %}
           </div>

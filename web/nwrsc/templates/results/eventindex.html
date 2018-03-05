@@ -3,17 +3,8 @@
 {% block headers %}
 {{ super() }}
 <style type="text/css">
-h5 {
-    text-align: left !important;
-}
-ul {
-    list-style: none;
-    padding-left: 0.7rem;
-}
-ul.wrap {
-    column-count: 4;
-    white-space: nowrap;
-}
+h5 { text-align: left !important; }
+ul { padding-left: 0.7rem; }
 </style>
 {% endblock headers %}
 
@@ -41,9 +32,9 @@ ul.wrap {
 <li><a href='{{url_for('.dist', attr='net')}}'>PAX Distribution</a></li>
 <li><a href='{{url_for('.dist', attr='pen')}}'>Net Distribution</a></li>
 <li><a href='{{url_for('.champ')}}'>Championship</a></li>
-{%if config.SHOWLIVE and isactive %}
+{%if config.SHOWLIVE and isactive -%}
 <li><a href="{{url_for('Announcer.index')}}">Announcer Panel</a></li>
-{% endif %}
+{% endif -%}
 <li><a href='{{url_for('Api.scca')}}'>SCCA Report</a></li>
 </ul>
 </div>
@@ -84,13 +75,13 @@ ul.wrap {
 <div class='row'>
 <div class='col'>
 <h5>By RunGroup Or Active Class</h5>
-<ul class='wrap'>
-{% for ii in range(1,5) %}
+<ul class='wrap4'>
+{% for ii in range(1,5) -%}
 	<li><a href='{{url_for('.bygroup', list=ii)}}'>Group {{ii}}</a></li>
-{% endfor %}
-{% for code in active|sort %}
+{% endfor -%}
+{% for code in active|sort -%}
 	<li><a href='{{url_for('.byclass', list=code)}}'>{{code}}</a></li>
-{% endfor %}
+{% endfor -%}
 </ul>
 </div>
 </div>

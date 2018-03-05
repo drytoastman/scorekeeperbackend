@@ -31,3 +31,15 @@
 </div> {# modal #}
 {% endmacro %}
 
+
+{% macro navbarbrand(title) %}
+  <div class='navbar-brand dropdown'>
+    <a class='dropdown-toggle' href='#' data-toggle="dropdown"><img src='/static/images/cone.png'/>{{title}}</a>
+    <div class="dropdown-menu">
+        {% if request.blueprint != 'Results'  %}<a class='dropdown-item' href='{{g.eventid and url_for('Results.event') or url_for('Results.index')}}'>Results Site</a>{% endif %}
+        {% if request.blueprint != 'Register' %}<a class='dropdown-item' href='{{url_for('Register.events')}}'>Registration Site</a>{% endif %}
+        {% if request.blueprint != 'Admin'    %}<a class='dropdown-item' href='{{g.eventid and url_for('Admin.event') or url_for('Admin.index')}}'>Admin Site</a>{% endif %}
+    </div>
+  </div>
+{% endmacro %}
+
