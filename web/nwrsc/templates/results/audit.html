@@ -18,7 +18,7 @@ Course:
 &nbsp;
 Group:
 {% endfor %}
-{% for g in range(4): %}
+{% for g in range(6): %}
 {% if g+1 != group|int %}
 <a href='{{url_for('.audit', course=course, group=g+1)}}' class='d-print-none m-1'>{{g+1}}</a>
 {% else %}
