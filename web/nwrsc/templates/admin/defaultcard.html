@@ -1,6 +1,24 @@
-<div class='eventname'>{{g.event.name}}</div>
-<div class='eventdate'>{{g.event.date}}</div>
-<div class='quickentry'>{{reg.quickentry}}</div>
+<div class='header'>
+<div class='eventinfo'>
+<div class='name'>{{g.event.name}}</div>
+<div class='date'>{{g.event.date}}</div>
+</div>
+
+<div class='codes'>
+<svg class="barcode"
+    jsbarcode-format="CODE128C"
+    jsbarcode-height="25"
+    jsbarcode-width="1"
+    jsbarcode-margin="2"
+    jsbarcode-value="{{reg.caridbarcode}}"
+    jsbarcode-text="Quick {{reg.quickentry}}"
+    jsbarcode-textMargin="0"
+    jsbarcode-textAlign="right"
+    jsbarcode-fontSize="14"
+></svg>
+</div>
+</div>
+
 <table class='entrant'>
 <tr>
     <td class='half'>   <span class='label1'>Name:</span> {{reg.firstname}} {{reg.lastname}}</td>
@@ -20,22 +38,22 @@
 <tr>
     <td class='half'>   <span class='label1'>Phone:</span> {{reg.phone}}</td>
     <td class='quarter'><span class='label2'>Color:</span> {{reg.color}}</td>
-    <td class='quarter'><span class='label3'>Assignment:</span> </td>
+    <td class='quarter'><span class='label3'>Assign:</span> </td>
 </tr>
 <tr>
     <td class='half'>   <span class='label1'>Email:</span> {{reg.email}}</td>
-    <td class='quarter'><span class='label2'>SCCA #:</span> {{reg.membership}}</td>
-    <td class='quarter'><span class='label3'>Teched By:</span> </td>
+    <td class='quarter'><span class='label2'>Barcode:</span> {{reg.membership}}</td>
+    <td class='quarter'><span class='label3'>Tech By:</span> </td>
 </tr>
 <tr>
     <td class='half'>   <span class='label1'>Sponsor:</span> {{reg.sponsor}}</td>
-    <td class='half' colspan='2'><span class='label2'>Brag:</span> {{reg.brag}}</td>
+    <td class='half' colspan='2'><span class='label2'>Emerg:</span> {{reg.econtact}} {{reg.ephone}}</td>
 </tr>
 </table>
 
 <table class='runs'>
 <tr><th>Raw Time</th><th>Cones</th><th>Gates</th><th>Official Time</th></tr>
 {% for ii in range(6) %}
-<tr><td class='third'></td><td class='sixth'></td><td class='sixth'></td><td class='third'></td></tr>
+<tr class='run'><td class='third'></td><td class='sixth'></td><td class='sixth'></td><td class='third'></td></tr>
 {% endfor %}
 </table>

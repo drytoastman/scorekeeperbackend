@@ -2,6 +2,12 @@
 <html lang="en">
 <head>
 <title>{{g.event.name}} Cards</title>
+{% assets "admin.js" -%}
+<script type="text/javascript" src="{{ASSET_URL}}"></script>
+{% endassets -%}
+<script type="text/javascript">
+$(document).ready(function(){ JsBarcode(".barcode").init(); });
+</script>
 
 <style type="text/css">
 html, body {
@@ -9,54 +15,54 @@ html, body {
     padding: 0;
 }
 
-div.card {
-    position: relative;
+body {
+    width: 180mm;
     margin: auto;
-    width: 99.5vw;
-    height: 98.0vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    page-break-after: always;
 }
 
-div.eventname {
-    text-align: center;
+div.card {
+    page-break-after: always;
+    padding: 0px;
+}
+
+.header {
+    display: flex;
+}
+
+.eventinfo, .codes {
+    width: 50%;
+    padding: 2px;
+}
+
+.codes {
+    text-align: right;
+}
+
+.eventinfo .name {
     font-weight: bold;
     font-size: 1.3rem;
 }
 
-div.eventdate {
-    text-align: center;
+.eventinfo .date {
     font-weight: bold;
     font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-}
-
-div.quickentry {
-    font-family: Courier;
-    font-size: 1.5rem;
-    position: absolute;
-    right: 0;
-    top: 0;
 }
 
 span.label1, span.label2, span.label3 { 
     font-weight: bold; 
-    font-size: 1.1rem; 
+    font-size: 1.0rem; 
     display: inline-block;
     text-align: right;
-    margin-right: 0.3rem;
 }
 
 span.label1 {
-    width: 5.0rem;
+    width: 4.0rem;
 }
 span.label2 {
-    width: 5.0rem;
+    width: 4.0rem;
 }
 span.label3 {
-    width: 6.0rem;
+    width: 5.2rem;
 }
 
 table {
@@ -67,7 +73,7 @@ th, td {
     border: 1px solid black;
 }
 td {
-    height: 1.8rem;
+    height: 1.7rem;
     font-size: 0.9rem;
     white-space: nowrap;
     overflow: hidden;
@@ -81,12 +87,6 @@ td.quarter { width: 25%;   max-width: 25vw; }
 td.third   { width: 33.3%; max-width: 33.3vw; }
 td.sixth   { width: 16.6%; max-width: 16.6vw; }
 
-/* extra buffer on firefox so page-break doesn't cause blank pages between real pages */
-@-moz-document url-prefix() { 
-  div.card {
-    height: 96.5vh;
-  }
-}
 </style>
 </head>
 

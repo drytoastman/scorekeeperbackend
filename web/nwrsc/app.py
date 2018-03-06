@@ -9,8 +9,8 @@ import time
 from traceback import format_tb
 
 from flask import Flask, request, abort, g, current_app, message_flashed, render_template, send_from_directory
-from flask_compress import Compress
 from flask_assets import Environment, Bundle
+from flask_compress import Compress
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
 from itsdangerous import URLSafeTimedSerializer
@@ -103,6 +103,19 @@ def create_app():
         "LOGGER_HANDLER_POLICY":  "None",
     })
     theapp.config['TEMPLATES_AUTO_RELOAD'] = theapp.config['DEBUG']
+    theapp.config['LIBSASS_STYLE'] = theapp.config['DEBUG'] and 'expanded' or 'compressed'
+
+
+    ### WebAssets
+    assets   = Environment(theapp)
+    assets.j = dict()  # It doesn't attempt to resolve names so we store these subsets here
+    assets.j['jquery']     = Bundle("extern/jquery-3.2.0.js")
+    assets.j['jquerymod']  = Bundle("extern/jquery.sortable-1.12.1.js", "extern/jquery.validate-1.16.js")
+    assets.j['bootstrap']  = Bundle("extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js")
+    assets.j['flatpickr']  = Bundle("extern/flatpickr.js")
+    assets.j['datatables'] = Bundle("extern/datatables-1.10.16.js",  "extern/datatables-1.10.16-bootstrap4.js", "extern/datatables-select-1.2.3.js", "extern/datatables-buttons-1.5.1.js", "extern/datatables-buttons-1.5.1-bootstrap4.js", "extern/datatables-buttons-1.5.1-html5.js")
+    assets.j['barcodes']   = Bundle("extern/JsBarcode.code128.min.js")
+    assets.register('barcodes', Bundle("extern/JsBarcode.code128.min.js"))
 
 
     ### URL handling and Blueprints for the various sections
@@ -220,34 +233,6 @@ def create_app():
                 return rv
         return None
     theapp.jinja_loader = ChoiceLoader([ theapp.jinja_loader, FunctionLoader(custom_template_loader) ])
-
-
-    ### WebAssets
-    assets = Environment(theapp)
-
-    # Hopefully temp fix until webassets puts out a new release
-    from webassets.filter import register_filter
-    from nwrsc.lib.rcssmin import RCSSMin
-    register_filter(RCSSMin)
-
-    jquery     = Bundle("extern/jquery-3.2.0.js")
-    jquerymod  = Bundle("extern/jquery.sortable-1.12.1.js", "extern/jquery.validate-1.16.js")
-    bootstrap  = Bundle("extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js")
-    flatpickr  = Bundle("extern/flatpickr.js")
-    datatables = Bundle("extern/datatables-1.10.16.js",  "extern/datatables-1.10.16-bootstrap4.js", "extern/datatables-select-1.2.3.js", "extern/datatables-buttons-1.5.1.js", "extern/datatables-buttons-1.5.1-bootstrap4.js", "extern/datatables-buttons-1.5.1-html5.js")
-
-    assets.register('admin.js',     Bundle(jquery, jquerymod, bootstrap, flatpickr, datatables, "js/common.js", "js/admin.js", filters="rjsmin", output="admin.js"))
-    assets.register('announcer.js', Bundle(jquery, bootstrap, "js/announcer.js",                                               filters="rjsmin", output="announcer.js"))
-    assets.register('docs.js',      Bundle(jquery, bootstrap, "js/common.js",                                                  filters="rjsmin", output="docs.js"))
-    assets.register('register.js',  Bundle(jquery, jquerymod, bootstrap, "js/common.js", "js/register.js",                     filters="rjsmin", output="register.js"))
-    assets.register('results.js',   Bundle(jquery, bootstrap, "extern/Chart-2.7.1.js", "js/common.js",                         filters="rjsmin", output="results.js"))
-
-    assets.register('admin.css',         Bundle("scss/admin.scss",         depends="scss/*.scss", filters="libsass", output="admin.css"))
-    assets.register('announcer.css',     Bundle("scss/announcer.scss",     depends="scss/*.scss", filters="libsass", output="announcer.css"))
-    assets.register('announcermini.css', Bundle("scss/announcermini.scss", depends="scss/*.scss", filters="libsass", output="announcermini.css"))
-    assets.register('docs.css',          Bundle("scss/docs.scss",          depends="scss/*.scss", filters="libsass", output="docs.css"))
-    assets.register('results.css',       Bundle("scss/results.scss",       depends="scss/*.scss", filters="libsass", output="results.css"))
-    assets.register('register.css',      Bundle("scss/register.scss",      depends="scss/*.scss", filters="libsass", output="register.css"))
 
 
     ### Crypto, Compression, Mail and optional Profiling

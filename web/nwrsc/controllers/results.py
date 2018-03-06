@@ -8,7 +8,8 @@ from operator import itemgetter
 import re
 import uuid
 
-from flask import request, render_template, get_template_attribute, make_response, g
+from flask import current_app, request, render_template, get_template_attribute, make_response, g
+from flask_assets import Bundle
 
 from nwrsc.controllers.blueprints import *
 from nwrsc.model import Audit, Entrant, Result, Registration, RunGroups, Series
@@ -17,6 +18,12 @@ from nwrsc.lib.misc import ArchivedSeriesException, csvlist, InvalidChallengeExc
 log = logging.getLogger(__name__)
 
 ## The indexes and lists
+
+@Results.before_app_first_request
+def init():
+    env = current_app.jinja_env.assets_environment
+    env.register('results.js',  Bundle(env.j['jquery'], env.j['bootstrap'], "extern/Chart-2.7.1.js", "js/common.js", filters="rjsmin", output="register.js"))
+    env.register('results.css', Bundle("scss/register.scss", depends="scss/*.scss", filters="libsass", output="register.css"))
 
 @Results.before_request
 def setup():
