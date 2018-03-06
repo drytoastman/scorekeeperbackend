@@ -22,8 +22,8 @@ log = logging.getLogger(__name__)
 @Results.before_app_first_request
 def init():
     env = current_app.jinja_env.assets_environment
-    env.register('results.js',  Bundle(env.j['jquery'], env.j['bootstrap'], "extern/Chart-2.7.1.js", "js/common.js", filters="rjsmin", output="register.js"))
-    env.register('results.css', Bundle("scss/register.scss", depends="scss/*.scss", filters="libsass", output="register.css"))
+    env.register('results.js',  Bundle(env.j['jquery'], env.j['bootstrap'], "extern/Chart-2.7.1.js", "js/common.js", filters="rjsmin", output="results.js"))
+    env.register('results.css', Bundle("scss/results.scss", depends="scss/*.scss", filters="libsass", output="results.css"))
 
 @Results.before_request
 def setup():
