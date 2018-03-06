@@ -10,6 +10,8 @@ with app.app_context():
     g.series = ''
     g.eventid = ''
     g.challengeid = ''
+    for f in app.before_first_request_funcs:
+        f()
     for bundle in app.jinja_env.assets_environment:
         print(bundle.urls())
 
