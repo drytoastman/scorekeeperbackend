@@ -91,6 +91,9 @@ def setup():
     if not g.series:
         return render_template('/admin/bluebase.html')
 
+    if g.seriestype != Series.ACTIVE:
+        raise ArchivedSeriesException()
+
     g.mainserver = True #current_app.config['IS_MAIN_SERVER']
     if not g.mainserver and request.endpoint in mainserverendpoints:
         return "This is not available off of the main server"
