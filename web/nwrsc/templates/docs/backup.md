@@ -1,5 +1,9 @@
 # Backups
 
+For consistency, each Scorekeeper version is assigned its own storage 'folder', therefore upgrading versions
+or changing users will use different data 'folders'. You can restore old data from a previous 'folder' if
+you need to.
+
 ## Local Backups
 
 ### Automatic 
