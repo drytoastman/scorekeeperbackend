@@ -11,7 +11,7 @@ from nwrsc.controllers.blueprints import Docs
 @Docs.before_app_first_request
 def init():
     env = current_app.jinja_env.assets_environment
-    env.register('docs.js',  Bundle(env.j['jquery'], env.j['bootstrap'], "js/common.js", filters="rjsmin", output="docs.js"))
+    env.register('docs.js',  Bundle(env.j['jquery'], env.j['bootstrap'], env.j['barcodes'], "js/common.js", filters="rjsmin", output="docs.js"))
     env.register('docs.css', Bundle("scss/docs.scss", depends="scss/*.scss", filters="libsass", output="docs.css"))
 
 @Docs.route("/")
