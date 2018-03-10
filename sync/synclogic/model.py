@@ -445,6 +445,19 @@ class MergeServer(object):
             localcur.execute(stmt, vals)
             self.db.commit()
 
+    def _ensureSeriesBase(self, series):
+        """ Make sure that some required structure is present in a series state object """
+        if series not in self.mergestate:
+            self.mergestate[series] = {}
+        state = self.mergestate[series]
+
+        if 'lastchange' not in state:
+            state['lastchange'] = 0
+        if 'totalhash' not in state:
+            state['totalhash'] = ''
+        if 'hashes' not in state:
+            state['hashes'] = {}
+
 
     def seriesStart(self, series):
         """ Called when we start merging a given series with this remote server """
@@ -473,9 +486,12 @@ class MergeServer(object):
         self.update('mergestate')
 
 
-    def serverStart(self):
+    def serverStart(self, localseries):
         """ Called when we start a merge process with this remote server """
-        pass
+        for series in localseries:
+            if series not in self.mergestate:
+                self._ensureSeriesBase(series)
+        self.update('mergestate')
 
     def serverError(self, error):
         """ Called when the merge attempt with the remove server throws an exception, most likely a connection error """
@@ -515,12 +531,13 @@ class MergeServer(object):
         for deleted in cachedseries - serieslist:
             del self.mergestate[deleted]
         for added in serieslist - cachedseries:
-            self.mergestate[added] = {'lastchange':0, 'totalhash':'', 'hashes':{}}
+            self._ensureSeriesBase(added)
         self.update('mergestate')
 
     def updateCacheFrom(self, scandb, series):
         """ Do any necessary updating of hash data """
         tables = {}
+        self._ensureSeriesBase(series)
         seriesstate = self.mergestate[series]
 
         with scandb.cursor() as cur:

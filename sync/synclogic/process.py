@@ -74,7 +74,7 @@ class MergeProcess():
                 for remote in MergeServer.getActive(localdb):
                     if remote.nextcheck < datetime.datetime.utcnow():
                         try:
-                            remote.serverStart()
+                            remote.serverStart(me.mergestate.keys())
                             self.mergeWith(localdb, me, remote, passwords)
                             remote.serverDone()
                         except Exception as e:
