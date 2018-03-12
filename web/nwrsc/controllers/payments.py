@@ -102,7 +102,7 @@ def _paypalpayment(event, account, purchase, cache):
         }]
     }
 
-    localapi = paypalrestsdk.Api({'mode': 'sandbox', 'client_id': account.accountid, 'client_secret': account.secret})
+    localapi = paypalrestsdk.Api({'mode': 'live', 'client_id': account.accountid, 'client_secret': account.secret})
     payment  = paypalrestsdk.Payment(order, api=localapi)
     if payment.create():
         TempCache.put(payment.id, cache)
@@ -179,7 +179,7 @@ def paypalexecute():
         event     = Event.get(eventid)
         account   = PaymentAccount.get(event.accountid)
 
-        localapi = paypalrestsdk.Api({'mode': 'sandbox', 'client_id': account.accountid, 'client_secret': account.secret})
+        localapi = paypalrestsdk.Api({'mode': 'live', 'client_id': account.accountid, 'client_secret': account.secret})
         payment  = paypalrestsdk.Payment.find(paymentid, api=localapi)
         if not payment.execute({"payer_id": payerid}):
             raise FlashableError("Payment Error: " + payment.error)
