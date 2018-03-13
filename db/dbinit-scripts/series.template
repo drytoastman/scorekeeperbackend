@@ -105,8 +105,8 @@ CREATE TABLE paymentitems (
 REVOKE ALL ON paymentitems FROM public;
 GRANT  ALL ON paymentitems TO <seriesname>;
 CREATE TRIGGER payitmmod AFTER INSERT OR UPDATE OR DELETE ON paymentitems FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
-CREATE TRIGGER payitmuni BEFORE UPDATE ON paymentitems FOR EACH ROW EXECUTE PROCEDURE updatechecks('accountid');
-COMMENT ON TABLE paymentitems IS 'the list of configured items for an account';
+CREATE TRIGGER payitmuni BEFORE UPDATE ON paymentitems FOR EACH ROW EXECUTE PROCEDURE updatechecks('itemid');
+COMMENT ON TABLE paymentitems IS 'the list of configured items for an account, itemid is text as it can be a non-scorekeeper generated value';
 
 
 CREATE TABLE paymentsecrets (

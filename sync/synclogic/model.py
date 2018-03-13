@@ -64,6 +64,15 @@ class DifferentSchemaException(SyncException):
     pass
 
 
+def pkfromjson(table, data):
+    """
+        JSON logs will store UUID as text, use this to turn them back into UUID's when parsing,
+        but only if the column was originally UUID.  Otherwise text columns with a UUID like string
+        will get converted as well which is incorrect.
+    """
+    return tuple([ptype=='uuid' and uuid.UUID(data[k]) or data[k] for k,ptype in PRIMARY_KEYS[table].items()])
+
+
 class DataInterface(object):
 
     @classmethod
@@ -81,18 +90,18 @@ class DataInterface(object):
 
                 # Determing the primary keys for each table
                 for table in TABLE_ORDER:
-                    cur.execute("SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)" \
+                    cur.execute("SELECT a.attname,t.typname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) JOIN pg_type t ON t.oid=a.atttypid " \
                                 "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
-                    PRIMARY_KEYS[table] = [row[0] for row in cur.fetchall()]
+                    PRIMARY_KEYS[table] = OrderedDict({row[0]:row[1] for row in cur.fetchall()})
 
                     cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s and table_schema in %s", (table, testseries))
                     COLUMNS[table] = [row[0] for row in cur.fetchall()]
-                    NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table]))
+                    NONPRIMARY[table] = list(set(COLUMNS[table]) - set(PRIMARY_KEYS[table].keys()))
 
         SUMPART = "sum(('x' || substring(t.rowhash, {}, 8))::bit(32)::bigint)"
         SUMS = "{}, {}, {}, {}".format(SUMPART.format(1), SUMPART.format(9), SUMPART.format(17), SUMPART.format(25))
         for table, pk in PRIMARY_KEYS.items():
-            md5cols = '||'.join("md5({}::text)".format(k) for k in pk+['modified'])
+            md5cols = '||'.join("md5({}::text)".format(k) for k in list(pk.keys())+['modified'])
             HASH_COMMANDS[table] = "SELECT {} FROM (SELECT MD5({}) as rowhash from {}) as t".format(SUMS, md5cols, table)
 
     @classmethod
@@ -195,6 +204,7 @@ class DataInterface(object):
                     cur.execute(logu, (obj.deletedat,))
                 except psycopg2.IntegrityError as e:
                     if e.pgcode == '23503':  # Foreign Key constraint, need to add the data back to the other side and restart the sync
+                        log.warning("Constraint error, adding to undelete: {}, {}".format(obj.pk, e))
                         undelete.append(obj)
                         cur.execute("ROLLBACK TO SAVEPOINT delete_savepoint")
                     else:
@@ -305,24 +315,20 @@ class LoggedObject():
                     try: return uuid.UUID(txt)
                     except: return txt
 
-                def pkfromjson(data):
-                    return tuple([tryuuid(data[k]) for k in PRIMARY_KEYS[table]])
-
-
                 if obj['action'] == 'I':
-                    pk = pkfromjson(obj['newdata'])
+                    pk = pkfromjson(table, obj['newdata'])
                     if pk not in objdict and pk in pkset:
                         objdict[pk] = LoggedObject(table, pk)
                     if pk in objdict:
                         objdict[pk].insert(obj['otime'], obj['newdata'])
 
                 elif obj['action'] == 'U':
-                    pk = pkfromjson(obj['newdata'])
+                    pk = pkfromjson(table, obj['newdata'])
                     if pk in objdict:
                         objdict[pk].update(obj['otime'], obj['olddata'], obj['newdata'])
 
                 elif obj['action'] == 'D':
-                    pk = pkfromjson(obj['olddata'])
+                    pk = pkfromjson(table, obj['olddata'])
                     if pk in objdict:
                         raise Exception("LoggedObject delete is invalid")
 
@@ -383,20 +389,14 @@ class DeletedObject():
         assert table in TABLE_ORDER, "No such table {}".format(table)
         ret = dict()
     
-        def lift_value(v):
-            """ Lift string UUIDs from JSON back into UUIDs for comparison """
-            if type(v) is str:
-                try: return uuid.UUID(v)
-                except: pass
-            return v
-
         with db.cursor() as cur:
             log = (table=='drivers') and 'publiclog' or 'serieslog';
             cur.execute("SELECT otime, olddata FROM {} WHERE action='D' AND tablen=%s AND otime>%s".format(log), (table, when,))
             for row in cur.fetchall():
-                pk = tuple([lift_value(row['olddata'][k]) for k in PRIMARY_KEYS[table]])
+                pk = pkfromjson(table, row['olddata'])
                 ret[pk] = cls(table, pk, row['olddata'], row['otime'])
         return ret
+
 
 
 # For storage of server information 

@@ -249,11 +249,13 @@ class MergeProcess():
         # The only time this should ever occur is with the drivers table as its shared between series
         for t in remoteundelete:
             if len(remoteundelete[t]) > 0:
+                log.warning("Remote undelete requests for {}: {}".format(t, len(remoteundelete[t])))
                 remote.seriesStatus(series, "R-undelete {}".format(t))
                 unfinished.add(t)
                 DataInterface.insert(remotedb, remoteundelete[t])
         for t in localundelete:
             if len(localundelete[t]) > 0:
+                log.warning("Local udelete requests for {}: {}".format(t, len(remoteundelete[t])))
                 remote.seriesStatus(series, "L-undelete {}".format(t))
                 unfinished.add(t)
                 DataInterface.insert(localdb, localundelete[t])

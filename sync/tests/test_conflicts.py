@@ -51,5 +51,5 @@ def test_keyupdate(syncdbs, syncdata):
 
     sync(synca, syncb, merge)
     verify_car(synca, syncb, testid, (('classcode', 'c1'), ('indexcode', 'i2')), ())
-    verify_index(synca, syncb, 'i2', (('value', 0.999),), ())
+    verify_index(synca, syncb, 'i2', (('value', 0.999),))
 

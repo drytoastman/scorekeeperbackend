@@ -33,7 +33,7 @@ def syncdbs(request, syncdata):
     request.addfinalizer(teardown)
 
     for name, image, port in TESTDBS:
-        p = subprocess.run(["docker", "run", "-d", "--rm", "--name", name, "-p", port, image], stdout=subprocess.DEVNULL)
+        p = subprocess.run(["docker", "run", "-d", "--rm", "--name", name, "-p", port, "-e", "UI_TIME_ZONE=US/Pacific", image], stdout=subprocess.DEVNULL)
         if p.returncode != 0:
             raise Exception("Failed to start " + name)
 

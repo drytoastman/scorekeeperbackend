@@ -36,6 +36,12 @@ def verify_driver(synca, syncb, driverid, coltuple, attrtuple):
 def    verify_car(synca, syncb, carid, coltuple, attrtuple):
     verify_object(synca, syncb, carid, coltuple, attrtuple, "SELECT * FROM cars WHERE carid=%s")
 
-def verify_index(synca, syncb, indexcode, coltuple, attrtuple):
-    verify_object(synca, syncb, indexcode, coltuple, attrtuple, "SELECT * FROM indexlist WHERE indexcode=%s")
+def verify_index(synca, syncb, indexcode, coltuple):
+    verify_object(synca, syncb, indexcode, coltuple, (), "SELECT * FROM indexlist WHERE indexcode=%s")
+
+def verify_account(synca, syncb, accountid, coltuple):
+    verify_object(synca, syncb, accountid, coltuple, (), "SELECT * FROM paymentaccounts WHERE accountid=%s")
+
+def verify_item(synca, syncb, itemid, coltuple):
+    verify_object(synca, syncb, itemid, coltuple, (), "SELECT * FROM paymentitems WHERE itemid=%s")
 
