@@ -274,7 +274,7 @@ def login():
     reset = ResetForm(prefix='reset')
     register = RegisterForm(prefix='register')
     active = "login"
-    hasemail = getattr(Register, 'mail', None) is not None
+    hasemail = getattr(current_app, 'mail', None) is not None
 
     if login.submit.data:
         if login.validate_on_submit():
@@ -298,7 +298,7 @@ def login():
                     token = current_app.usts.dumps({'request': 'reset', 'driverid': str(d.driverid)})
                     msg = Message("Scorekeeper Reset Request", recipients=[d.email])
                     msg.body = "Use the following link to continue the reset process.\n\n{}".format(url_for('.reset', token=token, _external=True))
-                    Register.mail.send(msg)
+                    current_app.mail.send(msg)
                     return redirect(url_for(".emailsent"))
             flash("No user could be found with those parameters")
         else:
@@ -318,7 +318,7 @@ def login():
                                             'email':email, 'username': register.username.data.strip(), 'password': register.password.data.strip()})
                 msg = Message("Scorekeeper Profile Request", recipients=[email])
                 msg.body = "Use the following link to complete the registration process.\n\n{}".format(url_for('.finish', token=token, _external=True))
-                Register.mail.send(msg)
+                current_app.mail.send(msg)
                 return redirect(url_for(".emailsent"))
         else:
             flashformerrors(register)

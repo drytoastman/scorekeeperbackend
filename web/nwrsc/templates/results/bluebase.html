@@ -20,11 +20,11 @@
 <script type="text/javascript">
 $(document).ready(function(){
 {% if not g.year -%}
-shownavmenu('#navbarNav', '#yeardropdownlink');
+Scorekeeper.shownavmenu('#navbarNav', '#yeardropdownlink');
 {% elif not g.series -%}
-shownavmenu('#navbarNav', '#seriesdropdownlink');
+Scorekeeper.shownavmenu('#navbarNav', '#seriesdropdownlink');
 {% elif not event -%}
-shownavmenu('#navbarNav', '#eventdropdownlink');
+Scorekeeper.shownavmenu('#navbarNav', '#eventdropdownlink');
 {% endif -%}
 });
 </script>

@@ -94,7 +94,7 @@ def setup():
     if g.seriestype != Series.ACTIVE:
         raise ArchivedSeriesException()
 
-    g.mainserver = True #current_app.config['IS_MAIN_SERVER']
+    g.mainserver = current_app.config['IS_MAIN_SERVER']
     if not g.mainserver and request.endpoint in mainserverendpoints:
         return "This is not available off of the main server"
 

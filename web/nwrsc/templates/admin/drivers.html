@@ -34,8 +34,11 @@ Cars are from {{g.series}} but drivers are shared amongst series. Be a good citi
 </table>
 </div>
 
-<div id='driverinfo' class='col-7'>
+<div class='col-7'>
+<div id='editorerror' class='error'></div>
+<div id='driverinfo'></div>
 </div>
+
 </div>
 
 {{m.modal('profilemodal', 'Profile Editor', driverform.html('profileform', url_for('.edititem'), 'post', 'btn-admin', 'col-md-4', 'col-md-8'))}}

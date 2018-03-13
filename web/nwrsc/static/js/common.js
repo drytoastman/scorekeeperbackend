@@ -1,18 +1,4 @@
-
-function add_collapse_icons(cid) 
-{
-    var c = $(cid);
-    var i = $("a[href=\""+cid+"\"] span.fa");
-    c.on('hidden.bs.collapse', function () { i.removeClass("fa-minus-square-o").addClass("fa-plus-square-o"); });
-    c.on('shown.bs.collapse',  function () { i.removeClass("fa-plus-square-o").addClass("fa-minus-square-o"); });
-    i.addClass(c.hasClass("show") ? "fa-minus-square-o" : "fa-plus-square-o");
-}
-
-function shownavmenu(nav, menu)
-{
-    $(nav).on('shown.bs.collapse', function(){ $(menu).dropdown('toggle'); });
-    $(nav).collapse('show');
-}
+// Override/add some core library pieces
 
 String.prototype.format = function() {
     var formatted = this;
@@ -24,22 +10,46 @@ String.prototype.format = function() {
     return formatted;
 };
 
-const DRIVERFIELDS = ["driverid", "firstname", "lastname", "email", "membership", "address", "city", "state", "zip", "phone", "brag", "sponsor", "econtact", "ephone"];
-function load_driver_form(form, dr)
-{
-    for (idx in DRIVERFIELDS) {
-        var f = DRIVERFIELDS[idx];
-        form.find('[name='+f+']').val(dr[f]);
-    }
-    form.find('[name=optoutmail]').prop('checked', dr['optoutmail']);
-}
-
 if ($.validator) {
     $.validator.addMethod("notinused", function( value, element ) {
         var used = $(element).data("usednumbers") || [];
         return ($.inArray(parseInt(value), used) < 0);
     },  "that number is already in use");
 }
+
+
+// Starting a namespace for our stuff, other things will move here over time
+var Scorekeeper = Scorekeeper || {};
+
+Scorekeeper.emailRegex   = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+Scorekeeper.driverFields = ["driverid", "firstname", "lastname", "email", "membership", "address", "city", "state", "zip", "phone", "brag", "sponsor", "econtact", "ephone"];
+
+Scorekeeper.add_collapse_icons = function(cid) 
+{
+    var c = $(cid);
+    var i = $("a[href=\""+cid+"\"] span.fa");
+    c.on('hidden.bs.collapse', function () { i.removeClass("fa-minus-square-o").addClass("fa-plus-square-o"); });
+    c.on('shown.bs.collapse',  function () { i.removeClass("fa-plus-square-o").addClass("fa-minus-square-o"); });
+    i.addClass(c.hasClass("show") ? "fa-minus-square-o" : "fa-plus-square-o");
+};
+
+Scorekeeper.shownavmenu = function(nav, menu)
+{
+    $(nav).on('shown.bs.collapse', function(){ $(menu).dropdown('toggle'); });
+    $(nav).collapse('show');
+};
+
+
+Scorekeeper.load_driver_form = function(form, dr)
+{
+    for (idx in Scorekeeper.driverFields) {
+        var f = Scorekeeper.driverFields[idx];
+        form.find('[name='+f+']').val(dr[f]);
+    }
+    form.find('[name=optoutmail]').prop('checked', dr['optoutmail']);
+};
+
+
 
 (function ($) {
 

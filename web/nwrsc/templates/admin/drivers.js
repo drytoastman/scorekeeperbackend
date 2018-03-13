@@ -9,6 +9,7 @@ const DEL   = 2
 const MERGE = 3
 const DRV = 4
 const CAR = 5
+const RESET = 6
 
 function resizescroll() 
 {
@@ -27,9 +28,11 @@ function baction(atype, atarget, arg, disable)
         case EDIT:  text = "Edit"; break;
         case DEL:   text = "Delete"; break;
         case MERGE: text = "Merge Into This"; break;
+        case RESET: text = "Send Password Reset"; break;
     }
 
     return $('<button>').addClass('btn btn-outline-admin small').text(text).prop('disabled', disable).click(function() {
+        $('#editorerror').text("");
         switch (atype) {
             case MERGE:
                 var driverids = selecteddrivers(arg);
@@ -41,9 +44,20 @@ function baction(atype, atarget, arg, disable)
                         thetable.rows('#'+driverids.split(',').join(',#')).remove().draw();
                         thetable.row('#'+arg).select();
                     },
-                    error: function(xhr, stat, error) { alert(xhr.responseText); },
+                    error: function(xhr, stat, error) { $('#editorerror').text(xhr.responseText); },
                 });
                 break;
+
+            case RESET:
+                $.ajax({
+                    url: "{{url_for('.sendreset')}}",
+                    data: {driverid:arg},
+                    method: 'POST',
+                    success: function(data) { alert("Reset Sent"); },
+                    error: function(xhr, stat, error) { $('#editorerror').text(xhr.responseText); },
+                });
+                break;
+
 
             case DEL:
                 $.ajax({
@@ -51,13 +65,13 @@ function baction(atype, atarget, arg, disable)
                     data: (atarget == DRV) ? {driverid:arg} : {carid:arg, series:currentcars[arg].series},
                     method: 'POST',
                     success: function(data) { thetable.row('#'+arg).deselect(), $('#'+arg).remove(); },
-                    error: function(xhr, stat, error) { alert(xhr.responseText); },
+                    error: function(xhr, stat, error) { $('#editorerror').text(xhr.responseText); },
                 });
                 break;
 
             case EDIT:
                 if (atarget == DRV) {
-                    load_driver_form($('#profileform'), thetable.row('#'+arg).data());
+                    Scorekeeper.load_driver_form($('#profileform'), thetable.row('#'+arg).data());
                     $('#profilemodal').modal('show');
                 } else {
                     $('#carform').CarEdit('initform', currentcars[arg]);
@@ -72,7 +86,12 @@ function baction(atype, atarget, arg, disable)
 function buildEntrantTable(driver, cars, series, disabledelete, disablemerge)
 {
     var table = $('<table>').addClass('drivertable');
-    table.append($('<tr>').append($('<td>').prop('colspan', 2).addClass('buttons').append(baction(EDIT, DRV, driver.driverid, false), baction(DEL, DRV, driver.driverid, disabledelete), baction(MERGE, DRV, driver.driverid, disablemerge))));
+    table.append($('<tr>').append($('<td>').prop('colspan', 2).addClass('buttons').append(
+                        baction(EDIT,  DRV, driver.driverid, false), 
+                        baction(DEL,   DRV, driver.driverid, disabledelete), 
+                        baction(MERGE, DRV, driver.driverid, disablemerge),
+                        baction(RESET, DRV, driver.driverid, !driver.email.match(Scorekeeper.emailRegex))
+                )));
     table.append($('<tr>').append($('<th>').text('DriverId'),   $('<td>').text(driver.driverid)));
     table.append($('<tr>').append($('<th>').text('Name'),       $('<td>').text("{0} {1}".format(driver.firstname, driver.lastname))));
     table.append($('<tr>').append($('<th>').text('Username'),   $('<td>').text("{0}".format(driver.username))));

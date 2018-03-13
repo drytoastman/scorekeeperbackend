@@ -238,8 +238,8 @@ def create_app():
     ### Crypto, Compression, Mail and optional Profiling
     theapp.hasher = Bcrypt(theapp)
     theapp.usts = URLSafeTimedSerializer(theapp.config["SECRET_KEY"])
-    if theapp.config['MAIL_SERVER']:
-        Register.mail = Mail(theapp)
+    if theapp.config['MAIL_SERVER'] and theapp.config['MAIL_DEFAULT_SENDER']:
+        theapp.mail = Mail(theapp)
     Compress(theapp)
     if theapp.config.get('PROFILE', False):
         theapp.wsgi_app = ProfilerMiddleware(theapp.wsgi_app, restrictions=[30])
