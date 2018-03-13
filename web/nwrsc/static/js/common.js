@@ -139,7 +139,7 @@ Scorekeeper.load_driver_form = function(form, dr)
 				myform.find('[name=classcode]').change(function() { methods.classchange.call(myform); });
 				myform.find('[name=indexcode]').change(function() { methods.indexchange.call(myform); });
                 myform.find('[name=number]').after("<div id='usedwrapper'><a data-toggle='collapse' href='#usedlist'><span class='fa'></span><span class='label'></span></a><div id='usedlist' class='collapse'><ul></ul></div></div>");
-                add_collapse_icons("#usedlist")
+                Scorekeeper.add_collapse_icons("#usedlist")
 
 				$.validator.setDefaults({ignore:[]});
 				myform.validate({
