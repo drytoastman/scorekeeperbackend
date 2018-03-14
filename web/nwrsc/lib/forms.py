@@ -203,7 +203,7 @@ class CarForm(MyFlaskForm):
 
 class IndexForm(Form):
     indexcode   = MyStringField('IndexCode', [Length(min=2,max=8)], render_kw={'size':6})
-    descrip     = MyStringField('Description',                      render_kw={'size':50})
+    descrip     = MyStringField('Description',                      render_kw={'size':20})
     value       = FloatField(   'Value',                            render_kw={'size':5})
 
 class IndexListForm(FlaskForm):
@@ -212,7 +212,7 @@ class IndexListForm(FlaskForm):
 
 class ClassForm(Form):
     classcode       = MyStringField('ClassCode', [Length(min=2,max=8)], render_kw={'title':"Required classcode", 'size':6})
-    descrip         = MyStringField('Description',                      render_kw={'title':"A user description", 'size':50})
+    descrip         = MyStringField('Description',                      render_kw={'title':"A user description", 'size':40})
     eventtrophy     = BooleanField( 'Event Trophies',                   render_kw={'title':"Receives trophies at events"})
     champtrophy     = BooleanField( 'Champ Trophies',                   render_kw={'title':"Receives trophies for the series"})
     carindexed      = BooleanField( 'Cars Are Indexed',                 render_kw={'title':"Cars are individually indexed by index value"})

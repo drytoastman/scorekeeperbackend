@@ -20,8 +20,10 @@ $(document).ready(function() {
 {% block content %}
 {{super()}}
 <div class='container'>
+<div class='container'>
 <h3 class='text-center'>Event Settings</h3>
 {{ form.html('eventform', url, 'post', 'btn-admin', 'col-md-4', 'col-md-7') | safe }}
+</div>
 </div>
 {% endblock content %}
 

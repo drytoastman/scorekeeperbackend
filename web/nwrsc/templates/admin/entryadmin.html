@@ -4,6 +4,7 @@
 {{super()}}
 <script>
 $(document).ready(function(){
+    var hidesm = 'd-none d-sm-table-cell';
     var table = $('#regtable').DataTable({
         ajax: { url:"{{url_for(".registered")}}", dataSrc: ''},
         lengthMenu: [[-1], ["All"]],
@@ -11,11 +12,11 @@ $(document).ready(function(){
         columns: [
             { data: 'firstname' },
             { data: 'lastname'  },
-            { data: 'email', render: Scorekeeper.displayemail },
+            { data: 'email', render: Scorekeeper.displayemail, className: hidesm },
             { data: 'classcode' },
             { data: 'number' },
-            { data: 'cdesc', render: function(data) { return data.substring(0, 30); }},
-            { data: 'regmodified' },
+            { data: 'cdesc', render: function(data) { return data.substring(0, 30); }, className: hidesm },
+            { data: 'regmodified', className: hidesm },
             { data: null, "defaultContent": "<button class='btn btn-admin small'>Unregister</button>" }
         ],
         sDom: '<"dtheader"fi>rt<"clear">'
