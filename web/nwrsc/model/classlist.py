@@ -21,6 +21,10 @@ class Class(AttrBase):
             return self.countedruns
 
     @classmethod
+    def empty(cls):
+        return cls.fromForm(dict(classcode=''))
+
+    @classmethod
     def fromForm(cls, data):
         ret = cls()
         ret.classcode       = data['classcode'] # This one MUST be there
@@ -57,6 +61,10 @@ class Class(AttrBase):
 
 
 class Index(AttrBase):
+
+    @classmethod
+    def empty(cls):
+        return cls.fromForm(dict(indexcode=''))
 
     @classmethod
     def fromForm(cls, data):

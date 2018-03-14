@@ -7,12 +7,15 @@
 $(document).ready(function(){
 	$('.deleterow').click(function() { $(this).closest('tr').remove(); return false; });
 	$('#indexlistform .addbutton').click(function() {
-        newCountedRow('#indexlistform', '#indexlisttemplate');
+        Scorekeeper.newCountedRow('#indexlistform', '#indexlisttemplate');
         return false;
     });
     $('input[type=text]').change(function() { $(this).css('background', 'yellow'); });
 });
 </script>
+<style>
+#indexlisttemplate { display: none; }
+</style>
 {% endblock headers %}
 
 {% macro dorow(ii, field) %}
@@ -64,6 +67,11 @@ $(document).ready(function(){
 
 </form>
 </div>
+
+<table id='indexlisttemplate'>
+    {{dorow(0, empty.indexlist[0]) }}
+</table>
+
 
 {% endblock content %}
 

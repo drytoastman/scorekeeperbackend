@@ -7,11 +7,14 @@
 $(document).ready(function(){
 	$('.deleterow').click(function() { $(this).closest('tr').remove(); return false; });
 	$('#classlistform .addbutton').click(function() {
-        newCountedRow('#classlistform');
+        Scorekeeper.newCountedRow('#classlistform', '#classlisttemplate');
         return false;
     });
 });
 </script>
+<style>
+#classlisttemplate { display: none; }
+</style>
 {% endblock headers %}
 
 {% macro dorow(ii, field) %}
@@ -83,6 +86,10 @@ Each class has a short code and a full string description.  The description is o
 </form>
 
 </div>
+
+<table id='classlisttemplate'>
+    {{dorow(0, empty.classlist[0]) }}
+</table>
 
 {% endblock content %}
 

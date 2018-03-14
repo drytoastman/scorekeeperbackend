@@ -11,7 +11,7 @@ $(document).ready(function(){
         columns: [
             { data: 'firstname' },
             { data: 'lastname'  },
-            { data: 'email', render: displayemail },
+            { data: 'email', render: Scorekeeper.displayemail },
             { data: 'classcode' },
             { data: 'number' },
             { data: 'cdesc', render: function(data) { return data.substring(0, 30); }},

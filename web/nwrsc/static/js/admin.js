@@ -1,21 +1,23 @@
 
-function newCountedRow(listform)
+// Make sure namespace is there
+var Scorekeeper = Scorekeeper || {};
+
+Scorekeeper.newCountedRow = function(listform, template)
 {
     var lastrow = $(listform + ' tr:last');
-	var oldcount = lastrow.data('counter');
-    var newrow = lastrow.clone();
-    var newcount = oldcount+1;
-	newrow.data('counter', newcount);
-    newrow.find("input,select").attr("id", function(ix, val) { return val.replace(""+oldcount, ""+newcount); })
-                               .attr("name", function(ix, val) { return val.replace(""+oldcount, ""+newcount); })
-                               .val("");
-    newrow.find("input[type=checkbox]").attr("value","y"); // I don't understand why but this is necessary
-    newrow.find(".deleterow").click(function () { rowelem.remove(); return false; });
+    var oldcount = lastrow.data('counter');
+    var newrow = $(template + ' tr:first').clone();
+    var newcount = oldcount+1 || 0;
+
+    newrow.attr('data-counter', newcount);
+    newrow.find("input,select").attr("id", function(ix, val) { return val.replace("0", ""+newcount); })
+                               .attr("name", function(ix, val) { return val.replace("0", ""+newcount); });
+    newrow.find(".deleterow").click(function () { $(this).closest('tr').remove(); return false; });
     newrow.appendTo(listform + ' tbody');
     return false;
 }
 
-function displayemail(data, type, row, meta)
+Scorekeeper.displayemail = function(data, type, row, meta)
 {
     if (row['optoutmail']) {
         return "**********";
@@ -23,5 +25,4 @@ function displayemail(data, type, row, meta)
         return data;
     }
 }
-
 

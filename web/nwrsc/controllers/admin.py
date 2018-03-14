@@ -174,7 +174,8 @@ def restricthelp():
 @Admin.route("/classlist", methods=['POST', 'GET'])
 def classlist():
     g.classdata = ClassData.get()
-    ClassListForm.setIndexes(g.classdata.indexlist)
+    ClassListForm.setIndexes(g.classdata.indexlist) # global variable danger, but no way around it with current WTForms
+
     form = ClassListForm()
     if request.form:
         if form.validate():
@@ -194,7 +195,9 @@ def classlist():
         for key, cls in sorted(g.classdata.classlist.items()):
             form.classlist.append_entry(cls)
 
-    return render_template('/admin/classlist.html', form=form)
+    empty = ClassListForm()
+    empty.classlist.append_entry(Class.empty())
+    return render_template('/admin/classlist.html', form=form, empty=empty)
 
 
 @Admin.route("/indexlist", methods=['POST', 'GET'])
@@ -218,8 +221,10 @@ def indexlist():
         for key, idx in sorted(classdata.indexlist.items()):
             form.indexlist.append_entry(idx)
 
+    empty = IndexListForm()
+    empty.indexlist.append_entry(Index.empty())
     lists = sorted([os.path.basename(s[:-5]) for s in glob.glob(os.path.join(current_app.root_path, 'static/indexlists/*.json'))])
-    return render_template('/admin/indexlist.html', form=form, lists=lists)
+    return render_template('/admin/indexlist.html', form=form, empty=empty, lists=lists)
 
 
 @Admin.route("/indexreset")
