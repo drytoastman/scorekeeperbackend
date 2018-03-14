@@ -111,7 +111,7 @@ def create_app():
     assets.j = dict()  # It doesn't attempt to resolve names so we store these subsets here
     assets.j['jquery']     = Bundle("extern/jquery-3.2.0.js")
     assets.j['jquerymod']  = Bundle("extern/jquery.sortable-1.12.1.js", "extern/jquery.validate-1.16.js")
-    assets.j['bootstrap']  = Bundle("extern/popper-1.11.0.js", "extern/bootstrap-4.0.0b.js")
+    assets.j['bootstrap']  = Bundle("extern/popper-1.11.0.js", "extern/bootstrap-4.0.0.js")
     assets.j['flatpickr']  = Bundle("extern/flatpickr.js")
     assets.j['datatables'] = Bundle("extern/datatables-1.10.16.js",  "extern/datatables-1.10.16-bootstrap4.js", "extern/datatables-select-1.2.3.js", "extern/datatables-buttons-1.5.1.js", "extern/datatables-buttons-1.5.1-bootstrap4.js", "extern/datatables-buttons-1.5.1-html5.js")
     assets.j['barcodes']   = Bundle("extern/JsBarcode.code128.min.js")

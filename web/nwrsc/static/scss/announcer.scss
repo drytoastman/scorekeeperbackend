@@ -3,7 +3,7 @@ $headerfill: $basecolor;
 $titlesfill: lighten( $basecolor, 10% );
 $tabcolor: darken( $basecolor, 10% );
 
-@import "../extern/bootstrap-4.0.0b.scss";
+@import "../extern/bootstrap-4.0.0.scss";
 
 .layout {
   font-size: 0.9rem;

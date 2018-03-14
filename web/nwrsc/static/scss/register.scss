@@ -2,7 +2,7 @@ $basecolor: #3771ce;
 $bordercolor: #BBB;
 
 @import "../extern/font-awesome/font-awesome.scss";
-@import "../extern/bootstrap-4.0.0b.scss";
+@import "../extern/bootstrap-4.0.0.scss";
 @import "common.scss";
 
 @include bootstraptheme("register", $basecolor);
