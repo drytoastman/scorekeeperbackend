@@ -9,6 +9,7 @@ services:
   web:
     image:   "drytoastman/scweb:${TRAVIS_TAG:-latest}"
     build:   "web"
+    container_name: "web"
     command: "ash -c 'pip install -e /code && exec webserver.py'"
     environment:
         - UI_TIME_ZONE=US/Pacific
@@ -33,6 +34,7 @@ services:
   db:
     image:   "drytoastman/scdb:${TRAVIS_TAG:-latest}"
     build:   "db"
+    container_name: "db"
     environment:
         - UI_TIME_ZONE=US/Pacific
     volumes:  
@@ -48,6 +50,7 @@ services:
   sync:
     image:   "drytoastman/scsync:${TRAVIS_TAG:-latest}"
     build:   "sync"
+    container_name: "sync"
     command: "ash -c 'pip install -e /code && exec syncserver.py'"
     environment:
         - UI_TIME_ZONE=US/Pacific
@@ -60,11 +63,28 @@ services:
     networks:
         net1:
 
+
 networks:
+  # create a separate network from the default
   net1:
+    external:
+      name: "scnet"
 
 volumes:
-  database:  # for long term storage of database/config
-  dbsocket:  # for sharing of database unix socket across containers
-  logs:      # for long term storage of logging data
+
+  # for long term storage of database/config
+  database:
+    external:
+      name: "scdatabase-latest"
+
+  # for long term storage of logging data
+  logs:
+    external:
+      name: "sclogs-latest"
+
+  # for sharing of database unix socket across containers
+  dbsocket:
+    external:
+      name: "scsocket"
+
 
