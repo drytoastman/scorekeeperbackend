@@ -1,6 +1,6 @@
 
-{% macro errordisplay() %}
-<div class='formerror'>
+{% macro errordisplay(cssclass='') %}
+<div class='formerror {{cssclass}}'>
 {% for msg in get_flashed_messages() %}
 <div class='error'>{{msg}}</div>
 {% endfor %}

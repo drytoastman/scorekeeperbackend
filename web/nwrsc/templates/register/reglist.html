@@ -1,4 +1,4 @@
-{% extends "results/bluebase.html" %}
+{% extends "register/bluebase.html" %}
 {% block headers %}
 {{super()}}
 <style>
@@ -7,10 +7,10 @@
 {% endblock headers %}
 
 {% block content %}
+{{super()}}
 <div class='container-fluid'>
-<h3 class='seriesname'>{{seriesname}}</h3>
-<h4 class='eventname'>{{event.name}}</h4>
-<h6 class='eventinfo'>{{event.getRegisteredCount()}} Entries ({{event.getRegisteredDriverCount()}} Unique)</h6>
+<h4 class='text-center eventname'>{{event.name}} Registration</h4>
+<h6 class='text-center eventinfo'>{{event.getRegisteredCount()}} Entries ({{event.getRegisteredDriverCount()}} Unique)</h6>
 <div style='margin: 1rem;'></div>
 
 <table class='registration'>

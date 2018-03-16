@@ -1,5 +1,6 @@
 $basecolor: #4682B4;
 $subheadgray: #ccc;
+$printborder: #999;
 
 @import "../extern/bootstrap-4.0.0.scss";
 @import "common.scss";
@@ -12,7 +13,6 @@ $subheadgray: #ccc;
 
 .container-fluid {
     margin-top: 1rem;
-    font-size: 0.9rem;
 
     h1, h2, h3, h4, h5, h6 {
         text-align: center;
@@ -32,10 +32,18 @@ $subheadgray: #ccc;
     }
 }
 
+div.buffer {
+    height: 2rem;
+}
+
 table {
 	margin: 0px auto;
     &:not(.pro) {
         @extend .table-striped;
+    }
+
+    tbody tr:last-child td {
+        padding-bottom: 1rem;
     }
 
     tr.head th { 
@@ -43,6 +51,7 @@ table {
         color: white; 
         text-align: left; 
 		font-size: 1.0rem;
+        font-weight: 500;
         padding-left: 0.6rem;
         padding-right: 0.2rem;
     }
@@ -55,10 +64,6 @@ table {
 
     tr.missingmin td { // haven't met championship min
     	color: #ccc;
-    }
-
-    tr.entrantrow, tr.head  { 
-        border-top: 1px solid $subheadgray;
     }
 
     td {
@@ -112,7 +117,6 @@ table.toptimes {
 	}
 	td.time {
 		border-right: 1px solid $subheadgray;
-		font-size: 1.1em;
 		font-weight: bold;
 	}
 }
@@ -157,6 +161,18 @@ table.challengeround {
         background: none;
         background-color: transparent !important;
         max-width: 10rem;
+    }
+
+    tr.head th {
+        font-weight: bold !important;
+    }
+
+    tr.entrantrow  {
+        border-top: 1px solid $printborder;
+    }
+
+    tr.head, tr.subhead {
+        border: 1px solid $printborder;
     }
 
     .caryear, .cardesc {

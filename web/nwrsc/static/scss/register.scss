@@ -31,6 +31,15 @@ ul {
     font-weight: bold;
 }
 
+.barcodewarning {
+    text-align: center;
+    margin-right: 15px;
+    margin-top: -10px;
+    background: #ffdded;
+    color: #b13636;
+    font-size: 0.9rem;
+}
+
 .cardisplay {
     span {
         white-space: nowrap;
@@ -72,6 +81,27 @@ span.payments {
         margin-left: 1rem;
     }
 }
+
+table.registration {
+	margin: 0px auto;
+    @extend .table-striped;
+
+    tr.head th {
+        background-color: desaturate($basecolor, 5%);
+        font-weight: 500;
+        color: white;
+        text-align: left;
+        padding-left: 0.6rem;
+        padding-right: 0.2rem;
+    }
+
+    tr.subhead th {
+        background-color: #ccc;
+        text-align: center;
+        padding: 0.1rem 0.3rem;
+    }
+}
+
 
 /* Some adjustments when bootstrap adjusts at the sm boundary */
 

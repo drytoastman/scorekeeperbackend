@@ -100,7 +100,7 @@ var gItems = {{pitems|to_json|safe}};
 
 <div id='eventsouter'>
 <div id='eventscontainer' class='container'>
-    <div class='title'>Events in {{g.seriesname}}</div>
+    <div class='title'>Events in {{g.settings.seriesname}}</div>
 {% for ev in events %}
     {% set eclass = ev.isOpen() and "eventopen show" or "eventclosed" %}
     <div class='eventheader {{eclass}} row justify-content-start'>

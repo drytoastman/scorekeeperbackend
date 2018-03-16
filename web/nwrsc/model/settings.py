@@ -9,6 +9,7 @@ class Settings(object):
         "superuniquenumbers":   False,
         "indexafterpenalties":  False,
         "usepospoints":         False,
+        "requestbarcodes":      False,
         "largestcarnumber":     1999,
         "dropevents":           2,
         "minevents":            0,

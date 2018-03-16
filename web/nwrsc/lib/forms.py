@@ -245,6 +245,7 @@ class SettingsForm(MyFlaskForm):
     pospointlist        = MyStringField('Position Points',            render_kw={'title':"The points for each position, starting with first, the last value will repeat to fill remaining values"})
     indexafterpenalties = BooleanField( 'Index After Penalties',      render_kw={'title':"Perform indexes after applying penalties, rather than vice versa"})
     superuniquenumbers  = BooleanField( 'Series Wide Unique Numbers', render_kw={'title':"Required that new car number are unique across all classes, not just the class in use"})
+    requestbarcodes     = BooleanField( 'Request Barcodes',           render_kw={'title':"If checked, provides notifications to users they don't have a barcode value"})
     resultscss          = TextAreaField('Results CSS',                render_kw={'title':"Extra CSS that is injected into all of the results pages for this series", 'rows':4})
     resultsheader       = TextAreaField('Results Header',             render_kw={'title':"Jinja template code for the Event Results links",
                                                                                  'labelextra':"<a href='default?resultsheader'>Default If Blank</a>",  # can't use url_for as there is no context when its read

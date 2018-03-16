@@ -45,10 +45,19 @@ Scorekeeper.shownavmenu('#navbarNav', '#seriesdropdownlink');
   </div>
 </nav>
 
-<div class='row justify-content-center'>
-<div class='col text-center'>
-<div>{{ m.errordisplay() }}</div>
-</div>
+{% if g.settings and g.settings.requestbarcodes and g.driver and not g.driver.membership %}
+<div class='row'><div class='col barcodewarning'>
+No barcode value in profile <a href='#' data-toggle='modal' data-target='#barcodemodal'>[help]</a>
+</div></div>
+{% call m.modal('barcodemodal', 'Barcode Information', '') %}
+<p>This series requests that you have a barcode set in your profile.</p>
+<p>If you already have a barcode on your helmet, please go to the <a href='{{url_for(".profile")}}'>profile</a> page, edit profile, and enter the barcode value there.</p>
+<p>If you do not have a barcode yet, one will be provided at the event and you can ignore this message.</p>
+{% endcall %}
+
+{% endif %}
+<div class='row'>{{ m.errordisplay('col') }}</div>
+
 </div>
 
 {% endblock content %}
