@@ -30,12 +30,12 @@ def setup():
     g.title = 'Scorekeeper Registration'
     g.activeseries = Series.active()
     g.selection = request.endpoint
-    g.settings = Settings.getAll()
     if 'driverid' in session:
         g.driver = Driver.get(session['driverid'])
         if g.series:
             if g.seriestype != Series.ACTIVE:
                 raise ArchivedSeriesException()
+            g.settings = Settings.getAll()
             g.classdata = ClassData.get()
     else:
         g.driver = None
