@@ -5,6 +5,9 @@
 <script>
 $(document).ready(function(){
     var hidesm = 'd-none d-sm-table-cell';
+    var hidemd = 'd-none d-md-table-cell';
+    var hidelg = 'd-none d-lg-table-cell';
+
     var table = $('#regtable').DataTable({
         ajax: { url:"{{url_for(".registered")}}", dataSrc: ''},
         lengthMenu: [[-1], ["All"]],
@@ -13,11 +16,12 @@ $(document).ready(function(){
             { data: 'firstname' },
             { data: 'lastname'  },
             { data: 'email', render: Scorekeeper.displayemail, className: hidesm },
+            { data: 'membership' },
             { data: 'classcode' },
             { data: 'number' },
-            { data: 'cdesc', render: function(data) { return data.substring(0, 30); }, className: hidesm },
-            { data: 'regmodified', className: hidesm },
-            { data: null, "defaultContent": "<button class='btn btn-admin small'>Unregister</button>" }
+            { data: 'cdesc', render: function(data) { return data.substring(0, 20); }, className: hidelg },
+            { data: 'regmodified', className: hidelg },
+            { data: null, "defaultContent": "<button class='btn btn-admin'>Unregister</button>" }
         ],
         sDom: '<"dtheader"fi>rt<"clear">'
     });
@@ -34,6 +38,24 @@ $(document).ready(function(){
     });
 });
 </script>
+
+<style>
+th {
+    font-size: 0.8rem;
+    padding: 2px !important;
+    padding-right: 15px !important;
+}
+td {
+    font-size: 0.9rem;
+}
+th:before, th:after {
+    font-size: 1.0rem;
+}
+button {
+    font-size: 0.8rem !important;
+    padding: 1px 5px !important;
+}
+</style>
 {% endblock headers %}
 
 
@@ -41,14 +63,16 @@ $(document).ready(function(){
 {{super()}}
 <div class='container'>
 <h3>{{event.name}} Entrants</h3>
+<small class='col form-text text-muted p-0'>Some columns are hidden on smaller width windows</small>
 
 <input type='hidden' name='regid' value='-1'/>
-<table id='regtable' class='table-striped table-bordered' cellspacing="0" width="100%">
+<table id='regtable' class='table-striped table-bordered compact' cellspacing="0" width="100%">
 <thead>
 <tr>
 <th>First</th>
 <th>Last</th>
 <th>Email</th>
+<th>Barcode</th>
 <th>Class</th>
 <th>Num</th>
 <th>Car</th>

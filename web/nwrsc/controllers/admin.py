@@ -382,7 +382,7 @@ def entryadmin():
 def registered():
     ret = Registration.getForEvent(g.eventid)
     for r in ret:
-        r.regmodified = time_print(r.regmodified, '%Y-%m-%d %H:%M %Z') 
+        r.regmodified = time_print(r.regmodified, '%m-%d %H:%M')
         r.cdesc = ' '.join(filter(None, [r.cattr.get(k, None) for k in ('year', 'make', 'model', 'color')]))
     return json_encode(list(ret))
 
