@@ -8,9 +8,18 @@ $subheadgray: #ccc;
 
 .markdown {
 
+    ul {
+        list-style: initial;
+        margin-left: 2rem;
+    }
+
     ul, ol {
         margin-bottom: 1rem !important;
         p {
+            margin-left: 0;
+        }
+
+        ul {
             margin-left: 0;
         }
     }
@@ -44,6 +53,20 @@ $subheadgray: #ccc;
 
     h2 + h3 {
         margin-top: 1rem;
+    }
+
+    table.barcodes {
+        width: 100%;
+        margin-left: 1.2rem;
+    }
+
+    img {
+        vertical-align: top;
+    }
+
+    span.spacer100 {
+        display: inline-block;
+        width: 100px;
     }
 }
 

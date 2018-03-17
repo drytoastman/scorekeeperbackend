@@ -25,7 +25,7 @@ def index():
 @Docs.route("/<selection>")
 def docpage(selection):
     with current_app.open_resource(safe_join("templates/docs", selection), 'r') as f:
-        return render_template("docs/wrapper.html", content=markdown(f.read()))
+        return render_template("docs/wrapper.html", content=markdown(f.read(), tables=1))
 
 @Docs.route("/images/<selection>")
 def image(selection):
