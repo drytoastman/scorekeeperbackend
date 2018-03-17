@@ -175,7 +175,12 @@ table.challengeround {
         border: 1px solid $printborder;
     }
 
-    .caryear, .cardesc {
+    tr.subhead th:last-child {
+        /* fix for chrome border bug on rows after hiding a column with a colspan above */
+        border-right: 1px solid $printborder;
+    }
+
+    .cardesc {
         display: none;
     }
 }
