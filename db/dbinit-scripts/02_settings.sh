@@ -12,6 +12,10 @@ host      all       nulluser             0.0.0.0/0       password # allow the nu
 host      all       +driversaccess       0.0.0.0/0       password # allow any other logins with password
 " > pg_hba.conf
 
+if [ -z $UI_TIME_ZONE ]; then
+UI_TIME_ZONE=US/Pacific
+fi
+
 echo "
 ssl = on
 ssl_cert_file = 'server.crt'
