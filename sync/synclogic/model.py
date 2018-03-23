@@ -302,6 +302,8 @@ class LoggedObject():
             for key in adel:
                 data['attr'].pop(key, None)
 
+        # Step us forward 1 microsecond past whatever else has happened
+        data['modified'] = (datetime.datetime.strptime(data['modified'], "%Y-%m-%dT%H:%M:%S.%f") + datetime.timedelta(microseconds=1)).isoformat()
         return PresentObject(self.table, self.pk, data)
 
 

@@ -17,11 +17,11 @@ services:
         - LOG_LEVEL=DEBUG
         - WERKZEUG_DEBUG_PIN=off
         - SUPER_ADMIN_PASSWORD=testing
+        - IS_MAIN_SERVER=1
         - SQ_APPLICATION_ID
         - SQ_APPLICATION_SECRET
         - MAIL_SERVER
         - MAIL_DEFAULT_SENDER
-        - IS_MAIN_SERVER
     volumes:  
         - "dbsocket:/var/run/postgresql"
         - "logs:/var/log"

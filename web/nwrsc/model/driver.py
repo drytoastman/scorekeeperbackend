@@ -42,7 +42,7 @@ class Driver(AttrBase):
     def merge(cls, oldids, destid):
         with g.db.cursor() as cur:
             for srcid in oldids:
-                cur.execute("UPDATE cars SET driverid=%s WHERE driverid=%s", (destid, srcid))
+                cur.execute("UPDATE cars SET driverid=%s,modified=now() WHERE driverid=%s", (destid, srcid))
                 cur.execute("DELETE FROM drivers WHERE driverid=%s", (srcid,))
             g.db.commit()
 

@@ -51,7 +51,7 @@ class SuperAuth(AttrBase):
         with g.db.cursor() as cur:
             for srcid in oldids:
                 for s in active:
-                    cur.execute("UPDATE {}.cars SET driverid=%s WHERE driverid=%s".format(s), (destid, srcid))
+                    cur.execute("UPDATE {}.cars SET driverid=%s,modified=now() WHERE driverid=%s".format(s), (destid, srcid))
                 cur.execute("DELETE FROM drivers WHERE driverid=%s", (srcid,))
             g.db.commit()
 

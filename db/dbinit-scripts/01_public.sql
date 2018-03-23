@@ -99,6 +99,9 @@ BEGIN
                 RAISE EXCEPTION 'Cannot use UPDATE to change % of the primary key', TG_ARGV[ii];
             END IF;
         END LOOP;
+        IF oldrow -> 'modified' = newrow -> 'modified' THEN
+            RAISE EXCEPTION 'Updating without changing modification time';
+        END IF;
         IF ((app = 'synclocal') OR (app = 'syncremote')) THEN
             RETURN NEW;
         END IF;
