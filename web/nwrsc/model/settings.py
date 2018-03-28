@@ -10,15 +10,18 @@ class Settings(object):
         "indexafterpenalties":  False,
         "usepospoints":         False,
         "requestbarcodes":      False,
+        "doweekendmembers":     False,
         "largestcarnumber":     1999,
         "dropevents":           2,
         "minevents":            0,
+        "weekendmin":           0,
+        "weekendmax":           0,
         "pospointlist":         "20,16,13,11,9,7,6,5,4,3,2,1",
         "seriesname":           "",
         "classinglink":         "",
         "resultsheader":        "",
         "resultscss":           "",
-        "cardtemplate":         ""
+        "cardtemplate":         "",
     }
  
     def __init__(self, initial = None):

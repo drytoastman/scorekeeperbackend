@@ -246,6 +246,9 @@ class SettingsForm(MyFlaskForm):
     indexafterpenalties = BooleanField( 'Index After Penalties',      render_kw={'title':"Perform indexes after applying penalties, rather than vice versa"})
     superuniquenumbers  = BooleanField( 'Series Wide Unique Numbers', render_kw={'title':"Required that new car number are unique across all classes, not just the class in use"})
     requestbarcodes     = BooleanField( 'Request Barcodes',           render_kw={'title':"If checked, provides notifications to users they don't have a barcode value"})
+    doweekendmembers    = BooleanField( 'SCCA Weekend Membership',    render_kw={'title':"If checked, show additional settings here and in Registration for SCCA weekend memberships"})
+    weekendmin          = IntegerField( 'Weekend Block Start',        render_kw={'title':"The first number in the block of weekend member numbers"})
+    weekendmax          = IntegerField( 'Weekend Block End',          render_kw={'title':"The last number in the block of weekend member numbers"})
     resultscss          = TextAreaField('Results CSS',                render_kw={'title':"Extra CSS that is injected into all of the results pages for this series", 'rows':4})
     resultsheader       = TextAreaField('Results Header',             render_kw={'title':"Jinja template code for the Event Results links",
                                                                                  'labelextra':"<a href='default?resultsheader'>Default If Blank</a>",  # can't use url_for as there is no context when its read
