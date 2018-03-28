@@ -165,7 +165,7 @@ BEGIN
     END LOOP;
     PERFORM set_config('search_path', 'public', true);
     EXECUTE publicscript;
-    UPDATE version SET version=newversion;
+    UPDATE version SET version=newversion,modified='now()';
     RETURN TRUE;
 END;
 $body$
