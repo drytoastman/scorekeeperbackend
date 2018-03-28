@@ -68,6 +68,9 @@ $(document).ready(function(){ Scorekeeper.shownavmenu('#navbarNav', '#seriesdrop
             <div class="dropdown-divider"></div>
             <a class='dropdown-item' href='{{url_for('.payments')}}'>Payments</a>
             <a class='dropdown-item' href='{{url_for('.contactlist')}}'>Contact List</a>
+            {% if g.doweekendmembers %}
+            <a class='dropdown-item' href='{{url_for('.weekendreport')}}'>Weekend Report</a>
+            {% endif %}
           </div>
         </li>
 

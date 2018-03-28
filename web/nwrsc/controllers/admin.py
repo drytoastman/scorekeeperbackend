@@ -106,6 +106,7 @@ def setup():
     if request.endpoint not in authendpoints:
         clearPath()
 
+    g.doweekendmembers = Settings.get("doweekendmembers")
     g.events  = Event.byDate()
     if g.eventid:
         g.event=Event.get(g.eventid)
@@ -372,6 +373,15 @@ def contactlist():
 @Admin.route("/activitylist")
 def activitylist():
     return json_encode(list(Attendance.getActivity().values()))
+
+
+@Admin.route("/weekendreport")
+def weekendreport():
+    return render_template('/admin/weekendreport.html')
+
+@Admin.route("/weekendlist")
+def weekendlist():
+    return json_encode(WeekendMembers.getAll())
 
 
 @Admin.route("/event/<uuid:eventid>/entryadmin")

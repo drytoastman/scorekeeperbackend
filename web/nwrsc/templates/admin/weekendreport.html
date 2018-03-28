@@ -1,0 +1,91 @@
+{% extends "admin/bluebase.html" %}
+{% import "common/macros.html" as m %}
+
+{% block headers %}
+{{super()}}
+<style>
+    #weekendtable { font-size: 0.9rem; }
+    .dt-buttons { margin-left: 1rem; }
+</style>
+<script>
+var thetable   = null;
+var matchtypes = [];
+var matchevent = []
+
+$(document).ready(function(){
+	thetable = $('#weekendtable').DataTable({ 
+        ajax: { url:"{{url_for(".weekendlist")}}", dataSrc: ''},
+        iDisplayLength: -1,
+        autoWidth: false,
+        buttons: [
+            {   
+                extend: 'excelHtml5',  
+                className: 'btn btn-outline-admin', 
+                text: 'Export To Excel', 
+                title: 'Weekend Member Report',
+                exportOptions: { columns: ':visible' },
+            },
+            {   
+                extend: 'csvHtml5',  
+                className: 'btn btn-outline-admin', 
+                text: 'Export To CSV', 
+                title: 'Weekend Member Report',
+                exportOptions: { columns: ':visible'}
+            }
+        ],
+
+        columns: [
+            { data: 'membership' },
+            { render: function (data, type, row) { return row['firstname'] + ' ' + row['lastname']; } },
+            { data: 'address', defaultContent: '' },
+            { data: 'city',    defaultContent: '' },
+            { data: 'state',   defaultContent: '' },
+            { data: 'zip',     defaultContent: '' },
+            { data: 'country', defaultContent: 'US' },
+            { data: 'phone',   defaultContent: '' },
+            { data: 'email' },
+            { data: 'region' },
+            { data: 'area' },
+            { data: 'startdate' },
+            { data: 'enddate' },
+            { data: 'issuer' },
+            { data: 'issuermem' }
+        ],
+
+        sDom: '<"dtheader"fiB>rt<"clear">'
+    });
+});
+</script>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h3>Weekend Report</h3>
+
+<table id='weekendtable' class='table-striped table-bordered' cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>Form Number</th>
+<th>Name</th>
+<th>Address</th>
+<th>City</th>
+<th>State</th>
+<th>Zip</th>
+<th>Country</th>
+<th>Phone Number</th>
+<th>E-Mail</th>
+<th>Region</th>
+<th>Area of Interest</th>
+<th>From</th>
+<th>To</th>
+<th>Name</th>
+<th>Member Number</th>
+</tr>
+</thead>
+<tbody>
+</table>
+</div>
+
+{% endblock content %}
+
