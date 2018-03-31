@@ -4,37 +4,43 @@
 
 import argparse
 import datetime
-import gzip
 import operator
 import os
 import re
 import subprocess
 import sys
+import zipfile
 
 from google.cloud import storage
 from google.cloud.storage import Blob
 
 def dumpdb():
-    dumpfile = datetime.date.today().strftime("scorekeeper-%Y-%m-%d.dump")
-    gzipfile = dumpfile+".gz"
-    subprocess.run(["pg_dumpall", "-h", "127.0.0.1", "-p", "6432", "-U", "postgres", "-f", dumpfile])
-    with open(dumpfile, 'rb') as f_in, gzip.open(gzipfile, 'wb') as f_out:
-        f_out.writelines(f_in)
+    dumpfile = datetime.date.today().strftime("scorekeeper-%Y-%m-%d.sql")
+    with open(dumpfile, 'w') as dump:
+        dump.write("UPDATE pg_database SET datallowconn = 'false' WHERE datname = 'scorekeeper';\n")
+        dump.write("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'scorekeeper';\n")
+        subprocess.run(["pg_dumpall", "-h", "127.0.0.1", "-p", "6432", "-U", "postgres", "-c"], stdout=dump)
+        dump.write("UPDATE pg_database SET datallowconn = 'true' WHERE datname = 'scorekeeper';\n")
+
+    zipname = dumpfile+".zip"
+    with zipfile.ZipFile(zipname, 'w', zipfile.ZIP_DEFLATED) as zip:
+        zip.write(dumpfile)
+
     os.remove(dumpfile)
-    return gzipfile
+    return zipname
 
 
-def restoredb(gzipfile):
-    dumpfile = gzipfile[:-3]
-    with gzip.open(gzipfile, 'rb') as f_in, open(dumpfile, 'wb') as f_out:
-        f_out.writelines(f_in)
-    subprocess.run(["psql", "-h", "127.0.0.1", "-p", "6432", "-U", "postgres", "-c", "DROP DATABASE scorekeeper;"])
+def restoredb(zipname):
+    dumpfile = zipname[:-4]
+    with zipfile.ZipFile(zipname) as zip:
+        zip.extract(dumpfile)
     subprocess.run(["psql", "-h", "127.0.0.1", "-p", "6432", "-U", "postgres", "-f", dumpfile])
     os.remove(dumpfile)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Interact with Google Cloud Backup')
+    parser.add_argument('--local',    action='store_true', help='backup the scorekeeper database to a local file')
     parser.add_argument('--backup',   action='store_true', help='backup the scorekeeper database to cloud')
     parser.add_argument('--restore',  action='store_true', help='download the latest scorekeeper backup and restore it')
     parser.add_argument('--list',     action='store_true', help='list the files in the bucket')
@@ -46,6 +52,11 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(-1)
     args = parser.parse_args()
+
+    if args.local:
+        zipname = dumpdb()
+        print("Written to {}".format(zipname))
+        sys.exit(0)
 
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = args.credsfile
     bucket = storage.Client().get_bucket(args.bucket)
@@ -62,14 +73,14 @@ if __name__ == '__main__':
 
     elif args.restore:
         # Find the latest file matching our filename pattern, download it and restore
-        nmatch = re.compile("scorekeeper-\S+.dump.gz")
-        gzipfile = max(filter(lambda x: bool(nmatch.search(x.name)), bucket.list_blobs()), key=operator.attrgetter('time_created')).name
-        bucket.blob(gzipfile).download_to_filename(gzipfile)
-        restoredb(gzipfile)
-        os.remove(gzipfile)
+        nmatch  = re.compile("scorekeeper-\S+.sql.zip")
+        zipname = max(filter(lambda x: bool(nmatch.search(x.name)), bucket.list_blobs()), key=operator.attrgetter('time_created')).name
+        bucket.blob(zipname).download_to_filename(zipname)
+        restoredb(zipname)
+        os.remove(zipname)
 
     elif args.backup:
-        gzipfile = dumpdb()
-        bucket.blob(gzipfile).upload_from_filename(gzipfile)
-        os.remove(gzipfile)
+        zipname = dumpdb()
+        bucket.blob(zipname).upload_from_filename(zipname)
+        os.remove(zipname)
 
