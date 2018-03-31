@@ -48,16 +48,12 @@ This server does not have an email server setup.  Reset is not possible.
 </div>
 
 <div id='register' role="tabpanel" class='tab-pane {{'active' if active=='register'}}'>
-{% if hasemail %}
 {{ errorcell('register', active) }}
 <div class='row'><div class='col align-self-center error'>{{registererror}}</div></div>
 {{ register.html('registerform', url_for('.login'), 'post')|safe }}
 <div class='row'>
 <small class='col form-text text-muted text-right p-0'>This is for new users without a profile in this system.  This will not link to any previous profiles</small>
 </div>
-{% else %}
-This server does not have an email server setup.  Registration is not possible.
-{% endif %}
 </div>
 
 </div>

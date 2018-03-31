@@ -313,6 +313,12 @@ def login():
                 email = register.email.data.strip()
                 token = current_app.usts.dumps({'request': 'register', 'firstname': register.firstname.data.strip(), 'lastname': register.lastname.data.strip(),
                                             'email':email, 'username': register.username.data.strip(), 'password': register.password.data.strip()})
+
+                if not hasattr(current_app, 'mail'):
+                    # Off main server (onsite), we let them register without the email verification, jump directly there
+                    request.args = dict(token=token)
+                    return finish()
+
                 msg = Message("Scorekeeper Profile Request", recipients=[email])
                 msg.body = "Use the following link to complete the registration process.\n\n{}".format(url_for('.finish', token=token, _external=True))
                 current_app.mail.send(msg)

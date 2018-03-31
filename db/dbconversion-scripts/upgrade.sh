@@ -24,7 +24,7 @@ while true; do
                 if [ -f "$ent/series.sql" ]; then
                     series=`cat $ent/series.sql | tr -d "\n" | sed "s/'/''/g"`
                 fi
-                echo "Converting $inversion"
+                echo "Converting $inversion to $outversion"
                 psql -U postgres -d scorekeeper -c "SELECT upgrade('$series', '$public', '$outversion');"
                 if [ $? -ne 0 ]; then
                     exit
