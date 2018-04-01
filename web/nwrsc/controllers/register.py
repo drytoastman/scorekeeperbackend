@@ -290,8 +290,8 @@ def login():
     elif reset.submit.data:
         active = "reset"
         if reset.validate_on_submit():
-            for d in Driver.find(reset.firstname.data, reset.lastname.data):
-                if d.email.lower() == reset.email.data.lower():
+            for d in Driver.find(reset.firstname.data.strip(), reset.lastname.data.strip()):
+                if d.email.lower() == reset.email.data.strip().lower():
                     token = current_app.usts.dumps({'request': 'reset', 'driverid': str(d.driverid)})
                     msg = Message("Scorekeeper Reset Request", recipients=[d.email])
                     msg.body = "Use the following link to continue the reset process.\n\n{}".format(url_for('.reset', token=token, _external=True))
@@ -312,7 +312,7 @@ def login():
             else:
                 email = register.email.data.strip()
                 token = current_app.usts.dumps({'request': 'register', 'firstname': register.firstname.data.strip(), 'lastname': register.lastname.data.strip(),
-                                            'email':email, 'username': register.username.data.strip(), 'password': register.password.data.strip()})
+                                            'email':email, 'username': register.username.data.strip(), 'password': register.password.data})
 
                 if not hasattr(current_app, 'mail'):
                     # Off main server (onsite), we let them register without the email verification, jump directly there
@@ -355,7 +355,7 @@ def reset():
     if form.submit.data and form.validate_on_submit():
         if 'driverid' not in session: 
             abort(400, 'No driverid present during reset, how?')
-        Driver.updatepassword(session['driverid'], form.username.data, form.password.data)
+        Driver.updatepassword(session['driverid'], form.username.data.strip(), form.password.data)
         return redirect_series("")
 
     elif request.method == 'GET':
