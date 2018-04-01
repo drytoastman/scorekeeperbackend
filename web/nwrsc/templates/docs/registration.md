@@ -25,7 +25,7 @@ accidental event selection does not occur during registration activity.
     ![DriverEntry](images/regdriver.png)
 
 3. You can **Edit Driver** to update the member information
-    * The membership number is important if you intend to use barcode scanning 
+    * The barcode number is important if you intend to use barcode scanning 
     * If a barcode is needed, click Print Label to print to the selected printer device - make sure correct printer is selected.
 
 4. Verify the correct car(s), class(es) and index are registered. 

@@ -22,7 +22,7 @@ if ($.validator) {
 var Scorekeeper = Scorekeeper || {};
 
 Scorekeeper.emailRegex   = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-Scorekeeper.driverFields = ["driverid", "firstname", "lastname", "email", "membership", "address", "city", "state", "zip", "phone", "brag", "sponsor", "econtact", "ephone"];
+Scorekeeper.driverFields = ["driverid", "firstname", "lastname", "email", "barcode", "scca", "address", "city", "state", "zip", "phone", "brag", "sponsor", "econtact", "ephone"];
 
 Scorekeeper.add_collapse_icons = function(cid) 
 {

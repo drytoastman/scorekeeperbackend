@@ -27,3 +27,5 @@ BEGIN
 END;
 $body$
 LANGUAGE plpgsql;
+
+ALTER TABLE drivers RENAME membership TO barcode;

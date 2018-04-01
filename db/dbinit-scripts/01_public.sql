@@ -215,7 +215,7 @@ CREATE TABLE drivers (
     email      TEXT        NOT NULL,
     username   TEXT        NOT NULL DEFAULT '',
     password   TEXT        NOT NULL DEFAULT '',
-    membership TEXT        NOT NULL DEFAULT '',
+    barcode    TEXT        NOT NULL DEFAULT '',
     optoutmail BOOLEAN     NOT NULL DEFAULT FALSE,
     attr       JSONB       NOT NULL DEFAULT '{}', 
     modified   TIMESTAMP   NOT NULL DEFAULT now(),

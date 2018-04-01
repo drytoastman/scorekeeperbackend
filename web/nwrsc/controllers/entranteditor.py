@@ -64,7 +64,7 @@ def deleteitem():
 @Admin.route("/edititem", methods=['POST'])
 def edititem():
     form = None
-    if 'membership' in request.form:
+    if 'barcode' in request.form:
         form = DriverForm()
         if form.validate():
             d = Driver()

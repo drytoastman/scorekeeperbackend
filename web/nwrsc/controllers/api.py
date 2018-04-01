@@ -200,7 +200,7 @@ def scca():
         for res in results[cls]:
             entries.append(Entry(first_name=res['firstname'],
                                  last_name=res['lastname'],
-                                 member_no=res['membership'],
+                                 member_no=res.get('scca', ''),
                                  _class=res['classcode'],
                                  index=res['indexcode'],
                                  pos=res['position'],

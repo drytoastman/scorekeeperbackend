@@ -29,7 +29,7 @@ li > ul {
     {% if event.date %}- <span class='edate'>{{event.date.strftime('%a %b %d, %Y')}}</span>{% endif %}
     - <span class='count'>{{event.drivers|length}}</span><ul>
     {% for driver in event.drivers -%}
-        <li><span class='name'>{{driver.lastname.title()}}, {{driver.firstname.title()}}</span> - <span class='membership'>{{driver.membership}}</span></li>
+        <li><span class='name'>{{driver.lastname.title()}}, {{driver.firstname.title()}}</span></li>
     {% endfor %}
     </ul>
     </li>

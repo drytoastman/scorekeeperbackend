@@ -96,7 +96,7 @@ function buildEntrantTable(driver, cars, series, disabledelete, disablemerge)
     table.append($('<tr>').append($('<th>').text('Name'),       $('<td>').text("{0} {1}".format(driver.firstname, driver.lastname))));
     table.append($('<tr>').append($('<th>').text('Username'),   $('<td>').text("{0}".format(driver.username))));
     table.append($('<tr>').append($('<th>').text('Email'),      $('<td>').text(driver.optoutmail ? "*******" : driver.email)));
-    table.append($('<tr>').append($('<th>').text('Barcode'),    $('<td>').text(driver.membership)));
+    table.append($('<tr>').append($('<th>').text('Barcode'),    $('<td>').text(driver.barcode)));
     table.append($('<tr>').append($('<th>').text('Address'),    $('<td>').text("{0} {1} {2} {3}".format(driver.address, driver.city, driver.state, driver.zip))));
     for (ii in cars) {
         var c = cars[ii];

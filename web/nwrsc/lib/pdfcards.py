@@ -145,7 +145,7 @@ def drawCard(c, event, entrant, **kwargs):
     x = 337
     y = 187
     c.drawString(x, y, stringLimit(c, entrant.brag,  'Courier', 10, 200)); y += 21
-    c.drawString(x, y, entrant.membership or ""); y += 21
+    c.drawString(x, y, entrant.barcode or ""); y += 21
     c.drawString(x, y, stringLimit(c, entrant.color, 'Courier', 10, 85)); y += 21
     c.drawString(x, y, stringLimit(c, entrant.model, 'Courier', 10, 85)); y += 21
     c.drawString(x, y, stringLimit(c, entrant.make,  'Courier', 10, 85)); y += 21

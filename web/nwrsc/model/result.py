@@ -238,7 +238,7 @@ class Result(object):
     
         with g.db.cursor() as cur:
             # Fetch all of the entrants (driver/car combo), place in class lists, save pointers for quicker access
-            cur.execute("SELECT distinct(c.carid),d.firstname,d.lastname,d.membership,c.*,r2.rungroup FROM drivers d " + 
+            cur.execute("SELECT distinct(c.carid),d.firstname,d.lastname,d.attr->>'scca' as scca,c.*,r2.rungroup FROM drivers d " + 
                         "JOIN cars c ON c.driverid=d.driverid LEFT JOIN runorder r2 ON r2.carid=c.carid and r2.eventid=%s "
                         "WHERE c.carid IN (SELECT distinct(carid) FROM runs WHERE eventid=%s)", (eventid, eventid))
 

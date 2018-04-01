@@ -15,14 +15,14 @@ class Attendance(object):
     @classmethod
     def getAll(cls):
         with g.db.cursor() as cur:
-            cur.execute("SELECT distinct(d.driverid), lower(d.firstname) AS firstname, lower(d.lastname) AS lastname, d.membership FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid "+
+            cur.execute("SELECT distinct(d.driverid), lower(d.firstname) AS firstname, lower(d.lastname) AS lastname FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid "+
                         " ORDER BY lower(d.lastname), lower(d.firstname)")
             return [Entrant(**x) for x in cur.fetchall()]
 
     @classmethod
     def forEvent(cls, event):
         with g.db.cursor() as cur:
-            cur.execute("SELECT distinct(d.driverid), lower(d.firstname) AS firstname, lower(d.lastname) AS lastname, d.membership FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid " +
+            cur.execute("SELECT distinct(d.driverid), lower(d.firstname) AS firstname, lower(d.lastname) AS lastname FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid " +
                         "WHERE r.eventid=%s " +
                         "ORDER BY lower(d.lastname), lower(d.firstname)", (event.eventid,))
             return [Entrant(**x) for x in cur.fetchall()]
@@ -30,7 +30,7 @@ class Attendance(object):
     @classmethod
     def newForEvent(cls, event):
         with g.db.cursor() as cur:
-            cur.execute("SELECT distinct(d.driverid), lower(d.firstname) AS firstname, lower(d.lastname) AS lastname, d.membership FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid " +
+            cur.execute("SELECT distinct(d.driverid), lower(d.firstname) AS firstname, lower(d.lastname) AS lastname FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid " +
                         "WHERE r.eventid=%s AND d.driverid NOT IN (SELECT d.driverid FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid WHERE r.eventid IN "+
                                                                        "(SELECT eventid from events where date < %s)) ORDER BY lower(d.lastname), lower(d.firstname)", (event.eventid, event.date))
             return [Entrant(**x) for x in cur.fetchall()]
@@ -39,11 +39,11 @@ class Attendance(object):
     def getActivity(cls):
         ret = defaultdict(Entrant)
         with g.db.cursor() as cur:
-            cur.execute("SELECT distinct(d.driverid), d.firstname, d.lastname, d.email, d.membership, d.optoutmail, r.eventid FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid")
+            cur.execute("SELECT distinct(d.driverid), d.firstname, d.lastname, d.email, d.optoutmail, r.eventid FROM runs r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid")
             for row in cur.fetchall():
                 e = ret.setdefault(row['driverid'], Entrant(**row, runs=set(), reg=set()))
                 e.runs.add(row['eventid'])
-            cur.execute("SELECT distinct(d.driverid), d.firstname, d.lastname, d.email, d.membership, d.optoutmail, r.eventid FROM registered r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid")
+            cur.execute("SELECT distinct(d.driverid), d.firstname, d.lastname, d.email, d.optoutmail, r.eventid FROM registered r JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid")
             for row in cur.fetchall():
                 e = ret.setdefault(row['driverid'], Entrant(**row, runs=set(), reg=set()))
                 e.reg.add(row['eventid'])
@@ -149,7 +149,7 @@ class Registration(AttrBase):
     @classmethod
     def getForEvent(cls, eventid, paymentRequired=False):
         with g.db.cursor() as cur:
-            cur.execute("SELECT d.firstname,d.lastname,d.email,d.membership,c.*,r.*,r.modified as regmodified, d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s", (eventid,))
+            cur.execute("SELECT d.firstname,d.lastname,d.email,d.barcode,c.*,r.*,r.modified as regmodified, d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s", (eventid,))
             retdict = {x['carid']:Entrant(**x, payments=[]) for x in cur.fetchall()}
 
             cur.execute("SELECT * FROM payments WHERE eventid=%s", (eventid,))
