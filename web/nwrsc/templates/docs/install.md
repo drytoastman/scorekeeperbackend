@@ -13,10 +13,9 @@
 
     `java -jar <jarfile>`
 
-1. The first time you run a new version it will take a few minutes to download the necessary docker images, showing the following status as it does so:
-    * Init scweb
-    * Init scsync
-    * Init scdb
+1. The first time you run a new version it will take a few minutes to download the necessary docker images, showing the following status as it does so.
+
+    `Creating Containers`
 
 1. Eventually the Backend status should report as "Running".  Everything should be ready to go.
 

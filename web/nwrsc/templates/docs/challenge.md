@@ -1,6 +1,6 @@
 # Challenge
 
-!! **THIS IS SOMEWHAT DATED, NEEDS TO BE UPDATED** !!
+**<span style='color:red'>THIS NEEDS TO BE UPDATED</span>**
 
 ## Initial Setup
 

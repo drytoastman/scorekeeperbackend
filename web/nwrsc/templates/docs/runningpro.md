@@ -1,5 +1,7 @@
 # Running a ProSolo Event
 
+**<span style='color:red'>This page needs to be updated</span>**
+
 1. Registration will have their own laptop, they will merge data later
 
 2. Setup 3 laptops with power and network connections along with PA, etc
