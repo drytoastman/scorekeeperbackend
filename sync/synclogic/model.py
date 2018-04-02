@@ -24,6 +24,7 @@ log  = logging.getLogger(__name__)
 TABLE_ORDER = [
     'drivers',
     'timertimes',
+    'weekendmembers',
     'settings',
     'indexlist',
     'paymentaccounts',
