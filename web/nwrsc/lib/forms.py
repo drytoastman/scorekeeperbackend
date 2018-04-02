@@ -165,8 +165,6 @@ class DriverForm(MyFlaskForm):
     optoutmail= BooleanField( 'Do Not Contact', render_kw={'title':"Only use email address for password reset messages"})
     barcode   = MyStringField('Barcode',    [Length(max=16)])
     scca      = MyStringField('SCCA #',        [Length(max=16)])
-    econtact  = MyStringField('Emerg Contact', [Length(max=64)])
-    ephone    = MyStringField('Emerg Phone',   [Length(max=64)])
     address   = MyStringField('Address',    [Length(max=64)])
     city      = MyStringField('City   ',    [Length(max=64)])
     state     = MyStringField('State',      [Length(max=16)])
@@ -174,6 +172,8 @@ class DriverForm(MyFlaskForm):
     phone     = MyStringField('Phone',      [Length(max=16)])
     brag      = MyStringField('Brag',       [Length(max=64)])
     sponsor   = MyStringField('Sponsor',    [Length(max=64)])
+    econtact  = MyStringField('Emerg Contact', [Length(max=64)])
+    ephone    = MyStringField('Emerg Phone',   [Length(max=64)])
     submit    = SubmitField(  'Update')
 
 class PasswordChangeForm(MyFlaskForm):

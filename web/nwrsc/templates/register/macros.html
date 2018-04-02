@@ -1,27 +1,19 @@
 
 {% macro driverDisplay(driver) %}
-{% set basic = ('address', 'city', 'state', 'zip', 'phone', 'brag', 'sponsor') %}
+{% set basic = ('scca', 'address', 'city', 'state', 'zip', 'phone', 'brag', 'sponsor', 'notes') %}
 
 <div class='driverwrapper'>
 <div class='name'>{{driver.firstname}} {{driver.lastname}}</div>
 <div class='driverid'>{{driver.driverid}}</div>
 <div class='email'>{{driver.email}} <span class='optout'>{{driver.optoutmail and "Do Not Contact" or ""}}</span></div>
-<div class='barcode'>{{driver.barcode}}</div>
+<div class='barcode'>
+{% if driver.barcode %}Barcode: {{driver.barcode}} {%endif %}
+{% if driver.barcode and driver.attr.scca %},      {%endif %}
+{% if driver.attr.scca %}SCCA: {{driver.attr.scca}}{% endif %}
+</div>
 <div class='address'>{{driver.attr.address}}</div>
 <div class='csz'>{{driver.attr.city}} {{driver.attr.state}} {{driver.attr.zip}}</div>
 <div class='phone'>{{driver.attr.phone}}</div>
-{% if driver.attr.brag %}
-<div class='brag'>Brag: {{driver.attr.brag}}</div>
-{% endif %}
-{% if driver.attr.sponsor %}
-<div class='dsponsor'>Sponsor: {{driver.attr.sponsor}}</div>
-{% endif %}
-
-{% for k, v in driver.attr.items(): -%}
-{%- if k not in basic -%}
-<div class='{{k}}'>{{v}}</div>
-{%- endif -%}
-{%- endfor %}
 </div>
 
 {% endmacro %}
