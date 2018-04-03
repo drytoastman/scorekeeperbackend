@@ -282,7 +282,8 @@ class LoggedObject():
 
     def insert(self, when, newdata):
         if not self.initial or when < self.inittime:
-            if 'created' not in newdata: # Hacky fix for missing columns
+            if 'created' not in newdata: 
+                # HACK: fix for missing columns
                 newdata['created'] = "1970-01-01T00:00:00"
             self.inittime = when
             self.initial  = newdata
@@ -302,6 +303,10 @@ class LoggedObject():
             data['attr'].update(adiff)
             for key in adel:
                 data['attr'].pop(key, None)
+
+            # HACK: change old logged membership to barcode, if there hasn't been a barcode change since the schema move
+            if 'barcode' not in data:
+                data['barcode'] = data['membership']
 
         # Step us forward 1 microsecond past whatever else has happened
         data['modified'] = (datetime.datetime.strptime(data['modified'], "%Y-%m-%dT%H:%M:%S.%f") + datetime.timedelta(microseconds=1)).isoformat()
