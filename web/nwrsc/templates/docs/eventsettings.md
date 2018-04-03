@@ -1,7 +1,9 @@
-# Online Registration Admin
+# Event Administration
+
+**<span style='color:red'>This page needs to be updated</span>**
 
 ## Connecting
-1. Open your web browser and connect to http://scorekeeper.wwscc.org/admin/
+1. Open your web browser and connect to http://scorekeeper.wwscc.org/admin/ (Or http://127.0.0.1/admin for the local machine)
 1. Select the series to administer from the pull down menu
 1. You will be prompted for the series password
 1. After a successful password entry, you will be at the series status page
