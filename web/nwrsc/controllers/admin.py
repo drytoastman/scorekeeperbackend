@@ -377,11 +377,17 @@ def activitylist():
 
 @Admin.route("/weekendreport")
 def weekendreport():
-    return render_template('/admin/weekendreport.html')
+    weekends = set()
+    for e in g.events:
+        iso = e.date.isocalendar()
+        start = e.date + datetime.timedelta(days=6-iso[2]) # Sat
+        end   = e.date + datetime.timedelta(days=7-iso[2]) # Sun
+        weekends.add((start ,end))
+    return render_template('/admin/weekendreport.html', weekends=weekends)
 
 @Admin.route("/weekendlist")
 def weekendlist():
-    return json_encode(WeekendMembers.getAll())
+   return json_encode(WeekendMembers.getAll())
 
 
 @Admin.route("/event/<uuid:eventid>/entryadmin")

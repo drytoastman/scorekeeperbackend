@@ -9,8 +9,25 @@
 </style>
 <script>
 var thetable   = null;
-var matchtypes = [];
 var matchevent = []
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data, dataIndex) {
+        if (matchevent.length == 0) return true;
+        from = new Date(data[11]);
+        to   = new Date(data[12]);
+
+        for (var ii = 0; ii < matchevent.length; ii++) {
+            if ((from >= matchevent[ii].start) && (from <= matchevent[ii].end)) // From inclusive
+                return true;
+            if ((to   >= matchevent[ii].start) && (to   <= matchevent[ii].end)) // To inclusive
+                return true;
+            if ((from <= matchevent[ii].start) && (to   >= matchevent[ii].end)) // From before, To after
+                return true; 
+        }
+        return false;
+    }
+);
 
 $(document).ready(function(){
 	thetable = $('#weekendtable').DataTable({ 
@@ -18,20 +35,8 @@ $(document).ready(function(){
         iDisplayLength: -1,
         autoWidth: false,
         buttons: [
-            {   
-                extend: 'excelHtml5',  
-                className: 'btn btn-outline-admin', 
-                text: 'Export To Excel', 
-                title: 'Weekend Member Report',
-                exportOptions: { columns: ':visible' },
-            },
-            {   
-                extend: 'csvHtml5',  
-                className: 'btn btn-outline-admin', 
-                text: 'Export To CSV', 
-                title: 'Weekend Member Report',
-                exportOptions: { columns: ':visible'}
-            }
+            { extend: 'excelHtml5', className: 'btn btn-outline-admin', text: 'Export To Excel', title: 'Weekend Member Report', },
+            { extend: 'csvHtml5',   className: 'btn btn-outline-admin', text: 'Export To CSV',   title: 'Weekend Member Report', }
         ],
 
         columns: [
@@ -54,6 +59,14 @@ $(document).ready(function(){
 
         sDom: '<"dtheader"fiB>rt<"clear">'
     });
+
+    $('ul input[type=checkbox]').change(function () {
+        matchevent = $('ul input[name=weekend]:checked').map(function () {
+            d = $(this).data();
+            return { start: new Date(d['start']), end: new Date(d['end']) }
+        });
+        thetable.draw();
+    });
 });
 </script>
 {% endblock headers %}
@@ -62,6 +75,14 @@ $(document).ready(function(){
 {{super()}}
 <div class='container-fluid'>
 <h3>Weekend Report</h3>
+
+<h6>Filter For Weekends</h6>
+<ul class='eventchecks'>
+{% for w in weekends|sort %}
+    <li><input data-start="{{w[0]}}" data-end="{{w[1]}}" name="weekend" type="checkbox"/>{{w[0].strftime("%b %d")}}, {{w[1].strftime("%d")}}</li>
+{% endfor %}
+</ul>
+<br/>
 
 <table id='weekendtable' class='table-striped table-bordered' cellspacing="0" width="100%">
 <thead>

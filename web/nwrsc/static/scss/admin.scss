@@ -44,6 +44,22 @@ button.small {
     &:focus  { outline: none !important; }
 }
 
+ul.eventchecks {
+    columns: 5;
+    list-style: none;
+    white-space: nowrap;
+    margin: 0;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+
+    input {
+        height: 1.2rem;
+        width: 1.2rem;
+        vertical-align: middle;
+        margin-right: 0.2rem;
+    }
+}
+
 #classlistform {
     input[type=checkbox] {
         height: 1.5rem;

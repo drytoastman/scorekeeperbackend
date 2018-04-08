@@ -7,17 +7,6 @@
 textarea {
     height: 30rem;
 }
-ul {
-    columns: 5;
-    list-style: none;
-    white-space: nowrap;
-    margin: 0;
-}
-ul input {
-    height: 1.2rem;
-    width: 1.2rem;
-    vertical-align: middle;
-}
 .dt-buttons { margin-left: 1rem; }
 </style>
 <script>
@@ -119,13 +108,13 @@ $(document).ready(function(){
 <h3>Contact List</h3>
 <p>The default list is of anyone who has registered or run in the series.  Use the checkboxes to select filters and/or type text into the search box.</p>
 <h6>Filter Type</h6>
-<ul>
+<ul class='eventchecks'>
     <li><input type="checkbox" name="filtertype" value="reg"/>Registered In</li>
     <li><input type="checkbox" name="filtertype" value="run"/>Ran In</li>
     <li><input type="checkbox" name="filtertype" value="noshow"/>Registered But Didn't Run</li>
 </ul>
 <h6>For Events</h6>
-<ul>
+<ul class='eventchecks'>
 {% for e in events %}
     <li><input data-event="{{e.eventid}}" name="event" type="checkbox"/>{{e.name}}</li>
 {% endfor %}
