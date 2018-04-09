@@ -8,7 +8,7 @@ $(document).ready(function(){
 	$("input[name=usepospoints]").click(function() { followppcheck(this.checked); });
 	followppcheck($("input[name=usepospoints]").is(':checked'))
 
-    function followwmcheck(checked) { $("#weekendmin, #weekendmax").parent().toggle(checked); }
+    function followwmcheck(checked) { $("#weekendregion, #weekendmin, #weekendmax").parent().toggle(checked); }
 	$("input[name=doweekendmembers]").click(function() { followwmcheck(this.checked); });
 	followwmcheck($("input[name=doweekendmembers]").is(':checked'))
 });

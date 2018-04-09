@@ -16,6 +16,7 @@ class Settings(object):
         "minevents":            0,
         "weekendmin":           0,
         "weekendmax":           0,
+        "weekendregion":        "",
         "pospointlist":         "20,16,13,11,9,7,6,5,4,3,2,1",
         "seriesname":           "",
         "classinglink":         "",
