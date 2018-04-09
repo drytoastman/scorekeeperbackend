@@ -68,6 +68,9 @@ class MergeProcess():
                 for series in me.mergestate.keys():
                     me.updateCacheFrom(localdb, series)
 
+                # Specialty tables shared between series
+                self.weekendTableSharing(localdb, me)
+
                 passwords = DataInterface.loadPasswords(localdb)
 
                 # Check if there are any timeouts for servers to merge with
@@ -89,6 +92,32 @@ class MergeProcess():
 
         except Exception as e:
             log.error("Caught exception in main loop: {}".format(e), exc_info=e)
+
+
+
+    def weekendTableSharing(self, localdb, local):
+        """ Share the weekend table between series that have the same weekend region """
+        regions = defaultdict(set)
+        for series in local.mergestate.keys():
+            regions[DataInterface.getSetting(localdb, series, 'weekendregion').lower()].add(series)
+
+        # Ignore no region or only a single region in the list
+        regions = {r:s for r,s in regions.items() if r != '' and len(s) > 1}
+
+        with DataInterface.connectLocal(self.uselocalhost) as remotedb:
+            for r in regions:
+                serieslist = list(regions[r])
+                for s in serieslist[1:]:
+                    DataInterface.setSeries(localdb, serieslist[0])
+                    DataInterface.setSeries(remotedb, s)
+                    changes = self.tableLogic(localdb, remotedb, table)
+
+                    DataInterface.insert(localdb,  changes['linsert'])
+                    DataInterface.insert(remotedb, changes['rinsert'])
+                    DataInterface.update(localdb,  changes['lupdate'])
+                    DataInterface.update(remotedb, changes['rupdate'])
+                    DataInterface.delete(localdb,  changes['ldelete'])
+                    DataInterface.delete(remotedb, changes['rdelete'])
 
 
 
@@ -142,9 +171,6 @@ class MergeProcess():
                 remote.seriesDone(series, error)
 
 
-
-
-
     def mergeTables(self, remote, series, localdb, remotedb, tables):
         """ Outer loop to rerun mergeTables if for some reason, we are still not totally up to date after running """
         count = 0
@@ -158,62 +184,16 @@ class MergeProcess():
     def _mergeTablesInternal(self, remote, series, localdb, remotedb, tables):
         """ The core function for actually finding the real differences and applying them locally or remotely """
         global signalled
-        localinsert = defaultdict(list)
-        localupdate = defaultdict(list)
-        localdelete = defaultdict(list)
         localundelete = defaultdict(list)
-
-        remoteinsert = defaultdict(list)
-        remoteupdate = defaultdict(list)
-        remotedelete = defaultdict(list)
         remoteundelete = defaultdict(list)
+        changes = dict()
 
         for t in tables:
             assert not signalled, "Quit signal received"
             remote.seriesStatus(series, "Analysis {}".format(t))
-
-            # Load data from both databases, load it all in one go to be more efficient in updates later
-            localobj  = PresentObject.loadPresent(localdb, t)
-            remoteobj = PresentObject.loadPresent(remotedb, t)
-            l = set(localobj.keys())
-            r = set(remoteobj.keys())
-
-            # Keys in both databases
-            for pk in l & r:
-                if localobj[pk].modified == remoteobj[pk].modified:
-                    # Same keys, same modification time, filter out now, no need to further process
-                    del localobj[pk]
-                    del remoteobj[pk]
-                    continue
-                if localobj[pk].modified > remoteobj[pk].modified:
-                    remoteupdate[t].append(localobj[pk])
-                else:
-                    localupdate[t].append(remoteobj[pk])
-
-            # Recalc as we probably removed alot of stuff in the previous step
-            l = set(localobj.keys())
-            r = set(remoteobj.keys())
-
-            # Only need to know about things deleted so far back in time based on mod times in other database
-            ldeleted = DeletedObject.deletedSince( localdb, t,  PresentObject.minmodtime(remoteobj))
-            rdeleted = DeletedObject.deletedSince(remotedb, t,  PresentObject.minmodtime(localobj))
-
-            # pk only in local database
-            for pk in l - r:
-                if pk in rdeleted:
-                    localdelete[t].append(rdeleted[pk])
-                else:
-                    remoteinsert[t].append(localobj[pk])
-
-            # pk only in remote database
-            for pk in r - l:
-                if pk in ldeleted:
-                    remotedelete[t].append(ldeleted[pk])
-                else:
-                    localinsert[t].append(remoteobj[pk])
-
-            log.debug("{}  local {} {} {}".format(t,  len(localinsert[t]),  len(localupdate[t]),  len(localdelete[t])))
-            log.debug("{} remote {} {} {}".format(t, len(remoteinsert[t]), len(remoteupdate[t]), len(remotedelete[t])))
+            changes[t] = self.tableLogic(localdb, remotedb, t)
+            log.debug("{}  local {} {} {}".format(t, len(changes[t]['linsert']), len(changes[t]['lupdate']), len(changes[t]['ldelete'])))
+            log.debug("{} remote {} {} {}".format(t, len(changes[t]['rinsert']), len(changes[t]['rupdate']), len(changes[t]['rdelete'])))
 
         # Have to insert data starting from the top of any foreign key links
         # And then update/delete from the bottom of the same links
@@ -222,28 +202,32 @@ class MergeProcess():
         # Insert order first (top down)
         for t in TABLE_ORDER:
             assert not signalled, "Quit signal received"
+            if t not in changes:  continue
+
             remote.seriesStatus(series, "Insert {}".format(t))
-            if not DataInterface.insert(localdb,  localinsert[t]):
+            if not DataInterface.insert(localdb,  changes[t]['linsert']):
                 unfinished.add(t)
-            if not DataInterface.insert(remotedb, remoteinsert[t]):
+            if not DataInterface.insert(remotedb, changes[t]['rinsert']):
                 unfinished.add(t)
 
         # Update/delete order next (bottom up)
         log.debug("Performing updates/deletes")
         for t in reversed(TABLE_ORDER):
             assert not signalled, "Quit signal received"
+            if t not in changes:  continue
+
             remote.seriesStatus(series, "Update {}".format(t))
             if t in ADVANCED_TABLES:
-                self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t])
+                self.advancedMerge(localdb, remotedb, t, changes[t]['lupdate'], changes[t]['rupdate'])
             else:
-                if not DataInterface.update(localdb,  localupdate[t]):
+                if not DataInterface.update(localdb,  changes[t]['lupdate']):
                     unfinished.add(t)
-                if not DataInterface.update(remotedb, remoteupdate[t]):
+                if not DataInterface.update(remotedb, changes[t]['rupdate']):
                     unfinished.add(t)
 
             remote.seriesStatus(series, "Delete {}".format(t))
-            remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
-            localundelete[t].extend(DataInterface.delete(remotedb, remotedelete[t]))
+            remoteundelete[t].extend(DataInterface.delete(localdb, changes[t]['ldelete']))
+            localundelete[t].extend(DataInterface.delete(remotedb, changes[t]['rdelete']))
 
         # If we have foreign key violations trying to delete, we need to readd those back to the opposite site and redo the merge
         # The only time this should ever occur is with the drivers table as its shared between series
@@ -261,6 +245,54 @@ class MergeProcess():
                 DataInterface.insert(localdb, localundelete[t])
 
         return unfinished
+
+
+    def tableLogic(self, localdb, remotedb, table):
+        """ Perform the basic logic test to determine needs for insert, update or delete """
+        # Load data from both databases, load it all in one go to be more efficient in updates later
+        localobj  = PresentObject.loadPresent(localdb, table)
+        remoteobj = PresentObject.loadPresent(remotedb, table)
+        l = set(localobj.keys())
+        r = set(remoteobj.keys())
+
+        changes = dict(linsert=[], lupdate=[], ldelete=[], rinsert=[], rupdate=[], rdelete=[])
+
+        # Keys in both databases
+        for pk in l & r:
+            if localobj[pk].modified == remoteobj[pk].modified:
+                # Same keys, same modification time, filter out now, no need to further process
+                del localobj[pk]
+                del remoteobj[pk]
+                continue
+            if localobj[pk].modified > remoteobj[pk].modified:
+                changes['rupdate'].append(localobj[pk])
+            else:
+                changes['lupdate'].append(remoteobj[pk])
+
+        # Recalc as we probably removed alot of stuff in the previous step
+        l = set(localobj.keys())
+        r = set(remoteobj.keys())
+
+        # Only need to know about things deleted so far back in time based on mod times in other database
+        ldeleted = DeletedObject.deletedSince( localdb, table, PresentObject.minmodtime(remoteobj))
+        rdeleted = DeletedObject.deletedSince(remotedb, table, PresentObject.minmodtime(localobj))
+
+        # pk only in local database
+        for pk in l - r:
+            if pk in rdeleted:
+                changes['ldelete'].append(rdeleted[pk])
+            else:
+                changes['rinsert'].append(localobj[pk])
+
+        # pk only in remote database
+        for pk in r - l:
+            if pk in ldeleted:
+                changes['rdelete'].append(ldeleted[pk])
+            else:
+                changes['linsert'].append(remoteobj[pk])
+
+        return changes
+
 
 
     def advancedMerge(self, localdb, remotedb, table, localupdates, remoteupdates):

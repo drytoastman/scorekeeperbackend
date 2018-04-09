@@ -46,6 +46,7 @@ ADVANCED_TABLES = [
     'drivers'
 ]
 
+
 COLUMNS       = dict()
 PRIMARY_KEYS  = dict()
 NONPRIMARY    = dict()
@@ -105,11 +106,6 @@ class DataInterface(object):
             md5cols = '||'.join("md5({}::text)".format(k) for k in list(pk.keys())+['modified'])
             HASH_COMMANDS[table] = "SELECT {} FROM (SELECT MD5({}) as rowhash from {}) as t".format(SUMS, md5cols, table)
 
-        log.warning(COLUMNS['weekendmembers'])
-        log.warning(PRIMARY_KEYS['weekendmembers'])
-        log.warning(NONPRIMARY['weekendmembers'])
-        log.warning(HASH_COMMANDS['weekendmembers'])
-
 
     @classmethod
     def connectLocal(cls, uselocalhost=False):
@@ -158,6 +154,16 @@ class DataInterface(object):
             for row in cur.fetchall():
                 ret[row['usename']] = row['passwd']
         return ret
+
+    @classmethod
+    def getSetting(cls, db, series, setting):
+        ret = dict()
+        with db.cursor() as cur:
+            cur.execute("SELECT val FROM {}.settings WHERE name=%s".format(series), (setting,))
+            if cur.rowcount > 0:
+                return cur.fetchone()['val']
+            return ""
+
 
     @classmethod
     def insert(cls, db, objs):
@@ -219,6 +225,12 @@ class DataInterface(object):
         return undelete 
 
 
+    @classmethod
+    def setSeries(cls, db, series):
+        with db.cursor() as cur:
+            cur.execute("SET search_path=%s,%s", (series, 'public'))
+
+ 
     @classmethod
     @contextlib.contextmanager
     def mergelocks(cls, local, localdb, remote, remotedb, series):
