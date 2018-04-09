@@ -37,6 +37,7 @@ COMMENT ON TABLE settings IS 'settings includes any boolean, integer, double pre
 
 
 CREATE TABLE weekendmembers (
+    uniqueid      UUID        NOT NULL PRIMARY KEY,
     membership    INTEGER     NOT NULL,
     driverid      UUID        NOT NULL REFERENCES public.drivers, 
     startdate     DATE        NOT NULL,
@@ -50,8 +51,9 @@ CREATE TABLE weekendmembers (
 REVOKE ALL ON weekendmembers FROM public;
 GRANT  ALL ON weekendmembers TO <seriesname>;
 CREATE TRIGGER weekmod AFTER INSERT OR UPDATE OR DELETE ON weekendmembers FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
-CREATE TRIGGER weekuni BEFORE UPDATE ON weekendmembers FOR EACH ROW EXECUTE PROCEDURE updatechecks();
+CREATE TRIGGER weekuni BEFORE UPDATE ON weekendmembers FOR EACH ROW EXECUTE PROCEDURE updatechecks('uniqueid');
 COMMENT ON TABLE weekendmembers IS 'A table for storing weekend membership information';
+COMMENT ON COLUMN weekendmembers.uniqueid IS 'We provide our own unique id incase they use a second unconnected laptop to add another weekend member';
 
 
 CREATE TABLE indexlist (
