@@ -279,8 +279,8 @@ class WeekendMembers():
             try:
                 cur.execute("select val from settings where name='weekendregion'")
                 region = cur.fetchone()['val']
-                cur.execute("SELECT w.*, d.firstname, d.lastname, d.email, d.attr FROM weekendmembers w JOIN drivers d ON w.driverid=d.driverid ORDER BY w.membership", ())
-                return [AttrBase(**x, region=region).getAsDict() for x in cur.fetchall()]
+                cur.execute("SELECT w.*, d.firstname, d.lastname, d.email, d.attr FROM weekendmembers w JOIN drivers d ON w.driverid=d.driverid WHERE w.region=%s ORDER BY w.membership", (region,))
+                return [AttrBase(**x).getAsDict() for x in cur.fetchall()]
             except Exception as e:
                 log.warning(e)
                 return []

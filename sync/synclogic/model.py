@@ -23,8 +23,8 @@ log  = logging.getLogger(__name__)
 
 TABLE_ORDER = [
     'drivers',
-    'timertimes',
     'weekendmembers',
+    'timertimes',
     'settings',
     'indexlist',
     'paymentaccounts',
@@ -104,11 +104,6 @@ class DataInterface(object):
         for table, pk in PRIMARY_KEYS.items():
             md5cols = '||'.join("md5({}::text)".format(k) for k in list(pk.keys())+['modified'])
             HASH_COMMANDS[table] = "SELECT {} FROM (SELECT MD5({}) as rowhash from {}) as t".format(SUMS, md5cols, table)
-
-        log.warning(COLUMNS['weekendmembers'])
-        log.warning(PRIMARY_KEYS['weekendmembers'])
-        log.warning(NONPRIMARY['weekendmembers'])
-        log.warning(HASH_COMMANDS['weekendmembers'])
 
 
     @classmethod
