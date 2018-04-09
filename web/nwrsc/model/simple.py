@@ -277,8 +277,10 @@ class WeekendMembers():
     def getAll(cls):
         with g.db.cursor() as cur:
             try:
+                cur.execute("select val from settings where name='weekendregion'")
+                region = cur.fetchone()['val']
                 cur.execute("SELECT w.*, d.firstname, d.lastname, d.email, d.attr FROM weekendmembers w JOIN drivers d ON w.driverid=d.driverid ORDER BY w.membership", ())
-                return [AttrBase(**x).getAsDict() for x in cur.fetchall()]
+                return [AttrBase(**x, region=region).getAsDict() for x in cur.fetchall()]
             except Exception as e:
                 log.warning(e)
                 return []
