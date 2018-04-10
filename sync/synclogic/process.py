@@ -126,6 +126,7 @@ class MergeProcess():
                             ltables = local.mergestate[series]['hashes']
                             rtables = remote.mergestate[series]['hashes']
                             self.mergeTables(remote, series, localdb, remotedb, set([k for k in ltables if ltables[k] != rtables[k]]))
+                            remote.seriesStatus(series, "Commit Changes")
                             remotedb.commit()
                             localdb.commit()
 
