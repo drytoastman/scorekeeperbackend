@@ -239,6 +239,8 @@ CREATE TABLE weekendmembers (
     enddate       DATE        NOT NULL,
     issuer        TEXT        NOT NULL,
     issuermem     TEXT        NOT NULL,
+    region        TEXT        NOT NULL,
+    area          TEXT        NOT NULL,
     modified      TIMESTAMP   NOT NULL DEFAULT now()
 );
 REVOKE ALL ON weekendmembers FROM public;

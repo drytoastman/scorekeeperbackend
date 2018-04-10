@@ -42,6 +42,11 @@ TABLE_ORDER = [
     'challengeruns',
 ]
 
+PUBLIC_TABLES = [
+    'drivers',
+    'weekendmembers'
+]
+
 ADVANCED_TABLES = [
     'drivers'
 ]
@@ -72,6 +77,10 @@ def pkfromjson(table, data):
         will get converted as well which is incorrect.
     """
     return tuple([ptype=='uuid' and uuid.UUID(data[k]) or data[k] for k,ptype in PRIMARY_KEYS[table].items()])
+
+
+def logtablefor(table):
+    return table in PUBLIC_TABLES and 'publiclog' or 'serieslog'
 
 
 class DataInterface(object):
@@ -197,7 +206,7 @@ class DataInterface(object):
         if len(objs) == 0: 
             return undelete
         stmt = "DELETE FROM {} WHERE {}".format(objs[0].table, " AND ".join("{}=%({})s".format(k,k) for k in PRIMARY_KEYS[objs[0].table]))
-        logu = "UPDATE {} SET otime=%s WHERE otime=CURRENT_TIMESTAMP".format((objs[0].table=='drivers') and 'publiclog' or 'serieslog')
+        logu = "UPDATE {} SET otime=%s WHERE otime=CURRENT_TIMESTAMP".format(logtablefor(objs[0].table))
         with db.cursor() as cur:
             cur.execute("SAVEPOINT delete_savepoint")
             for obj in objs:
@@ -399,8 +408,7 @@ class DeletedObject():
         ret = dict()
     
         with db.cursor() as cur:
-            log = (table=='drivers') and 'publiclog' or 'serieslog';
-            cur.execute("SELECT otime, olddata FROM {} WHERE action='D' AND tablen=%s AND otime>%s".format(log), (table, when,))
+            cur.execute("SELECT otime, olddata FROM {} WHERE action='D' AND tablen=%s AND otime>%s".format(logtablefor(table)), (table, when,))
             for row in cur.fetchall():
                 pk = pkfromjson(table, row['olddata'])
                 ret[pk] = cls(table, pk, row['olddata'], row['otime'])

@@ -45,3 +45,6 @@ def verify_account(synca, syncb, accountid, coltuple):
 def verify_item(synca, syncb, itemid, coltuple):
     verify_object(synca, syncb, itemid, coltuple, (), "SELECT * FROM paymentitems WHERE itemid=%s")
 
+def verify_weekend(synca, syncb, uid, coltuple):
+    verify_object(synca, syncb, uid, coltuple, (), "SELECT * FROM weekendmembers WHERE uniqueid=%s")
+
