@@ -39,18 +39,27 @@ $(document).ready(function(){
             { extend: 'csvHtml5',   className: 'btn btn-outline-admin', text: 'Export To CSV',   title: 'Weekend Member Report', }
         ],
 
+        order: [[18, 'desc']],
         columns: [
-            { data: 'membership' },
+            { orderable: false, render: function(data, type, row) { return Math.floor(row['membership']/10000000); } },
+            { orderable: false, render: function(data, type, row) { return Math.floor(row['membership']/1000000)%10; } },
+            { orderable: false, render: function(data, type, row) { return Math.floor(row['membership']/100000)%10; } },
+            { orderable: false, render: function(data, type, row) { return Math.floor(row['membership']/10000)%10; } },
+            { orderable: false, render: function(data, type, row) { return Math.floor(row['membership']/1000)%10; } },
+            { orderable: false, render: function(data, type, row) { return Math.floor(row['membership']/100)%10; } },
+            { orderable: false, render: function(data, type, row) { return Math.floor(row['membership']/10)%10; } },
+            { orderable: false, render: function(data, type, row) { return Math.floor(row['membership'])%10; } },
+
             { render: function (data, type, row) { return row['firstname'] + ' ' + row['lastname']; } },
-            { data: 'address', defaultContent: '' },
-            { data: 'city',    defaultContent: '' },
-            { data: 'state',   defaultContent: '' },
-            { data: 'zip',     defaultContent: '' },
-            { data: 'country', defaultContent: 'US' },
-            { data: 'phone',   defaultContent: '' },
-            { data: 'email' },
-            { data: 'region',  defaultContent: 'missing' },
-            { data: 'area',    defaultContent: 'autocross' },
+            { orderable: false, data: 'address', defaultContent: '' },
+            { orderable: false, data: 'city',    defaultContent: '' },
+            { orderable: false, data: 'state',   defaultContent: '' },
+            { orderable: false, data: 'zip',     defaultContent: '' },
+            { orderable: false, data: 'country', defaultContent: 'US' },
+            { orderable: false, data: 'phone',   defaultContent: '' },
+            { orderable: false, data: 'email' },
+            { orderable: false, data: 'region',  defaultContent: 'missing' },
+            { orderable: false, data: 'area',    defaultContent: 'autocross' },
             { data: 'startdate' },
             { data: 'enddate' },
             { data: 'issuer' },
@@ -87,7 +96,14 @@ $(document).ready(function(){
 <table id='weekendtable' class='table-striped table-bordered' cellspacing="0" width="100%">
 <thead>
 <tr>
-<th>Form Number</th>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
 <th>Name</th>
 <th>Address</th>
 <th>City</th>
