@@ -14,8 +14,8 @@ var matchevent = []
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {
         if (matchevent.length == 0) return true;
-        from = new Date(data[11]);
-        to   = new Date(data[12]);
+        from = new Date(data[18]);
+        to   = new Date(data[19]);
 
         for (var ii = 0; ii < matchevent.length; ii++) {
             if ((from >= matchevent[ii].start) && (from <= matchevent[ii].end)) // From inclusive
