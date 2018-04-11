@@ -28,6 +28,7 @@ def init():
 @Register.before_request
 def setup():
     g.title = 'Scorekeeper Registration'
+    g.isonsite = current_app.config['ONSITE']
     g.activeseries = Series.active()
     g.selection = request.endpoint
     if 'driverid' in session:
@@ -314,7 +315,7 @@ def login():
                 token = current_app.usts.dumps({'request': 'register', 'firstname': register.firstname.data.strip(), 'lastname': register.lastname.data.strip(),
                                             'email':email, 'username': register.username.data.strip(), 'password': register.password.data})
 
-                if not hasattr(current_app, 'mail'):
+                if g.isonsite:
                     # Off main server (onsite), we let them register without the email verification, jump directly there
                     request.args = dict(token=token)
                     return finish()

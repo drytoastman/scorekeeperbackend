@@ -4,7 +4,9 @@
 
 {% block headers %}
 {{super()}}
+{% if not g.isonsite %}
 <script src="https://www.paypalobjects.com/api/checkout.js"></script>
+{% endif %}
 <script type="text/javascript">
 
 function paymentSubmit(ppresolve, ppreject)

@@ -85,6 +85,7 @@ def create_app():
         "DBHOST":                          os.environ.get('DBHOST',    '/var/run/postgresql'),
         "DBPORT":                      int(os.environ.get('DBPORT',    5432)),
         "DBUSER":                          os.environ.get('DBUSER',    'localuser'),
+        "ONSITE":                 any2bool(os.environ.get('ONSITE',    False)),
         "SHOWLIVE":               any2bool(os.environ.get('SHOWLIVE',  True)),
         "SECRET_KEY":                      os.environ.get('SECRET',    'replaced by environment in deployed docker-compose files'),
         "ASSETS_DEBUG":           any2bool(os.environ.get('DEBUG',     False)),
