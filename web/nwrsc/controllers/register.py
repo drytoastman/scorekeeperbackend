@@ -70,7 +70,7 @@ def profile():
     passwordform = PasswordChangeForm(prefix='password')
     passwordform.driverid.data = g.driver.driverid
 
-    return render_template('register/profile.html', profileform=profileform, passwordform=passwordform, upcoming=upcoming, surpressmenu=True)
+    return render_template('register/profile.html', profileform=profileform, passwordform=passwordform, upcoming=upcoming, surpressmenu=True, askprofile=any2bool(request.args.get('askprofile')))
 
 
 @Register.route("/profilepost", methods=['POST'])
@@ -347,7 +347,7 @@ def finish():
     if req.get('request', '') != 'register':
         raise DisplayableError(header="Confirmation Error", content="Sorry, this confirmation token failed as the request type is incorrect")
     session['driverid'] = Driver.new(req['firstname'], req['lastname'], req['email'], req['username'], req['password'])
-    return redirect(url_for(".profile"))
+    return redirect(url_for(".profile", askprofile=1))
 
 
 @Register.route("/reset", methods=['GET', 'POST'])

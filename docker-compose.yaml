@@ -22,6 +22,7 @@ services:
         - SQ_APPLICATION_SECRET
         - MAIL_SERVER
         - MAIL_DEFAULT_SENDER
+        - ONSITE
     volumes:  
         - "dbsocket:/var/run/postgresql"
         - "logs:/var/log"

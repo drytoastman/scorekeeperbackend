@@ -2,6 +2,18 @@
 {% import 'common/macros.html' as m %}
 {% import 'register/macros.html' as rm %}
 
+{% block headers %}
+{{super()}}
+{% if askprofile %}
+<script>
+$(document).ready(function(){
+    $('#profilemodal').modal('show');
+});
+</script>
+{% endif %}
+{% endblock %}
+
+
 {% block content %}
 {{super()}}
 

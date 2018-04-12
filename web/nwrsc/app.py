@@ -25,57 +25,9 @@ from .lib.misc import *
 from .model import AttrBase, Series, Settings
 
 log = logging.getLogger(__name__)
-HASHTML = re.compile(r'(<!--.*?-->|<[^>]*>)')
 
 def create_app():
     """ Setup the application for the WSGI server """
-
-    def preprocessor(endpoint, values):
-        """ Remove the requirement for blueprint functions to put series/eventid in their function definitions """
-        if values is not None:
-            g.series = values.pop('series', None)
-            g.eventid = values.pop('eventid', None)
-            g.challengeid = values.pop('challengeid', None)
-
-    def urldefaults(endpoint, values):
-        """ Make sure series,eventid from the subapp URLs are available for url_for relative calls """
-        for u in ('series', 'eventid', 'challengeid'):
-            if u not in values and getattr(g, u) and current_app.url_map.is_endpoint_expecting(endpoint, u):
-                values[u] = getattr(g, u)
-
-    def t3(val, sign=False):
-        """ Wrapper to safely print floats as XXX.123 format """
-        if val is None: return ""
-        if type(val) is not float: return str(val)
-        try:
-            return (sign and "%+0.3f" or "%0.3f") % (val,)
-        except:
-            return str(val)
-
-    def d2(val):
-        """ Wrapper to safely print dollar amounts as $XXX.12 format """
-        if val is None: return ""
-        if type(val) is not float: return str(val)
-        try:
-            return "$%0.2f" % (val,)
-        except:
-            return str(val)
-
-    def msort(val, *attr):
-        """ Filter to sort on multiple attributes """
-        ret = list(val)
-        ret.sort(key=attrgetter(*attr))
-        return ret
-
-    def hashtml(val):
-        return HASHTML.search(val) is not None
-
-    def any2bool(v):
-        if type(v) is bool:
-            return v
-        if type(v) is str:
-            return v.lower() in ("yes", "true", "t", "1")
-        return v is not None
 
     ### Configuration
     theapp = Flask("nwrsc")
@@ -120,8 +72,6 @@ def create_app():
 
 
     ### URL handling and Blueprints for the various sections
-    theapp.url_value_preprocessor(preprocessor)
-    theapp.url_defaults(urldefaults)
     theapp.add_url_rule('/',             'toresults', redirect_to='/results')
     theapp.add_url_rule('/swaggerui/',   'toswagger', redirect_to='/swaggerui/index.html')
     theapp.register_blueprint(Admin,     url_prefix="/admin/<series>")
@@ -144,6 +94,20 @@ def create_app():
     @theapp.route('/swaggerui/<path>')
     def swaggerui(path): return send_from_directory('static/swaggerui', path)
 
+    @theapp.url_value_preprocessor
+    def preprocessor(endpoint, values):
+        """ Remove the requirement for blueprint functions to put series/eventid in their function definitions """
+        if values is not None:
+            g.series = values.pop('series', None)
+            g.eventid = values.pop('eventid', None)
+            g.challengeid = values.pop('challengeid', None)
+
+    @theapp.url_defaults
+    def urldefaults(endpoint, values):
+        """ Make sure series,eventid from the subapp URLs are available for url_for relative calls """
+        for u in ('series', 'eventid', 'challengeid'):
+            if u not in values and getattr(g, u) and current_app.url_map.is_endpoint_expecting(endpoint, u):
+                values[u] = getattr(g, u)
 
     ## Before, After and Teardown request
     @theapp.before_request
