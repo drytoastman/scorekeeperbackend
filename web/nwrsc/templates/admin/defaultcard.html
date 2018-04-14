@@ -5,6 +5,7 @@
 </div>
 
 <div class='codes'>
+{% if reg.caridbarcode %}
 <svg class="barcode"
     jsbarcode-format="CODE128C"
     jsbarcode-height="25"
@@ -16,6 +17,7 @@
     jsbarcode-textAlign="right"
     jsbarcode-fontSize="14"
 ></svg>
+{% endif %}
 </div>
 </div>
 
