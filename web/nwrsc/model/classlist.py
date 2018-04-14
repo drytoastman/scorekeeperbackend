@@ -239,7 +239,7 @@ class ClassData(object):
 
             if cls.classmultiplier < 1.000:
                 restrict = self.restrictedClassMultiplierIndexes(car.classcode)
-                if car.indexcode in restrict and (not cls.usecarflag or car.useclsmult):
+                if not car.indexcode or (car.indexcode in restrict and (not cls.usecarflag or car.useclsmult)):
                     indexval *= cls.classmultiplier
                     indexstr = indexstr + '*'
 

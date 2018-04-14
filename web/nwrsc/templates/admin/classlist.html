@@ -14,6 +14,7 @@ $(document).ready(function(){
 </script>
 <style>
 #classlisttemplate { display: none; }
+.flagcol { display: none; }
 </style>
 {% endblock headers %}
 
@@ -76,10 +77,10 @@ Each class has a short code and a full string description.  The description is o
 <tr><th>Addl Multiplier</th><td>All cars in this class will have an additional multipler applied to them, like class indexed but statically assigned to this class.  This is a place for a street tire modifier.</td></tr>
 <tr>
     <th><a href='#' data-toggle="modal" data-target="#restrictmodal">Index Controls</a></th>
-    <td>This will limit the index selection given to the user based on the <a href='#' data-toggle="modal" data-target="#restrictmodal">provided value</a></td>
+    <td>This will limit the index selection given to the user and/or indexes that Addl Multiplier is applied to based on the <a href='#' data-toggle="modal" data-target="#restrictmodal">these instructions.</a></td>
 </tr>
 <tr><th>Counted Runs</th><td>Entries in the class will only count a maximum of X runs towards official results.  If all classes are to have the same number of counted runs, you can also set counted runs for each event.  The minimum of the two is used.</td></tr>
-<tr><th>Special Car Flag</th><td><span class='error'>Rare</span> if checked, cars in this class will have their own checkbox for the additional multiplier and only if that is checked will additional multiplier be applied.</td></tr>
+<tr class='flagcol'><th>Special Car Flag</th><td><span class='error'>Rare</span> if checked, cars in this class will have their own checkbox for the additional multiplier and only if that is checked will additional multiplier be applied.</td></tr>
 </table>
 
 </p>
