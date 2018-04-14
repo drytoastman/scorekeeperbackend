@@ -75,7 +75,7 @@ Scorekeeper.load_driver_form = function(form, dr)
 			    myform.find('[name=indexcode]').parent().toggle(true);
 				var restrict = cc.idxrestrict;
                 if (restrict.length == 0) {
-                    restrict = gIndexes.keys();
+                    restrict = Object.keys(gIndexes);
                 }
 				
 				indexselect.find("option").remove();

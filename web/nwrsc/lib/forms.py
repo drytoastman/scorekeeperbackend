@@ -192,7 +192,7 @@ class CarForm(MyFlaskForm):
     color       = MyStringField('Color', [Length(max=16)])
     classcode   = SelectField(  'Class', [Required()])
     indexcode   = SelectField(  'Index', coerce=none2Blank)
-    useclsmult  = BooleanField( 'MultFlag')
+    useclsmult  = BooleanField( 'Extra Multiplier')
     number      = IntegerField( 'Number', [Required()])
     submit      = SubmitField(  'Update')
 
