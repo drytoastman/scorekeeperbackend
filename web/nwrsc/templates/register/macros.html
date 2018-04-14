@@ -22,7 +22,7 @@
 {% macro carDisplay(car, unpaid=False, paid="") %}
 <div class='cardisplay'>
 {% if g.classdata %}
-{% set istr = g.classdata.getIndexStr(car) -%}
+{% set istr = g.classdata.getEffectiveIndex(car)[1] -%}
 {% endif %}
 <span class='code'>{{car.classcode}}/{{car.number}} {{istr and "("+istr+")" or ""}}
 {% if   paid %}<span class='label paid'>{{paid}}</span>{% endif %}

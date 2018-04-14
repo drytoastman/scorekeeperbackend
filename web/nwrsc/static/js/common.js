@@ -125,7 +125,7 @@ Scorekeeper.load_driver_form = function(form, dr)
 
             if (!cc) {
                 return;
-            } else if (cc.usecarflag && ((cc.flagrestrict.length == 0) || ($.inArray(ci, cc.flagrestrict) >= 0))) {
+            } else if (cc.usecarflag && ((cc.multrestrict.length == 0) || ($.inArray(ci, cc.multrestrict) >= 0))) {
 				useclsmultcontainer.toggle(true)
 			}
 		},

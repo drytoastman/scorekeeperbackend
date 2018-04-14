@@ -27,9 +27,9 @@ $(document).ready(function(){
 <td>{{field['secondruns']}}</td>
 <td class='clsindexcol'>{{field['indexcode']}}</td>
 <td class='multcol'>{{field['classmultiplier']}}</td>
-<td class='flagcol'>{{field['usecarflag']}}</td>
 <td>{{field['caridxrestrict'](title=m.restrictformat(g.classdata, field.classcode.data))}}</td>
 <td class='limitcol'>{{field['countedruns']}}</td>
+<td class='flagcol'>{{field['usecarflag']}}</td>
 <td><button class="btn btn-outline-admin small deleterow">Del</button></td>
 </tr>
 {% endmacro %}
@@ -37,6 +37,29 @@ $(document).ready(function(){
 
 {% block content %}
 {{super()}}
+
+{% call m.modal('restrictmodal', 'Index Controls', '', 'modal-lg') %}
+The index controls string is interpreted based on the following values:
+<ol>
+	<li><b>()</b> represents a list that applies to the available indexes</li>
+	<li><b>[]</b> represents a list that applies to the additional multiplier flag</li>
+	<li><b>+</b> before a list indicates that these indexes are allowed/included</li>
+	<li><b>-</b> before a list indicates that these indexes are NOT allowed/included</li>
+	<li><b>*</b> can be used as a wildcard character to match index values</li>
+	<li>the first () or [] starts the inital list, + starts blank and adds indexes, - starts will the entire list and removes indexes</li>
+    <li>a blank string matches all indexes
+</ol>
+
+Examples:
+<ol>
+<li>+(SA,SB,SC) means only SA,SB or SC can be selected as an index.</li>
+<li>-(SA,SB,SC) means anything _except_ SA,SB or SC can be selected as an index.</li>
+<li>+[SA,SB,SC] means only SA,SB,SC will use the additional multiplier</li>
+<li>-[SA,SB,SC] means anything _except_ SA,SB or SC will use the additional multiplier</li>
+<li>+(S*) -[ST*] means only indexes that start with S can be selected as an index but cars that start with ST won't use the additional multipler</li>
+<li>+(S*,A*)-(ST*) means only indexes that start with S and A but NOT ST can be selected as an index</li>
+</ol>
+{% endcall %}
 
 <div class='container-fluid'>
 <h3>Class Editor</h3>
@@ -51,9 +74,12 @@ Each class has a short code and a full string description.  The description is o
 <tr><th>Second Runs</th><td>Indicator that this class is used by those who may have already run earlier, i.e. TOPM. Affects top time lists and barcode entry choices.</td></tr>
 <tr><th>Class Indexed</th><td>All cars in this class will have an index applied based on this specified index code</td></tr>
 <tr><th>Addl Multiplier</th><td>All cars in this class will have an additional multipler applied to them, like class indexed but statically assigned to this class.  This is a place for a street tire modifier.</td></tr>
-<tr><th>Require Car Flag</th><td>If checked, cars in this class will have their own checkbox for additional tire index and only if that is checked will additional multiplier be applied.</td></tr>
-<tr><th>Index Restrict</th><td>This will limit the index selection given to the user based on the <a href='restricthelp' target='helptab'>provided value</a></td></tr>
+<tr>
+    <th><a href='#' data-toggle="modal" data-target="#restrictmodal">Index Controls</a></th>
+    <td>This will limit the index selection given to the user based on the <a href='#' data-toggle="modal" data-target="#restrictmodal">provided value</a></td>
+</tr>
 <tr><th>Counted Runs</th><td>Entries in the class will only count a maximum of X runs towards official results.  If all classes are to have the same number of counted runs, you can also set counted runs for each event.  The minimum of the two is used.</td></tr>
+<tr><th>Special Car Flag</th><td><span class='error'>Rare</span> if checked, cars in this class will have their own checkbox for the additional multiplier and only if that is checked will additional multiplier be applied.</td></tr>
 </table>
 
 </p>
@@ -69,9 +95,9 @@ Each class has a short code and a full string description.  The description is o
 <th>Second<br/>Runs</th>
 <th>Class<br/>Indexed</th>
 <th class='multcol'>Addl<br/>Multiplier</th>
-<th class='flagcol'>Require<br/>Car Flag</th>
-<th>Index<br/>Restrict</th>
+<th>Index Controls</th>
 <th>Counted<br/>Runs</th>
+<th class='flagcol'>Special<br/>Car Flag</th>
 <th></th>
 </tr>
 

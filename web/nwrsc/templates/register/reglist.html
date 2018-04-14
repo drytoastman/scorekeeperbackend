@@ -25,7 +25,7 @@
 <td class='counter'>{{loop.index}}</td>
 <td class='name'>{{entry.firstname}} {{entry.lastname}}</td>
 <td class='number'>{{entry.number}}</td>
-<td class='index'>{{g.classdata.getIndexStr(entry)}}</td>
+<td class='index'>{{g.classdata.getEffectiveIndex(entry)[1]}}</td>
 <td>{{entry.attr.year}} {{entry.attr.make}} {{entry.attr.model}} {{entry.attr.color}}</td>
 </tr>
 {% endfor %}

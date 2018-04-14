@@ -104,27 +104,8 @@ ul.eventchecks {
 	}
 
 	th {
-		&.multcol, &.flagcol {
-			border-top: 1px solid #cccccc;
-		}
         white-space:nowrap;
-	}
-
-	tr:last-child td {
-		&.multcol, &.flagcol {
-			border-bottom: 1px solid #cccccc;
-			padding-bottom: 4px;
-		}
-	}
-
-	td.multcol, th.multcol {
-		border-left: 1px solid #cccccc;
-		padding-left: 6px;
-	}
-
-	td.flagcol, th.flagcol {
-		border-right: 1px solid #cccccc;
-		padding-right: 6px;
+        padding: 0 2px
 	}
 
 	th.clsindexcol, td.clsindexcol {

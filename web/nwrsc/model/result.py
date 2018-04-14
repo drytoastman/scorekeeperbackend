@@ -245,8 +245,7 @@ class Result(object):
             for e in [Entrant(**x) for x in cur.fetchall()]:
                 if e.carid in cptrs:
                     continue # ignore duplicate carids from old series
-                e.indexstr = classdata.getIndexStr(e)
-                e.indexval = classdata.getEffectiveIndex(e)
+                (e.indexval,e.indexstr) = classdata.getEffectiveIndex(e)
                 e.runs = [[Run(course=x+1,run=y+1,raw=999.999,cones=0,gates=0,pen=999.999,net=999.999,status='PLC') for y in range(event.runs)] for x in range(event.courses)]
                 results[e.classcode].append(e)
                 cptrs[e.carid] = e

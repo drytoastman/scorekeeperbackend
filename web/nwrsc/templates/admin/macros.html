@@ -1,7 +1,6 @@
 {% macro restrictformat(classdata, classcode) %}
-    {% set res = classdata.restrictedIndexes(classcode) %}
-    Classes = {{res[0]|sort|join(', ')}}
-    Flags = {{res[1]|sort|join(', ')}}
+    Registration = {{classdata.restrictedRegistrationIndexes(classcode)|sort|join(', ')}}
+    Multiplier = {{classdata.restrictedClassMultiplierIndexes(classcode)|sort|join(', ')}}
 {% endmacro %}
 
 {% macro textbox(index, name, size, obj) %}

@@ -168,10 +168,15 @@ class ClassData(object):
         return sorted(ret)
 
 
-    def restrictedIndexes(self, classcode):
-
+    def restrictedRegistrationIndexes(self, classcode):
         RINDEX = re.compile(r'([+-])\((.*?)\)')
-        RFLAG = re.compile(r'([+-])\[(.*?)\]')
+        return self._restrictedList(classcode, RINDEX)
+
+    def restrictedClassMultiplierIndexes(self, classcode):
+        RMULT = re.compile(r'([+-])\[(.*?)\]')
+        return self._restrictedList(classcode, RMULT)
+
+    def _restrictedList(self, classcode, regex):
 
         def globItem(item, full):
             tomatch = '^' + item.strip().replace('*', '.*') + '$'
@@ -180,7 +185,7 @@ class ClassData(object):
                 if re.search(tomatch, x):
                     ret.add(x)
             return ret
- 
+
         def processList(results, fullset):
             ret = set(fullset)
             for ii, pair in enumerate(results):
@@ -198,19 +203,17 @@ class ClassData(object):
             return ret
 
         if classcode not in self.classlist or not self.classlist[classcode].carindexed:
-            return ([], [])
-        idxlist = list(self.indexlist.keys())
-        idxlist.remove("")
+            return []
+
+        idxlist = self.indexes()
         if not self.classlist[classcode].caridxrestrict:
-            return (idxlist, idxlist)
-        full = self.classlist[classcode].caridxrestrict.replace(" ", "")
-        indexrestrict = processList(RINDEX.findall(full), idxlist)
-        flagrestrict = processList(RFLAG.findall(full), idxlist)
-        if len(indexrestrict) == len(idxlist):
-            indexrestrict = []
-        if len(flagrestrict) == len(idxlist):
-            flagrestrict = []
-        return (indexrestrict, flagrestrict)
+            return idxlist
+
+        args = self.classlist[classcode].caridxrestrict.replace(" ", "")
+        restrict = processList(regex.findall(args), idxlist)
+        if len(restrict) == len(idxlist):
+            restrict = []
+        return restrict
 
 
     def getCountedRuns(self, classcode):
@@ -218,47 +221,41 @@ class ClassData(object):
             return self.classlist[classcode].getCountedRuns()
         except:
             return 999
-        
-    def getIndexStr(self, car):
-        indexstr = car.indexcode or ""
-        try:
-            cls = self.classlist[car.classcode]
-            if cls.indexcode != "":
-                indexstr = cls.indexcode
-
-            if cls.classmultiplier < 1.000 and (not cls.usecarflag or car.useclsmult):
-                indexstr = indexstr + '*'
-        except:
-            pass
-        return indexstr
 
 
     def getEffectiveIndex(self, car): 
         indexval = 1.0
+        indexstr = ""
         try:
             cls = self.classlist[car.classcode]
 
             if cls.indexcode != "":
                 indexval *= self.indexlist[cls.indexcode].value
+                indexstr  = cls.indexcode
 
             if cls.carindexed and car.indexcode:
                 indexval *= self.indexlist[car.indexcode].value
+                indexstr  = car.indexcode
 
-            if cls.classmultiplier < 1.000 and (not cls.usecarflag or car.useclsmult):
-                indexval *= cls.classmultiplier
+            if cls.classmultiplier < 1.000:
+                restrict = self.restrictedClassMultiplierIndexes(car.classcode)
+                if car.indexcode in restrict and (not cls.usecarflag or car.useclsmult):
+                    indexval *= cls.classmultiplier
+                    indexstr = indexstr + '*'
 
         except Exception as e:
             log.warning("getEffectiveIndex(%s,%s,%s) failed: %s" % (car.classcode, car.indexcode, car.useclsmult, e))
 
-        return indexval
+        return (indexval, indexstr)
 
 
     def getJSONArrays(self):
         classes = dict()
         indexes = dict()
         for k, v in sorted(self.classlist.items()):
-            r = self.restrictedIndexes(k)
-            classes[k] = { 'isindexed': v.carindexed, 'usecarflag': v.usecarflag, 'idxrestrict': r[0], 'flagrestrict': r[1] }
+            r = self.restrictedRegistrationIndexes(k)
+            m = self.restrictedClassMultiplierIndexes(k)
+            classes[k] = { 'isindexed': v.carindexed, 'usecarflag': v.usecarflag, 'idxrestrict': r, 'multrestrict': m }
         for k, v in sorted(self.indexlist.items()):
             indexes[k] = v.descrip
         return to_json(classes), to_json(indexes)

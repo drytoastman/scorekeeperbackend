@@ -613,7 +613,7 @@ definitions:
         description: true if each car in the class has its own index to apply towards times
       caridxrestrict:
         type: string
-        description: formatted string that determine which indexcodes are allowed for this class
+        description: formatted string that determine which indexcodes are allowed for this class and class multiplier
       secondruns:
         type: boolean
         description: informational flag to indicate a class whose entrants are generally taking second runs of the day
@@ -623,7 +623,7 @@ definitions:
       classmultiplier:
         type: number
         format: float
-        description: a static multiplier that is applied to everyone in the class such as a street tire modifier
+        description: a static multiplier that is applied to all entries in the class if they are in the classmultiplier portion of caridxrestrict
       usecarflag:
         type: boolean
         description: true if flag in car entry must be set to apply classwide multiplier (i.e. street tire entries)
