@@ -189,14 +189,13 @@ class Run(AttrBase):
 
     @classmethod
     def getLast(self, eventid, moddt):
-        """ Search through serialog rather than tables so that we can pick up deletes as well as regular insert/update """
+        """ Search through serieslog rather than tables so that we can pick up deletes as well as regular insert/update """
         ret = dict()
-        today = datetime.datetime.today().replace(hour=0) # somewhere just after midnight today is our limit of how far back to go
-        if moddt < today:
-            moddt = today
-
         with g.db.cursor() as cur:
-            cur.execute("select s.ltime,c.carid,c.classcode from serieslog s JOIN cars c ON c.carid=uuid(s.newdata->>'carid') OR c.carid=uuid(s.olddata->>'carid') where s.tablen='runs' AND s.ltime > %s ORDER BY s.ltime", (moddt,))
+            cur.execute("select s.ltime,c.carid,c.classcode from serieslog s " + 
+                        "JOIN cars c ON c.carid=uuid(s.newdata->>'carid') OR c.carid=uuid(s.olddata->>'carid') " +
+                        "WHERE s.tablen='runs' AND s.ltime > %s AND (s.newdata->>'eventid'=%s OR s.olddata->>'eventid'=%s) " + 
+                        "ORDER BY s.ltime", (moddt, str(eventid), str(eventid)))
             for row in cur.fetchall():
                 entry = dict(carid=row['carid'], modified=row['ltime'])
                 ret[row['classcode']] = entry

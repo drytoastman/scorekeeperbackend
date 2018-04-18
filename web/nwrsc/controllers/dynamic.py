@@ -65,6 +65,13 @@ def nextresult():
     # Long polling, hold the connection until something is actually new
     then  = time.time()
     moddt = datetime.datetime.fromtimestamp(modified)
+
+    # Limit lookback to the date of the event
+    event = Event.get(g.eventid)
+    midnight = datetime.datetime.combine(event.date, datetime.time(0))
+    if moddt < midnight:
+        moddt = midnight
+
     while True:
         result = Run.getLast(g.eventid, moddt)
         if result: # Not an empty dict
