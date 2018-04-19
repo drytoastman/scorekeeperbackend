@@ -8,7 +8,7 @@ from flask import current_app, flash, request, url_for
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, DateField, DateTimeField, FieldList, FloatField, Form, FormField, HiddenField, PasswordField, SelectField, StringField, SubmitField, TextAreaField
 from wtforms.fields.html5 import EmailField, IntegerField, URLField
-from wtforms.validators import Email, InputRequired, Length, Optional, Required
+from wtforms.validators import Email, InputRequired, Length, Optional, Regexp, Required
 from wtforms.widgets import TextInput
 
 log = logging.getLogger(__name__)
@@ -19,6 +19,9 @@ def addlengthfields(field, kwargs):
             if v.min > 0: kwargs.setdefault('minlength', field.validators[0].min)
             if v.max > 0: kwargs.setdefault('maxlength', field.validators[0].max)
             if v.min > 0 and v.max > 0: kwargs.setdefault('required', 1)
+        if isinstance(v, Regexp):
+            kwargs.setdefault('pattern', v.regex.pattern)
+
     return kwargs
 
 def flashformerrors(form):
@@ -163,8 +166,8 @@ class DriverForm(MyFlaskForm):
     lastname  = MyStringField('Last Name',  [Length(min=2, max=32)])
     email     = MyEmailField( 'Email',      [Email()])
     optoutmail= BooleanField( 'Do Not Contact', render_kw={'title':"Only use email address for password reset messages"})
-    barcode   = MyStringField('Barcode',    [Length(max=16)])
-    scca      = MyStringField('SCCA #',        [Length(max=16)])
+    barcode   = MyStringField('Barcode',    [Length(max=12), Regexp('^(\d+|)$', message="Barcode can only accept characters 0-9")], render_kw={'title':"Barcode can only accept characters 0-9"})
+    scca      = MyStringField('SCCA #',     [Length(max=16)])
     address   = MyStringField('Address',    [Length(max=64)])
     city      = MyStringField('City   ',    [Length(max=64)])
     state     = MyStringField('State',      [Length(max=16)])
