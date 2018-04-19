@@ -166,7 +166,7 @@ class DriverForm(MyFlaskForm):
     lastname  = MyStringField('Last Name',  [Length(min=2, max=32)])
     email     = MyEmailField( 'Email',      [Email()])
     optoutmail= BooleanField( 'Do Not Contact', render_kw={'title':"Only use email address for password reset messages"})
-    barcode   = MyStringField('Barcode',    [Length(max=12), Regexp('^(\d+|)$', message="Barcode can only accept characters 0-9")], render_kw={'title':"Barcode can only accept characters 0-9"})
+    barcode   = MyStringField('Barcode',    [Length(max=12), Regexp('^([0-9,A-Z]+|)$', message="Barcode can only accept characters 0-9,A-Z")], render_kw={'title':"Barcode can only accept characters 0-9,A-Z"})
     scca      = MyStringField('SCCA #',     [Length(max=16)])
     address   = MyStringField('Address',    [Length(max=64)])
     city      = MyStringField('City   ',    [Length(max=64)])
