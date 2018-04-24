@@ -13,25 +13,30 @@ textarea {
 var thetable   = null;
 var matchtypes = [];
 var matchevent = []
+var nobarcode  = false;
 
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {
+        if (nobarcode && data[3]) {
+            return false;
+        }
+
         if ((matchevent.length == 0) || (matchtype == undefined)) return true;
         switch (matchtype) 
         {
             case "reg":
                 for (var ii = 0; ii < matchevent.length; ii++)
-                    if (data[4].includes(matchevent[ii]))
+                    if (data[5].includes(matchevent[ii]))
                         return true;
                 break;
             case "run":
                 for (var ii = 0; ii < matchevent.length; ii++)
-                    if (data[3].includes(matchevent[ii])) 
+                    if (data[4].includes(matchevent[ii])) 
                         return true;
                 break;
             case "noshow":
                 for (var ii = 0; ii < matchevent.length; ii++)
-                    if (data[4].includes(matchevent[ii]) && !(data[3].includes(matchevent[ii])))
+                    if (data[5].includes(matchevent[ii]) && !(data[4].includes(matchevent[ii])))
                         return true;
                 break;
         } 
@@ -80,22 +85,24 @@ $(document).ready(function(){
             { data: 'firstname', width: '30%' },
             { data: 'lastname',  width: '30%' },
             { data: 'email',     width: '40%', render: Scorekeeper.displayemail },
+            { data: 'barcode',   width: '0%' },
             { data: 'runs',      width: '0%', visible: false },
-            { data: 'reg',       width: '0%', visible: false }
+            { data: 'reg',       width: '0%', visible: false },
         ],
         sDom: '<"dtheader"fiB>rt<"clear">'
     });
 
-    // mutually exclusive filtertype
-    $('ul input[name=filtertype]').change(function () {
+    // mutually exclusive participationtype
+    $('ul input[name=participationtype]').change(function () {
         if ($(this).prop('checked')) {
-            $('ul input[name=filtertype]').not(this).prop('checked', false);
+            $('ul input[name=participationtype]').not(this).prop('checked', false);
         }
     });
 
     $('ul input[type=checkbox]').change(function () {
-        matchtype  = $('ul input[name=filtertype]:checked').val();
+        matchtype  = $('ul input[name=participationtype]:checked').val();
         matchevent = $('ul input[name=event]:checked').map(function () { return $(this).data('event'); });
+        nobarcode  = $('ul input[name=nobarcode]').is(':checked');
         thetable.draw();
     });
 });
@@ -107,23 +114,31 @@ $(document).ready(function(){
 <div class='container'>
 <h3>Contact List</h3>
 <p>The default list is of anyone who has registered or run in the series.  Use the checkboxes to select filters and/or type text into the search box.</p>
-<h6>Filter Type</h6>
-<ul class='eventchecks'>
-    <li><input type="checkbox" name="filtertype" value="reg"/>Registered In</li>
-    <li><input type="checkbox" name="filtertype" value="run"/>Ran In</li>
-    <li><input type="checkbox" name="filtertype" value="noshow"/>Registered But Didn't Run</li>
+
+<div class='contactfilter'>
+<h6>Participation Filter</h6>
+<ul class='filterchecks'>
+    <li><input type="checkbox" name="participationtype" value="reg"/>Registered In</li>
+    <li><input type="checkbox" name="participationtype" value="run"/>Ran In</li>
+    <li><input type="checkbox" name="participationtype" value="noshow"/>Registered But Didn't Run</li>
 </ul>
-<h6>For Events</h6>
 <ul class='eventchecks'>
 {% for e in events %}
     <li><input data-event="{{e.eventid}}" name="event" type="checkbox"/>{{e.name}}</li>
 {% endfor %}
 </ul>
-<br/>
+</div>
+
+<div class='contactfilter'>
+<h6>Status Filters</h6>
+    <ul class='filterchecks'>
+        <li><input type="checkbox" name="nobarcode" value="reg"/>No Barcode</li>
+    </ul>
+</div>
 
 <table id='contacttable' class='table-striped table-bordered' cellspacing="0" width="100%">
 <thead>
-<tr><th>First</th><th>Last</th><th>Email</th></tr>
+<tr><th>First</th><th>Last</th><th>Email</th><th>Barcode</th></tr>
 </thead>
 <tbody>
 </table>
