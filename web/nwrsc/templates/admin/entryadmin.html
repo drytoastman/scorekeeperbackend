@@ -12,6 +12,9 @@ $(document).ready(function(){
         ajax: { url:"{{url_for(".registered")}}", dataSrc: ''},
         lengthMenu: [[-1], ["All"]],
         DisplayLength: -1,
+        select: {
+            style:    'os',
+        },
         columns: [
             { data: 'firstname' },
             { data: 'lastname'  },
@@ -21,7 +24,7 @@ $(document).ready(function(){
             { data: 'number' },
             { data: 'cdesc', render: function(data) { return data.substring(0, 20); }, className: hidelg },
             { data: 'regmodified', className: hidelg },
-            { data: null, "defaultContent": "<button class='btn btn-admin'>Unregister</button>" }
+            { data: null, defaultContent: "<button class='btn btn-admin'>Unregister</button>" }
         ],
         sDom: '<"dtheader"fi>rt<"clear">'
     });

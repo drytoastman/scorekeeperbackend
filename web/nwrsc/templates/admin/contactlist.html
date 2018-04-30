@@ -26,17 +26,17 @@ $.fn.dataTable.ext.search.push(
         {
             case "reg":
                 for (var ii = 0; ii < matchevent.length; ii++)
-                    if (data[5].includes(matchevent[ii]))
+                    if (data[6].includes(matchevent[ii]))
                         return true;
                 break;
             case "run":
                 for (var ii = 0; ii < matchevent.length; ii++)
-                    if (data[4].includes(matchevent[ii])) 
+                    if (data[5].includes(matchevent[ii])) 
                         return true;
                 break;
             case "noshow":
                 for (var ii = 0; ii < matchevent.length; ii++)
-                    if (data[5].includes(matchevent[ii]) && !(data[4].includes(matchevent[ii])))
+                    if (data[6].includes(matchevent[ii]) && !(data[5].includes(matchevent[ii])))
                         return true;
                 break;
         } 
@@ -45,12 +45,40 @@ $.fn.dataTable.ext.search.push(
 );
 
 
+
+function render_classes(rowdata)
+{
+    var classes = new Set();
+
+    for (eventid in rowdata.reg)  {
+        if ((matchevent.length == 0) || (matchtype == undefined) || ((matchtype == "reg") && (matchevent.get().indexOf(eventid)>=0))) {
+            rowdata.reg[eventid].forEach(function (item) {
+                classes.add(item);
+            });
+        }
+    }
+
+    for (eventid in rowdata.runs) {
+        rowdata.runs[eventid].forEach(function (item) {
+            classes.add(item);
+        });
+    }
+
+    ret = Array.from(classes.values());
+    ret.sort();
+    return ret;
+}
+
+
 $(document).ready(function(){
 	thetable = $('#contacttable').DataTable({ 
         ajax: { url:"{{url_for(".activitylist")}}", dataSrc: ''},
         lengthMenu: [[15, 30, 50, -1], [15, 30, 50, "All"]],
         iDisplayLength: -1,
         autoWidth: false,
+        select: {
+            style: 'os'
+        },
         buttons: [
             {
                 extend: 'copyHtml5',
@@ -86,8 +114,9 @@ $(document).ready(function(){
             { data: 'lastname',  width: '30%' },
             { data: 'email',     width: '40%', render: Scorekeeper.displayemail },
             { data: 'barcode',   width: '0%' },
-            { data: 'runs',      width: '0%', visible: false },
-            { data: 'reg',       width: '0%', visible: false },
+            { data: null,        width: '0%', render: render_classes },
+            { data: 'runs',      width: '0%', visible: false, render: function(data) { return Object.keys(data) }},
+            { data: 'reg',       width: '0%', visible: false, render: function(data) { return Object.keys(data) }},
         ],
         sDom: '<"dtheader"fiB>rt<"clear">'
     });
@@ -103,6 +132,7 @@ $(document).ready(function(){
         matchtype  = $('ul input[name=participationtype]:checked').val();
         matchevent = $('ul input[name=event]:checked').map(function () { return $(this).data('event'); });
         nobarcode  = $('ul input[name=nobarcode]').is(':checked');
+        thetable.rows().invalidate('data')
         thetable.draw();
     });
 });
@@ -138,7 +168,7 @@ $(document).ready(function(){
 
 <table id='contacttable' class='table-striped table-bordered' cellspacing="0" width="100%">
 <thead>
-<tr><th>First</th><th>Last</th><th>Email</th><th>Barcode</th></tr>
+<tr><th>First</th><th>Last</th><th>Email</th><th>Barcode</th><th>Classes</th></tr>
 </thead>
 <tbody>
 </table>
