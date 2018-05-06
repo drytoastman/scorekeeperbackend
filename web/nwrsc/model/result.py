@@ -79,7 +79,7 @@ class Result(object):
     @classmethod
     def getSeriesInfo(cls):
         name = "info"
-        if cls._needUpdate(False, ('classlist', 'indexlist', 'events', 'settings'), name):
+        if cls._needUpdate(False, ('challenges', 'classlist', 'indexlist', 'events', 'settings'), name):
             cls._updateSeriesInfo(name)
         res = cls._loadResults(name)
         return SeriesInfo(res)
