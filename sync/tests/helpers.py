@@ -1,11 +1,10 @@
 
 # Helper for sync and testing
 
-def sync(synca, syncb, merge):
-    with synca.cursor() as cura:
-        cura.execute("UPDATE mergeservers SET lastcheck='epoch', nextcheck='epoch'")
-    synca.commit()
-    syncb.commit()
+def dosync(db, merge):
+    with db.cursor() as cur:
+        cur.execute("UPDATE mergeservers SET lastcheck='epoch', nextcheck='epoch'")
+    db.commit()
     merge.runonce()
 
 

@@ -86,10 +86,10 @@ def logtablefor(table):
 class DataInterface(object):
 
     @classmethod
-    def initialize(cls, uselocalhost=False):
+    def initialize(cls, port=-1):
         """ A little introspection to load the schema from database so we don't have to keep a local copy in this file """
         global SCHEMA_VERSION
-        with DataInterface.connectLocal(uselocalhost) as db:
+        with DataInterface.connectLocal(port) as db:
             with db.cursor() as cur:
                 cur.execute("SELECT version FROM version")
                 SCHEMA_VERSION = cur.fetchone()[0]
@@ -116,7 +116,7 @@ class DataInterface(object):
 
 
     @classmethod
-    def connectLocal(cls, uselocalhost=False):
+    def connectLocal(cls, port=-1):
         args = {
           "cursor_factory": psycopg2.extras.DictCursor,
                     "host": "/var/run/postgresql",
@@ -124,8 +124,8 @@ class DataInterface(object):
                   "dbname": "scorekeeper",
         "application_name": "synclocal"
         }
-        if uselocalhost:
-            args.update({"host": "127.0.0.1", "port": 6432})
+        if port > 0:
+            args.update({"host": "127.0.0.1", "port": port})
         try:
             return psycopg2.connect(**args)
         except Exception as e:
@@ -247,7 +247,7 @@ class DataInterface(object):
 
             cur1.execute("SET search_path=%s,%s", (series, 'public'))
             cur2.execute("SET search_path=%s,%s", (series, 'public'))
-            
+
             while tries > 0:
                 cur1.execute("SELECT pg_try_advisory_lock(42)")
                 lock1 = cur1.fetchone()[0]
@@ -406,7 +406,7 @@ class DeletedObject():
     def deletedSince(cls, db, table, when):
         assert table in TABLE_ORDER, "No such table {}".format(table)
         ret = dict()
-    
+
         with db.cursor() as cur:
             cur.execute("SELECT otime, olddata FROM {} WHERE action='D' AND tablen=%s AND otime>%s".format(logtablefor(table)), (table, when,))
             for row in cur.fetchall():
@@ -469,7 +469,7 @@ class MergeServer(object):
         state = self.mergestate[series]
 
         if 'lastchange' not in state:
-            state['lastchange'] = 0
+            state['lastchange'] = [0,0]
         if 'totalhash' not in state:
             state['totalhash'] = ''
         if 'hashes' not in state:
@@ -518,7 +518,7 @@ class MergeServer(object):
             self.hoststate = 'I'
             self.update('hoststate') # hoststate ownership is shared with frontend
         self.update('mergestate')
-    
+
     def serverDone(self):
         """ Called when the merge with the remote server completes without any exceptions """
         if self.hoststate == '1':
@@ -567,9 +567,13 @@ class MergeServer(object):
 
             # Do a sanity check on the log tables to see if anyting actually changed since our last check
             cur.execute("SET search_path=%s,%s", (series, 'public'))
-            cur.execute("SELECT MAX(times.max) FROM (SELECT max(ltime) FROM serieslog UNION ALL SELECT max(ltime) FROM publiclog) AS times")
-            result = cur.fetchone()[0]
-            lastchange = result and result.timestamp() or 1  # 1 forces initial check on blank database
+            cur.execute("SELECT MAX(otimes.max) as maxo, MAX(ltimes.max) as maxl FROM " +
+                        "(SELECT max(otime) FROM serieslog UNION ALL SELECT max(otime) FROM publiclog) AS otimes, " +
+                        "(SELECT max(ltime) FROM serieslog UNION ALL SELECT max(ltime) FROM publiclog) as ltimes")
+            result = cur.fetchone()
+            # 1 forces initial check on blank database
+            lastchange = [result['maxo'] and result['maxo'].timestamp() or 1,
+                          result['maxl'] and result['maxl'].timestamp() or 1]
 
             # If there is no need to recalculate hashes or update local cache, skip out now
             if lastchange == seriesstate['lastchange']:

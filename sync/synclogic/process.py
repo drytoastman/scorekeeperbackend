@@ -23,7 +23,9 @@ class MergeProcess():
     def __init__(self, args):
         psycopg2.extras.register_uuid()
         self.wakequeue = queue.Queue()
-        self.uselocalhost = '--uselocalhost' in args
+        self.useport = -1
+        if len(args):
+            self.useport = int(args[0])
 
     def shutdown(self):
         """ Interrupt what we are doing and quit """
@@ -41,7 +43,7 @@ class MergeProcess():
 
         while not done:
             try:
-                DataInterface.initialize(self.uselocalhost)
+                DataInterface.initialize(self.useport)
                 break
             except Exception as e:
                 log.info("Error during model initialization, waiting for db and template: %s", e)
@@ -61,7 +63,7 @@ class MergeProcess():
     def runonce(self):
         try:
             signalled = False
-            with DataInterface.connectLocal(self.uselocalhost) as localdb:
+            with DataInterface.connectLocal(self.useport) as localdb:
                 # Reset our world on each loop
                 me = MergeServer.getLocal(localdb)
                 me.updateSeriesFrom(localdb)

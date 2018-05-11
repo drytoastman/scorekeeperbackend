@@ -1,9 +1,3 @@
-SELECT verify_user('testseries', 'testseries');
-SELECT verify_series('testseries');
-SET search_path='testseries','public';
-
-INSERT INTO mergeservers(serverid, hostname, address, ctimeout) VALUES ('00000000-0000-0000-0000-000000000000', 'localhost', '127.0.0.1', 10);
-
 INSERT INTO indexlist (indexcode, descrip, value) VALUES ('',   '', 1.000);
 INSERT INTO indexlist (indexcode, descrip, value) VALUES ('i1', '', 1.000);
 INSERT INTO classlist (classcode, descrip, indexcode, caridxrestrict, classmultiplier, carindexed, usecarflag, eventtrophy, champtrophy, secondruns, countedruns, modified) VALUES ('c1', '', '', '', 1.0, 't', 'f', 't', 't', 'f', 0, now());
@@ -19,4 +13,3 @@ INSERT INTO runs (eventid, carid, course, run, raw, status, attr) VALUES ('00000
 INSERT INTO runs (eventid, carid, course, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 2, 2.0, 'OK', '{}');
 INSERT INTO runs (eventid, carid, course, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 3, 3.0, 'OK', '{}');
 INSERT INTO runs (eventid, carid, course, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 4, 4.0, 'OK', '{}');
-

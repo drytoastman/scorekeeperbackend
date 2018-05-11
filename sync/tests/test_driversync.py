@@ -31,9 +31,10 @@ def test_driversync(syncdbs, syncdata):
     # Modify email and zip on A
     with synca.cursor() as cur:
         cur.execute("UPDATE drivers SET email=%s,attr=%s,modified=now() where driverid=%s", ('newemail', json.dumps({'address': '123', 'zip': '98222'}), syncdata.driverid,))
+        synca.commit()
     time.sleep(0.1)
 
-    sync(synca, syncb, merge)
+    dosync(synca, merge)
     verify_driver(synca, syncb, syncdata.driverid,
         (('firstname', 'newfirst'), ('lastname', 'newlast'), ('email', 'newemail')),
         (('address', '123'), ('zip', '98222')))
@@ -41,9 +42,10 @@ def test_driversync(syncdbs, syncdata):
     # Remove zip
     with synca.cursor() as cur:
         cur.execute("UPDATE drivers SET attr=%s,modified=now() where driverid=%s", (json.dumps({'address': '123'}), syncdata.driverid,))
+        synca.commit()
     time.sleep(0.1)
 
-    sync(synca, syncb, merge)
+    dosync(synca, merge)
     verify_driver(synca, syncb, syncdata.driverid,
         (('firstname', 'newfirst'), ('lastname', 'newlast'), ('email', 'newemail')),
         (('address', '123'), ('zip', None)))
@@ -55,9 +57,12 @@ def test_driversync(syncdbs, syncdata):
         cur.execute("DELETE FROM runs WHERE carid in (SELECT carid FROM cars WHERE driverid=%s)", (syncdata.driverid,))
         cur.execute("DELETE FROM cars WHERE driverid=%s", (syncdata.driverid,))
         cur.execute("DELETE FROM drivers WHERE driverid=%s", (syncdata.driverid,))
+        syncb.commit()
     time.sleep(0.1)
 
-    sync(synca, syncb, merge)
+    import pdb
+    #pdb.set_trace()
+    dosync(synca, merge)
     verify_driver(synca, syncb, syncdata.driverid, None, None)
     verify_driver(synca, syncb, cruft1['driverid'], None, None)
 
