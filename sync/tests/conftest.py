@@ -30,20 +30,19 @@ def syncdata():
 @pytest.fixture(scope="module")
 def syncdbs(request, syncdata):
     TESTDBS = (
-        DB('synca', 'drytoastman/scdb:latest', '7432', uuid.uuid1()),
-        DB('syncb', 'drytoastman/scdb:latest', '8432', uuid.uuid1())
+        DB('A', 'drytoastman/scdb:latest', '7432', uuid.uuid1()),
+        DB('B', 'drytoastman/scdb:latest', '8432', uuid.uuid1())
     )
-    syncx, mergex = _createdbs(request, syncdata, TESTDBS)
-    return (syncx['synca'], syncx['syncb'], mergex['synca'])
+    return _createdbs(request, syncdata, TESTDBS)
 
 
 @pytest.fixture(scope="module")
 def sync4dbs(request, syncdata):
     TESTDBS = (
-        DB('synca', 'drytoastman/scdb:latest',  '7432', uuid.uuid1()),
-        DB('syncb', 'drytoastman/scdb:latest',  '8432', uuid.uuid1()),
-        DB('syncc', 'drytoastman/scdb:latest',  '9432', uuid.uuid1()),
-        DB('syncd', 'drytoastman/scdb:latest', '10432', uuid.uuid1())
+        DB('A', 'drytoastman/scdb:latest',  '7432', uuid.uuid1()),
+        DB('B', 'drytoastman/scdb:latest',  '8432', uuid.uuid1()),
+        DB('C', 'drytoastman/scdb:latest',  '9432', uuid.uuid1()),
+        DB('D', 'drytoastman/scdb:latest', '10432', uuid.uuid1())
     )
     return _createdbs(request, syncdata, TESTDBS)
 
@@ -52,11 +51,11 @@ def _createdbs(request, syncdata, TESTDBS):
     cargs = { 'host':"127.0.0.1", 'user':'postgres', 'dbname':'scorekeeper', 'connect_timeout':20, 'cursor_factory':psycopg2.extras.DictCursor }
 
     def teardown():
-        subprocess.run(["docker", "kill"] + [name for (name, _, _, _) in TESTDBS], stdout=subprocess.DEVNULL)
+        subprocess.run(["docker", "kill"] + ["sync"+db.name for db in TESTDBS], stdout=subprocess.DEVNULL)
     request.addfinalizer(teardown)
 
     for db in TESTDBS:
-        p = subprocess.run(["docker", "run", "-d", "--rm", "--name", db.name, "-p", "{}:6432".format(db.port), "-e", "UI_TIME_ZONE=US/Pacific", db.image], stdout=subprocess.DEVNULL)
+        p = subprocess.run(["docker", "run", "-d", "--rm", "--name", "sync"+db.name, "-p", "{}:6432".format(db.port), "-e", "UI_TIME_ZONE=US/Pacific", db.image], stdout=subprocess.DEVNULL)
         if p.returncode != 0:
             raise Exception("Failed to start " + db.name)
 

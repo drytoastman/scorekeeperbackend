@@ -6,56 +6,56 @@ from helpers import *
 
 def test_keyinsert(syncdbs, syncdata):
     """ Merge drivers, delete on one while linking to a car on the other, should undelete driver and maintain car """
-    (synca, syncb, merge) = syncdbs
+    syncx, mergex = syncdbs
     testid  = '00000000-0000-0000-0000-000000000042'
     testcid = '00000000-0000-0000-0000-000000000043'
 
     # Insert remote
-    with syncb.cursor() as cur:
+    with syncx['B'].cursor() as cur:
         cur.execute("INSERT INTO drivers (driverid, firstname, lastname, email, username) VALUES (%s, 'first', 'last', 'email', 'other')", (testid,))
-        syncb.commit()
+        syncx['B'].commit()
     time.sleep(0.5)
 
-    dosync(synca, merge)
-    verify_driver(synca, syncb, testid, (('firstname', 'first'), ('lastname', 'last'), ('email', 'email')), ())
+    dosync(syncx['A'], mergex['A'])
+    verify_driver(syncx, testid, (('firstname', 'first'), ('lastname', 'last'), ('email', 'email')), ())
 
-    with synca.cursor() as cur:
+    with syncx['A'].cursor() as cur:
         cur.execute("DELETE FROM drivers WHERE driverid=%s", (testid,))
-        synca.commit()
+        syncx['A'].commit()
     time.sleep(0.5)
-    with syncb.cursor() as cur:
+    with syncx['B'].cursor() as cur:
         cur.execute("INSERT INTO cars (carid, driverid, classcode, indexcode, number, useclsmult, attr, modified) VALUES (%s, %s, 'c1', 'i1', 2, 'f', '{}', now())", (testcid, testid))
-        syncb.commit()
+        syncx['B'].commit()
     time.sleep(0.5)
 
-    dosync(synca, merge)
-    verify_driver(synca, syncb, testid, (('firstname', 'first'), ('lastname', 'last'), ('email', 'email')), ())
-    verify_car(synca, syncb, testcid, (('classcode', 'c1'),), ())
+    dosync(syncx['A'], mergex['A'])
+    verify_driver(syncx, testid, (('firstname', 'first'), ('lastname', 'last'), ('email', 'email')), ())
+    verify_car(syncx, testcid, (('classcode', 'c1'),), ())
 
 
 def test_keyupdate(syncdbs, syncdata):
     """ Test for updating a key column that references another deleted row """
-    (synca, syncb, merge) = syncdbs
+    syncx, mergex = syncdbs
     testid  = '00000000-0000-0000-0000-000000000142'
 
-    with syncb.cursor() as cur:
+    with syncx['B'].cursor() as cur:
         cur.execute("INSERT INTO indexlist (indexcode, descrip, value) VALUES ('i2', '', 0.999)")
         cur.execute("INSERT INTO cars (carid, driverid, classcode, indexcode, number, useclsmult, attr, modified) VALUES (%s, %s, 'c1', 'i1', 2, 'f', '{}', now())", (testid, syncdata.driverid))
-        syncb.commit()
+        syncx['B'].commit()
     time.sleep(0.5)
 
-    dosync(synca, merge)
-    verify_car(synca, syncb, testid, (('classcode', 'c1'),), ())
+    dosync(syncx['A'], mergex['A'])
+    verify_car(syncx, testid, (('classcode', 'c1'),), ())
 
-    with synca.cursor() as cur:
+    with syncx['A'].cursor() as cur:
         cur.execute("DELETE FROM indexlist WHERE indexcode='i2'")
-        synca.commit()
-    with syncb.cursor() as cur:
+        syncx['A'].commit()
+    with syncx['B'].cursor() as cur:
         cur.execute("UPDATE cars SET indexcode='i2',modified=now() WHERE carid=%s", (testid,))
-        syncb.commit()
+        syncx['B'].commit()
     time.sleep(0.5)
 
-    dosync(synca, merge)
-    verify_car(synca, syncb, testid, (('classcode', 'c1'), ('indexcode', 'i2')), ())
-    verify_index(synca, syncb, 'i2', (('value', 0.999),))
+    dosync(syncx['A'], mergex['A'])
+    verify_car(syncx, testid, (('classcode', 'c1'), ('indexcode', 'i2')), ())
+    verify_index(syncx, 'i2', (('value', 0.999),))
 
