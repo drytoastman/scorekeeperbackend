@@ -99,7 +99,7 @@ def _createdbs(request, syncdata, TESTDBS):
 
 
     # Setup some initial data
-    with syncx[TESTDBS[0].name].cursor() as cur, open('testdata/basic.sql', 'r') as fp:
+    with syncx[TESTDBS[0].name].cursor() as cur, open(os.path.join(os.path.dirname(__file__), 'testdata/basic.sql'), 'r') as fp:
         for line in fp:
             sql = line.strip()
             if sql:

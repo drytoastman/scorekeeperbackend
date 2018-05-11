@@ -42,7 +42,7 @@ def database(request, webdata):
     else:
         raise exception("unable to get connection to {}".format(db.name))
 
-    with db.cursor() as cur, open('testdata/basic.sql', 'r') as fp:
+    with db.cursor() as cur, open(os.path.join(os.path.dirname(__file__), 'testdata/basic.sql'), 'r') as fp:
         cur.execute("SELECT verify_user(%s, %s)",  (webdata.series, webdata.series))
         cur.execute("SELECT verify_series(%s)",    (webdata.series, ))
         cur.execute("SET search_path=%s,'public'", (webdata.series, ))
