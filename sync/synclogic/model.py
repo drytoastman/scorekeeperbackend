@@ -148,7 +148,7 @@ class DataInterface(object):
                 address = server.address or server.hostname
             db = psycopg2.connect(host=address, user=user, password=password, connect_timeout=server.ctimeout, **args)
             with db.cursor() as cur:
-                cur.execute("set idle_in_transaction_session_timeout=1000")
+                cur.execute("set idle_in_transaction_session_timeout=2000")
             return db
         except:
             server.recordConnectFailure()
