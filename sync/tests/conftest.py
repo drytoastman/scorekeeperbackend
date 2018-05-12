@@ -28,6 +28,13 @@ def syncdata():
 
 
 @pytest.fixture(scope="module")
+def sync1db(request, syncdata):
+    TESTDBS = (DB('A', 'drytoastman/scdb:latest', '7432', uuid.uuid1()),)
+    syncx, mergex = _createdbs(request, syncdata, TESTDBS)
+    return syncx['A'], mergex['A']
+
+
+@pytest.fixture(scope="module")
 def syncdbs(request, syncdata):
     TESTDBS = (
         DB('A', 'drytoastman/scdb:latest', '7432', uuid.uuid1()),

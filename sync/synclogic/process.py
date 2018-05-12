@@ -171,9 +171,26 @@ class MergeProcess():
         remotedelete = defaultdict(list)
         remoteundelete = defaultdict(list)
 
-        for t in tables:
+        nextping = 0
+        def seriesStatus(msg):
+            """
+              Update series status, also take time to check for quit signal and ping remote server to stop
+              idle_in_transaction timeout during long amounts of time inserting/updating data into the local
+              database.  We do rate limit it a bit though as remote calls are slow across the Internet
+            """
+            nonlocal nextping
             assert not signalled, "Quit signal received"
-            remote.seriesStatus(series, "Analysis {}".format(t))
+            remote.seriesStatus(series, msg)
+            now = time.time()
+            if now > nextping:
+                with remotedb.cursor() as cur:
+                    log.debug("PING remote at %s", now)
+                    cur.execute("select 1")
+                    nextping = now + 0.5
+
+
+        for t in tables:
+            seriesStatus("Analysis {}".format(t))
 
             # Load data from both databases, load it all in one go to be more efficient in updates later
             localobj  = PresentObject.loadPresent(localdb, t)
@@ -224,8 +241,8 @@ class MergeProcess():
 
         # Insert order first (top down)
         for t in TABLE_ORDER:
-            assert not signalled, "Quit signal received"
-            remote.seriesStatus(series, "Insert {}".format(t))
+            seriesStatus("Insert {}".format(t))
+
             if not DataInterface.insert(localdb,  localinsert[t]):
                 unfinished.add(t)
             if not DataInterface.insert(remotedb, remoteinsert[t]):
@@ -234,8 +251,8 @@ class MergeProcess():
         # Update/delete order next (bottom up)
         log.debug("Performing updates/deletes")
         for t in reversed(TABLE_ORDER):
-            assert not signalled, "Quit signal received"
-            remote.seriesStatus(series, "Update {}".format(t))
+            seriesStatus("Update {}".format(t))
+
             if t in ADVANCED_TABLES:
                 self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t])
             else:
@@ -244,7 +261,7 @@ class MergeProcess():
                 if not DataInterface.update(remotedb, remoteupdate[t]):
                     unfinished.add(t)
 
-            remote.seriesStatus(series, "Delete {}".format(t))
+            seriesStatus("Delete {}".format(t))
             remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
             localundelete[t].extend(DataInterface.delete(remotedb, remotedelete[t]))
 
@@ -253,13 +270,13 @@ class MergeProcess():
         for t in remoteundelete:
             if len(remoteundelete[t]) > 0:
                 log.warning("Remote undelete requests for {}: {}".format(t, len(remoteundelete[t])))
-                remote.seriesStatus(series, "R-undelete {}".format(t))
+                seriesStatus("R-undelete {}".format(t))
                 unfinished.add(t)
                 DataInterface.insert(remotedb, remoteundelete[t])
         for t in localundelete:
             if len(localundelete[t]) > 0:
                 log.warning("Local udelete requests for {}: {}".format(t, len(remoteundelete[t])))
-                remote.seriesStatus(series, "L-undelete {}".format(t))
+                seriesStatus("L-undelete {}".format(t))
                 unfinished.add(t)
                 DataInterface.insert(localdb, localundelete[t])
 
