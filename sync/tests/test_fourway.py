@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import json
+import logging
 import time
 
 from helpers import *
 
+log = logging.getLogger(__name__)
 
 def _verify_totalhash(syncx):
     hashes = {}
@@ -16,7 +18,7 @@ def _verify_totalhash(syncx):
 
     ref = next(iter(hashes.values()))
     if not all(x == ref for x in hashes.values()):
-        print(hashes)
+        log.error("Non-matching hashes: {}".format(hashes))
         assert False
 
 def test_driversync(sync4dbs, syncdata):
