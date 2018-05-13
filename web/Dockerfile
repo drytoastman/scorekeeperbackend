@@ -1,21 +1,21 @@
-FROM python:3.6.3-alpine3.6 as swaggerui
-WORKDIR /tmp
-RUN apk update && apk add ca-certificates && update-ca-certificates && apk add openssl
-RUN wget https://github.com/swagger-api/swagger-ui/archive/v3.10.0.tar.gz
-RUN tar xf *.gz
-WORKDIR swagger-ui-3.10.0/dist
-RUN rm *.map
-RUN sed -i 's/http:\/\/petstore.swagger.io\/v2\/swagger.json/\/api\/swagger.yaml/' index.html
+FROM python:3.6.5-slim-stretch
 
+# Install our basic requirements, mainly wkhtmltopdf here
+RUN    apt-get update \
+    && apt-get install --no-install-recommends -y libqt5webkit5 procps ttf-liberation wget xz-utils \
+    && wget -q https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz \
+    && tar xf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz --strip 1 \
+    && rm -rf wkhtml* /bin/wkhtmltoimage /var/lib/apt/lists/*
 
-FROM python:3.6.3-alpine3.6
+# Install any build requirements, do the module install and then remove build requirements
 COPY requirements.txt /tmp
-RUN apk add --no-cache libpq libstdc++ libjpeg-turbo freetype \
-    && apk add --no-cache --virtual buildreq g++ gcc musl-dev linux-headers libffi-dev libjpeg-turbo-dev freetype-dev postgresql-dev git \
+RUN    apt-get update \
+    && apt-get install -y gcc git \
     && pip install --no-cache-dir -r /tmp/requirements.txt \
-    && apk del buildreq
+    && apt-get autoremove -y gcc git \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY . /tmp/app
-COPY --from=swaggerui /tmp/swagger-ui-3.10.0/dist /tmp/app/nwrsc/static/swaggerui
 RUN pip install /tmp/app
 RUN python3 /usr/local/bin/assets_preload.py
 CMD ["python3", "/usr/local/bin/webserver.py"]

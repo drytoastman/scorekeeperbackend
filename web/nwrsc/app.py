@@ -73,7 +73,6 @@ def create_app():
 
     ### URL handling and Blueprints for the various sections
     theapp.add_url_rule('/',             'toresults', redirect_to='/results')
-    theapp.add_url_rule('/swaggerui/',   'toswagger', redirect_to='/swaggerui/index.html')
     theapp.register_blueprint(Admin,     url_prefix="/admin/<series>")
     theapp.register_blueprint(Announcer, url_prefix="/announcer/<series>")
     theapp.register_blueprint(Api,       url_prefix="/api")
@@ -91,8 +90,6 @@ def create_app():
     def robots(): return send_from_directory('static', 'robots.txt')
     @theapp.route('/api/swagger.yaml')
     def resultsfeed(): return send_from_directory('api', 'swagger.yaml')
-    @theapp.route('/swaggerui/<path>')
-    def swaggerui(path): return send_from_directory('static/swaggerui', path)
 
     @theapp.url_value_preprocessor
     def preprocessor(endpoint, values):
@@ -187,7 +184,6 @@ def create_app():
 
     def custom_template_loader(request):
         # Allows us to %include templates from the database settings values
-        log.debug("requesting " + request)
         name = request.split('%')
         if name[0] in Settings.DEFAULTS:
             if hasattr(g, 'seriesinfo'): # archived results

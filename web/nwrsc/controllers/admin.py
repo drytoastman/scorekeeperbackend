@@ -8,6 +8,7 @@ import operator
 import os
 import psycopg2
 import re
+import subprocess
 import uuid
 
 from flask import current_app, escape, flash, g, redirect, request, render_template, Response, send_from_directory, session, url_for
@@ -99,7 +100,7 @@ def setup():
         return "This is not available off of the main server"
 
     g.superauth = isSuperAuth()
-    if not g.superauth and not isAuth(g.series) and request.endpoint not in authendpoints:
+    if not request.remote_addr == '127.0.0.1' and g.superauth and not isAuth(g.series) and request.endpoint not in authendpoints:
         recordPath()
         return login()
 
@@ -430,9 +431,9 @@ def rungroups():
 @Admin.route("/event/<uuid:eventid>/cards")
 def cards():
     page = request.args.get('page', 'card')
-    type = request.args.get('type', 'blank')
+    ctype = request.args.get('type', 'blank')
 
-    if type == 'blank':
+    if ctype == 'blank':
         registered = []
     else:
         registered = Registration.getForEvent(g.eventid, g.event.paymentRequired())
@@ -441,10 +442,10 @@ def cards():
             r.__dict__.update(r.cattr)
             r.quickentry = "{:010d}".format(r.carid.time_low)
             r.caridbarcode = r.carid and "{:040d}".format(r.carid.int) or "" # UUID in base 10 with extra zeros to make 40 digits which fits into 128C
-        if type == 'lastname':
+        if ctype == 'lastname':
             registered.sort(key=lambda m: getattr(m, 'firstname').lower())
             registered.sort(key=lambda m: getattr(m, 'lastname').lower())
-        elif type == 'classnumber':
+        elif ctype == 'classnumber':
             registered.sort(key=operator.attrgetter('number'))
             registered.sort(key=operator.attrgetter('classcode'))
 
@@ -458,12 +459,19 @@ def cards():
         return csv_encode("cards", titles, objects)
 
     elif page == 'template':
-        if type == 'blank': registered.append({})
+        if ctype == 'blank': registered.append({})
         return render_template('admin/cards.html', registered=registered)
+
+    elif page == 'html2pdf':
+        cmd = ["wkhtmltopdf", "--disable-smart-shrinking", "--zoom", "0.90", "--page-height", "5in", "--page-width", "8in", "http://127.0.0.1{}".format(url_for('.cards', type=ctype, page='template')), "-"]
+        def generate_pdf():
+            log.info("Running %s", cmd)
+            yield subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout
+        return Response(generate_pdf(), mimetype='application/pdf')
 
     else:
         from nwrsc.lib.pdfcards import pdfcards
-        if type == 'blank': registered.append(None)
+        if ctype == 'blank': registered.append(None)
         return pdfcards(page, g.event, registered)
 
 
