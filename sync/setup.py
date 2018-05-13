@@ -7,7 +7,7 @@ x = setup(
     author='Brett Wilson',
     author_email='N/A',
     url='https://github.com/drytoastman/ScorekeeperBackend',
-    install_requires=["psycopg2", "pytz"],
+    install_requires=["psycopg2==2.7.1", "pytz==2017.2"],
     packages=find_packages(),
     scripts=['bin/syncserver.py'],
     include_package_data=True,

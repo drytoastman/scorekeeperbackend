@@ -10,7 +10,7 @@ services:
     image:   "drytoastman/scweb:${TRAVIS_TAG:-latest}"
     build:   "web"
     container_name: "web"
-    command: "ash -c 'pip install -e /code && exec webserver.py'"
+    command: "bash -c 'pip install -e /code && exec webserver.py'"
     environment:
         - UI_TIME_ZONE=US/Pacific
         - DEBUG=1
@@ -52,7 +52,7 @@ services:
     image:   "drytoastman/scsync:${TRAVIS_TAG:-latest}"
     build:   "sync"
     container_name: "sync"
-    command: "ash -c 'pip install -e /code && exec syncserver.py'"
+    command: "bash -c 'pip install -e /code && exec syncserver.py'"
     environment:
         - UI_TIME_ZONE=US/Pacific
         - DEBUG=1
