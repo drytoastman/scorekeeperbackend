@@ -369,6 +369,12 @@ def activitylist():
     return json_encode(list(Attendance.getActivity().values()))
 
 
+@Admin.route("/sendemail")
+def sendemail():
+    return render_template('/admin/sendemail.html')
+
+
+
 @Admin.route("/weekendreport")
 def weekendreport():
     weekends = set()
