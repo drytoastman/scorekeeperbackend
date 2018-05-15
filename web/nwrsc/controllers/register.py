@@ -7,7 +7,6 @@ import uuid
 
 import itsdangerous
 from flask import abort, current_app, flash, g, get_template_attribute, redirect, request, render_template, Response, session, stream_with_context, url_for
-from flask_assets import Bundle
 from flask_mail import Message
 
 from .blueprints import *
@@ -18,12 +17,6 @@ from ..lib.encoding import json_encode, ical_encode
 
 log = logging.getLogger(__name__)
 
-
-@Register.before_app_first_request
-def init():
-    env = current_app.jinja_env.assets_environment
-    env.register('register.js',  Bundle(env.j['jquery'], env.j['jquerymod'], env.j['bootstrap'], "js/common.js", "js/register.js", filters="rjsmin", output="register.js"))
-    env.register('register.css', Bundle("scss/register.scss", depends="scss/*.scss", filters="libsass", output="register.css"))
 
 @Register.before_request
 def setup():

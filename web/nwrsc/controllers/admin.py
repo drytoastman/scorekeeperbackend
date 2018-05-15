@@ -12,7 +12,6 @@ import subprocess
 import uuid
 
 from flask import current_app, escape, flash, g, redirect, request, render_template, Response, send_from_directory, session, url_for
-from flask_assets import Bundle
 
 from nwrsc.controllers.blueprints import *
 from nwrsc.lib.encoding import csv_encode, json_encode, time_print 
@@ -70,12 +69,6 @@ def isSuperAuth():
     if ADMINKEY not in session: return False
     return SUPERKEY in session[ADMINKEY]
 
-
-@Admin.before_app_first_request
-def init():
-    env = current_app.jinja_env.assets_environment
-    env.register('admin.js',  Bundle(env.j['jquery'], env.j['jquerymod'], env.j['bootstrap'], env.j['flatpickr'], env.j['datatables'], env.j['barcodes'], "js/common.js", "js/admin.js", filters="rjsmin", output="admin.js"))
-    env.register('admin.css', Bundle("scss/admin.scss", depends="scss/*.scss", filters="libsass", output="admin.css"))
 
 @Admin.before_request
 def setup():

@@ -1,7 +1,7 @@
 $basecolor: #c4ac11;
 $subheadgray: #ccc;
 
-@import "../extern/bootstrap-4.0.0.scss";
+@import "../bootstrap-4.1.0/css/bootstrap";
 @import "common.scss";
 
 @include bootstraptheme("results", $basecolor);
