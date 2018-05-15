@@ -145,7 +145,7 @@ $(document).ready(function(){
 <h3>Contact List</h3>
 <p>The default list is of anyone who has registered or run in the series.  Use the checkboxes to select filters and/or type text into the search box.</p>
 
-<div class='contactfilter'>
+<div class='contactfilters'>
 <h6>Participation Filter</h6>
 <ul class='filterchecks'>
     <li><input type="checkbox" name="participationtype" value="reg"/>Registered In</li>
@@ -157,9 +157,7 @@ $(document).ready(function(){
     <li><input data-event="{{e.eventid}}" name="event" type="checkbox"/>{{e.name}}</li>
 {% endfor %}
 </ul>
-</div>
 
-<div class='contactfilter'>
 <h6>Status Filters</h6>
     <ul class='filterchecks'>
         <li><input type="checkbox" name="nobarcode" value="reg"/>No Barcode</li>
