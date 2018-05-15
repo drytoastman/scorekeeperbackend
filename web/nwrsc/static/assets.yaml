@@ -71,7 +71,7 @@ announcer.css:
     contents: [ scss/announcer.scss ]
 
 announcermini.css:
-    output:   announcer.css
+    output:   announcermini.css
     filters:  [ libsass ]
     depdends: [ scss/*.scss ]
     contents: [ scss/announcermini.scss ]
@@ -90,19 +90,19 @@ docs.css:
 
 
 register.js:
-    output: register.js
+    output:   register.js
     filters:  [ rjsmin ]
     contents: [ js/common.js, js/register.js ]
 
 register.css:
-    output:   results.css
+    output:   register.css
     filters:  [ libsass ]
     depdends: [ scss/*.scss ]
     contents: [ scss/register.scss ]
 
 
 results.js:
-    output: results.js
+    output:   results.js
     filters:  [ rjsmin ]
     contents: [ js/common.js ]
 

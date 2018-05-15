@@ -47,11 +47,11 @@ gCars['{{c.carid}}'] = {{c|to_json|safe}};
     <tr><td>
     <div class="btn-group" role="group">
     {% if active[car.carid]|length > 0 %}
-        <button class='btn btn-outline-secondary disabled fa fa-pencil' title='Cars registered or in use cannot be edited or deleted'></button>
-        <button class='btn btn-outline-secondary disabled fa fa-trash' title='Cars registered or in use cannot be edited or deleted'></button>
+        <button class='btn btn-outline-secondary disabled' title='Cars registered or in use cannot be edited or deleted'><i class='fas fa-edit'></i></button>
+        <button class='btn btn-outline-secondary disabled' title='Cars registered or in use cannot be edited or deleted'><i class='fas fa-trash-alt'></i></button>
     {% else %}
-        <button class='editcar   btn btn-outline-register fa fa-pencil' title='Edit Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'></button>
-        <button class='deletecar btn btn-outline-register fa fa-trash' title='Delete Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'></button>
+        <button class='editcar   btn btn-outline-register' title='Edit Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'><i class='fas fa-edit'></i></button>
+        <button class='deletecar btn btn-outline-register' title='Delete Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'><i class='fas fa-trash-alt'></i></button>
     {% endif %}
     </td>
     <td class='cardisplay'>{{rm.carDisplay(car)}}</td></tr>

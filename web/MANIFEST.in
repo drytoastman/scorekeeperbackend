@@ -1,9 +1,3 @@
-recursive-include nwrsc/static/images *
-recursive-include nwrsc/static/js *
-recursive-include nwrsc/static/scss *
-recursive-include nwrsc/static/indexlists *
-recursive-include nwrsc/static/assets.yaml
+recursive-include nwrsc/static *
 recursive-include nwrsc/templates *
-include nwrsc/static/robots.txt
 include nwrsc/lib/*.ttf
-include nwrsc/api/*.yaml
