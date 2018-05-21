@@ -283,16 +283,32 @@ class MergeProcess():
         return unfinished
 
 
-    def advancedMerge(self, localdb, remotedb, table, localupdates, remoteupdates):
-        when = PresentObject.mincreatetime(localupdates, remoteupdates)
-        pkset = set([l.pk for l in localupdates]) | set([r.pk for r in remoteupdates])
-        loggedobj= dict()
-        logtable = logtablefor(table)
+    def advancedMerge(self, localdb, remotedb, table, remoteobj, localobj):
+        when   = PresentObject.mincreatetime(localobj, remoteobj)
+        local  = { l.pk:l for l in localobj  }
+        remote = { r.pk:r for r in remoteobj }
+        pkset  = local.keys() | remote.keys()
+
+        loggedobj = dict()
+        logtable  = logtablefor(table)
         LoggedObject.loadFrom(loggedobj, localdb,  pkset, logtable, table, when)
         LoggedObject.loadFrom(loggedobj, remotedb, pkset, logtable, table, when)
 
-        # Create update objects and then update into both sides
-        toupdate = [lo.finalize() for lo in loggedobj.values() if lo]
-        DataInterface.update(localdb, toupdate)
-        DataInterface.update(remotedb, toupdate)
+        # Create update objects and then update where needed
+        toupdatel = []
+        toupdater = []
+        for lo in loggedobj.values():
+            if not lo:
+                continue
+            if lo.pk in local:
+                update,both = lo.finalize(local[lo.pk])
+                toupdater.append(update)
+                if both: toupdatel.append(update)
+            else:
+                update,both = lo.finalize(remote[lo.pk])
+                toupdatel.append(update)
+                if both: toupdater.append(update)
+
+        DataInterface.update(localdb, toupdatel)
+        DataInterface.update(remotedb, toupdater)
 

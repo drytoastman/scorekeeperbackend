@@ -1,6 +1,6 @@
 
 import base64
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import contextlib
 import datetime
 import hashlib
@@ -279,48 +279,91 @@ class DataInterface(object):
             cur1.close()
 
 
+InsertObject = namedtuple('InsertObject', 'otime, data')
+UpdateObject = namedtuple('UpdateObject', 'otime, odiff, adiff, adel')
+
 
 class LoggedObject():
     """ An object loaded from the log data insert and following updates across multiple machines """
 
     def __init__(self, table, pk):
-        self.table    = table
-        self.pk       = pk
-        self.inittime = None
-        self.initial  = None
-        self.updates  = []
+        self.table   = table
+        self.pk      = pk
+        self.initA   = None
+        self.initB   = None
+        self.updates = []
 
-    def insert(self, when, newdata):
-        if not self.initial or when < self.inittime:
-            if 'created' not in newdata: 
-                # HACK: fix for missing columns
-                newdata['created'] = "1970-01-01T00:00:00"
-            self.inittime = when
-            self.initial  = newdata
+    def insert(self, otime, newdata):
+        if 'created' not in newdata:
+            # HACK: fix for missing columns
+            newdata['created'] = "1970-01-01T00:00:00"
+        if not self.initA:
+            self.initA = InsertObject(otime, newdata)
+            return
+        if not self.initB:
+            self.initB = InsertObject(otime, newdata)
+            return
+
+        raise Exception("inserted thrice?")
+
+    def _diffobj(self, data1, data2):
+        attr1 = data1.pop('attr', dict())
+        attr2 = data2.pop('attr', dict())
+        odiff = dict(set(data2.items()) - set(data1.items()))  # Differences in object columns
+        adiff = dict(set(attr2.items()) - set(attr1.items()))  # Additions/Differences in attr
+        adel  = attr1.keys() - attr2.keys()                    # Attr keys that were deleted
+        return (odiff, adiff, adel)
+
+    def _issame(self, data1, data2):
+        (odiff, adiff, adel) = self._diffobj(data1, data2)
+        return not odiff and not adiff and not adel
 
     def update(self, time, olddata, newdata):
-        oldattr = olddata.pop('attr', dict())
-        newattr = newdata.pop('attr', dict())
-        odiff = dict(set(newdata.items()) - set(olddata.items()))  # Differences in object columns
-        adiff = dict(set(newattr.items()) - set(oldattr.items()))  # Additions/Differences in attr
-        adel  = oldattr.keys() - newattr.keys()                    # Attr keys that were deleted
-        self.updates.append((time, odiff, adiff, adel))
+        (odiff, adiff, adel) = self._diffobj(olddata, newdata)
+        self.updates.append(UpdateObject(time, odiff, adiff, adel))
 
-    def finalize(self):
-        data = self.initial.copy()
-        for (time, odiff, adiff, adel) in sorted(self.updates, key=operator.itemgetter(0)):
-            data.update(odiff)
-            data['attr'].update(adiff)
-            for key in adel:
+    def _convert2logformat(self, dbobj):
+        # Convert psycopg2 data into something we can compare with JSON logs
+        compare = dict()
+        for k in dbobj.keys():
+            data = dbobj[k]
+            if k == 'attr':
+                compare['attr'] = data
+            elif type(data) is datetime.datetime:
+                compare[k] = data.isoformat().strip('0')
+            elif type(data) is uuid.UUID:
+                compare[k] = str(data)
+            else:
+                compare[k] = data
+        return compare
+
+    def finalize(self, last):
+        # Later insert becomes an update to catch any potential changes outside our purview
+        if self.initA.otime < self.initB.otime:
+            data = self.initA.data.copy()
+            self.update(self.initB.otime, self.initA.data, self.initB.data)
+        else:
+            data = self.initB.data.copy()
+            self.update(self.initA.otime, self.initB.data, self.initA.data)
+
+        # And rebuild the object with all of the updates
+        for uobj in sorted(self.updates, key=operator.attrgetter('otime')):
+            data.update(uobj.odiff)
+            data['attr'].update(uobj.adiff)
+            for key in uobj.adel:
                 data['attr'].pop(key, None)
 
             # HACK: change old logged membership to barcode, if there hasn't been a barcode change since the schema move
             if 'barcode' not in data:
                 data['barcode'] = data['membership']
 
-        # Step us forward 1 microsecond past whatever else has happened
-        data['modified'] = (datetime.datetime.strptime(data['modified'], "%Y-%m-%dT%H:%M:%S.%f") + datetime.timedelta(microseconds=1)).isoformat()
-        return PresentObject(self.table, self.pk, data)
+
+        # Pick modified time based on object that didn't change or the final modtime + epsilon
+        both = False
+        if not self._issame(self._convert2logformat(last.data), dict(data.items())):
+            both = True
+            data['modified'] = (datetime.datetime.strptime(data['modified'], "%Y-%m-%dT%H:%M:%S.%f") + datetime.timedelta(microseconds=1)).isoformat()
+        return PresentObject(self.table, self.pk, data), both
 
 
     @classmethod

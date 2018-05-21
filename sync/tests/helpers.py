@@ -1,9 +1,12 @@
 
 # Helper for sync and testing
 
-def dosync(db, merge):
+def dosync(db, merge, hosts=None):
     with db.cursor() as cur:
-        cur.execute("UPDATE mergeservers SET lastcheck='epoch', nextcheck='epoch'")
+        if hosts:
+            cur.execute("UPDATE mergeservers SET lastcheck='epoch', nextcheck='epoch' WHERE hostname in %s", (hosts,))
+        else:
+            cur.execute("UPDATE mergeservers SET lastcheck='epoch', nextcheck='epoch'")
     db.commit()
     merge.runonce()
 

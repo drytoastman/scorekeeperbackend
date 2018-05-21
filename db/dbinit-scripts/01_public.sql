@@ -102,10 +102,8 @@ BEGIN
         IF oldrow -> 'modified' = newrow -> 'modified' THEN
             RAISE EXCEPTION 'Updating without changing modification time';
         END IF;
-        IF ((app = 'synclocal') OR (app = 'syncremote')) THEN
-            RETURN NEW;
-        END IF;
         IF akeys(newrow - oldrow) = ARRAY['modified'] THEN
+            -- sliently ignored updates that are only a change to modification time
             RETURN NULL;
         END IF;
     END IF;
