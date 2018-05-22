@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import collections
+import logging
 import os
 import psycopg2
 import psycopg2.extras
@@ -17,6 +18,8 @@ from synclogic.process import MergeProcess
 from synclogic.model import DataInterface
 
 DB = collections.namedtuple('DB', ['name', 'image', 'port', 'serverid'])
+
+log = logging.getLogger(__name__)
 
 @pytest.fixture(scope="module")
 def syncdata():
@@ -73,6 +76,7 @@ def _createdbs(request, syncdata, TESTDBS):
             DataInterface.initialize(port=int(TESTDBS[0].port))
             break
         except Exception as e:
+            #log.warning(e)
             time.sleep(1)
     else:
         raise Exception("Unable to initialize data interface")
@@ -86,7 +90,8 @@ def _createdbs(request, syncdata, TESTDBS):
             try:
                 con = psycopg2.connect(**cargs, port=db.port)
                 break
-            except:
+            except Exception as e:
+                #log.warning(e)
                 time.sleep(1)
         else:
             raise Exception("Unable to get connection to {}".format(db.name))

@@ -10,7 +10,10 @@ import queue
 import time
 import uuid
 
-from synclogic.model import *
+from synclogic.mergeserver import MergeServer
+from synclogic.model import DataInterface
+from synclogic.exceptions import *
+from synclogic.objects import *
 
 log  = logging.getLogger(__name__)
 signalled = False
@@ -240,7 +243,7 @@ class MergeProcess():
         unfinished = set()
 
         # Insert order first (top down)
-        for t in TABLE_ORDER:
+        for t in DataInterface.TABLE_ORDER:
             seriesStatus("Insert {}".format(t))
 
             if not DataInterface.insert(localdb,  localinsert[t]):
@@ -250,10 +253,10 @@ class MergeProcess():
 
         # Update/delete order next (bottom up)
         log.debug("Performing updates/deletes")
-        for t in reversed(TABLE_ORDER):
+        for t in reversed(DataInterface.TABLE_ORDER):
             seriesStatus("Update {}".format(t))
 
-            if t in ADVANCED_TABLES:
+            if t in DataInterface.ADVANCED_TABLES:
                 self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t])
             else:
                 if not DataInterface.update(localdb,  localupdate[t]):
@@ -290,7 +293,7 @@ class MergeProcess():
         pkset  = local.keys() | remote.keys()
 
         loggedobj = dict()
-        logtable  = logtablefor(table)
+        logtable  = DataInterface.logtablefor(table)
         LoggedObject.loadFrom(loggedobj, localdb,  pkset, logtable, table, when)
         LoggedObject.loadFrom(loggedobj, remotedb, pkset, logtable, table, when)
 
