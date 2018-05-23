@@ -70,7 +70,7 @@ def _createdbs(request, syncdata, TESTDBS):
             raise Exception("Failed to start " + db.name)
 
     # Wait until introspection on db0 works
-    for ii in range(10):
+    for ii in range(20):
         try:
             # Introspection needed by MergeProcess
             DataInterface.initialize(port=int(TESTDBS[0].port))
@@ -86,7 +86,7 @@ def _createdbs(request, syncdata, TESTDBS):
     syncx = {}
     mergex = {}
     for db in TESTDBS:
-        for jj in range(10):
+        for jj in range(20):
             try:
                 con = psycopg2.connect(**cargs, port=db.port)
                 break

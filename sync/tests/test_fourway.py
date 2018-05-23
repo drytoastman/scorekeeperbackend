@@ -8,44 +8,6 @@ from helpers import *
 
 log = logging.getLogger(__name__)
 
-def _verify_totalhash(syncx):
-    hashes = {}
-    for db in syncx:
-        with syncx[db].cursor() as cur:
-            cur.execute("SELECT hostname,mergestate from mergeservers")
-            for row in cur.fetchall():
-                hashes[db,row['hostname']] = row['mergestate']['testseries']['totalhash']
-
-    ref = next(iter(hashes.values()))
-    if not all(x == ref for x in hashes.values()):
-        log.error("Non-matching hashes: {}".format(hashes))
-        assert False
-
-
-def _verify_updateLogOnlyChanges(syncx):
-    for db in syncx:
-        with syncx[db].cursor() as cur:
-            cur.execute("SELECT * from publiclog where tablen='drivers' and action='U'")
-            for row in cur.fetchall():
-                old = row['olddata']
-                new = row['newdata']
-
-                for k in list(old['attr'].keys()):
-                    old[k] = old['attr'].pop(k)
-                for k in list(new['attr'].keys()):
-                    new[k] = new['attr'].pop(k)
-
-                diff = {}
-                for k in new:
-                    if k not in old:
-                       diff[k] = (None, new[k])
-                    elif old[k] != new[k]:
-                       diff[k] = (old[k], new[k])
-
-                assert(set(diff.keys()) != set(['modified']))
-
-
-
 def test_driversync(sync4dbs, syncdata):
     """ Dealing with the advanced merge on the driver table """
     syncx, mergex = sync4dbs
@@ -104,5 +66,5 @@ def test_driversync(sync4dbs, syncdata):
     verify_car(syncx, syncdata.carid, (('number', 2),), ())
 
     # And the hashes should match by this point
-    _verify_updateLogOnlyChanges(syncx)
-    _verify_totalhash(syncx)
+    verify_update_logs_only_changes(syncx)
+    verify_totalhash(syncx)
