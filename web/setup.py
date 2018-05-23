@@ -27,7 +27,7 @@ x = setup(
     ],
 
     dependency_links = [
-        "git+git://github.com/drytoastman/connect-python-sdk.git@master#egg=squareconnect"
+        "git+https://github.com/drytoastman/connect-python-sdk.git@master#egg=squareconnect"
     ],
 
     packages=find_packages(),
