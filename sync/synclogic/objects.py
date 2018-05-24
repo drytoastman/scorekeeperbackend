@@ -17,7 +17,22 @@ def pkfromjson(table, data):
     """
     return tuple([ptype=='uuid' and uuid.UUID(data[k]) or data[k] for k,ptype in DataInterface.PRIMARY_KEYS[table].items()])
 
-InsertObject = namedtuple('InsertObject', 'otime, data')
+def row2json(dbobj):
+    """ Convert psycopg2 data into something we can compare with JSON logs """
+    ret = dict()
+    for k in dbobj.keys():
+        data = dbobj[k]
+        if k == 'attr':
+            ret['attr'] = data
+        elif type(data) is datetime.datetime:
+            ret[k] = data.isoformat().strip('0')
+        elif type(data) is uuid.UUID:
+            ret[k] = str(data)
+        else:
+            ret[k] = data
+    return ret
+
+InsertObject = namedtuple('InsertObject', 'otime, ltime, data')
 UpdateObject = namedtuple('UpdateObject', 'otime, odiff, adiff, adel')
 
 class LoggedObject():
@@ -30,15 +45,15 @@ class LoggedObject():
         self.initB   = None
         self.updates = []
 
-    def insert(self, otime, newdata):
+    def insert(self, otime, ltime, newdata):
         if 'created' not in newdata:
             # HACK: fix for missing columns
             newdata['created'] = "1970-01-01T00:00:00"
         if not self.initA:
-            self.initA = InsertObject(otime, newdata)
+            self.initA = InsertObject(otime, ltime, newdata)
             return
         if not self.initB:
-            self.initB = InsertObject(otime, newdata)
+            self.initB = InsertObject(otime, ltime, newdata)
             return
 
         raise Exception("inserted thrice?")
@@ -59,24 +74,10 @@ class LoggedObject():
         (odiff, adiff, adel) = self._diffobj(olddata, newdata)
         self.updates.append(UpdateObject(time, odiff, adiff, adel))
 
-    def _convert2logformat(self, dbobj):
-        # Convert psycopg2 data into something we can compare with JSON logs
-        compare = dict()
-        for k in dbobj.keys():
-            data = dbobj[k]
-            if k == 'attr':
-                compare['attr'] = data
-            elif type(data) is datetime.datetime:
-                compare[k] = data.isoformat().strip('0')
-            elif type(data) is uuid.UUID:
-                compare[k] = str(data)
-            else:
-                compare[k] = data
-        return compare
 
     def finalize(self, last):
         # Later insert becomes an update to catch any potential changes outside our purview
-        if self.initA.otime < self.initB.otime:
+        if self.initA.ltime < self.initB.ltime:
             data = self.initA.data.copy()
             self.update(self.initB.otime, self.initA.data, self.initB.data)
         else:
@@ -97,7 +98,7 @@ class LoggedObject():
 
         # Pick modified time based on object that didn't change or the final modtime + epsilon
         both = False
-        if not self._issame(self._convert2logformat(last.data), dict(data.items())):
+        if not self._issame(row2json(last.data), dict(data.items())):
             both = True
             data['modified'] = (datetime.datetime.strptime(data['modified'], "%Y-%m-%dT%H:%M:%S.%f") + datetime.timedelta(microseconds=1)).isoformat()
         return PresentObject(self.table, self.pk, data), both
@@ -118,7 +119,7 @@ class LoggedObject():
                     if pk not in objdict and pk in pkset:
                         objdict[pk] = LoggedObject(table, pk)
                     if pk in objdict:
-                        objdict[pk].insert(obj['otime'], obj['newdata'])
+                        objdict[pk].insert(obj['otime'], obj['ltime'], obj['newdata'])
 
                 elif obj['action'] == 'U':
                     pk = pkfromjson(table, obj['newdata'])

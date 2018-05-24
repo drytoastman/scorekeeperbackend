@@ -63,9 +63,9 @@ def verify_update_logs_only_changes(syncx):
                 old = row['olddata']
                 new = row['newdata']
 
-                for k in list(old['attr'].keys()):
+                for k in list(old.get('attr', dict()).keys()):
                     old[k] = old['attr'].pop(k)
-                for k in list(new['attr'].keys()):
+                for k in list(new.get('attr', dict()).keys()):
                     new[k] = new['attr'].pop(k)
 
                 diff = {}
@@ -74,6 +74,8 @@ def verify_update_logs_only_changes(syncx):
                        diff[k] = (None, new[k])
                     elif old[k] != new[k]:
                        diff[k] = (old[k], new[k])
+                for k in old.keys() - new.keys():
+                    diff[k] = (old[k], None)
 
                 assert(set(diff.keys()) != set(['modified']))
 

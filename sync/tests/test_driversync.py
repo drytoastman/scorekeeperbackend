@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
 import json
+import logging
 import time
 
 from helpers import *
+
+log = logging.getLogger(__name__)
 
 def test_driversync(syncdbs, syncdata):
     """ Dealing with the advanced merge on the driver table """
