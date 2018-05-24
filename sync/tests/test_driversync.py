@@ -18,7 +18,7 @@ def test_driversync(syncdbs, syncdata):
     with syncx['A'].cursor() as cur:
         cur.execute("UPDATE drivers SET firstname=%s,attr=%s,modified=now() where driverid=%s", ('newfirst', json.dumps({'address': '123'}), syncdata.driverid,))
         syncx['A'].commit()
-    time.sleep(0.2)
+    time.sleep(0.1)
 
     # Modify lastname and zip on B, insert some spurious log data that isn't relavant to us
     with syncx['B'].cursor() as cur:
@@ -29,13 +29,13 @@ def test_driversync(syncdbs, syncdata):
         time.sleep(0.1)
         cur.execute("INSERT INTO publiclog (usern, app, tablen, action, otime, ltime, olddata, newdata) VALUES ('x', 'y', 'drivers', 'D', now(), now(), %s, '{}')", (json.dumps(cruft2),))
         syncx['B'].commit()
-    time.sleep(0.2)
+    time.sleep(0.1)
 
     # Modify email and zip on A
     with syncx['A'].cursor() as cur:
         cur.execute("UPDATE drivers SET email=%s,attr=%s,modified=now() where driverid=%s", ('newemail', json.dumps({'address': '123', 'zip': '98222'}), syncdata.driverid,))
         syncx['A'].commit()
-    time.sleep(0.2)
+    time.sleep(0.1)
 
     dosync(syncx['A'], mergex['A'])
     verify_update_logs_only_changes(syncx)
@@ -47,7 +47,7 @@ def test_driversync(syncdbs, syncdata):
     with syncx['A'].cursor() as cur:
         cur.execute("UPDATE drivers SET attr=%s,modified=now() where driverid=%s", (json.dumps({'address': '123'}), syncdata.driverid,))
         syncx['A'].commit()
-    time.sleep(0.2)
+    time.sleep(0.1)
 
     dosync(syncx['A'], mergex['A'])
     verify_update_logs_only_changes(syncx)
@@ -56,6 +56,7 @@ def test_driversync(syncdbs, syncdata):
         (('address', '123'), ('zip', None)))
 
     # Delete driver on remote
+    syncx['B'].rollback()
     with syncx['B'].cursor() as cur:
         cur.execute("DELETE FROM registered WHERE carid in (SELECT carid FROM cars WHERE driverid=%s)", (syncdata.driverid,))
         cur.execute("DELETE FROM runorder WHERE carid in (SELECT carid FROM cars WHERE driverid=%s)", (syncdata.driverid,))
@@ -63,7 +64,7 @@ def test_driversync(syncdbs, syncdata):
         cur.execute("DELETE FROM cars WHERE driverid=%s", (syncdata.driverid,))
         cur.execute("DELETE FROM drivers WHERE driverid=%s", (syncdata.driverid,))
         syncx['B'].commit()
-    time.sleep(0.2)
+    time.sleep(0.1)
 
     dosync(syncx['A'], mergex['A'])
     verify_update_logs_only_changes(syncx)

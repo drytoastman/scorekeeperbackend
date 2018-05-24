@@ -1,6 +1,9 @@
 
 # Helper for sync and testing
 
+import logging
+log = logging.getLogger(__name__)
+
 def dosync(db, merge, hosts=None):
     with db.cursor() as cur:
         if hosts:
@@ -17,6 +20,7 @@ def verify_object(syncx, pid, coltuple, attrtuple, sqlget):
         with syncx[k].cursor() as cur:
             cur.execute(sqlget, (pid,))
             obj[k] = cur.fetchone()
+        syncx[k].rollback()
 
     if coltuple:
         for db in obj:
@@ -25,10 +29,7 @@ def verify_object(syncx, pid, coltuple, attrtuple, sqlget):
     else:
         for db in obj:
             if obj[db] is not None:
-                import logging
-                logging.getLogger(__name__).warning("Obj not none in {}".format(db))
-                import pdb
-                pdb.set_trace()
+                log.warning("Obj not none in {}".format(db))
             assert obj[db] == None
 
     if attrtuple:
@@ -78,6 +79,7 @@ def verify_update_logs_only_changes(syncx):
                     diff[k] = (old[k], None)
 
                 assert(set(diff.keys()) != set(['modified']))
+        syncx[db].rollback()
 
 def verify_totalhash(syncx):
     hashes = {}
@@ -86,6 +88,7 @@ def verify_totalhash(syncx):
             cur.execute("SELECT hostname,mergestate from mergeservers")
             for row in cur.fetchall():
                 hashes[db,row['hostname']] = row['mergestate']['testseries']['totalhash']
+        syncx[db].rollback()
 
     ref = next(iter(hashes.values()))
     if not all(x == ref for x in hashes.values()):
