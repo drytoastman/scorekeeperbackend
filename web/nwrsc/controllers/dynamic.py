@@ -34,6 +34,41 @@ def activecheck():
     if g.seriestype != Series.ACTIVE:
         raise ArchivedSeriesException()
 
+"""
+@current_app.sockets.route('/echo')
+def echo_socket(ws):
+    while True:
+        message = ws.receive()
+        if message:
+            ws.send(message)
+        else:
+            log.warning("empty message")
+"""
+
+@Announcer.route('/echo_test', methods=['GET'])
+def echo_test():
+    asdf = asdfgg
+    return """
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript">
+       var ws = new WebSocket("ws://127.0.0.1/echo");
+       ws.onopen = function() {
+           ws.send("socket open");
+       };
+       ws.onclose = function(evt) {
+           alert("socket closed");
+       };
+       ws.onmessage = function(evt) {
+           alert(evt.data);
+       };
+    </script>
+  </head>
+</html>
+        """
+
+
 @Announcer.route("/")
 def eventlist():
     return "event list here someday"

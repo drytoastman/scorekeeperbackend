@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from cheroot import wsgi
-from cheroot.workers import threadpool
+from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
 import logging
 import nwrsc.app 
 import os
@@ -61,13 +61,7 @@ if __name__ == '__main__':
     if cron:
        CronThread().start()
 
-    if theapp.debug:
-        theapp.run(host='0.0.0.0', port=port, threaded=True)
-    else:
-        threadpool.WorkerThread.__init__ = patchinit(threadpool.WorkerThread.__init__)
-        threadpool.ThreadPool.stop = justdie 
-        server = wsgi.Server(('0.0.0.0', port), theapp, numthreads=60, shutdown_timeout=1, server_name="Scorekeeper 2.0")
-        server.start()
+    server = pywsgi.WSGIServer(('', port), theapp, handler_class=WebSocketHandler)
+    server.serve_forever()
 
     removepid(0, 0) # just in case we get here somehow
-

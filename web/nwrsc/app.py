@@ -13,6 +13,7 @@ from flask_assets import Environment, Bundle
 from flask_compress import Compress
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
+from flask_sockets import Sockets
 from itsdangerous import URLSafeTimedSerializer
 from jinja2 import ChoiceLoader, FunctionLoader
 from werkzeug.debug.tbtools import get_current_traceback
@@ -163,15 +164,14 @@ def create_app():
     def log_flashes(sender, message, category):
        log.warning("Flashed: " + message)
 
-    if not theapp.debug:
-        @theapp.errorhandler(Exception)
-        def errorlog(e):
-            """ We want to log exception information to file for later investigation when debugger framework isn't presenting it for us and present a simple reportable error for user """
-            traceback = get_current_traceback(ignore_system_exceptions=True, show_hidden_frames=True)
-            log.error(traceback.plaintext)
-            last = traceback.frames[-1]
-            now = datetime.datetime.now().replace(microsecond=0)
-            return render_template("common/error.html", now=now, name=os.path.basename(last.filename), line=last.lineno, exception=e)
+    @theapp.errorhandler(Exception)
+    def errorlog(e):
+        """ We want to log exception information to file for later investigation when debugger framework isn't presenting it for us and present a simple reportable error for user """
+        traceback = get_current_traceback(ignore_system_exceptions=True, show_hidden_frames=True)
+        log.error(traceback.plaintext)
+        last = traceback.frames[-1]
+        now = datetime.datetime.now().replace(microsecond=0)
+        return render_template("common/error.html", now=now, name=os.path.basename(last.filename), line=last.lineno, exception=e, tbstring=theapp.debug and traceback.plaintext)
 
 
     #### Jinja 
@@ -196,7 +196,8 @@ def create_app():
     theapp.jinja_loader = ChoiceLoader([ theapp.jinja_loader, FunctionLoader(custom_template_loader) ])
 
 
-    ### Crypto, Compression, Mail and optional Profiling
+    ### Sockets, Crypto, Compression, Mail and optional Profiling
+    theapp.sockets = Sockets(theapp)
     theapp.hasher = Bcrypt(theapp)
     theapp.usts = URLSafeTimedSerializer(theapp.config["SECRET_KEY"])
     if theapp.config['MAIL_SERVER'] and theapp.config['MAIL_DEFAULT_SENDER']:

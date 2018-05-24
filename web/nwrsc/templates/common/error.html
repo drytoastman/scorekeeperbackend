@@ -4,6 +4,7 @@
 <style type='text/css'>
 ul { list-style-type: none; }
 li { margin: 5px; }
+pre { font-size: 1.1rem; margin-left: 3rem; margin-top: 2rem; }
 </style>
 {% endblock headers %}
 
@@ -14,4 +15,7 @@ li { margin: 5px; }
 <li>{{name}}:{{line}}</li>
 <li>{{exception}}</li>
 </ul>
+<pre>
+{{tbstring and tbstring or ""}}
+</pre>
 {% endblock content %}
