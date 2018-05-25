@@ -53,7 +53,8 @@ def index():
 def nextresult():
     # use ceil so round off doesn't cause an infinite loop
     try:
-        modified = math.ceil(float(request.args.get('modified', '0')))
+        modified  = math.ceil(float(request.args.get('modified', '0')))
+        lasttimer = float(request.args.get('lasttimer', '0'))
         mini = _boolarg('mini')
     except Exception as e:
         abort(400, "Invalid parameter data: {}".format(e))
@@ -74,25 +75,11 @@ def nextresult():
             data = loadAnnouncerResults(result['last_entry']['carid'], mini)
             data['modified'] = result['last_entry']['modified'].timestamp()
             return json_encode(data)
-        if time.time() > then + MAX_WAIT:  # wait max to stop forever threads
-            return json_encode({})
-        g.db.rollback()
-        time.sleep(1.0)
 
-@Announcer.route("/timer")
-@Announcer.route("/event/<uuid:eventid>/timer")
-def timer():
-    # Long polling, hold the connection until the timer reports different data
-    try:
-        lasttimer = float(request.args.get('lasttimer', '0'))
-    except Exception as e:
-        abort(400, "Invalid parameter data: {}".format(e))
-
-    then = time.time()
-    while True:
         result = TimerTimes.getLast()
         if result and result != lasttimer:
             return json_encode({'timer': result})
+
         if time.time() > then + MAX_WAIT:  # wait max to stop forever threads
             return json_encode({})
         g.db.rollback()

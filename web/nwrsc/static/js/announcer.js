@@ -1,7 +1,13 @@
 
 function processData(json)
 {
-    if (json.modified > lasttime)
+    if ('timer' in json)
+    {
+        lasttimer = json.timer;
+        $('#timeroutput').text(lasttimer);
+    }
+
+    if ('modified' in json && json.modified > lasttime)
     {
         lasttime = json.modified;
         if (announcermini) {
@@ -28,34 +34,11 @@ function classView(classcode)
 function updateCheck()
 {
     $.ajax({
-            dataType: "json",
-            url: announcerbase + 'next',
-            data: { modified: lasttime, mini: announcermini?1:0 },
-            success: function(data) { processData(data); updateCheck(); },
-            error: function(xhr) { if (xhr.status != 403) { setTimeout(updateCheck, 3000); } }
-            });
-}
-
-
-function timerUpdate()
-{
-    $.ajax({
-            dataType: "json",
-            url: announcerbase + 'timer',
-            data: { lasttimer: lasttimer },
-            success: function(data) {
-                if ('timer' in data)
-                {
-                    lasttimer = data.timer;
-                    $('#timeroutput').text(lasttimer);
-                }
-                timerUpdate();
-            },
-            error: function(xhr) {
-				if (xhr.status != 403) {
-					setTimeout(timerUpdate, 3000);
-				}
-			}
+        dataType: "json",
+        url:      announcerbase + 'next',
+        data:     { modified: lasttime, lasttimer: lasttimer, mini: announcermini?1:0 },
+        success:  function(data) { processData(data); updateCheck(); },
+        error:    function(xhr) { if (xhr.status != 403) { setTimeout(updateCheck, 3000); } }
     });
 }
 
@@ -86,8 +69,4 @@ $(document).ready(function(){
     });
 
     updateCheck();
-    if (!announcermini)
-        setTimeout(timerUpdate, 1000);
 });
-
-
