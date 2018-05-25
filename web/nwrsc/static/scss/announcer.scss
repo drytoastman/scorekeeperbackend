@@ -3,7 +3,9 @@ $headerfill: $basecolor;
 $titlesfill: lighten( $basecolor, 10% );
 $tabcolor: darken( $basecolor, 10% );
 
+@import "../extern/font-awesome/font-awesome.scss";
 @import "../extern/bootstrap-4.0.0.scss";
+@import "common.scss";
 
 .layout {
   font-size: 0.9rem;
@@ -20,6 +22,15 @@ $tabcolor: darken( $basecolor, 10% );
 
 a {
     color: $tabcolor; 
+}
+
+.modal {
+    h1 {
+        font-size: 1.1rem;
+    }
+    input {
+        width: 100%;
+    }
 }
 
 .nav-link.active {

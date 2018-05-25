@@ -19,6 +19,12 @@ function processData(json)
     }
 }
 
+function classView(classcode)
+{
+    $('#specclass').html(classcode);
+    $('a[href="#specclass"]').tab('show')
+}
+
 function updateCheck()
 {
     $.ajax({
@@ -58,6 +64,27 @@ $(document).ready(function(){
     announcerbase = location.protocol + '//' + location.host + location.pathname;
     lasttime = 0;
     lasttimer = "0.000";
+
+    var modal = $('#classSelectModal');
+    var input = modal.find('input');
+    modal.removeClass('fade'); // make it snappier
+    modal.on('hidden.bs.modal', function (e) { input.val(''); });
+    modal.on('shown.bs.modal',  function (e) { input.trigger('focus'); })
+    input.keypress(function (e) {
+        if (e.key == 'Enter') {
+            code = $(this).val();
+            input.val('');
+            modal.modal('hide');
+            classView(code);
+        }
+    });
+
+    $('body,.nav-link').keypress(function(e){
+        if (e.target === this) {
+            $('#classSelectModal').modal('show');
+        }
+    });
+
     updateCheck();
     if (!announcermini)
         setTimeout(timerUpdate, 1000);

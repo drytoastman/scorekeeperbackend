@@ -1,4 +1,5 @@
 {% extends "common/base.html" %}
+{% import 'common/macros.html' as m %}
 
 {% block headers %}
 {% assets "announcer.css" %} 
@@ -24,12 +25,14 @@
     <a class="nav-link"        role="tab" data-toggle="tab" href="#nexte">Next To Finish</a>
     <a class="nav-link active" role="tab" data-toggle="tab" href="#firste">Last To Finish</a>
     <a class="nav-link"        role="tab" data-toggle="tab" href="#seconde">Second To Last</a>
+    <a class="nav-link"        role="tab" data-toggle="tab" href="#specclass">Specific Class</a>
 </nav>
 
 <div id="entranttabs" class="tab-content">
     <div id="nexte"   role="tabpanel" class="tab-pane"        modified='0'></div>
     <div id="firste"  role="tabpanel" class="tab-pane active" modified='0'></div>
     <div id="seconde" role="tabpanel" class="tab-pane"        modified='0'></div>
+    <div id="specclass" role="tabpanel" class="tab-pane"      modified='0'></div>
 </div>
 
 </td><td>
@@ -51,5 +54,10 @@
 </div>
 
 </td></tr></table>
+
+{% call m.modal("classSelectModal", "View Class", "") %}
+    <input type='text' value=''/>
+{% endcall %}
+
 {% endblock content %}
 
