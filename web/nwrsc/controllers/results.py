@@ -26,6 +26,7 @@ def init():
     env.register('results.css', Bundle("scss/results.scss", depends="scss/*.scss", filters="libsass", output="results.css"))
 
 @Results.before_request
+@Announcer.before_request
 def setup():
     g.title = 'Scorekeeper Results'
     g.seriesyears = Series.byYear()

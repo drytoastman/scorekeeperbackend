@@ -1,0 +1,57 @@
+{% extends "common/base.html" %}
+{% import 'common/macros.html' as m %}
+
+{% block headers %}
+{% assets "results.css" -%}
+<link rel="stylesheet" href="{{ASSET_URL}}" /> 
+{% endassets -%}
+{% assets "results.js" -%}
+    <script type="text/javascript" src="{{ASSET_URL}}"></script>
+{% endassets -%}
+
+{%- if not g.year or not g.series or not event -%}
+<script type="text/javascript">
+$(document).ready(function(){
+{% if not g.series -%}
+Scorekeeper.shownavmenu('#navbarNav', '#seriesdropdownlink');
+{% elif not event -%}
+Scorekeeper.shownavmenu('#navbarNav', '#eventdropdownlink');
+{% endif -%}
+});
+</script>
+{%- endif -%}
+{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-expand-md navbar-dark bg-results d-print-none">
+  <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  {{ m.navbarbrand('Scorekeeper Announcer') }}
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+
+        <li id="seriesdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="seriesdropdownlink" data-toggle="dropdown">{{g.series or "Select a Series"}}</a>
+          <div class="dropdown-menu">
+          {% for s in g.seriesyears[g.year] -%}
+              <a class="dropdown-item" href="{{url_for(".eventlist", series=s)}}">{{s}}</a>
+          {% endfor %}
+          </div>
+        </li>
+
+        {% if g.series %}
+        <li id="eventdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="eventdropdownlink" data-toggle="dropdown">{{event and event.name or "Select an Event"}}</a>
+          <div class="dropdown-menu">
+          {%for event in g.events|sort(attribute='date') -%}
+              <a class="dropdown-item" href='{{url_for('.index', eventid=event.eventid)}}'>{{event.name}}</a>
+          {% endfor  %}
+          </div>
+        </li>
+        {% endif %}
+
+    </ul>
+  </div>
+</nav>
+{% endblock content %}

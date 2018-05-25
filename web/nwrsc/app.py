@@ -53,7 +53,7 @@ def create_app():
         "SQ_APPLICATION_SECRET":           os.environ.get('SQ_APPLICATION_SECRET', None),
         "IS_MAIN_SERVER":         any2bool(os.environ.get('IS_MAIN_SERVER', False)),
         "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE', 'US/Pacific'),
-        "LOGGER_HANDLER_POLICY":  "None",
+        "PROPAGATE_EXCEPTIONS":            False,
     })
     theapp.config['TEMPLATES_AUTO_RELOAD'] = theapp.config['DEBUG']
     theapp.config['LIBSASS_STYLE'] = theapp.config['DEBUG'] and 'expanded' or 'compressed'
@@ -82,6 +82,7 @@ def create_app():
     theapp.add_url_rule('/admin/squareoauth', "Admin.squareoauth")
     theapp.add_url_rule('/admin/cron',   "Admin.cron")
     theapp.add_url_rule('/admin/',       "Admin.base")
+    theapp.add_url_rule('/announcer/',   "Announcer.base")
     theapp.add_url_rule('/results/',     "Results.base")
 
     @theapp.route('/favicon.ico')
@@ -164,10 +165,10 @@ def create_app():
        log.warning("Flashed: " + message)
 
     @theapp.errorhandler(Exception)
+    @theapp.errorhandler(500)
     def errorlog(e):
         """ We want to log exception information to file for later investigation when debugger framework isn't presenting it for us and present a simple reportable error for user """
         traceback = get_current_traceback(ignore_system_exceptions=True, show_hidden_frames=True)
-        log.error(traceback.plaintext)
         last = traceback.frames[-1]
         now = datetime.datetime.now().replace(microsecond=0)
         return render_template("common/error.html", now=now, name=os.path.basename(last.filename), line=last.lineno, exception=e, tbstring=theapp.debug and traceback.plaintext)

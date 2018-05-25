@@ -29,14 +29,10 @@ def init():
     env.register('announcer.css',     Bundle("scss/announcer.scss",     depends="scss/*.scss", filters="libsass", output="announcer.css"))
     env.register('announcermini.css', Bundle("scss/announcermini.scss", depends="scss/*.scss", filters="libsass", output="announcermini.css"))
 
-@Announcer.before_request
-def activecheck():
-    if g.seriestype != Series.ACTIVE:
-        raise ArchivedSeriesException()
-
-@Announcer.route("/")
-def eventlist():
-    return "event list here someday"
+@Announcer.endpoint("Announcer.base")
+@Announcer.route("/", endpoint='eventlist')
+def serieslist():
+    return render_template('announcer/bluebase.html')
 
 def _boolarg(arg):
     try:
