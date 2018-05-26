@@ -1,52 +1,68 @@
 
 function processData(json)
 {
-    if ('timer' in json)
+    if ('lasttimer' in json)
     {
-        lasttimer = json.timer;
-        $('#timeroutput').text(lasttimer);
+        Announcer.request.lasttimer = json.lasttimer;
+        $('#timeroutput').text(json.lasttimer);
     }
 
-    if ('modified' in json && json.modified > lasttime)
+    if ('lastresult' in json && json.lastresult.timestamp > Announcer.request.lastresult)
     {
-        lasttime = json.modified;
-        if (announcermini) {
-            $('#firste').html(json.last);
-            $('#runorder').html(json.order);
+        Announcer.request.lastresult = json.lastresult.timestamp;
+        if (Announcer.mini) {
+            $('#firste').html(json.lastresult.last);
+            $('#runorder').html(json.lastresult.order);
         } else {
             $('#seconde').html($('#firste').html());
-            $('#firste').html(json.last);
-            $('#nexte').html(json.next);
-            $('#topnetcell').html(json.topnet);
-            $('#toprawcell').html(json.topraw);
-            $('#runorder').html(json.order);
+            $('#firste').html(json.lastresult.last);
+            $('#nexte').html(json.lastresult.next);
+            $('#topnetcell').html(json.lastresult.topnet);
+            $('#toprawcell').html(json.lastresult.topraw);
+            $('#runorder').html(json.lastresult.order);
             $('a[href="#firste"]').tab('show');
         }
+    }
+
+    if ('lastclass' in json && json.lastclass.timestamp > Announcer.request.lastclass)
+    {
+        Announcer.request.lastclass = json.lastclass.timestamp;
+        $('#specclass').html(json.lastclass.results);
     }
 }
 
 function classView(classcode)
 {
-    $('#specclass').html(classcode);
+    Announcer.request.classcode = classcode;
+    $('#specclass').html("Loading " + classcode);
     $('a[href="#specclass"]').tab('show')
+    updateCheck();
 }
 
 function updateCheck()
 {
-    $.ajax({
+    Announcer.inflight = $.ajax({
+        beforeSend : function() { if(Announcer.inflight != null) { Announcer.inflight.abort(); } },
         dataType: "json",
-        url:      announcerbase + 'next',
-        data:     { modified: lasttime, lasttimer: lasttimer, mini: announcermini?1:0 },
+        url:      Announcer.base + 'next',
+        data:     Announcer.request,
         success:  function(data) { processData(data); updateCheck(); },
-        error:    function(xhr) { if (xhr.status != 403) { setTimeout(updateCheck, 3000); } }
+        error:    function(xhr) { if ((xhr.status != 403) && (xhr.status != 0)) { setTimeout(updateCheck, 3000); } }
     });
 }
 
+var Announcer = {};
+
 $(document).ready(function(){
-    announcermini = (location.search.indexOf('mini=1') >= 0);
-    announcerbase = location.protocol + '//' + location.host + location.pathname;
-    lasttime = 0;
-    lasttimer = "0.000";
+    Announcer.mini = (location.search.indexOf('mini=1') >= 0);
+    Announcer.base = location.protocol + '//' + location.host + location.pathname;
+    Announcer.inflight = null;
+    Announcer.request = {
+        lastclass:  0,
+        classcode:  "",
+        lastresult: 0,
+        lasttimer:  "0.000"
+    };
 
     var modal = $('#classSelectModal');
     var input = modal.find('input');

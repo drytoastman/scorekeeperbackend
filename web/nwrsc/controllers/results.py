@@ -35,7 +35,6 @@ def setup():
         g.seriesinfo = Result.getSeriesInfo()
         g.settings = g.seriesinfo.getSettings()
         g.events = g.seriesinfo.getEvents()
-        log.debug(g.eventid)
         if g.eventid:
             g.event = g.seriesinfo.getEvent(g.eventid)
             if g.event is None:

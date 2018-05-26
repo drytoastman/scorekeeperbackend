@@ -34,16 +34,32 @@ def init():
 def serieslist():
     return render_template('announcer/bluebase.html')
 
-def _boolarg(arg):
+def boolarg(arg):
+    try: return request.args.get(arg, '0') in ('1', 'true', 'yes')
+    except: return False
+
+def floatoptarg(arg):
+    try: return float(request.args.get(arg, None))
+    except: return None
+
+def modifiedarg(arg, limit):
+    """
+        Convert float string into a time limited datetime
+        Uses ceil so round off doesn't cause an infinite loop
+    """
     try:
-        return request.args.get(arg, '0') in ('1', 'true', 'yes')
+        f = float(request.args.get(arg, None))
+        moddt = datetime.datetime.fromtimestamp(math.ceil(f))
+        if moddt < limit:
+            moddt = limit
+        return moddt
     except:
-        return False
+        return None
 
 @Announcer.route("/event/<uuid:eventid>/")
 def index():
     g.event = Event.get(g.eventid)
-    mini = _boolarg('mini')
+    mini = boolarg('mini')
     if mini:
         return render_template('/announcer/mini.html')
     else:
@@ -51,40 +67,52 @@ def index():
 
 @Announcer.route("/event/<uuid:eventid>/next")
 def nextresult():
-    # use ceil so round off doesn't cause an infinite loop
+    event = Event.get(g.eventid)
+    midnight = datetime.datetime.combine(event.date, datetime.time(0))
     try:
-        modified  = math.ceil(float(request.args.get('modified', '0')))
-        lasttimer = float(request.args.get('lasttimer', '0'))
-        mini = _boolarg('mini')
+        lastclass  = modifiedarg('lastclass', midnight)
+        lastresult = modifiedarg('lastresult',  midnight)
+        lasttimer  = floatoptarg('lasttimer')
+        mini       = boolarg('mini')
+        classcode  = request.args.get('classcode', '')
     except Exception as e:
         abort(400, "Invalid parameter data: {}".format(e))
 
     # Long polling, hold the connection until something is actually new
     then  = time.time()
-    moddt = datetime.datetime.fromtimestamp(modified)
-
-    # Limit lookback to the date of the event
-    event = Event.get(g.eventid)
-    midnight = datetime.datetime.combine(event.date, datetime.time(0))
-    if moddt < midnight:
-        moddt = midnight
-
+    ret = {}
+    log.debug("starting loop with = {}".format(request.args))
     while True:
-        result = Run.getLast(g.eventid, moddt)
-        if result: # Not an empty dict
-            data = loadAnnouncerResults(result['last_entry']['carid'], mini)
-            data['modified'] = result['last_entry']['modified'].timestamp()
-            return json_encode(data)
+        if lastresult is not None:
+            lastrun = Run.getLast(g.eventid, lastresult)
+            if lastrun: # Not an empty dict
+                data = loadAnnouncerResults(lastrun['last_entry']['carid'], mini)
+                data['timestamp'] = lastrun['last_entry']['modified'].timestamp()
+                ret['lastresult'] = data
 
-        result = TimerTimes.getLast()
-        if result and result != lasttimer:
-            return json_encode({'timer': result})
+        if classcode and lastclass is not None:
+            # Search class
+            if lastclass == midnight: #something
+                ret['lastclass'] = {
+                    'results': 'here are the results for {}'.format(classcode),
+                    'timestamp': lastclass.timestamp() + 1
+                }
 
-        if time.time() > then + MAX_WAIT:  # wait max to stop forever threads
+        if lasttimer is not None:
+            lastrecord = TimerTimes.getLast()
+            if lastrecord and lastrecord != lasttimer:
+                ret['lasttimer'] = lastrecord
+
+        if ret: # If we have data, return it now
+            return json_encode(ret)
+
+        if time.time() > then + MAX_WAIT: # wait max to stop forever threads
             return json_encode({})
-        g.db.rollback()
+
+        g.db.rollback() # Don't stay idle in transaction from SELECTs
         time.sleep(1.0)
- 
+
+
 def loadAnnouncerResults(carid, mini):
     settings  = Settings.getAll()
     classdata = ClassData.get()
