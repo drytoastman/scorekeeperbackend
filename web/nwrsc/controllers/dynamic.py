@@ -91,12 +91,12 @@ def nextresult():
                 ret['lastresult'] = data
 
         if classcode and lastclass is not None:
-            # Search class
-            if lastclass == midnight: #something
-                ret['lastclass'] = {
-                    'results': 'here are the results for {}'.format(classcode),
-                    'timestamp': lastclass.timestamp() + 1
-                }
+            lastrun = Run.getLast(g.eventid, lastclass, classcode)
+            log.debug("{}, {}, {}".format(lastclass, classcode, lastrun))
+            if lastrun: # Not an empty dict
+                data = loadClassResults(lastrun['last_entry']['carid'])
+                data['timestamp'] = lastrun['last_entry']['modified'].timestamp()
+                ret['lastclass'] = data
 
         if lasttimer is not None:
             lastrecord = TimerTimes.getLast()
@@ -113,6 +113,28 @@ def nextresult():
         time.sleep(1.0)
 
 
+def entrantTables(settings, classdata, event, carid, results, champ):
+    (group, driver) = Result.getDecoratedClassResults(settings, results, carid)
+    if driver is None:
+        return "No result data for carid {}".format(carid)
+    if not champ:
+        decchamp = ""
+    elif event.ispractice:
+        decchamp = "practice event"
+    elif classdata.classlist[driver['classcode']].champtrophy:
+        decchamp = Result.getDecoratedChampResults(champ, driver)
+    else:
+        decchamp = "Not a champ class"
+    return render_template('/announcer/entrant.html', event=event, driver=driver, group=group, champ=decchamp)
+
+def loadClassResults(carid):
+    settings = Settings.getAll()
+    classdata = ClassData.get()
+    event    = Event.get(g.eventid)
+    results  = Result.getEventResults(g.eventid)
+    champ    = Result.getChampResults()
+    return {'last': entrantTables(settings, classdata, event, carid, results, champ) }
+
 def loadAnnouncerResults(carid, mini):
     settings  = Settings.getAll()
     classdata = ClassData.get()
@@ -120,23 +142,10 @@ def loadAnnouncerResults(carid, mini):
     results   = Result.getEventResults(g.eventid)
     nextid    = RunOrder.getNextCarIdInOrder(carid, g.eventid)
     order     = list()
+    champ     = None
     if not mini:
-        champ     = Result.getChampResults()
-        tttable   = get_template_attribute('/results/ttmacros.html', 'toptimestable')
-
-    def entrant_tables(cid):
-        (group, driver) = Result.getDecoratedClassResults(settings, results, cid)
-        if driver is None:
-            return "No result data for carid {}".format(cid)
-        if mini:
-            decchamp = ""
-        elif event.ispractice:
-            decchamp = "practice event"
-        elif classdata.classlist[driver['classcode']].champtrophy:
-            decchamp = Result.getDecoratedChampResults(champ, driver)
-        else:
-            decchamp = "Not a champ class"
-        return render_template('/announcer/entrant.html', event=event, driver=driver, group=group, champ=decchamp)
+        champ   = Result.getChampResults()
+        tttable = get_template_attribute('/results/ttmacros.html', 'toptimestable')
 
     for n in RunOrder.getNextRunOrder(carid, g.eventid):
         if n.classcode in results:
@@ -146,10 +155,10 @@ def loadAnnouncerResults(carid, mini):
                     break
 
     data = {}
-    data['last']   = entrant_tables(carid)
+    data['last']   = entrantTables(settings, classdata, event, carid, results, champ)
     data['order']  = render_template('/announcer/runorder.html', order=order)
     if not mini:
-        data['next']   = entrant_tables(nextid)
+        data['next']   = entrantTables(settings, classdata, event, nextid, results, champ)
         data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True, 'counted':False}, carid=carid))
         data['topraw'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':False, 'counted':False}, carid=carid))
         for ii in range(1, event.segments+1):

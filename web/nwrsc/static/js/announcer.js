@@ -27,13 +27,14 @@ function processData(json)
     if ('lastclass' in json && json.lastclass.timestamp > Announcer.request.lastclass)
     {
         Announcer.request.lastclass = json.lastclass.timestamp;
-        $('#specclass').html(json.lastclass.results);
+        $('#specclass').html(json.lastclass.last);
     }
 }
 
 function classView(classcode)
 {
     Announcer.request.classcode = classcode;
+    Announcer.request.lastclass = 0;
     $('#specclass').html("Loading " + classcode);
     $('a[href="#specclass"]').tab('show')
     updateCheck();
