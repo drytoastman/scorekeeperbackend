@@ -43,8 +43,13 @@ ul { padding-left: 0.7rem; }
 <div class='col-{{cols}} col-md-{{colm}} col-lg-{{coll}}'>
 <h5>Top Times Lists</h5>
 <ul>
+    {% if g.event.ispro %}
+	<li><a href='{{url_for('.tt', indexed=0)}}'>Unindexed</a></li>
+	<li><a href='{{url_for('.tt', indexed=1)}}'>Indexed</a></li>
+    {% else %}
 	<li><a href='{{url_for('.tt', counted=1)}}'>Counted Runs</a></li>
 	<li><a href='{{url_for('.tt', counted=0)}}'>All Runs</a></li>
+    {% endif %}
 </ul>
 {%if event.segments > 1 %}
     Segments?  Need to implement this stuff now.
