@@ -19,7 +19,7 @@ function processData(json)
     {
         Announcer.request.lastresult = json.lastresult.timestamp;
         if (Announcer.mini) {
-            $('#firste').html(json.lastresult.last.entrant);
+            $('#firste').html(json.lastresult.entrant + json.lastresult.class);
             $('#runorder').html(json.lastresult.order);
         } else {
             $('#seconde').html($('#firste').html());
