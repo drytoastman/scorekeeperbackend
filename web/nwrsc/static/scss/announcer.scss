@@ -42,23 +42,37 @@ a {
   border-color: #BBB !important;
 }
 
-#timeroutput {
+#timeroutput, #lefttimer, #righttimer {
 	font-size: 2.5rem;
 	color: #444;
 	display: block;
 	text-align: center;
 }
 
+#leftentrant, #rightentrant {
+    display: block;
+}
+
 #runorder {
   margin-bottom: 0.5rem;
 }
 
-#classtable, #champtable, div.halffiller {
-  min-width: 23rem;
+
+table.next {
+    & > tbody > tr > td {
+        border: none !important;
+        vertical-align: top;
+    }
 }
 
-#classtable td, #champtable td {
-  white-space: nowrap;
+
+table.res {
+    width: 100%;
+    td {
+        white-space: nowrap;
+        border: 1px solid gray;
+        padding: 2px;
+    }
 }
 
 div.halffiller {
@@ -71,6 +85,7 @@ div.halffiller {
         td, th {
             border: 1px grey solid;
             padding: 0 0.3rem;
+            vertical-align: top;
         }
         td.fullwidth, td.halfwidth {
             border: 0;

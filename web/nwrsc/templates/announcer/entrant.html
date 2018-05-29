@@ -1,7 +1,5 @@
-<table class='forcelayout'><tr><td class='fullwidth' colspan='2'>
-
-<!-- runs -->
-<table id='resultstable' class='res'>
+<!-- entrant -->
+<table class='res'>
 <tbody>
 <tr class='head'><th colspan='{{5}}'>{{driver.firstname}} {{driver.lastname}} - Course {{driver.lastcourse}}</th></tr>
 <tr class='subhead'>
@@ -30,60 +28,3 @@
 
 </tbody>
 </table>
-
-
-<!-- end runs -->
-
-</td></tr><tr><td class='halfwidth'>
-
-<!-- class list -->
-
-<table id='classtable' class='res'>
-<tbody>
-<tr class='head'><th colspan='6'>Event - {{driver.classcode}}</th></tr>
-<tr class='subhead'><th>#</th><th>Name</th><th>Idx</th><th>Net</th><th colspan='2'>Need (Raw)</th></tr>
-{% for e in group %}
-<tr class='{{e.current and 'highlight' or ''}} {{e.ispotential and 'couldhave' or ''}} {{e.isold and 'improvedon' or ''}}'>
-<td>{{e.position}}</td>
-<td>{{e.firstname}} {{e.lastname}}</td>
-<td>{{e.indexstr}}</td>
-<td>{{e.net|t3}}</td>
-<td>{{e.diffn|t3}}</td>
-<td>{{e.diff1|t3}}</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-
-<!-- end class list -->
-
-</td><td class='halfwidth'>
-
-<!-- champlist -->
-
-{% if champ is string %}
-<div class='halffiller'>
-{{champ}}
-</div>
-{% else %}
-<table id='champtable' class='res'>
-<tbody>
-<tr class='head'><th colspan='4'>Champ - {{driver.classcode}}</th></tr>
-<tr class='subhead'><th>#</th><th>Name</th><th></th><th>Points</th></tr>
-{% for e in champ %}
-<tr class='{{e.current and 'highlight' or ''}} {{e.ispotential and 'couldhave' or ''}} {{e.isold and 'improvedon' or ''}}'>
-<td>{{e.position}}</td>
-<td>{{e.firstname}} {{e.lastname}}</td>
-<td>{{e.eventcount}}</td>
-<td>{{e.points.total|t3}}</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-{% endif %}
-
-<!-- end champ list -->
-
-</td></tr></table>
-
-

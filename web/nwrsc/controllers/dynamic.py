@@ -62,6 +62,9 @@ def index():
     mini = boolarg('mini')
     if mini:
         return render_template('/announcer/mini.html')
+    elif g.event.ispro:
+        log.warning(g.event.ispro)
+        return render_template('/announcer/pro.html')
     else:
         return render_template('/announcer/main.html')
 
@@ -113,19 +116,22 @@ def nextresult():
         time.sleep(1.0)
 
 
-def entrantTables(settings, classdata, event, carid, results, champ):
+def entrantTables(store, settings, classdata, event, carid, results, champ):
     (group, driver) = Result.getDecoratedClassResults(settings, results, carid)
     if driver is None:
-        return "No result data for carid {}".format(carid)
+        store['entrant'] = "No result data for carid {}".format(carid)
+    
+    store['entrant'] = render_template('/announcer/entrant.html', event=event, driver=driver, group=group)
+    store['class']   = render_template('/announcer/class.html', event=event, driver=driver, group=group)
     if not champ:
-        decchamp = ""
+        store['champ'] = ""
     elif event.ispractice:
-        decchamp = "practice event"
+        store['champ'] = "practice event"
     elif classdata.classlist[driver['classcode']].champtrophy:
-        decchamp = Result.getDecoratedChampResults(champ, driver)
+        store['champ'] = render_template('/announcer/champ.html', event=event, driver=driver, group=group, champ=Result.getDecoratedChampResults(champ, driver))
     else:
-        decchamp = "Not a champ class"
-    return render_template('/announcer/entrant.html', event=event, driver=driver, group=group, champ=decchamp)
+        store['champ'] = "Not a champ class"
+
 
 def loadClassResults(carid):
     settings = Settings.getAll()
@@ -133,7 +139,10 @@ def loadClassResults(carid):
     event    = Event.get(g.eventid)
     results  = Result.getEventResults(g.eventid)
     champ    = Result.getChampResults()
-    return {'last': entrantTables(settings, classdata, event, carid, results, champ) }
+    ret      = {}
+    entrantTables(ret, settings, classdata, event, carid, results, champ)
+    return ret
+
 
 def loadAnnouncerResults(carid, mini):
     settings  = Settings.getAll()
@@ -155,14 +164,15 @@ def loadAnnouncerResults(carid, mini):
                     break
 
     data = {}
-    data['last']   = entrantTables(settings, classdata, event, carid, results, champ)
+    entrantTables(data, settings, classdata, event, carid, results, champ)
     data['order']  = render_template('/announcer/runorder.html', order=order)
     if not mini:
-        data['next']   = entrantTables(settings, classdata, event, nextid, results, champ)
+        data['next'] = {}
+        entrantTables(data['next'], settings, classdata, event, nextid, results, champ)
         data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True, 'counted':False}, carid=carid))
         data['topraw'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':False, 'counted':False}, carid=carid))
         for ii in range(1, event.segments+1):
-            ret['topseg%d'% ii] = toptimestable(Result.getTopTimesTable(classdata, results, {'seg':ii}, carid=carid))
+            data['topseg%d'% ii] = toptimestable(Result.getTopTimesTable(classdata, results, {'seg':ii}, carid=carid))
 
     return data
 

@@ -28,11 +28,18 @@
     <a class="nav-link"        role="tab" data-toggle="tab" href="#specclass">Specific Class</a>
 </nav>
 
+{% macro elayout() %}
+    <table class='next'>
+        <tr><td class='entrant' colspan=2></td></tr>
+        <tr><td class='class'></td><td class='champ'></td></tr>
+    </table>
+{% endmacro %}
+
 <div id="entranttabs" class="tab-content">
-    <div id="nexte"   role="tabpanel" class="tab-pane"        modified='0'></div>
-    <div id="firste"  role="tabpanel" class="tab-pane active" modified='0'></div>
-    <div id="seconde" role="tabpanel" class="tab-pane"        modified='0'></div>
-    <div id="specclass" role="tabpanel" class="tab-pane"      modified='0'></div>
+    <div id="nexte"   role="tabpanel" class="tab-pane"        modified='0'>{{elayout()}}</div>
+    <div id="firste"  role="tabpanel" class="tab-pane active" modified='0'>{{elayout()}}</div>
+    <div id="seconde" role="tabpanel" class="tab-pane"        modified='0'>{{elayout()}}</div>
+    <div id="specclass" role="tabpanel" class="tab-pane"      modified='0'>{{elayout()}}</div>
 </div>
 
 </td><td>

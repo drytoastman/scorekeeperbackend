@@ -1,0 +1,21 @@
+<!-- champlist -->
+{% if champ is string %}
+<div class='halffiller'>
+{{champ}}
+</div>
+{% else %}
+<table class='res'>
+<tbody>
+<tr class='head'><th colspan='4'>Champ - {{driver.classcode}}</th></tr>
+<tr class='subhead'><th>#</th><th>Name</th><th></th><th>Points</th></tr>
+{% for e in champ %}
+<tr class='{{e.current and 'highlight' or ''}} {{e.ispotential and 'couldhave' or ''}} {{e.isold and 'improvedon' or ''}}'>
+<td>{{e.position}}</td>
+<td>{{e.firstname}} {{e.lastname}}</td>
+<td>{{e.eventcount}}</td>
+<td>{{e.points.total|t3}}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}

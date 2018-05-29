@@ -1,4 +1,12 @@
 
+
+function setResult(rootid, data)
+{
+    $(rootid+' .class').html(data.class);
+    $(rootid+' .champ').html(data.champ);
+    $(rootid+' .entrant').html(data.entrant);
+}
+
 function processData(json)
 {
     if ('lasttimer' in json)
@@ -11,12 +19,16 @@ function processData(json)
     {
         Announcer.request.lastresult = json.lastresult.timestamp;
         if (Announcer.mini) {
-            $('#firste').html(json.lastresult.last);
+            $('#firste').html(json.lastresult.last.entrant);
             $('#runorder').html(json.lastresult.order);
         } else {
             $('#seconde').html($('#firste').html());
-            $('#firste').html(json.lastresult.last);
-            $('#nexte').html(json.lastresult.next);
+            setResult('#firste', json.lastresult)
+            setResult('#nexte', json.lastresult.next);
+
+            $('#leftentrant').html(json.lastresult.entrant);
+            $('#rightentrant').html(json.lastresult.entrant);
+
             $('#topnetcell').html(json.lastresult.topnet);
             $('#toprawcell').html(json.lastresult.topraw);
             $('#runorder').html(json.lastresult.order);
@@ -27,7 +39,7 @@ function processData(json)
     if ('lastclass' in json && json.lastclass.timestamp > Announcer.request.lastclass)
     {
         Announcer.request.lastclass = json.lastclass.timestamp;
-        $('#specclass').html(json.lastclass.last);
+        setResult('#specclass', json.lastclass);
     }
 }
 
@@ -35,7 +47,7 @@ function classView(classcode)
 {
     Announcer.request.classcode = classcode;
     Announcer.request.lastclass = 0;
-    $('#specclass').html("Loading " + classcode);
+    $('#specclass .entrant').html("Loading " + classcode);
     $('a[href="#specclass"]').tab('show')
     updateCheck();
 }
