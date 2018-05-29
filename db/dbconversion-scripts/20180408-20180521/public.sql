@@ -24,3 +24,15 @@ BEGIN
 END;
 $body$
 LANGUAGE plpgsql;
+
+ALTER TABLE mergeservers ADD COLUMN quickruns BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE TABLE localeventstream (
+    etype TEXT      NOT NULL,
+    event JSONB     NOT NULL,
+    time  TIMESTAMP NOT NULL
+);
+REVOKE ALL   ON localeventstream FROM public;
+GRANT  ALL   ON localeventstream TO mergeaccess;
+COMMENT ON TABLE localeventstream IS 'Local events useful for serving up to the announcer interface, not merged';
+

@@ -259,10 +259,21 @@ CREATE TABLE mergeservers (
     ctimeout   INTEGER    NOT NULL DEFAULT 3,
     cfailures  INTEGER    NOT NULL DEFAULT 0,
     hoststate  CHAR(1)    NOT NULL DEFAULT 'I' CHECK (hoststate IN ('A', '1', 'I')),
+    quickruns  BOOLEAN    NOT NULL DEFAULT FALSE,
     mergestate JSONB      NOT NULL DEFAULT '{}'
 );
 REVOKE ALL   ON mergeservers FROM public;
 GRANT  ALL   ON mergeservers TO mergeaccess;
 CREATE TRIGGER  mergemod AFTER INSERT OR UPDATE OR DELETE ON mergeservers FOR EACH ROW EXECUTE PROCEDURE notifymods();
 COMMENT ON TABLE mergeservers IS 'Local state of other sevrers we are periodically merging with, not part of merge process';
+
+
+CREATE TABLE localeventstream (
+    etype TEXT      NOT NULL,
+    event JSONB     NOT NULL,
+    time  TIMESTAMP NOT NULL
+);
+REVOKE ALL   ON localeventstream FROM public;
+GRANT  ALL   ON localeventstream TO mergeaccess;
+COMMENT ON TABLE localeventstream IS 'Local events useful for serving up to the announcer interface, not merged';
 
