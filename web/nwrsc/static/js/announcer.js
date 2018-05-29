@@ -26,11 +26,18 @@ function processData(json)
             setResult('#firste', json.lastresult)
             setResult('#nexte', json.lastresult.next);
 
-            $('#leftentrant').html(json.lastresult.entrant);
-            $('#rightentrant').html(json.lastresult.entrant);
+            if (json.lastresult.course == 1) {
+                $('#leftentrant').html(json.lastresult.entrant);
+            } else {
+                $('#rightentrant').html(json.lastresult.entrant);
+            }
 
             $('#topnetcell').html(json.lastresult.topnet);
+            $('#topnetcell1').html(json.lastresult.topnet1);
+            $('#topnetcell2').html(json.lastresult.topnet2);
             $('#toprawcell').html(json.lastresult.topraw);
+            $('#toprawcell1').html(json.lastresult.topraw1);
+            $('#toprawcell2').html(json.lastresult.topraw2);
             $('#runorder').html(json.lastresult.order);
             $('a[href="#firste"]').tab('show');
         }

@@ -38,6 +38,10 @@ def boolarg(arg):
     try: return request.args.get(arg, '0') in ('1', 'true', 'yes')
     except: return False
 
+def tryint(arg):
+    try: return int(arg)
+    except: return arg
+
 def floatoptarg(arg):
     try: return float(request.args.get(arg, None))
     except: return None
@@ -74,7 +78,7 @@ def nextresult():
     midnight = datetime.datetime.combine(event.date, datetime.time(0))
     try:
         lastclass  = modifiedarg('lastclass', midnight)
-        lastresult = modifiedarg('lastresult',  midnight)
+        lastresult = modifiedarg('lastresult', midnight)
         lasttimer  = floatoptarg('lasttimer')
         mini       = boolarg('mini')
         classcode  = request.args.get('classcode', '')
@@ -89,7 +93,8 @@ def nextresult():
         if lastresult is not None:
             lastrun = Run.getLast(g.eventid, lastresult)
             if lastrun: # Not an empty dict
-                data = loadAnnouncerResults(lastrun['last_entry']['carid'], mini)
+                data = loadAnnouncerResults(lastrun['last_entry']['carid'], mini=mini)
+                data['course']    = tryint(lastrun['last_entry']['course'])
                 data['timestamp'] = lastrun['last_entry']['modified'].timestamp()
                 ret['lastresult'] = data
 
@@ -121,14 +126,14 @@ def entrantTables(store, settings, classdata, event, carid, results, champ):
     if driver is None:
         store['entrant'] = "No result data for carid {}".format(carid)
     
-    store['entrant'] = render_template('/announcer/entrant.html', event=event, driver=driver, group=group)
+    store['entrant'] = render_template('/announcer/entrant.html', event=event, driver=driver)
     store['class']   = render_template('/announcer/class.html', event=event, driver=driver, group=group)
     if not champ:
         store['champ'] = ""
     elif event.ispractice:
         store['champ'] = "practice event"
     elif classdata.classlist[driver['classcode']].champtrophy:
-        store['champ'] = render_template('/announcer/champ.html', event=event, driver=driver, group=group, champ=Result.getDecoratedChampResults(champ, driver))
+        store['champ'] = render_template('/announcer/champ.html', event=event, driver=driver, champ=Result.getDecoratedChampResults(champ, driver))
     else:
         store['champ'] = "Not a champ class"
 
@@ -144,7 +149,7 @@ def loadClassResults(carid):
     return ret
 
 
-def loadAnnouncerResults(carid, mini):
+def loadAnnouncerResults(carid, mini=False):
     settings  = Settings.getAll()
     classdata = ClassData.get()
     event     = Event.get(g.eventid)
@@ -152,6 +157,7 @@ def loadAnnouncerResults(carid, mini):
     nextid    = RunOrder.getNextCarIdInOrder(carid, g.eventid)
     order     = list()
     champ     = None
+
     if not mini:
         champ   = Result.getChampResults()
         tttable = get_template_attribute('/results/ttmacros.html', 'toptimestable')
@@ -167,12 +173,18 @@ def loadAnnouncerResults(carid, mini):
     entrantTables(data, settings, classdata, event, carid, results, champ)
     data['order']  = render_template('/announcer/runorder.html', order=order)
     if not mini:
-        data['next'] = {}
-        entrantTables(data['next'], settings, classdata, event, nextid, results, champ)
         data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True, 'counted':False}, carid=carid))
         data['topraw'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':False, 'counted':False}, carid=carid))
+        if g.event.ispro:
+            for ii in range(1,3):
+                data['topnet{}'.format(ii)] = tttable(Result.getTopTimesTable(classdata, results, {'course':ii, 'indexed':True }, carid=carid))
+                data['topraw{}'.format(ii)] = tttable(Result.getTopTimesTable(classdata, results, {'course':ii, 'indexed':False, 'counted':False}, carid=carid))
+
         for ii in range(1, event.segments+1):
             data['topseg%d'% ii] = toptimestable(Result.getTopTimesTable(classdata, results, {'seg':ii}, carid=carid))
+
+        data['next'] = {}
+        entrantTables(data['next'], settings, classdata, event, nextid, results, champ)
 
     return data
 

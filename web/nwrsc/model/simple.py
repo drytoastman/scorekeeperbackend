@@ -188,7 +188,7 @@ class Registration(AttrBase):
 class Run(AttrBase):
 
     @classmethod
-    def getLast(self, eventid, moddt, classcode=None):
+    def getLast(self, eventid, moddt, classcode=None, course=None):
         """ Search through serieslog rather than tables so that we can pick up deletes as well as regular insert/update """
         ret = dict()
         with g.db.cursor() as cur:
@@ -196,14 +196,17 @@ class Run(AttrBase):
             filt = ""
             if classcode:
                 args.append(classcode)
-                filt = "AND lower(c.classcode)=lower(%s) " 
+                filt += "AND lower(c.classcode)=lower(%s) "
+            if course:
+                args.append(course)
+                filt += "AND (s.newdata->>'course'=%s OR s.olddata->>'course'=%s) "
 
-            cur.execute("select s.ltime,c.carid,c.classcode from serieslog s " + 
+            cur.execute("select s.ltime, s.olddata->>'course' coursea, s.newdata->>'course' as courseb, c.carid, c.classcode from serieslog s " +
                         "JOIN cars c ON c.carid=uuid(s.newdata->>'carid') OR c.carid=uuid(s.olddata->>'carid') " +
                         "WHERE s.tablen='runs' AND s.ltime > %s AND (s.newdata->>'eventid'=%s OR s.olddata->>'eventid'=%s) " + 
                         filt + " ORDER BY s.ltime", tuple(args))
             for row in cur.fetchall():
-                entry = dict(carid=row['carid'], modified=row['ltime'])
+                entry = dict(carid=row['carid'], modified=row['ltime'], course=row['coursea'] or row['courseb'])
                 ret[row['classcode']] = entry
                 ret['last_entry']     = entry
         return ret
