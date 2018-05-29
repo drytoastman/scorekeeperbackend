@@ -12,6 +12,7 @@
 
 <style>
 .layout{ width: 100%; margin: 0; }
+.leftcol, .rightcol { min-width: 10rem; }
 </style>
 
 {% endblock %}
@@ -21,13 +22,13 @@
 <table class='layout'>
 <tr>
 
-<td>
+<td class='leftcol'>
 <span class='header'>Left</span>
-<span id='lefttimer'>0.000</span>
+<span id='lefttimer'></span>
 <span id='leftentrant'></span>
 </td>
 
-<td>
+<td class='centercol'>
 <span class='header'>Results</span>
 <nav class="nav nav-tabs justify-content-center" role="tablist">
     <a class="nav-link active" role="tab" data-toggle="tab" href="#firste">Last</a>
@@ -58,9 +59,9 @@
 </div>
 </td>
 
-<td>
+<td class='rightcol'>
 <span class='header'>Right</span>
-<span id='righttimer'>0.000</span>
+<span id='righttimer'></span>
 <span id='rightentrant'></span>
 </td>
 

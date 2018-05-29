@@ -1,0 +1,16 @@
+<table>
+{% for e in entries %}
+{% if e.status == 'RL' %}
+    {% set class='redlight' %}
+{% elif e.status == 'NS' %}
+    {% set class='notstaged' %}
+{% else %}
+    {% set class='' %}
+{% endif %}
+<tr>
+<td class='reaction {{class}}'>{{e.reaction|t3}}</td>
+<td class='sixty {{class}}'>{{e.sixty|t3}}</td>
+<td class='raw {{class}}'>{{e.raw|t3}}</td>
+</tr>
+{% endfor %}
+</table>

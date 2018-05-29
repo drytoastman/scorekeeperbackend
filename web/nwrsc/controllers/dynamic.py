@@ -7,6 +7,7 @@ import datetime
 import logging
 import math
 import time
+import types
 import urllib
 import uuid
 
@@ -40,6 +41,10 @@ def boolarg(arg):
 
 def tryint(arg):
     try: return int(arg)
+    except: return arg
+
+def tryfloat(arg):
+    try: return float(arg)
     except: return arg
 
 def floatoptarg(arg):
@@ -77,8 +82,9 @@ def nextresult():
     event = Event.get(g.eventid)
     midnight = datetime.datetime.combine(event.date, datetime.time(0))
     try:
-        lastclass  = modifiedarg('lastclass', midnight)
-        lastresult = modifiedarg('lastresult', midnight)
+        lastclass    = modifiedarg('lastclass', midnight)
+        lastresult   = modifiedarg('lastresult', midnight)
+        lastprotimer = modifiedarg('lastprotimer', midnight)
         lasttimer  = floatoptarg('lasttimer')
         mini       = boolarg('mini')
         classcode  = request.args.get('classcode', '')
@@ -111,6 +117,13 @@ def nextresult():
             if lastrecord and lastrecord != lasttimer:
                 ret['lasttimer'] = lastrecord
 
+        if lastprotimer is not None:
+            events = EventStream.get(lastprotimer)
+            if events:  # There are new events
+                data = formatProTimer(events)
+                data['timestamp'] = events[-1]['time'].timestamp()
+                ret['lastprotimer'] = data
+
         if ret: # If we have data, return it now
             return json_encode(ret)
 
@@ -119,6 +132,41 @@ def nextresult():
 
         g.db.rollback() # Don't stay idle in transaction from SELECTs
         time.sleep(1.0)
+
+
+
+def formatProTimer(events):
+
+    record = [], []
+
+    for e in events:
+        etype = e['etype']
+        if etype == 'TREE':
+            record[0].append(dict())
+            record[1].append(dict())
+
+        elif etype == 'RUN':
+            data     = e['event']['data']
+            attr     = data['attr']
+            course   = data['course']-1
+            reaction = attr.get('reaction', '')
+            sixty    = attr.get('sixty', '')
+            status   = data.get('status', '')
+            raw      = data.get('raw', 'NaN')
+            if raw != 'NaN':  # run data
+                for r in record[course]:
+                    if r['reaction'] == reaction and r['sixty'] == sixty:
+                        r['raw'] = raw
+            elif len(record[course]):
+                last = record[course][-1]
+                last['reaction'] = reaction
+                last['sixty']    = sixty
+                last['status']   = status
+
+    ret = {}
+    ret['left']  = render_template('/announcer/protimer.html', entries=record[0][-3:])
+    ret['right'] = render_template('/announcer/protimer.html', entries=record[1][-3:])
+    return ret
 
 
 def entrantTables(store, settings, classdata, event, carid, results, champ):

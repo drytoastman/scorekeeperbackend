@@ -48,6 +48,13 @@ function processData(json)
         Announcer.request.lastclass = json.lastclass.timestamp;
         setResult('#specclass', json.lastclass);
     }
+
+    if ('lastprotimer' in json && json.lastprotimer.timestamp > Announcer.request.lastprotimer)
+    {
+        Announcer.request.lastprotimer = json.lastprotimer.timestamp;
+        $('#lefttimer').html(json.lastprotimer.left)  
+        $('#righttimer').html(json.lastprotimer.right)  
+    }
 }
 
 function classView(classcode)
@@ -81,7 +88,8 @@ $(document).ready(function(){
         lastclass:  0,
         classcode:  "",
         lastresult: 0,
-        lasttimer:  "0.000"
+        lasttimer:  "0.000",
+        lastprotimer: 0
     };
 
     var modal = $('#classSelectModal');

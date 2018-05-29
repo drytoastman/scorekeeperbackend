@@ -82,6 +82,26 @@ class Challenge(AttrBase):
         return cls.getall("select * from challenges order by challengeid")
 
 
+class EventStream(object):
+
+    @classmethod
+    def get(self, timestamp):
+        """ If the last recorded event is > timestamp, get the last 30 """
+        ret = list()
+        with g.db.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM localeventstream WHERE time > %s", (timestamp,))
+            val = cur.fetchone()[0]
+            if val == 0:
+                return ret
+
+            cur.execute("SELECT * FROM localeventstream ORDER BY time DESC LIMIT 30")
+            for row in cur.fetchall():
+                ret.append(row)
+
+        ret.sort(key=lambda e: e['time'])
+        return ret
+
+
 class NumberEntry(AttrBase):
     @classmethod
     def allNumbers(cls):
@@ -128,7 +148,6 @@ class PaymentItem(AttrBase):
         with g.db.cursor() as cur:
             cur.execute("delete from paymentitems where itemid=%s", (itemid, ))
             g.db.commit()
-
 
 
 class PaymentSecret(AttrBase):

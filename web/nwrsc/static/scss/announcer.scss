@@ -119,6 +119,23 @@ span.status {
   font-weight: bold;
 }
 
+td.reaction, td.sixty {
+    font-size: 1.2rem;
+    vertical-align: middle !important;
+}
+
+td.raw {
+    height: 4rem;
+}
+
+td.notstaged {
+    color: blue;
+}
+
+td.redlight {
+    color: red;
+}
+
 tr {
   &.head th {
     text-align: center;
