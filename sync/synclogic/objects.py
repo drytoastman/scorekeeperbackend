@@ -25,7 +25,9 @@ def row2json(dbobj):
         if k == 'attr':
             ret['attr'] = data
         elif type(data) is datetime.datetime:
-            ret[k] = data.isoformat().strip('0')
+            ret[k] = data.replace(microsecond=0).isoformat()
+            if data.microsecond:
+                ret[k] += ".{:06d}".format(data.microsecond).rstrip('0')  # Match the trimmed zeros of the log entries
         elif type(data) is uuid.UUID:
             ret[k] = str(data)
         else:

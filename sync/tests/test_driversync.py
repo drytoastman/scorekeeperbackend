@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import datetime
 import json
 import logging
 import time
@@ -40,7 +41,7 @@ def test_driversync(syncdbs, syncdata):
     dosync(syncx['A'], mergex['A'])
     verify_update_logs_only_changes(syncx)
     verify_driver(syncx, syncdata.driverid,
-        (('firstname', 'newfirst'), ('lastname', 'newlast'), ('email', 'newemail')),
+        (('firstname', 'newfirst'), ('lastname', 'newlast'), ('email', 'newemail'), ('created', datetime.datetime.utcfromtimestamp(0))),
         (('address', '123'), ('zip', '98222')))
 
     # Remove zip
@@ -52,7 +53,7 @@ def test_driversync(syncdbs, syncdata):
     dosync(syncx['A'], mergex['A'])
     verify_update_logs_only_changes(syncx)
     verify_driver(syncx, syncdata.driverid,
-        (('firstname', 'newfirst'), ('lastname', 'newlast'), ('email', 'newemail')),
+        (('firstname', 'newfirst'), ('lastname', 'newlast'), ('email', 'newemail'), ('created', datetime.datetime.utcfromtimestamp(0))),
         (('address', '123'), ('zip', None)))
 
     # Delete driver on remote
