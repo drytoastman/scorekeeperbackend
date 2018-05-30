@@ -11,9 +11,12 @@ function processData(json)
     if ('lastresult' in json && json.lastresult.timestamp > Announcer.request.lastresult)
     {
         Announcer.request.lastresult = json.lastresult.timestamp;
-        $('#leftentrant').html(json.lastresult.left.entrant);
-        $('#rightentrant').html(json.lastresult.right.entrant);
-        setResult('#classresult',  json.lastresult.left)
+        if ('left' in json.lastresult)
+            $('#leftentrant').html(json.lastresult.left);
+        if ('right' in json.lastresult)
+            $('#rightentrant').html(json.lastresult.right);
+        $('#classresult .class').html(json.lastresult.class);
+        $('#classresult .champ').html(json.lastresult.champ);
         $('#topnetcell').html(json.lastresult.topnet);
         $('#topnetcell1').html(json.lastresult.topnet1);
         $('#topnetcell2').html(json.lastresult.topnet2);

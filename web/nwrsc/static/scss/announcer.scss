@@ -57,6 +57,17 @@ a {
   margin-bottom: 0.5rem;
 }
 
+#specclass {
+    tr {
+        &.highlight td, &.improvedon, &.couldhave {
+            font-weight: normal;
+            font-size: 100%;
+            color: inherit;
+            background: inherit;
+        }
+    }
+}
+
 
 table.next {
     & > tbody > tr > td {

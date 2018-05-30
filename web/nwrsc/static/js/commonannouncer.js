@@ -1,10 +1,9 @@
-
-
 function classView(classcode)
 {
     Announcer.request.classcode = classcode;
     Announcer.request.lastclass = 0;
-    $('#specclass .entrant').html("Loading " + classcode);
+    $('#specclass .class').html("Loading " + classcode);
+    $('#specclass .champ').html("");
     $('a[href="#specclass"]').tab('show')
     updateCheck();
 }
@@ -17,7 +16,7 @@ function updateCheck()
         url:      Announcer.base + 'next',
         data:     Announcer.request,
         success:  function(data) { processData(data); updateCheck(); },
-        error:    function(xhr) { if ((xhr.status != 403) && (xhr.status != 0)) { setTimeout(updateCheck, 3000); } }
+        error:    function(xhr) { if ((xhr.status != 403) && (xhr.statusText != "abort")) { setTimeout(updateCheck, 3000); } }
     });
 }
 

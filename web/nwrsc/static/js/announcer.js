@@ -18,7 +18,15 @@ function processData(json)
     {
         Announcer.request.lastresult = json.lastresult.timestamp;
         if (Announcer.mini) {
-            $('#firste').html(json.lastresult.entrant + json.lastresult.class);
+            if ('current' in json.lastresult) {
+                $('#firste').html(json.lastresult.current.entrant + json.lastresult.current.class);
+            } else {
+                if ('left' in json.lastresult) {
+                    $('#firste').html(json.lastresult.left + json.lastresult.class);
+                } else {
+                    $('#firste').html(json.lastresult.right + json.lastresult.class);
+                }
+            }
             $('#runorder').html(json.lastresult.order);
         } else {
             $('#seconde').html($('#firste').html());
@@ -34,7 +42,8 @@ function processData(json)
     if ('lastclass' in json && json.lastclass.timestamp > Announcer.request.lastclass)
     {
         Announcer.request.lastclass = json.lastclass.timestamp;
-        setResult('#specclass', json.lastclass);
+        $('#specclass .class').html(json.lastclass.class);
+        $('#specclass .champ').html(json.lastclass.champ);
     }
 }
 

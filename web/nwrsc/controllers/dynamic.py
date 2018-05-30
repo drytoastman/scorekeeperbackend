@@ -100,9 +100,12 @@ def nextresult():
             if lastrun: # Not an empty dict
                 le = lastrun['last_entry']
                 if g.event.ispro:
-                    opp = Run.getLast(g.eventid, lastresult, classcode=le['classcode'], course=le['course']=='1' and '2' or '1')
+                    # Get the last run on the opposite course with the same classcode
+                    back = lastresult - datetime.timedelta(seconds=60)
+                    opp = Run.getLast(g.eventid, back, classcode=le['classcode'], course=le['course']=='1' and '2' or '1')
                     oppcarid = opp and opp['last_entry']['carid'] or None
-                    data = loadProResults(le['carid'], le['course'], oppcarid)
+                    side = le['course'] == '1' and 'left' or 'right'
+                    data = loadProResults(le['carid'], side, oppcarid)
                 else:
                     data = loadAnnouncerResults(le['carid'], mini=mini)
                 data['timestamp'] = le['modified'].timestamp()
@@ -171,20 +174,24 @@ def formatProTimer(events):
 
 
 def entrantTables(store, settings, classdata, carid, results, champ):
-    (group, driver) = Result.getDecoratedClassResults(settings, results, carid)
-    if driver is None:
+    (group, drivers) = Result.getDecoratedClassResults(settings, results, carid)
+    if not len(drivers):
         store['entrant'] = "No result data for carid {}".format(carid)
-    
-    store['entrant'] = render_template('/announcer/entrant.html', event=g.event, driver=driver)
-    store['class']   = render_template('/announcer/class.html', event=g.event, driver=driver, group=group)
+
+    store['entrant'] = render_template('/announcer/entrant.html', event=g.event, driver=drivers[0])
+    store['class']   = render_template('/announcer/class.html', event=g.event, classcode=drivers[0]['classcode'], group=group)
     if not champ:
         store['champ'] = ""
     elif g.event.ispractice:
         store['champ'] = "practice event"
-    elif classdata.classlist[driver['classcode']].champtrophy:
-        store['champ'] = render_template('/announcer/champ.html', event=g.event, driver=driver, champ=Result.getDecoratedChampResults(champ, driver))
+    elif classdata.classlist[drivers[0]['classcode']].champtrophy:
+        store['champ'] = render_template('/announcer/champ.html', event=g.event, classcode=drivers[0]['classcode'], champ=Result.getDecoratedChampResults(champ, *drivers))
     else:
         store['champ'] = "Not a champ class"
+
+    # We reuse the same data again, clear the current flag so that are decorations don't bleed
+    for e in group:
+        e.pop('current',None)
 
 
 def loadClassResults(carid):
@@ -194,32 +201,12 @@ def loadClassResults(carid):
     results  = Result.getEventResults(g.eventid)
     champ    = Result.getChampResults()
     ret      = {}
-    entrantTables(ret, settings, classdata, event, carid, results, champ)
+    entrantTables(ret, settings, classdata, carid, results, champ)
+
     return ret
 
 
-def loadProResults(carid, course, opposite):
-    settings  = Settings.getAll()
-    classdata = ClassData.get()
-    tttable   = get_template_attribute('/results/ttmacros.html', 'toptimestable')
-    results   = Result.getEventResults(g.eventid)
-    champ     = Result.getChampResults()
-
-    data = {'left': {}, 'right': {}}
-    data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True, 'counted':False}, carid=carid))
-    data['topraw'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':False, 'counted':False}, carid=carid))
-    for ii in range(1,3):
-        data['topnet{}'.format(ii)] = tttable(Result.getTopTimesTable(classdata, results, {'course':ii, 'indexed':True }, carid=carid))
-        data['topraw{}'.format(ii)] = tttable(Result.getTopTimesTable(classdata, results, {'course':ii, 'indexed':False, 'counted':False}, carid=carid))
-    key1 = course == '1' and 'left' or 'right'
-    key2 = key1 == 'left' and 'right' or 'left'
-    entrantTables(data[key1], settings, classdata, carid, results, champ)
-    entrantTables(data[key2], settings, classdata, opposite, results, champ)
-
-    return data
-
-
-def loadAnnouncerResults(carid, opposite=None, mini=False):
+def loadAnnouncerResults(carid, mini=False):
     settings  = Settings.getAll()
     classdata = ClassData.get()
     tttable   = get_template_attribute('/results/ttmacros.html', 'toptimestable')
@@ -247,3 +234,25 @@ def loadAnnouncerResults(carid, opposite=None, mini=False):
 
     return data
 
+
+def loadProResults(carid, side, opposite):
+    settings  = Settings.getAll()
+    classdata = ClassData.get()
+    tttable   = get_template_attribute('/results/ttmacros.html', 'toptimestable')
+    results   = Result.getEventResults(g.eventid)
+    champ     = Result.getChampResults()
+
+    data = {}
+    data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True, 'counted':False}, carid=carid))
+    data['topraw'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':False, 'counted':False}, carid=carid))
+    for ii in range(1,3):
+        data['topnet{}'.format(ii)] = tttable(Result.getTopTimesTable(classdata, results, {'course':ii, 'indexed':True }, carid=carid))
+        data['topraw{}'.format(ii)] = tttable(Result.getTopTimesTable(classdata, results, {'course':ii, 'indexed':False, 'counted':False}, carid=carid))
+
+    (classres,drivers) = Result.getDecoratedClassResults(settings, results, *filter(None, [carid, opposite]))
+    champres           = Result.getDecoratedChampResults(champ, *drivers)
+    data[side]    = render_template('/announcer/entrant.html', event=g.event, driver=drivers[0])
+    data['class'] = render_template('/announcer/class.html',   event=g.event, classcode=drivers[0]['classcode'], group=classres)
+    data['champ'] = render_template('/announcer/champ.html',   event=g.event, classcode=drivers[0]['classcode'], champ=champres)
+
+    return data

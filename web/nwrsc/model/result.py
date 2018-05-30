@@ -116,14 +116,14 @@ class Result(object):
         return cls._loadTopTimesTable(classdata, results, *keys, **kwargs)
 
     @classmethod
-    def getDecoratedClassResults(cls, settings, eventresults, carid):
+    def getDecoratedClassResults(cls, settings, eventresults, *carids):
         """ Decorate the objects with old and potential results for the announcer information """
-        return cls._decorateClassResults(settings, eventresults, carid)
+        return cls._decorateClassResults(settings, eventresults, *carids)
 
     @classmethod
-    def getDecoratedChampResults(cls, champresults, entrant):
+    def getDecoratedChampResults(cls, champresults, *markentrants):
         """ Decorate the objects with old and potential results for the announcer information """
-        return cls._decorateChampResults(champresults, entrant)
+        return cls._decorateChampResults(champresults, *markentrants)
 
     @classmethod
     def getLastCourse(cls, e):
@@ -361,57 +361,74 @@ class Result(object):
 
 
     @classmethod
-    def _decorateClassResults(cls, settings, eventresults, carid):
+    def _decorateClassResults(cls, settings, eventresults, *carids):
         """ Calculate things for the announcer/info displays """
-        carid = str(carid) # json data holds UUID as strings
+        carids = list(map(str, carids)) # json data holds UUID as strings
         ppoints = PosPoints(settings.pospointlist)
+        entrantlist = None
+        drivers = dict()
+
+        # Find the class and entrants for the results
         for clscode, entrants in eventresults.items():
             for e in entrants:
-                if e['carid'] != carid:
-                    continue
+                if e['carid'] in carids:
+                    entrantlist = entrants
+                    drivers[e['carid']] = e
+            if entrantlist:
+                break
 
-                # Decorate this entrant with run change information
-                cls._decorateEntrant(e)
+        # Convert discovered drivers down into a list ordered by input list order
+        drivers = [drivers[cid] for cid in carids]
 
-                # Figure out points changes for the class
-                sumlist = [x['net'] for x in entrants]
-                sumlist.remove(e['net'])
-                newlist = list(entrants)
+        # Decorate entrants with run change information
+        for d in drivers:
+            cls._decorateEntrant(d)
+            d['current'] = True
 
-                if 'oldnet' in e:
-                    sumlist.append(e['oldnet'])
-                    sumlist.sort()
-                    position = sumlist.index(e['oldnet'])+1
-                    e['oldpoints'] = settings.usepospoints and ppoints.get(position) or sumlist[0]*100/e['oldnet']
-                    sumlist.remove(e['oldnet'])
-                    newlist.append({'firstname':e['firstname'], 'lastname':e['lastname'], 'net':e['oldnet'], 'isold':True})
+        # Figure out points changes for the class
+        sumlist = [x['net'] for x in entrantlist]
+        sumlist.remove(e['net'])
+        newlist = list(entrantlist)
 
-                if 'potnet' in e:
-                    sumlist.append(e['potnet'])
-                    sumlist.sort()
-                    position = sumlist.index(e['potnet'])+1
-                    e['potpoints'] = settings.usepospoints and ppoints.get(position) or sumlist[0]*100/e['potnet']
-                    newlist.append({'firstname':e['firstname'], 'lastname':e['lastname'], 'net':e['potnet'], 'ispotential':True})
+        for e in drivers:
+            if not e:
+                continue
+            if 'oldnet' in e:
+                sumlist.append(e['oldnet'])
+                sumlist.sort()
+                position = sumlist.index(e['oldnet'])+1
+                e['oldpoints'] = settings.usepospoints and ppoints.get(position) or sumlist[0]*100/e['oldnet']
+                sumlist.remove(e['oldnet'])
+                newlist.append({'firstname':e['firstname'], 'lastname':e['lastname'], 'net':e['oldnet'], 'isold':True})
+            if 'potnet' in e:
+                sumlist.append(e['potnet'])
+                sumlist.sort()
+                position = sumlist.index(e['potnet'])+1
+                e['potpoints'] = settings.usepospoints and ppoints.get(position) or sumlist[0]*100/e['potnet']
+                newlist.append({'firstname':e['firstname'], 'lastname':e['lastname'], 'net':e['potnet'], 'ispotential':True})
 
-                # Mark this entrant as current, clear others if decorate is called multiple times
-                for ex in entrants: ex.pop('current',None)
-                e['current'] = True
-                newlist.sort(key=itemgetter('net'))
-                # we are done, break out and return from here
-                return (newlist, e)
-
-        return ([], None)
+        # Mark this entrant as current, clear others if decorate is called multiple times
+        newlist.sort(key=itemgetter('net'))
+        return tuple([newlist, drivers])
 
 
     @classmethod
-    def _decorateChampResults(cls, champresults, entrant):
+    def _decorateChampResults(cls, champresults, *markentrants):
         """ Calculate things for the announcer/info displays """
-        champclass = champresults[entrant['classcode']]
+        champclass = champresults[markentrants[0]['classcode']]
+        newlist = list(champclass)
+
         for e in champclass:
-            if e['driverid'] != entrant['driverid']:
+            entrant = None
+            for me in markentrants:
+                if e['driverid'] == me['driverid']:
+                    entrant = me
+                    break
+
+            if not entrant:
                 continue
 
-            newlist = list(champclass)
+            e['current'] = True
             if 'oldpoints' in entrant and entrant['oldpoints'] < entrant['points']:
                 total = e['points']['total'] - entrant['points'] + entrant['oldpoints']
                 newlist.append({'firstname':e['firstname'], 'lastname':e['lastname'], 'points':{'total':total}, 'isold':True})
@@ -420,11 +437,8 @@ class Result(object):
                 total = e['points']['total'] - entrant['points'] + entrant['potpoints']
                 newlist.append({'firstname':e['firstname'], 'lastname':e['lastname'], 'points':{'total':total}, 'ispotential':True})
 
-            # Mark this entrant as current, clear others if decorate is called multiple times
-            for ex in champclass: ex.pop('current', None)
-            e['current'] = True
-            newlist.sort(key=lambda x: x['points']['total'], reverse=True)
-            return newlist
+        newlist.sort(key=lambda x: x['points']['total'], reverse=True)
+        return newlist
 
 
     @classmethod
