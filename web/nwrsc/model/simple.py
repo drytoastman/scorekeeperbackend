@@ -217,7 +217,7 @@ class Run(AttrBase):
                 args.append(classcode)
                 filt += "AND lower(c.classcode)=lower(%s) "
             if course:
-                args.append(course)
+                args.extend([course, course])
                 filt += "AND (s.newdata->>'course'=%s OR s.olddata->>'course'=%s) "
 
             cur.execute("select s.ltime, s.olddata->>'course' coursea, s.newdata->>'course' as courseb, c.carid, c.classcode from serieslog s " +
@@ -225,7 +225,7 @@ class Run(AttrBase):
                         "WHERE s.tablen='runs' AND s.ltime > %s AND (s.newdata->>'eventid'=%s OR s.olddata->>'eventid'=%s) " + 
                         filt + " ORDER BY s.ltime", tuple(args))
             for row in cur.fetchall():
-                entry = dict(carid=row['carid'], modified=row['ltime'], course=row['coursea'] or row['courseb'])
+                entry = dict(carid=row['carid'], classcode=row['classcode'], modified=row['ltime'], course=row['coursea'] or row['courseb'])
                 ret[row['classcode']] = entry
                 ret['last_entry']     = entry
         return ret
