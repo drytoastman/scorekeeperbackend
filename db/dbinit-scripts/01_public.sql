@@ -262,7 +262,7 @@ CREATE TABLE mergeservers (
     ctimeout   INTEGER    NOT NULL DEFAULT 3,
     cfailures  INTEGER    NOT NULL DEFAULT 0,
     hoststate  CHAR(1)    NOT NULL DEFAULT 'I' CHECK (hoststate IN ('A', '1', 'I')),
-    quickruns  BOOLEAN    NOT NULL DEFAULT FALSE,
+    quickruns  TEXT,
     mergestate JSONB      NOT NULL DEFAULT '{}'
 );
 REVOKE ALL   ON mergeservers FROM public;

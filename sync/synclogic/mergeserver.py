@@ -33,6 +33,10 @@ class MergeServer(object):
         return cls.getAll(db, "SELECT * FROM mergeservers WHERE hoststate IN ('A', '1') and serverid!='00000000-0000-0000-0000-000000000000'")
 
     @classmethod
+    def getQuickRuns(cls, db):
+        return cls.getAll(db, "SELECT * FROM mergeservers WHERE hoststate IN ('A') AND quickruns IS NOT NULL and serverid!='00000000-0000-0000-0000-000000000000'")
+
+    @classmethod
     def getLocal(cls, db):
         with db.cursor() as cur:
             cur.execute("SELECT * FROM mergeservers WHERE serverid='00000000-0000-0000-0000-000000000000'")
@@ -70,6 +74,14 @@ class MergeServer(object):
         if 'hashes' not in state:
             state['hashes'] = {}
 
+
+    def runsStart(self, series):
+        self.seriesStart(series)
+
+    def runsDone(self, series, error):
+        self.seriesDone(series, error)
+        self.quickruns = None
+        self.update('quickruns')
 
     def seriesStart(self, series):
         """ Called when we start merging a given series with this remote server """

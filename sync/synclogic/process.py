@@ -69,11 +69,17 @@ class MergeProcess():
             with DataInterface.connectLocal(self.useport) as localdb:
                 # Reset our world on each loop
                 me = MergeServer.getLocal(localdb)
+                passwords = DataInterface.loadPasswords(localdb)
+
+                # Check for any quickruns flags and do those first
+                for remote in MergeServer.getQuickRuns(localdb):
+                    log.debug("quickrun {}".format(remote.hostname))
+                    self.mergeRuns(localdb, me, remote, passwords)
+
                 me.updateSeriesFrom(localdb)
                 for series in me.mergestate.keys():
                     me.updateCacheFrom(localdb, series)
 
-                passwords = DataInterface.loadPasswords(localdb)
 
                 # Check if there are any timeouts for servers to merge with
                 for remote in MergeServer.getActive(localdb):
@@ -94,6 +100,32 @@ class MergeProcess():
 
         except Exception as e:
             log.error("Caught exception in main loop: {}".format(e), exc_info=e)
+
+
+
+    def mergeRuns(self, localdb, local, remote, passwords):
+        try:
+            error  = None
+            series = remote.quickruns
+            if series not in passwords:
+                return
+
+            remote.runsStart(series)
+            with DataInterface.connectRemote(server=remote, user=series, password=passwords[series]) as remotedb:
+                with DataInterface.mergelocks(local, localdb, remote, remotedb, series):
+                    self.mergeTables(remote, series, localdb, remotedb, set(['runs']))
+                    remotedb.commit()
+                    localdb.commit()
+                remote.updateCacheFrom(remotedb, series)
+                local.updateCacheFrom(localdb, series)
+
+        except Exception as e:
+            error = str(e)
+            log.warning("Quick runs with %s/%s failed: %s", remote.hostname, series, e, exc_info=e)
+
+        finally:
+            remote.runsDone(series, error)
+
 
 
 

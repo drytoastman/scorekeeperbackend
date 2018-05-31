@@ -1,4 +1,4 @@
-ALTER TABLE mergeservers ADD COLUMN quickruns BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE mergeservers ADD COLUMN quickruns TEXT;
 
 CREATE TABLE localeventstream (
     etype TEXT      NOT NULL,
