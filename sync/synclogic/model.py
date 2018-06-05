@@ -49,7 +49,7 @@ class DataInterface(object):
     ]
 
     SCHEMA_VERSION = "INIT"
-    TX_TIMEOUT    = 20000
+    TX_TIMEOUT    = 2000
     COLUMNS       = dict()
     PRIMARY_KEYS  = dict()
     NONPRIMARY    = dict()
@@ -245,13 +245,21 @@ class DataInterface(object):
 
         finally:
             # In case we get thrown here by exception, rollback.  We commit successful work before this happens
-            remotedb.rollback()
-            localdb.rollback()
+            try: remotedb.rollback()
+            except: pass
+            try: localdb.rollback()
+            except: pass
             log.debug("Releasing locks (%s, %s)", lock1, lock2)
             # Release locks in opposite order from obtaining to avoid deadlock
-            if lock2: cur2.execute("SELECT pg_advisory_unlock(42)")
-            if lock1: cur1.execute("SELECT pg_advisory_unlock(42)")
-            cur2.close()
-            cur1.close()
-
-
+            if lock2:
+                try:
+                    cur2.execute("SELECT pg_advisory_unlock(42)")
+                    cur2.close()
+                except:
+                    pass
+            if lock1:
+                try:
+                    cur1.execute("SELECT pg_advisory_unlock(42)")
+                    cur1.close()
+                except:
+                    pass

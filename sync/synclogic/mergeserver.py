@@ -117,8 +117,9 @@ class MergeServer(object):
                 self._ensureSeriesBase(series)
         self.update('mergestate')
 
-    def serverError(self, error):
+    def serverError(self, newdb, error):
         """ Called when the merge attempt with the remove server throws an exception, most likely a connection error """
+        self.db = newdb
         for series in self.mergestate:
             self.mergestate[series]['error'] = error
         if self.hoststate == '1':

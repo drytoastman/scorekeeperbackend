@@ -7,6 +7,7 @@ import logging
 import psycopg2
 import psycopg2.extras
 import queue
+import threading
 import time
 import uuid
 
@@ -20,6 +21,54 @@ signalled = False
 
 class SkipThisRound(Exception):
     pass
+
+
+class PingState():
+    def __init__(self, db, now):
+        self.db = db
+        self.doping = False
+        self.nextping = now + 0.5
+
+    def check(self, now):
+        if self.doping and now > self.nextping:
+            log.debug("PING %s at %s", self.db.dsn, now)
+            with self.db.cursor() as cur:
+                cur.execute("select 1")
+                self.nextping = now + 0.5
+        return self.nextping
+
+class DBPinger(threading.Thread):
+    """
+        When doing lengthy operations on one database, make sure that the opposite database doesn't
+        hit its idle_in_transaction_timeout
+    """
+    def __init__(self, localdb, remotedb):
+        threading.Thread.__init__(self, daemon=True)
+        now = time.time()
+        self.locals  = PingState(localdb, now)
+        self.remotes = PingState(remotedb, now)
+        self.done   = False
+
+    def local(self):
+        self.locals.doping  = True
+        self.remotes.doping = False
+
+    def remote(self):
+        self.locals.doping  = False
+        self.remotes.doping = True
+
+    def off(self):
+        self.locals.doping  = False
+        self.remotes.doping = False
+
+    def run(self):
+        while not self.done:
+            now = time.time()
+            l = self.locals.check(now)
+            r = self.remotes.check(now)
+            time.sleep(max(0.1, max(l,r) - now))
+        log.debug("Ping thread done")
+
 
 class MergeProcess():
 
@@ -90,10 +139,12 @@ class MergeProcess():
                             remote.serverDone()
                         except Exception as e:
                             log.error("Caught exception merging with {}: {}".format(remote, e), exc_info=e)
-                            remote.serverError(str(e))
+                            with DataInterface.connectLocal(self.useport) as localdb2:  # local db conn may be bad at this point
+                                remote.serverError(localdb2, str(e))
 
                 # Don't hang out in idle transaction from selects
-                localdb.rollback()
+                try: localdb.rollback()
+                except: pass
 
         except (NoDatabaseException, NoLocalHostServer) as ie:
             log.debug(type(ie).__name__)
@@ -185,15 +236,25 @@ class MergeProcess():
 
     def mergeTables(self, remote, series, localdb, remotedb, tables):
         """ Outer loop to rerun mergeTables if for some reason, we are still not totally up to date after running """
-        count = 0
-        for ii in range(5):
-            if len(tables) <= 0: return
-            tables = self._mergeTablesInternal(remote, series, localdb, remotedb, tables)
-            log.debug("unfinished tables = %s", tables)
-        log.error("Ran merge tables 5 times.  Quitting")
+        try:
+            count = 0
+            ping = DBPinger(localdb, remotedb)
+            ping.start()
+            for ii in range(5):
+                if len(tables) <= 0:
+                    break
+                tables = self._mergeTablesInternal(remote, series, localdb, remotedb, tables, ping)
+                if tables:
+                    log.warning("unfinished tables = %s", tables)
+            else:
+                log.error("Ran merge tables 5 times and not complete.")
+        finally:
+            if ping:
+                ping.off()
+                ping.done = True
 
 
-    def _mergeTablesInternal(self, remote, series, localdb, remotedb, tables):
+    def _mergeTablesInternal(self, remote, series, localdb, remotedb, tables, ping):
         """ The core function for actually finding the real differences and applying them locally or remotely """
         global signalled
         localinsert = defaultdict(list)
@@ -206,32 +267,17 @@ class MergeProcess():
         remotedelete = defaultdict(list)
         remoteundelete = defaultdict(list)
 
-        nextping = 0
-        def seriesStatus(msg):
-            """
-              Update series status, also take time to check for quit signal and ping remote server to stop
-              idle_in_transaction timeout during long amounts of time inserting/updating data into the local
-              database.  We do rate limit it a bit though as remote calls are slow across the Internet
-            """
-            nonlocal nextping
-            assert not signalled, "Quit signal received"
-            remote.seriesStatus(series, msg)
-            now = time.time()
-            if now > nextping:
-                log.debug("PING at %s", now)
-                with remotedb.cursor() as cur:
-                    cur.execute("select 1")
-                with localdb.cursor() as cur:
-                    cur.execute("select 1")
-                nextping = now + 0.5
-
-
         for t in tables:
-            seriesStatus("Analysis {}".format(t))
+            assert not signalled, "Quit signal received"
+            remote.seriesStatus(series, "Analysis {}".format(t))
 
             # Load data from both databases, load it all in one go to be more efficient in updates later
+            ping.remote()
             localobj  = PresentObject.loadPresent(localdb, t)
+            ping.local()
             remoteobj = PresentObject.loadPresent(remotedb, t)
+            ping.off()
+
             l = set(localobj.keys())
             r = set(remoteobj.keys())
 
@@ -252,8 +298,11 @@ class MergeProcess():
             r = set(remoteobj.keys())
 
             # Only need to know about things deleted so far back in time based on mod times in other database
+            ping.remote()
             ldeleted = DeletedObject.deletedSince( localdb, t,  PresentObject.minmodtime(remoteobj))
+            ping.local()
             rdeleted = DeletedObject.deletedSince(remotedb, t,  PresentObject.minmodtime(localobj))
+            ping.off()
 
             # pk only in local database
             for pk in l - r:
@@ -278,27 +327,36 @@ class MergeProcess():
 
         # Insert order first (top down)
         for t in DataInterface.TABLE_ORDER:
-            seriesStatus("Insert {}".format(t))
+            assert not signalled, "Quit signal received"
+            remote.seriesStatus(series, "Insert {}".format(t))
 
+            ping.remote()
             if not DataInterface.insert(localdb,  localinsert[t]):
                 unfinished.add(t)
+            ping.local()
             if not DataInterface.insert(remotedb, remoteinsert[t]):
                 unfinished.add(t)
+            ping.off()
+
 
         # Update/delete order next (bottom up)
         log.debug("Performing updates/deletes")
         for t in reversed(DataInterface.TABLE_ORDER):
-            seriesStatus("Update {}".format(t))
+            assert not signalled, "Quit signal received"
+            remote.seriesStatus(series, "Update {}".format(t))
 
             if t in DataInterface.ADVANCED_TABLES:
-                self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t])
+                self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t], ping)
             else:
+                ping.remote()
                 if not DataInterface.update(localdb,  localupdate[t]):
                     unfinished.add(t)
+                ping.local()
                 if not DataInterface.update(remotedb, remoteupdate[t]):
                     unfinished.add(t)
+                ping.off()
 
-            seriesStatus("Delete {}".format(t))
+            remote.seriesStatus(series, "Delete {}".format(t))
             remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
             localundelete[t].extend(DataInterface.delete(remotedb, remotedelete[t]))
 
@@ -307,20 +365,20 @@ class MergeProcess():
         for t in remoteundelete:
             if len(remoteundelete[t]) > 0:
                 log.warning("Remote undelete requests for {}: {}".format(t, len(remoteundelete[t])))
-                seriesStatus("R-undelete {}".format(t))
+                remote.seriesStatus(series, "R-undelete {}".format(t))
                 unfinished.add(t)
                 DataInterface.insert(remotedb, remoteundelete[t])
         for t in localundelete:
             if len(localundelete[t]) > 0:
                 log.warning("Local udelete requests for {}: {}".format(t, len(remoteundelete[t])))
-                seriesStatus("L-undelete {}".format(t))
+                remote.seriesStatus(series, "L-undelete {}".format(t))
                 unfinished.add(t)
                 DataInterface.insert(localdb, localundelete[t])
 
         return unfinished
 
 
-    def advancedMerge(self, localdb, remotedb, table, remoteobj, localobj):
+    def advancedMerge(self, localdb, remotedb, table, remoteobj, localobj, ping):
         when   = PresentObject.mincreatetime(localobj, remoteobj)
         local  = { l.pk:l for l in localobj  }
         remote = { r.pk:r for r in remoteobj }
@@ -328,8 +386,12 @@ class MergeProcess():
 
         loggedobj = dict()
         logtable  = DataInterface.logtablefor(table)
+
+        ping.remote()
         LoggedObject.loadFrom(loggedobj, localdb,  pkset, logtable, table, when)
+        ping.local()
         LoggedObject.loadFrom(loggedobj, remotedb, pkset, logtable, table, when)
+        ping.off()
 
         # Create update objects and then update where needed
         toupdatel = []
@@ -346,6 +408,9 @@ class MergeProcess():
                 toupdatel.append(update)
                 if both: toupdater.append(update)
 
+        ping.remote()
         DataInterface.update(localdb, toupdatel)
+        ping.local()
         DataInterface.update(remotedb, toupdater)
+        ping.off()
 
