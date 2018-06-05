@@ -218,10 +218,12 @@ class MergeProcess():
             remote.seriesStatus(series, msg)
             now = time.time()
             if now > nextping:
+                log.debug("PING at %s", now)
                 with remotedb.cursor() as cur:
-                    log.debug("PING remote at %s", now)
                     cur.execute("select 1")
-                    nextping = now + 0.5
+                with localdb.cursor() as cur:
+                    cur.execute("select 1")
+                nextping = now + 0.5
 
 
         for t in tables:

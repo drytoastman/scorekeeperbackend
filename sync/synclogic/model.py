@@ -49,7 +49,7 @@ class DataInterface(object):
     ]
 
     SCHEMA_VERSION = "INIT"
-    TX_TIMEOUT    = 2000
+    TX_TIMEOUT    = 20000
     COLUMNS       = dict()
     PRIMARY_KEYS  = dict()
     NONPRIMARY    = dict()
