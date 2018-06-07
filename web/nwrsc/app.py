@@ -232,7 +232,7 @@ class DTFormatter(logging.Formatter):
         return datetime.datetime.fromtimestamp(record.created).astimezone(tz).strftime(datefmt)
 
 
-def logging_setup(level=logging.INFO, debug=False, filename='/var/log/scweb.log'):
+def logging_setup(level=logging.INFO, stderr=False, filename='/var/log/scweb.log'):
     fmt = DTFormatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S %Z')
     root = logging.getLogger()
     root.setLevel(level)
@@ -244,7 +244,7 @@ def logging_setup(level=logging.INFO, debug=False, filename='/var/log/scweb.log'
         fhandler.setLevel(level)
         root.addHandler(fhandler)
 
-    if debug:
+    if stderr:
         shandler = logging.StreamHandler()
         shandler.setFormatter(fmt)
         shandler.setLevel(level)

@@ -48,12 +48,13 @@ if __name__ == '__main__':
     with open(pidfile, 'w') as fp:
         fp.write(str(os.getpid()))
 
-    level = getattr(logging, os.environ.get('LOG_LEVEL', 'INFO'), logging.INFO)
+    #level = getattr(logging, os.environ.get('LOG_LEVEL', 'INFO'), logging.INFO)
+    level = logging.DEBUG
     debug = bool(os.environ.get('DEBUG', False))
     cron  = bool(os.environ.get('DOCRON', False))
     port  = int(os.environ.get('PORT', 80))
 
-    nwrsc.app.logging_setup(level=level, debug=debug)
+    nwrsc.app.logging_setup(level=level, stderr=debug)
     theapp = nwrsc.app.create_app()
     nwrsc.app.model_setup(theapp)
 

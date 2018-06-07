@@ -29,7 +29,7 @@ log_rotation_size = '10MB'
 log_line_prefix = '%t %a '
 log_timezone=$UI_TIME_ZONE
 log_statement = none
-log_min_duration_statement = 100
+log_min_duration_statement = 1000
 password_encryption = off
 " >> postgresql.conf
 
