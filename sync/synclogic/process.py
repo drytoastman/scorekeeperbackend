@@ -75,6 +75,7 @@ class MergeProcess():
     def __init__(self, args):
         psycopg2.extras.register_uuid()
         self.wakequeue = queue.Queue()
+        self.listener = None
         self.useport = -1
         if len(args):
             self.useport = int(args[0])
@@ -270,6 +271,7 @@ class MergeProcess():
         for t in tables:
             assert not signalled, "Quit signal received"
             remote.seriesStatus(series, "Analysis {}".format(t))
+            self.listener and self.listener("analysis", t)
 
             # Load data from both databases, load it all in one go to be more efficient in updates later
             ping.remote()
@@ -329,6 +331,7 @@ class MergeProcess():
         for t in DataInterface.TABLE_ORDER:
             assert not signalled, "Quit signal received"
             remote.seriesStatus(series, "Insert {}".format(t))
+            self.listener and self.listener("insert", t)
 
             ping.remote()
             if not DataInterface.insert(localdb,  localinsert[t]):
@@ -344,6 +347,7 @@ class MergeProcess():
         for t in reversed(DataInterface.TABLE_ORDER):
             assert not signalled, "Quit signal received"
             remote.seriesStatus(series, "Update {}".format(t))
+            self.listener and self.listener("update", t)
 
             if t in DataInterface.ADVANCED_TABLES:
                 self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t], ping)
@@ -357,6 +361,7 @@ class MergeProcess():
                 ping.off()
 
             remote.seriesStatus(series, "Delete {}".format(t))
+            self.listener and self.listener("delete", t)
             remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
             localundelete[t].extend(DataInterface.delete(remotedb, remotedelete[t]))
 
