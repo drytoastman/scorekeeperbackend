@@ -57,6 +57,14 @@ def sync4dbs(request, syncdata):
     return _createdbs(request, syncdata, TESTDBS)
 
 
+@pytest.fixture(scope="module")
+def dataentry(request, syncdata):
+    de = psycopg2.connect(host='127.0.0.1', user='localuser', dbname='scorekeeper', port=7432, application_name='dataentry')
+    with de.cursor() as cur:
+        cur.execute("SET search_path=%s,'public'", (syncdata.series, ))
+    return de
+
+
 def _createdbs(request, syncdata, TESTDBS):
     cargs = { 'host':"127.0.0.1", 'user':'postgres', 'dbname':'scorekeeper', 'connect_timeout':20, 'cursor_factory':psycopg2.extras.DictCursor }
 
@@ -65,7 +73,8 @@ def _createdbs(request, syncdata, TESTDBS):
     request.addfinalizer(teardown)
 
     for db in TESTDBS:
-        p = subprocess.run(["docker", "run", "-d", "--rm", "--name", "sync"+db.name, "-p", "{}:6432".format(db.port), "-e", "UI_TIME_ZONE=US/Pacific", db.image], stdout=subprocess.DEVNULL)
+        p = subprocess.run(["docker", "run", "-d", "--rm", "--cap-add=NET_ADMIN", "--cap-add=NET_RAW",
+                            "--name", "sync"+db.name, "-p", "{}:6432".format(db.port), "-e", "UI_TIME_ZONE=US/Pacific", db.image], stdout=subprocess.DEVNULL)
         if p.returncode != 0:
             raise Exception("Failed to start " + db.name)
 

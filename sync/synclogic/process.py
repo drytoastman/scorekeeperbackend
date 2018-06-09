@@ -9,6 +9,7 @@ import psycopg2.extras
 import queue
 import threading
 import time
+from types import SimpleNamespace
 import uuid
 
 from synclogic.mergeserver import MergeServer
@@ -17,56 +18,82 @@ from synclogic.exceptions import *
 from synclogic.objects import *
 
 log  = logging.getLogger(__name__)
-signalled = False
 
-class SkipThisRound(Exception):
-    pass
+class CheckIdler():
+
+    def __init__(self, db):
+        self.db        = db
+        self.active    = False
+        self.nextcheck = time.time() + 0.5
+        self.blocks    = dict()
+
+    def check(self):
+        now = time.time()
+        if now < self.nextcheck: 
+            return self.nextcheck
+        if self.active:
+            return self.check_overrun(now)
+        else:
+            return self.check_idle(now)
+
+    def check_idle(self, now):
+        with self.db.cursor() as cur:
+            cur.execute("SELECT application_name,query_start,pid from pg_stat_activity where wait_event_type='Lock' and datname='scorekeeper' and pg_backend_pid()=ANY(pg_blocking_pids(pid))")
+            for row in cur.fetchall():
+                (name,start,pid) = row
+
+                cur = self.blocks.get(pid, SimpleNamespace(start=0))
+                if cur.start != start: # not the same blocked query
+                    self.blocks[pid] = SimpleNamespace(start=start, mark=time.time())
+                    continue
+
+                # We are still blocking this, abort now if we are the cause
+                span = time.time() - cur.mark
+                if (name.lower() in ('dataentry', 'registration') and span > 3.0) or (name.lower() in ('webserver') and span > 5.0):
+                    log.warning("Aborting database connection %s as we are blocking %s", self.db.dsn, name)
+                    self.db.close()
+                    return None
+
+        self.nextcheck = now + 0.5
+        return self.nextcheck
+
+    def check_overrun(self, now):
+        self.nextcheck = now + 0.5
+        return self.nextcheck
 
 
-class PingState():
-    def __init__(self, db, now):
-        self.db = db
-        self.doping = False
-        self.nextping = now + 0.5
-
-    def check(self, now):
-        if self.doping and now > self.nextping:
-            log.debug("PING %s at %s", self.db.dsn, now)
-            with self.db.cursor() as cur:
-                cur.execute("select 1")
-                self.nextping = now + 0.5
-        return self.nextping
-
-class DBPinger(threading.Thread):
+class DBWatcher(threading.Thread):
     """
-        When doing lengthy operations on one database, make sure that the opposite database doesn't
-        hit its idle_in_transaction_timeout
+        When doing lengthy operations:
+            - make sure that the opposite database doesn't hit its idle_in_transaction_timeout
+            - make sure a long running operation is holding up real users like DataEntry or Registration
+            - make sure postgres client connection isn't hung on a dead network connection
     """
     def __init__(self, localdb, remotedb):
         threading.Thread.__init__(self, daemon=True)
-        now = time.time()
-        self.locals  = PingState(localdb, now)
-        self.remotes = PingState(remotedb, now)
-        self.done   = False
+        self.locals  = CheckIdler(localdb)
+        self.remotes = CheckIdler(remotedb)
+        self.done    = False
 
     def local(self):
-        self.locals.doping  = True
-        self.remotes.doping = False
+        self.locals.active  = True 
+        self.remotes.active = False
 
     def remote(self):
-        self.locals.doping  = False
-        self.remotes.doping = True
+        self.locals.active  = False
+        self.remotes.active = True
 
     def off(self):
-        self.locals.doping  = False
-        self.remotes.doping = False
+        self.locals.active  = False
+        self.remotes.active = False
 
     def run(self):
         while not self.done:
-            now = time.time()
-            l = self.locals.check(now)
-            r = self.remotes.check(now)
-            time.sleep(max(0.1, max(l,r) - now))
+            l = self.locals.check()
+            r = self.remotes.check()
+            if not l or not r:
+                break
+            time.sleep(max(0.1, max(l,r) - time.time()))
         log.debug("Ping thread done")
 
 
@@ -75,6 +102,8 @@ class MergeProcess():
     def __init__(self, args):
         psycopg2.extras.register_uuid()
         self.wakequeue = queue.Queue()
+        self.signalled = False
+        self.done = False
         self.listener = None
         self.useport = -1
         if len(args):
@@ -82,40 +111,36 @@ class MergeProcess():
 
     def shutdown(self):
         """ Interrupt what we are doing and quit """
-        global signalled
-        signalled = True
+        self.signalled = True
         self.wakequeue.put(True)
 
     def poke(self):
         """ Just wake the queue wait, don't interrupt current work """
         self.wakequeue.put(False)
 
-    def runforever(self):
-        global signalled
-        done = False
+    def qwait(self, timeout):
+        # Wait for timeout seconds.  Wake immediately if something is dropped in the queue.
+        try:
+            self.done = self.wakequeue.get(timeout=timeout)
+        except:
+            pass
 
-        while not done:
+    def runforever(self):
+        while not self.done:
             try:
                 DataInterface.initialize(self.useport)
+                log.info("Sync DB models initialized")
                 break
             except Exception as e:
                 log.info("Error during model initialization, waiting for db and template: %s", e)
+            self.qwait(2)
 
-            try: done = self.wakequeue.get(timeout=2)
-            except: pass
-
-        log.info("Sync DB models initialized")
-
-        while not done:
+        while not self.done:
             self.runonce()
-            # Wait for 10 seconds before rescanning.  Wake immediately if something is dropped in the queue
-            try: done = self.wakequeue.get(timeout=10)
-            except: pass
-
+            self.qwait(10)
 
     def runonce(self):
         try:
-            signalled = False
             with DataInterface.connectLocal(self.useport) as localdb:
                 # Reset our world on each loop
                 me = MergeServer.getLocal(localdb)
@@ -183,8 +208,6 @@ class MergeProcess():
 
     def mergeWith(self, localdb, local, remote, passwords):
         """ Run a merge process with the specified remote server """
-        global signalled
-
         # First connect to the remote server with nulluser just to update the list of active series
         log.debug("checking %s", remote)
         with DataInterface.connectRemote(server=remote, user='nulluser', password='nulluser') as remotedb:
@@ -198,7 +221,7 @@ class MergeProcess():
                 continue
 
             try:
-                assert not signalled, "Quit signal received"
+                assert not self.signalled, "Quit signal received"
                 assert series in local.mergestate, "series was not created in local database yet"
 
                 # Mark this series as the one we are actively merging with remote and make the series/password connection
@@ -239,25 +262,24 @@ class MergeProcess():
         """ Outer loop to rerun mergeTables if for some reason, we are still not totally up to date after running """
         try:
             count = 0
-            ping = DBPinger(localdb, remotedb)
-            ping.start()
+            watcher = DBWatcher(localdb, remotedb)
+            watcher.start()
             for ii in range(5):
                 if len(tables) <= 0:
                     break
-                tables = self._mergeTablesInternal(remote, series, localdb, remotedb, tables, ping)
+                tables = self._mergeTablesInternal(remote, series, localdb, remotedb, tables, watcher)
                 if tables:
                     log.warning("unfinished tables = %s", tables)
             else:
                 log.error("Ran merge tables 5 times and not complete.")
         finally:
-            if ping:
-                ping.off()
-                ping.done = True
+            if watcher:
+                watcher.off()
+                watcher.done = True
 
 
-    def _mergeTablesInternal(self, remote, series, localdb, remotedb, tables, ping):
+    def _mergeTablesInternal(self, remote, series, localdb, remotedb, tables, watcher):
         """ The core function for actually finding the real differences and applying them locally or remotely """
-        global signalled
         localinsert = defaultdict(list)
         localupdate = defaultdict(list)
         localdelete = defaultdict(list)
@@ -269,16 +291,16 @@ class MergeProcess():
         remoteundelete = defaultdict(list)
 
         for t in tables:
-            assert not signalled, "Quit signal received"
+            assert not self.signalled, "Quit signal received"
             remote.seriesStatus(series, "Analysis {}".format(t))
-            self.listener and self.listener("analysis", t)
+            self.listener and self.listener("analysis", t, localdb, remotedb, watcher)
 
             # Load data from both databases, load it all in one go to be more efficient in updates later
-            ping.remote()
+            watcher.local()
             localobj  = PresentObject.loadPresent(localdb, t)
-            ping.local()
+            watcher.remote()
             remoteobj = PresentObject.loadPresent(remotedb, t)
-            ping.off()
+            watcher.off()
 
             l = set(localobj.keys())
             r = set(remoteobj.keys())
@@ -300,11 +322,11 @@ class MergeProcess():
             r = set(remoteobj.keys())
 
             # Only need to know about things deleted so far back in time based on mod times in other database
-            ping.remote()
+            watcher.local()
             ldeleted = DeletedObject.deletedSince( localdb, t,  PresentObject.minmodtime(remoteobj))
-            ping.local()
+            watcher.remote()
             rdeleted = DeletedObject.deletedSince(remotedb, t,  PresentObject.minmodtime(localobj))
-            ping.off()
+            watcher.off()
 
             # pk only in local database
             for pk in l - r:
@@ -329,39 +351,39 @@ class MergeProcess():
 
         # Insert order first (top down)
         for t in DataInterface.TABLE_ORDER:
-            assert not signalled, "Quit signal received"
+            assert not self.signalled, "Quit signal received"
             remote.seriesStatus(series, "Insert {}".format(t))
-            self.listener and self.listener("insert", t)
+            self.listener and self.listener("insert", t, localdb, remotedb, watcher)
 
-            ping.remote()
+            watcher.local()
             if not DataInterface.insert(localdb,  localinsert[t]):
                 unfinished.add(t)
-            ping.local()
+            watcher.remote()
             if not DataInterface.insert(remotedb, remoteinsert[t]):
                 unfinished.add(t)
-            ping.off()
+            watcher.off()
 
 
         # Update/delete order next (bottom up)
         log.debug("Performing updates/deletes")
         for t in reversed(DataInterface.TABLE_ORDER):
-            assert not signalled, "Quit signal received"
+            assert not self.signalled, "Quit signal received"
             remote.seriesStatus(series, "Update {}".format(t))
-            self.listener and self.listener("update", t)
+            self.listener and self.listener("update", t, localdb, remotedb, watcher)
 
             if t in DataInterface.ADVANCED_TABLES:
-                self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t], ping)
+                self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t], watcher)
             else:
-                ping.remote()
+                watcher.local()
                 if not DataInterface.update(localdb,  localupdate[t]):
                     unfinished.add(t)
-                ping.local()
+                watcher.remote()
                 if not DataInterface.update(remotedb, remoteupdate[t]):
                     unfinished.add(t)
-                ping.off()
+                watcher.off()
 
             remote.seriesStatus(series, "Delete {}".format(t))
-            self.listener and self.listener("delete", t)
+            self.listener and self.listener("delete", t, localdb, remotedb, watcher)
             remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
             localundelete[t].extend(DataInterface.delete(remotedb, remotedelete[t]))
 
@@ -383,7 +405,7 @@ class MergeProcess():
         return unfinished
 
 
-    def advancedMerge(self, localdb, remotedb, table, remoteobj, localobj, ping):
+    def advancedMerge(self, localdb, remotedb, table, remoteobj, localobj, watcher):
         when   = PresentObject.mincreatetime(localobj, remoteobj)
         local  = { l.pk:l for l in localobj  }
         remote = { r.pk:r for r in remoteobj }
@@ -392,11 +414,11 @@ class MergeProcess():
         loggedobj = dict()
         logtable  = DataInterface.logtablefor(table)
 
-        ping.remote()
+        watcher.local()
         LoggedObject.loadFrom(loggedobj, localdb,  pkset, logtable, table, when)
-        ping.local()
+        watcher.remote()
         LoggedObject.loadFrom(loggedobj, remotedb, pkset, logtable, table, when)
-        ping.off()
+        watcher.off()
 
         # Create update objects and then update where needed
         toupdatel = []
@@ -413,9 +435,9 @@ class MergeProcess():
                 toupdatel.append(update)
                 if both: toupdater.append(update)
 
-        ping.remote()
+        watcher.local()
         DataInterface.update(localdb, toupdatel)
-        ping.local()
+        watcher.remote()
         DataInterface.update(remotedb, toupdater)
-        ping.off()
+        watcher.off()
 
