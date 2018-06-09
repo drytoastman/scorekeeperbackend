@@ -147,6 +147,7 @@ class DataInterface(object):
             try:
                 cur.execute("SAVEPOINT insert_savepoint")
                 psycopg2.extras.execute_batch(cur, stmt, [o.data for o in objs])
+                db.commit()
             except psycopg2.IntegrityError as e:
                 if e.pgcode == '23503':  # Foreign Key constraint, other stuff needs to happen before we do this
                     cur.execute("ROLLBACK TO SAVEPOINT insert_savepoint")
@@ -163,6 +164,7 @@ class DataInterface(object):
             try:
                 cur.execute("SAVEPOINT update_savepoint")
                 psycopg2.extras.execute_batch(cur, stmt, [o.data for o in objs])
+                db.commit()
             except psycopg2.IntegrityError as e:
                 if e.pgcode == '23503':  # Foreign Key constraint, other stuff needs to happen before we do this
                     cur.execute("ROLLBACK TO SAVEPOINT update_savepoint")
@@ -196,6 +198,8 @@ class DataInterface(object):
                         cur.execute("ROLLBACK TO SAVEPOINT delete_savepoint")
                     else:
                         raise e
+        if not undelete:
+            db.commit()
         return undelete 
 
 
@@ -238,7 +242,7 @@ class DataInterface(object):
                 # Failed on lock1 or lock2, release the lock we did get, wait and retry
                 log.debug("Unable to obtain locks, sleeping and trying again")
                 if lock1: cur1.execute("SELECT pg_advisory_unlock(42)") 
-                time.sleep(0.5)
+                time.sleep(1.0)
                 tries -= 1
             else:
                 raise SyncException("Unable to obtain locks, will try again later")
