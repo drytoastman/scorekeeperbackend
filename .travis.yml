@@ -6,6 +6,7 @@ services: [docker]
 install:
     - pip install -r sync/requirements.txt
     - pip install -r web/requirements.txt
+    - pip install pytest-timeout
 
 after_success:
     if [ ! -z "$TRAVIS_TAG" ]; then
