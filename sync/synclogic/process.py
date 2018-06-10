@@ -61,7 +61,7 @@ class CheckInterference(threading.Thread):
 
                 # We are still blocking this, abort now
                 span = time.time() - cur.mark
-                if (name.lower() in ('dataentry', 'registration') and span > 3.0) or (name.lower() in ('webserver') and span > 5.0):
+                if (name.lower() in ('dataentry', 'registration') and span > DataInterface.APP_TIME_LIMIT) or (name.lower() in ('webserver') and span > DataInterface.WEB_TIME_LIMIT):
                     log.warning("Aborting database connection %s as we are blocking %s", self.db.dsn, name)
                     self.db.close()
                     self.done = True
@@ -88,12 +88,13 @@ class DBWatcher(threading.Thread):
             now = time.time()
             localtime  = self.localstart and (now - self.localstart) or 0
             remotetime = self.remotestart and (now - self.remotestart) or 0
-            if localtime > 30 or remotetime > 30:
-                log.warning("Aborting sync as an operation has taken more than 30 seconds (%s, %s)", localtime, remotetime)
+            if localtime > DataInterface.LOCAL_CONN_TIMEOUT or remotetime > DataInterface.REMOTE_CONN_TIMEOUT:
+                log.warning("Aborting sync as an operation has taken too long (local:%s, remote:%s)", localtime, remotetime)
                 self.stop()
                 os.close(self.localintf.db.fileno())
                 os.close(self.remoteintf.db.fileno())
                 os.kill(os.getpid(), signal.SIGHUP)
+        log.debug("DBWatcher exits")
 
     def local(self):
         self.localintf.change(True)
@@ -117,6 +118,10 @@ class DBWatcher(threading.Thread):
         self.done = True
         self.localintf.done = True
         self.remoteintf.done = True
+        self.localintf.join(0.5)
+        self.remoteintf.join(0.5)
+        if self != threading.current_thread():
+            self.join(0.5)
 
 
 class MergeProcess():
@@ -200,6 +205,7 @@ class MergeProcess():
         except Exception as e:
             log.error("Caught exception in main loop: {}".format(e), exc_info=e)
 
+        log.debug("Runonce exiting")
 
 
     def mergeRuns(self, localdb, local, remote, passwords):

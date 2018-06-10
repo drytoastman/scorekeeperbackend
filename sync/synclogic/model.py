@@ -49,7 +49,11 @@ class DataInterface(object):
     ]
 
     SCHEMA_VERSION = "INIT"
-    TX_TIMEOUT    = 2000
+    TRANSACTION_TIMEOUT = 2000 # ms
+    LOCAL_CONN_TIMEOUT  = 10
+    REMOTE_CONN_TIMEOUT = 60
+    APP_TIME_LIMIT      = 3.0
+    WEB_TIME_LIMIT      = 5.0
     COLUMNS       = dict()
     PRIMARY_KEYS  = dict()
     NONPRIMARY    = dict()
@@ -102,7 +106,7 @@ class DataInterface(object):
         try:
             db = psycopg2.connect(**args)
             with db.cursor() as cur:
-                cur.execute("set idle_in_transaction_session_timeout={}".format(DataInterface.TX_TIMEOUT))
+                cur.execute("set idle_in_transaction_session_timeout={}".format(DataInterface.TRANSACTION_TIMEOUT))
             return db
         except Exception as e:
             raise NoDatabaseException(e)
@@ -124,7 +128,7 @@ class DataInterface(object):
                 address = server.address or server.hostname
             db = psycopg2.connect(host=address, user=user, password=password, connect_timeout=server.ctimeout, **args)
             with db.cursor() as cur:
-                cur.execute("set idle_in_transaction_session_timeout={}".format(DataInterface.TX_TIMEOUT))
+                cur.execute("set idle_in_transaction_session_timeout={}".format(DataInterface.TRANSACTION_TIMEOUT))
             return db
         except:
             server.recordConnectFailure()
