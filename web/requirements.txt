@@ -12,6 +12,7 @@ Flask-Assets==0.12
 Flask-Bcrypt==0.7.1
 Flask-Compress==1.4.0
 Flask-Mail==0.9.1
+Flask-Markdown==0.3
 Flask-Misaka==0.4.1
 Flask-WTF==0.14.2
 icalendar==3.11.4
@@ -19,6 +20,7 @@ idna==2.6
 itsdangerous==0.24
 Jinja2==2.9.6
 libsass==0.12.3
+Markdown==2.6.11
 MarkupSafe==1.0
 misaka==2.1.0
 olefile==0.44
@@ -29,6 +31,7 @@ pycparser==2.17
 pyOpenSSL==17.5.0
 python-dateutil==2.6.0
 pytz==2017.2
+PyYAML==3.12
 reportlab==3.4.0
 requests==2.18.4
 six==1.10.0

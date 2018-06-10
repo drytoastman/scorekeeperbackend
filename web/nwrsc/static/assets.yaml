@@ -1,0 +1,119 @@
+jquery:
+    contents:
+        - jquery/3.3.1/jquery.js
+        - jquery/3.3.1/sortable-1.12.1.js
+        - jquery/3.3.1/validate-1.17.0.js
+
+bootstrap:
+    contents:
+        - bootstrap/4.1.0/js/bootstrap.bundle.js
+
+chartjs:
+    contents:
+        - chartjs/2.7.2/chart.js
+
+flatpickr:
+    contents:
+        - flatpickr/4.4.6/flatpickr.js
+
+datatables:
+    contents:
+        - datatables/1.10.16/datatables.js
+
+barcode:
+    contents: 
+        - barcode/3.9.0/JsBarcode.code128.min.js
+
+fontawesome:
+    contents:
+        - font-awesome/5.0.13/font-awesome-svg.js
+
+
+vendor.js:
+    output: vendor.js
+    filters: [ rjsmin ]
+    contents:
+        - jquery
+        - bootstrap
+        - chartjs
+        - fontawesome
+
+vendor_admin.js:
+    output: vendor_admin.js
+    filters: [ rjsmin ]
+    contents:
+        - flatpickr
+        - datatables
+        - barcode
+
+
+admin.js:
+    output: admin.js
+    filters:  [ rjsmin ]
+    contents: [ js/common.js, js/admin.js ]
+
+admin.css:
+    output:   admin.css
+    filters:  [ libsass ]
+    depdends: [ scss/*.scss ]
+    contents: [ datatables/1.10.16/datatables.css, flatpickr/4.4.6/flatpickr.css, scss/admin.scss ]
+
+
+announcer.js:
+    output: announcer.js
+    filters:  [ rjsmin ]
+    contents: [ js/commonannouncer.js, js/announcer.js ]
+
+proannouncer.js:
+    output: proannouncer.js
+    filters:  [ rjsmin ]
+    contents: [ js/commonannouncer.js, js/proannouncer.js ]
+
+announcer.css:
+    output:   announcer.css
+    filters:  [ libsass ]
+    depdends: [ scss/*.scss ]
+    contents: [ scss/announcer.scss ]
+
+announcermini.css:
+    output:   announcermini.css
+    filters:  [ libsass ]
+    depdends: [ scss/*.scss ]
+    contents: [ scss/announcermini.scss ]
+
+
+docs.js:
+    output: docs.js
+    filters:  [ rjsmin ]
+    contents: [ js/common.js ]
+
+docs.css:
+    output: docs.css
+    filters:  [ libsass ]
+    depdends: [ scss/*.scss ]
+    contents: [ scss/docs.scss ]
+
+
+register.js:
+    output:   register.js
+    filters:  [ rjsmin ]
+    contents: [ js/common.js, js/register.js ]
+
+register.css:
+    output:   register.css
+    filters:  [ libsass ]
+    depdends: [ scss/*.scss ]
+    contents: [ scss/register.scss ]
+
+
+results.js:
+    output:   results.js
+    filters:  [ rjsmin ]
+    contents: [ js/common.js ]
+
+results.css:
+    output:   results.css
+    filters:  [ libsass ]
+    depdends: [ scss/*.scss ]
+    contents: [ scss/results.scss ]
+

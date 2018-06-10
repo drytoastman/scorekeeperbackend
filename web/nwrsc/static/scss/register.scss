@@ -1,8 +1,7 @@
 $basecolor: #3771ce;
 $bordercolor: #BBB;
 
-@import "../extern/font-awesome/font-awesome.scss";
-@import "../extern/bootstrap-4.0.0.scss";
+@import "../bootstrap/4.1.0/css/bootstrap";
 @import "common.scss";
 
 @include bootstraptheme("register", $basecolor);
@@ -191,9 +190,7 @@ table.registration {
 
     .icallink {
         .fa-calendar {
-            vertical-align: initial;
-            padding: 0px 0.4rem;
-            font-size: 1.2rem;
+            margin-right: 0.2rem;
         }
     }
 
@@ -325,7 +322,7 @@ table.registration {
     }
 
     .fa-car {
-        margin: 0 0.5rem 0.5rem 0;
+        margin: 0 0.5rem 0;
     }
 
     .row:hover {

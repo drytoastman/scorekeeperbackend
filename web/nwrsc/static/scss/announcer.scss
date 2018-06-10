@@ -3,9 +3,8 @@ $headerfill: $basecolor;
 $titlesfill: lighten( $basecolor, 10% );
 $tabcolor: darken( $basecolor, 10% );
 
-@import "../extern/font-awesome/font-awesome.scss";
-@import "../extern/bootstrap-4.0.0.scss";
 @import "common.scss";
+@import "../bootstrap/4.1.0/css/bootstrap";
 
 .layout {
   font-size: 0.9rem;

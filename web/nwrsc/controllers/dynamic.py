@@ -12,7 +12,6 @@ import urllib
 import uuid
 
 from flask import abort, current_app, g, get_template_attribute, request, render_template
-from flask_assets import Bundle
 
 from nwrsc.controllers.blueprints import *
 from nwrsc.lib.encoding import json_encode
@@ -23,13 +22,10 @@ log = logging.getLogger(__name__)
 
 MAX_WAIT = 30
 
-@Announcer.before_app_first_request
-def init():
-    env = current_app.jinja_env.assets_environment
-    env.register('announcer.js',      Bundle(env.j['jquery'], env.j['bootstrap'], "js/commonannouncer.js", "js/announcer.js", filters="rjsmin", output="announcer.js"))
-    env.register('proannouncer.js',   Bundle(env.j['jquery'], env.j['bootstrap'], "js/commonannouncer.js", "js/proannouncer.js", filters="rjsmin", output="proannouncer.js"))
-    env.register('announcer.css',     Bundle("scss/announcer.scss",     depends="scss/*.scss", filters="libsass", output="announcer.css"))
-    env.register('announcermini.css', Bundle("scss/announcermini.scss", depends="scss/*.scss", filters="libsass", output="announcermini.css"))
+@Announcer.before_request
+def activecheck():
+    if g.seriestype != Series.ACTIVE:
+        raise ArchivedSeriesException()
 
 @Announcer.endpoint("Announcer.base")
 @Announcer.route("/", endpoint='eventlist')

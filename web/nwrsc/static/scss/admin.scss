@@ -1,11 +1,6 @@
 $basecolor : #28a745;
 
-@import "../extern/font-awesome/font-awesome.scss";
-@import "../extern/bootstrap-4.0.0.scss";
-@import "../extern/datatables-1.10.16-bootstrap4.scss";
-@import "../extern/datatables-select-1.2.3-bootstrap4.scss";
-@import "../extern/datatables-buttons-1.5.1-bootstrap4.scss";
-@import "../extern/flatpickr.scss";
+@import "../bootstrap/4.1.0/css/bootstrap";
 @import "common.scss";
 
 @include bootstraptheme("admin", $basecolor);
@@ -45,7 +40,7 @@ button.small {
 }
 
 
-div.contactfilter {
+div.contactfilters {
     border: 1px solid #ddd;
     border-radius: 5px;
     h6 {

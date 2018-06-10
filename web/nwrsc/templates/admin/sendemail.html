@@ -1,0 +1,28 @@
+{% extends "admin/bluebase.html" %}
+
+{% block headers %}
+{{super()}}
+<script type="text/javascript" src="/static/tinymce/tinymce.min.js"></script>
+<script>
+$(document).ready(function() {
+    tinymce.init({ 
+        selector:'textarea', 
+        height: 400,
+        plugins: "textcolor",
+        menubar: false,
+        statusbar: false,
+        toolbar: "bold italic underline strikethrough forecolor backcolor alignleft aligncenter alignright alignjustify indent outdent undo redo"
+    });
+});
+</script>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h2>Group Email</h2>
+<textarea></textarea>
+<button class='btn btn-admin'>Send</button>
+</div>
+{% endblock content %}
+

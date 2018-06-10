@@ -3,16 +3,9 @@ Use misaka to render our markdown docs and wrap them in our own template
 """
 
 from flask import current_app, g, render_template, send_from_directory
-from flask_assets import Bundle
 from flask.helpers import safe_join
 from flask_misaka import markdown
 from nwrsc.controllers.blueprints import Docs
-
-@Docs.before_app_first_request
-def init():
-    env = current_app.jinja_env.assets_environment
-    env.register('docs.js',  Bundle(env.j['jquery'], env.j['bootstrap'], env.j['barcodes'], "js/common.js", filters="rjsmin", output="docs.js"))
-    env.register('docs.css', Bundle("scss/docs.scss", depends="scss/*.scss", filters="libsass", output="docs.css"))
 
 @Docs.before_request
 def setup():

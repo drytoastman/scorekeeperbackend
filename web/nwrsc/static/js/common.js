@@ -27,10 +27,10 @@ Scorekeeper.driverFields = ["driverid", "firstname", "lastname", "email", "barco
 Scorekeeper.add_collapse_icons = function(cid) 
 {
     var c = $(cid);
-    var i = $("a[href=\""+cid+"\"] span.fa");
-    c.on('hidden.bs.collapse', function () { i.removeClass("fa-minus-square-o").addClass("fa-plus-square-o"); });
-    c.on('shown.bs.collapse',  function () { i.removeClass("fa-plus-square-o").addClass("fa-minus-square-o"); });
-    i.addClass(c.hasClass("show") ? "fa-minus-square-o" : "fa-plus-square-o");
+    var i = $("a[href=\""+cid+"\"]");
+    c.on('hidden.bs.collapse', function () { i.find('svg').attr('data-icon', 'plus-square'); });
+    c.on('shown.bs.collapse',  function () { i.find('svg').attr('data-icon', 'minus-square'); });
+    i.find('svg').attr('data-icon', c.hasClass("show") ? 'minus-square' : 'plus-square');
 };
 
 Scorekeeper.shownavmenu = function(nav, menu)
@@ -138,7 +138,7 @@ Scorekeeper.load_driver_form = function(form, dr)
 				myform.data('cardialoginit', true);
 				myform.find('[name=classcode]').change(function() { methods.classchange.call(myform); });
 				myform.find('[name=indexcode]').change(function() { methods.indexchange.call(myform); });
-                myform.find('[name=number]').after("<div id='usedwrapper'><a data-toggle='collapse' href='#usedlist'><span class='fa'></span><span class='label'></span></a><div id='usedlist' class='collapse'><ul></ul></div></div>");
+                myform.find('[name=number]').after("<div id='usedwrapper'><a data-toggle='collapse' href='#usedlist'><span class='far fa-plus-square'></span><span class='label'></span></a><div id='usedlist' class='collapse'><ul></ul></div></div>");
                 Scorekeeper.add_collapse_icons("#usedlist")
 
 				$.validator.setDefaults({ignore:[]});
