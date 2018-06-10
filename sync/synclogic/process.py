@@ -378,52 +378,55 @@ class MergeProcess():
 
         # Insert order first (top down)
         for t in DataInterface.TABLE_ORDER:
-            assert not self.signalled, "Quit signal received"
-            remote.seriesStatus(series, "Insert {}".format(t))
-            self.listener and self.listener("insert", t, localdb, remotedb, watcher)
+            if localinsert[t] or remoteinsert[t]:
+                assert not self.signalled, "Quit signal received"
+                remote.seriesStatus(series, "Insert {}".format(t))
+                self.listener and self.listener("insert", t, localdb, remotedb, watcher)
 
-            watcher.local()
-            if not DataInterface.insert(localdb,  localinsert[t]):
-                unfinished.add(t)
-            watcher.remote()
-            if not DataInterface.insert(remotedb, remoteinsert[t]):
-                unfinished.add(t)
-            watcher.off()
+                watcher.local()
+                if not DataInterface.insert(localdb,  localinsert[t]):
+                    unfinished.add(t)
+                watcher.remote()
+                if not DataInterface.insert(remotedb, remoteinsert[t]):
+                    unfinished.add(t)
+                watcher.off()
 
 
         # Update/delete order next (bottom up)
         log.debug("Performing updates/deletes")
         for t in reversed(DataInterface.TABLE_ORDER):
-            assert not self.signalled, "Quit signal received"
-            remote.seriesStatus(series, "Update {}".format(t))
-            self.listener and self.listener("update", t, localdb, remotedb, watcher)
+            if localupdate[t] or remoteupdate[t]:
+                assert not self.signalled, "Quit signal received"
+                remote.seriesStatus(series, "Update {}".format(t))
+                self.listener and self.listener("update", t, localdb, remotedb, watcher)
 
-            if t in DataInterface.ADVANCED_TABLES:
-                self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t], watcher)
-            else:
-                watcher.local()
-                if not DataInterface.update(localdb,  localupdate[t]):
-                    unfinished.add(t)
-                watcher.remote()
-                if not DataInterface.update(remotedb, remoteupdate[t]):
-                    unfinished.add(t)
-                watcher.off()
+                if t in DataInterface.ADVANCED_TABLES:
+                    self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t], watcher)
+                else:
+                    watcher.local()
+                    if not DataInterface.update(localdb,  localupdate[t]):
+                        unfinished.add(t)
+                    watcher.remote()
+                    if not DataInterface.update(remotedb, remoteupdate[t]):
+                        unfinished.add(t)
+                    watcher.off()
 
-            remote.seriesStatus(series, "Delete {}".format(t))
-            self.listener and self.listener("delete", t, localdb, remotedb, watcher)
-            remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
-            localundelete[t].extend(DataInterface.delete(remotedb, remotedelete[t]))
+            if localdelete[t] or remotedelete[t]:
+                remote.seriesStatus(series, "Delete {}".format(t))
+                self.listener and self.listener("delete", t, localdb, remotedb, watcher)
+                remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
+                localundelete[t].extend(DataInterface.delete(remotedb, remotedelete[t]))
 
         # If we have foreign key violations trying to delete, we need to readd those back to the opposite site and redo the merge
         # The only time this should ever occur is with the drivers table as its shared between series
         for t in remoteundelete:
-            if len(remoteundelete[t]) > 0:
+            if remoteundelete[t]:
                 log.warning("Remote undelete requests for {}: {}".format(t, len(remoteundelete[t])))
                 remote.seriesStatus(series, "R-undelete {}".format(t))
                 unfinished.add(t)
                 DataInterface.insert(remotedb, remoteundelete[t])
         for t in localundelete:
-            if len(localundelete[t]) > 0:
+            if localundelete[t]:
                 log.warning("Local udelete requests for {}: {}".format(t, len(remoteundelete[t])))
                 remote.seriesStatus(series, "L-undelete {}".format(t))
                 unfinished.add(t)
