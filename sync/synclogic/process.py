@@ -4,9 +4,11 @@ import base64
 from collections import defaultdict
 import datetime
 import logging
+import os
 import psycopg2
 import psycopg2.extras
 import queue
+import signal
 import threading
 import time
 from types import SimpleNamespace
@@ -19,25 +21,35 @@ from synclogic.objects import *
 
 log  = logging.getLogger(__name__)
 
-class CheckIdler():
-
+class CheckInterference(threading.Thread):
+    """
+        When doing lengthy operations:
+            - make sure that the opposite database doesn't hit its idle_in_transaction_timeout
+            - make sure a long running operation holding locks is holding up real users like DataEntry or Registration
+    """
     def __init__(self, db):
-        self.db        = db
-        self.active    = False
+        threading.Thread.__init__(self, daemon=True)
+        self.db = db
+        self.done = False
+        self.change(False)
+
+    def change(self, isactive):
+        self.active = isactive
+        self.blocks = dict()
         self.nextcheck = time.time() + 0.5
-        self.blocks    = dict()
+
+    def run(self):
+        while not self.done:
+            if time.time() >= self.nextcheck:
+                if not self.active:
+                    self.check()
+                self.nextcheck = time.time() + 0.5
+            time.sleep(max(0.1, self.nextcheck - time.time()))
+        log.debug("Interference thread done")
 
     def check(self):
-        now = time.time()
-        if now < self.nextcheck: 
-            return self.nextcheck
-        if self.active:
-            return self.check_overrun(now)
-        else:
-            return self.check_idle(now)
-
-    def check_idle(self, now):
         with self.db.cursor() as cur:
+            # Find all blocked pids that are are the cause of, also resets the idle_in_transaction timer
             cur.execute("SELECT application_name,query_start,pid from pg_stat_activity where wait_event_type='Lock' and datname='scorekeeper' and pg_backend_pid()=ANY(pg_blocking_pids(pid))")
             for row in cur.fetchall():
                 (name,start,pid) = row
@@ -47,54 +59,64 @@ class CheckIdler():
                     self.blocks[pid] = SimpleNamespace(start=start, mark=time.time())
                     continue
 
-                # We are still blocking this, abort now if we are the cause
+                # We are still blocking this, abort now
                 span = time.time() - cur.mark
                 if (name.lower() in ('dataentry', 'registration') and span > 3.0) or (name.lower() in ('webserver') and span > 5.0):
                     log.warning("Aborting database connection %s as we are blocking %s", self.db.dsn, name)
                     self.db.close()
-                    return None
-
-        self.nextcheck = now + 0.5
-        return self.nextcheck
-
-    def check_overrun(self, now):
-        self.nextcheck = now + 0.5
-        return self.nextcheck
+                    self.done = True
 
 
 class DBWatcher(threading.Thread):
     """
         When doing lengthy operations:
-            - make sure that the opposite database doesn't hit its idle_in_transaction_timeout
-            - make sure a long running operation is holding up real users like DataEntry or Registration
             - make sure postgres client connection isn't hung on a dead network connection
+            - start/control the interference watchers as well
     """
     def __init__(self, localdb, remotedb):
         threading.Thread.__init__(self, daemon=True)
-        self.locals  = CheckIdler(localdb)
-        self.remotes = CheckIdler(remotedb)
-        self.done    = False
-
-    def local(self):
-        self.locals.active  = True 
-        self.remotes.active = False
-
-    def remote(self):
-        self.locals.active  = False
-        self.remotes.active = True
-
-    def off(self):
-        self.locals.active  = False
-        self.remotes.active = False
+        self.localintf  = CheckInterference(localdb)
+        self.remoteintf = CheckInterference(remotedb)
+        self.done = False
+        self.off()
 
     def run(self):
+        self.localintf.start()
+        self.remoteintf.start()
         while not self.done:
-            l = self.locals.check()
-            r = self.remotes.check()
-            if not l or not r:
-                break
-            time.sleep(max(0.1, max(l,r) - time.time()))
-        log.debug("Ping thread done")
+            time.sleep(0.5)
+            now = time.time()
+            localtime  = self.localstart and (now - self.localstart) or 0
+            remotetime = self.remotestart and (now - self.remotestart) or 0
+            if localtime > 30 or remotetime > 30:
+                log.warning("Aborting sync as an operation has taken more than 30 seconds (%s, %s)", localtime, remotetime)
+                self.stop()
+                os.close(self.localintf.db.fileno())
+                os.close(self.remoteintf.db.fileno())
+                os.kill(os.getpid(), signal.SIGHUP)
+
+    def local(self):
+        self.localintf.change(True)
+        self.remoteintf.change(False)
+        self.localstart = time.time()
+        self.remotestart = None
+
+    def remote(self):
+        self.localintf.change(False)
+        self.remoteintf.change(True)
+        self.localstart = None
+        self.remotestart = time.time()
+
+    def off(self):
+        self.localintf.change(False)
+        self.remoteintf.change(False)
+        self.localstart = None
+        self.remotestart = None
+
+    def stop(self):
+        self.done = True
+        self.localintf.done = True
+        self.remoteintf.done = True
 
 
 class MergeProcess():
@@ -274,8 +296,7 @@ class MergeProcess():
                 log.error("Ran merge tables 5 times and not complete.")
         finally:
             if watcher:
-                watcher.off()
-                watcher.done = True
+                watcher.stop()
 
 
     def _mergeTablesInternal(self, remote, series, localdb, remotedb, tables, watcher):

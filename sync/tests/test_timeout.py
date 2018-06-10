@@ -4,6 +4,7 @@ import datetime
 import json
 import logging
 import pytest
+import signal
 import subprocess
 import threading
 import time
@@ -12,15 +13,18 @@ from helpers import *
 
 log = logging.getLogger(__name__)
 
-@pytest.mark.skip
-@pytest.mark.timeout(45, method='thread')
+@pytest.mark.timeout(60, method='thread')
 def test_networkoutage(syncdbs, syncdata):
-    """ Testing network disconnects """
+    """ Testing network disconnects, should complete before pytest timeout """
     syncx, mergex = syncdbs
 
-    def action(action, table, watcher):
+    signal.signal(signal.SIGHUP, lambda signum,frame: None)
+
+    def action(action, table, localdb, remotedb, watcher):
         if action == 'update' and table == 'cars':
-            subprocess.run(["docker", "exec" "syncB", "iptables", "-P", "INPUT", "DROP"])
+            # Simulate dead connection
+            subprocess.run(["docker", "exec", "syncB", "iptables", "-P", "INPUT", "DROP"])
+            subprocess.run(["docker", "exec", "syncB", "iptables", "-P", "OUTPUT", "DROP"])
     mergex['A'].listener = action
 
     # Modify firstname and address on A
@@ -32,8 +36,11 @@ def test_networkoutage(syncdbs, syncdata):
 
     dosync(syncx['A'], mergex['A'])
 
+    subprocess.run(["docker", "exec", "syncB", "iptables", "-P", "INPUT", "ACCEPT"])
+    subprocess.run(["docker", "exec", "syncB", "iptables", "-P", "OUTPUT", "ACCEPT"])
 
-@pytest.mark.timeout(45, method='thread')
+
+@pytest.mark.timeout(30, method='thread')
 def test_longblock(syncdbs, syncdata, dataentry):
     """ Testing blocking of a database connection for too long """
     syncx, mergex = syncdbs
@@ -56,7 +63,7 @@ def test_longblock(syncdbs, syncdata, dataentry):
                 threading.Thread(target=dataentrywork, daemon=True).start()
                 for ii in range(10):
                     cur.execute("select application_name,pid from pg_stat_activity")
-                    log.debug("activity = {}".format(cur.fetchall()))
+                    if cur.rowcount: log.debug("activity = {}".format(cur.fetchall()))
                     time.sleep(1)
     mergex['A'].listener = action 
 
