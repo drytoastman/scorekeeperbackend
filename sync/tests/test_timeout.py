@@ -13,7 +13,7 @@ from helpers import *
 
 log = logging.getLogger(__name__)
 
-@pytest.mark.timeout(60, method='thread')
+@pytest.mark.timeout(120, method='thread')
 def test_networkoutage(syncdbs, syncdata):
     """ Testing network disconnects, should complete before pytest timeout """
     syncx, mergex = syncdbs
@@ -40,7 +40,7 @@ def test_networkoutage(syncdbs, syncdata):
     subprocess.run(["docker", "exec", "syncB", "iptables", "-P", "OUTPUT", "ACCEPT"])
 
 
-@pytest.mark.timeout(30, method='thread')
+@pytest.mark.timeout(60, method='thread')
 def test_longblock(syncdbs, syncdata, dataentry):
     """ Testing blocking of a database connection for too long """
     syncx, mergex = syncdbs
@@ -63,7 +63,8 @@ def test_longblock(syncdbs, syncdata, dataentry):
                 threading.Thread(target=dataentrywork, daemon=True).start()
                 for ii in range(10):
                     cur.execute("select application_name,pid from pg_stat_activity")
-                    if cur.rowcount: log.debug("activity = {}".format(cur.fetchall()))
+                    if cur.rowcount > 0:
+                        log.debug("activity = {}".format(cur.fetchall()))
                     time.sleep(1)
     mergex['A'].listener = action 
 
