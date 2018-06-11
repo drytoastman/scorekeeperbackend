@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import base64
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 import datetime
 import logging
 import os
@@ -73,10 +73,11 @@ class DBWatcher(threading.Thread):
             - make sure postgres client connection isn't hung on a dead network connection
             - start/control the interference watchers as well
     """
-    def __init__(self, localdb, remotedb):
+    def __init__(self, **kwargs):
         threading.Thread.__init__(self, daemon=True)
-        self.localintf  = CheckInterference(localdb)
-        self.remoteintf = CheckInterference(remotedb)
+        self.localintf  = CheckInterference(kwargs['localdb'])
+        self.remoteintf = CheckInterference(kwargs['remotedb'])
+        self.ispeer = kwargs['remote'].address  # address has a valid value
         self.done = False
         self.off()
 
@@ -88,7 +89,7 @@ class DBWatcher(threading.Thread):
             now = time.time()
             localtime  = self.localstart and (now - self.localstart) or 0
             remotetime = self.remotestart and (now - self.remotestart) or 0
-            if localtime > DataInterface.LOCAL_CONN_TIMEOUT or remotetime > DataInterface.REMOTE_CONN_TIMEOUT:
+            if localtime > DataInterface.LOCAL_TIMEOUT or remotetime > (self.ispeer and DataInterface.PEER_TIMEOUT or DataInterface.REMOTE_TIMEOUT):
                 log.warning("Aborting sync as an operation has taken too long (local:%s, remote:%s)", localtime, remotetime)
                 self.stop()
                 os.close(self.localintf.db.fileno())
@@ -122,6 +123,7 @@ class DBWatcher(threading.Thread):
         self.remoteintf.join(0.5)
         if self != threading.current_thread():
             self.join(0.5)
+
 
 
 class MergeProcess():
@@ -170,28 +172,29 @@ class MergeProcess():
         try:
             with DataInterface.connectLocal(self.useport) as localdb:
                 # Reset our world on each loop
-                me = MergeServer.getLocal(localdb)
+                local = MergeServer.getLocal(localdb)
                 passwords = DataInterface.loadPasswords(localdb)
 
                 # Check for any quickruns flags and do those first
                 for remote in MergeServer.getQuickRuns(localdb):
                     log.debug("quickrun {}".format(remote.hostname))
-                    self.mergeRuns(localdb, me, remote, passwords)
+                    self.mergeRuns(local=local, localdb=localdb, remote=remote, passwords=passwords)
 
-                me.updateSeriesFrom(localdb)
-                for series in me.mergestate.keys():
-                    me.updateCacheFrom(localdb, series)
-
+                # Recheck our current series list and hash values
+                local.updateSeriesFrom(localdb)
+                for series in local.mergestate.keys():
+                    local.updateCacheFrom(localdb, series)
 
                 # Check if there are any timeouts for servers to merge with
                 for remote in MergeServer.getActive(localdb):
                     if remote.nextcheck < datetime.datetime.utcnow():
                         try:
-                            remote.serverStart(me.mergestate.keys())
-                            self.mergeWith(localdb, me, remote, passwords)
+                            remote.serverStart(local.mergestate.keys())
+                            self.mergeWith(local=local, localdb=localdb, remote=remote, passwords=passwords)
                             remote.serverDone()
                         except Exception as e:
                             log.error("Caught exception merging with {}: {}".format(remote, e), exc_info=e)
+                            self.listener and self.listener("exception", "mergeloop", localdb=localdb, remote=remote, exception=e)
                             with DataInterface.connectLocal(self.useport) as localdb2:  # local db conn may be bad at this point
                                 remote.serverError(localdb2, str(e))
 
@@ -204,37 +207,33 @@ class MergeProcess():
 
         except Exception as e:
             log.error("Caught exception in main loop: {}".format(e), exc_info=e)
+            self.listener and self.listener("exception", "runonce", exception=e)
 
         log.debug("Runonce exiting")
 
 
-    def mergeRuns(self, localdb, local, remote, passwords):
+
+    def mergeRuns(self, local, localdb, remote, passwords):
+        """ During ProSolos we want to do quick merge of just the runs table back and forth between data entry machines """
         try:
             error  = None
             series = remote.quickruns
             if series not in passwords:
                 return
-
             remote.runsStart(series)
             with DataInterface.connectRemote(server=remote, user=series, password=passwords[series]) as remotedb:
                 with DataInterface.mergelocks(local, localdb, remote, remotedb, series):
-                    self.mergeTables(remote, series, localdb, remotedb, set(['runs']))
-                    remotedb.commit()
-                    localdb.commit()
-                remote.updateCacheFrom(remotedb, series)
-                local.updateCacheFrom(localdb, series)
-
+                    self.mergeTables(local=local, localdb=localdb, remote=remote, remotedb=remotedb, series=series, tables=set(['runs']))
         except Exception as e:
             error = str(e)
             log.warning("Quick runs with %s/%s failed: %s", remote.hostname, series, e, exc_info=e)
-
+            self.listener and self.listener("exception", "mergruns", localdb=localdb, remote=remote, exception=e)
         finally:
             remote.runsDone(series, error)
 
 
 
-
-    def mergeWith(self, localdb, local, remote, passwords):
+    def mergeWith(self, local, localdb, remote, passwords):
         """ Run a merge process with the specified remote server """
         # First connect to the remote server with nulluser just to update the list of active series
         log.debug("checking %s", remote)
@@ -265,19 +264,13 @@ class MergeProcess():
                         with DataInterface.mergelocks(local, localdb, remote, remotedb, series):
                             ltables = local.mergestate[series]['hashes']
                             rtables = remote.mergestate[series]['hashes']
-                            self.mergeTables(remote, series, localdb, remotedb, set([k for k in ltables if ltables[k] != rtables[k]]))
+                            self.mergeTables(local=local, localdb=localdb, remote=remote, remotedb=remotedb, series=series, tables=set([k for k in ltables if ltables[k] != rtables[k]]))
                             remote.seriesStatus(series, "Commit Changes")
-                            remotedb.commit()
-                            localdb.commit()
-
-                        # Rescan the tables to verify we are at the same state
-                        remote.updateCacheFrom(remotedb, series)
-                        local.updateCacheFrom(localdb, series)
-                        remote.mergestate[series].pop('error', None)
 
             except Exception as e:
                 error = str(e)
                 log.warning("Merge with %s/%s failed: %s", remote.hostname, series, e, exc_info=e)
+                self.listener and self.listener("exception", "mergewith", localdb=localdb, remote=remote, exception=e)
 
             finally:
                 remote.seriesDone(series, error)
@@ -285,27 +278,40 @@ class MergeProcess():
 
 
 
-
-    def mergeTables(self, remote, series, localdb, remotedb, tables):
-        """ Outer loop to rerun mergeTables if for some reason, we are still not totally up to date after running """
+    def mergeTables(self, **kwargs): # local, localdb, remote, remotedb, series, tables
+        """ Outer loop to rerun mergeTables and rerun, if for some reason we are still not up to date """
         try:
             count = 0
-            watcher = DBWatcher(localdb, remotedb)
+            watcher = DBWatcher(**kwargs)
             watcher.start()
+            tables = kwargs['tables']
             for ii in range(5):
                 if len(tables) <= 0:
                     break
-                tables = self._mergeTablesInternal(remote, series, localdb, remotedb, tables, watcher)
+                tables = self._mergeTablesInternal(watcher=watcher, **kwargs)
                 if tables:
                     log.warning("unfinished tables = %s", tables)
             else:
                 log.error("Ran merge tables 5 times and not complete.")
+
+            # Rescan the tables to verify we are at the same state, do this in context of DBWatcher for slow connections
+            series   = kwargs['series']
+            localdb  = kwargs['localdb']
+            remotedb = kwargs['remotedb']
+            kwargs['remote'].updateCacheFrom(remotedb, series)
+            kwargs['local'].updateCacheFrom(localdb, series)
+            kwargs['remote'].mergestate[series].pop('error', None)
+
+            # Just in case, we have anything still hanging, commit now
+            remotedb.commit()
+            localdb.commit()
         finally:
             if watcher:
                 watcher.stop()
 
 
-    def _mergeTablesInternal(self, remote, series, localdb, remotedb, tables, watcher):
+
+    def _mergeTablesInternal(self, local, localdb, remote, remotedb, series, tables, watcher):
         """ The core function for actually finding the real differences and applying them locally or remotely """
         localinsert = defaultdict(list)
         localupdate = defaultdict(list)
@@ -320,7 +326,7 @@ class MergeProcess():
         for t in tables:
             assert not self.signalled, "Quit signal received"
             remote.seriesStatus(series, "Analysis {}".format(t))
-            self.listener and self.listener("analysis", t, localdb, remotedb, watcher)
+            self.listener and self.listener("analysis", t, localdb=localdb, remotedb=remotedb, watcher=watcher)
 
             # Load data from both databases, load it all in one go to be more efficient in updates later
             watcher.local()
@@ -381,7 +387,7 @@ class MergeProcess():
             if localinsert[t] or remoteinsert[t]:
                 assert not self.signalled, "Quit signal received"
                 remote.seriesStatus(series, "Insert {}".format(t))
-                self.listener and self.listener("insert", t, localdb, remotedb, watcher)
+                self.listener and self.listener("insert", t, localdb=localdb, remotedb=remotedb, watcher=watcher)
 
                 watcher.local()
                 if not DataInterface.insert(localdb,  localinsert[t]):
@@ -398,7 +404,7 @@ class MergeProcess():
             if localupdate[t] or remoteupdate[t]:
                 assert not self.signalled, "Quit signal received"
                 remote.seriesStatus(series, "Update {}".format(t))
-                self.listener and self.listener("update", t, localdb, remotedb, watcher)
+                self.listener and self.listener("update", t, localdb=localdb, remotedb=remotedb, watcher=watcher)
 
                 if t in DataInterface.ADVANCED_TABLES:
                     self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t], watcher)
@@ -413,7 +419,7 @@ class MergeProcess():
 
             if localdelete[t] or remotedelete[t]:
                 remote.seriesStatus(series, "Delete {}".format(t))
-                self.listener and self.listener("delete", t, localdb, remotedb, watcher)
+                self.listener and self.listener("delete", t, localdb=localdb, remotedb=remotedb, watcher=watcher)
                 remoteundelete[t].extend(DataInterface.delete(localdb,  localdelete[t]))
                 localundelete[t].extend(DataInterface.delete(remotedb, remotedelete[t]))
 
@@ -433,6 +439,7 @@ class MergeProcess():
                 DataInterface.insert(localdb, localundelete[t])
 
         return unfinished
+
 
 
     def advancedMerge(self, localdb, remotedb, table, remoteobj, localobj, watcher):

@@ -49,11 +49,13 @@ class DataInterface(object):
     ]
 
     SCHEMA_VERSION = "INIT"
-    TRANSACTION_TIMEOUT = 2000 # ms
-    LOCAL_CONN_TIMEOUT  = 10
-    REMOTE_CONN_TIMEOUT = 60
-    APP_TIME_LIMIT      = 3.0
-    WEB_TIME_LIMIT      = 5.0
+
+    LOCAL_TIMEOUT  = 2
+    PEER_TIMEOUT   = 5
+    REMOTE_TIMEOUT = 60
+    APP_TIME_LIMIT = 3.0
+    WEB_TIME_LIMIT = 5.0
+
     COLUMNS       = dict()
     PRIMARY_KEYS  = dict()
     NONPRIMARY    = dict()
@@ -106,7 +108,8 @@ class DataInterface(object):
         try:
             db = psycopg2.connect(**args)
             with db.cursor() as cur:
-                cur.execute("set idle_in_transaction_session_timeout={}".format(DataInterface.TRANSACTION_TIMEOUT))
+                log.debug("Setting LOCAL transaction timeout: %s", DataInterface.LOCAL_TIMEOUT*1000)
+                cur.execute("set idle_in_transaction_session_timeout={}".format(DataInterface.LOCAL_TIMEOUT * 1000))
             return db
         except Exception as e:
             raise NoDatabaseException(e)
@@ -128,7 +131,12 @@ class DataInterface(object):
                 address = server.address or server.hostname
             db = psycopg2.connect(host=address, user=user, password=password, connect_timeout=server.ctimeout, **args)
             with db.cursor() as cur:
-                cur.execute("set idle_in_transaction_session_timeout={}".format(DataInterface.TRANSACTION_TIMEOUT))
+                if server.address:
+                    log.debug("Setting PEER transaction timeout: %s", DataInterface.PEER_TIMEOUT*1000)
+                    cur.execute("set idle_in_transaction_session_timeout={}".format(DataInterface.PEER_TIMEOUT*1000))
+                else:
+                    log.debug("Setting REMOTE transaction timeout: %s", DataInterface.REMOTE_TIMEOUT*1000)
+                    cur.execute("set idle_in_transaction_session_timeout={}".format(DataInterface.REMOTE_TIMEOUT*1000))
             return db
         except:
             server.recordConnectFailure()

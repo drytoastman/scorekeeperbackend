@@ -113,7 +113,7 @@ def _createdbs(request, syncdata, TESTDBS):
             cur.execute("INSERT INTO mergeservers(serverid, hostname, address, ctimeout) VALUES ('00000000-0000-0000-0000-000000000000', 'localhost', '127.0.0.1', 10)")
             for db2 in TESTDBS:
                 if db2 != db:
-                    cur.execute("INSERT INTO mergeservers(serverid, hostname, address, ctimeout, hoststate) VALUES (%s, %s, %s, 2, 'A')", (db2.serverid, db2.name, '127.0.0.1:{}'.format(db2.port)))
+                    cur.execute("INSERT INTO mergeservers(serverid, hostname, address, ctimeout, hoststate) VALUES (%s, %s, %s, 5, 'A')", (db2.serverid, db2.name, '127.0.0.1:{}'.format(db2.port)))
         con.commit()
         syncx[db.name]  = con
         mergex[db.name] = MergeProcess([db.port])
