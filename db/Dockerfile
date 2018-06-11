@@ -1,5 +1,5 @@
 FROM postgres:9.6.5-alpine
-RUN apk --no-cache add openssl socat iptables
+RUN apk --no-cache add openssl socat iptables iproute2
 ENV POSTGRES_DB=scorekeeper
 ENV POSTGRES_PASSWORD=thisgetsoverwrittenlater
 ENV TEMPLATE_SCHEMA_VERSION=20180521
