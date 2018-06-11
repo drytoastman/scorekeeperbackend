@@ -8,21 +8,34 @@ function classView(classcode)
     updateCheck();
 }
 
+
 function updateCheck()
 {
+    if ((Announcer.inflight != null) && (Announcer.inflight.readyState < 4)) {  // Less than DONE
+        console.log("Aborting inflight request");
+        Announcer.inflight.abort();
+        Announcer.inflight = null;
+    }
+    console.log("request " + JSON.stringify(Announcer.request));
     Announcer.inflight = $.ajax({
-        beforeSend : function() { if(Announcer.inflight != null) { Announcer.inflight.abort(); } },
         dataType: "json",
         url:      Announcer.base + 'next',
         data:     Announcer.request,
-        success:  function(data) { processData(data); updateCheck(); },
-        error:    function(xhr) { if ((xhr.status != 403) && (xhr.statusText != "abort")) { setTimeout(updateCheck, 3000); } }
+        success:  function(data) {
+            processData(data);
+            setTimeout(updateCheck, 1000);
+        },
+        error:    function(xhr) {
+            console.log("check error: " + xhr.statusText);
+            if (xhr.statusText == "abort") { return; }
+            setTimeout(updateCheck, 3000);
+        }
     });
 }
 
-var Announcer = {};
-
-$(document).ready(function(){
+function announcer_common_ready()
+{
+    Announcer = {};
     Announcer.mini = (location.search.indexOf('mini=1') >= 0);
     Announcer.base = location.protocol + '//' + location.host + location.pathname;
     Announcer.inflight = null;
@@ -47,4 +60,4 @@ $(document).ready(function(){
         }
     });
 
-});
+}

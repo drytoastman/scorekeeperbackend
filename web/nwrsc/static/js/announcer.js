@@ -48,6 +48,7 @@ function processData(json)
 }
 
 $(document).ready(function(){
+    announcer_common_ready();
     Announcer.request = {
         lastclass:  0,
         classcode:  "",

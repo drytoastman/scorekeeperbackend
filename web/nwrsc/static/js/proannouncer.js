@@ -1,11 +1,4 @@
 
-
-function setResult(rootid, data)
-{
-    $(rootid+' .class').html(data.class);
-    $(rootid+' .champ').html(data.champ);
-}
-
 function processData(json)
 {
     if ('lastresult' in json && json.lastresult.timestamp > Announcer.request.lastresult)
@@ -29,7 +22,8 @@ function processData(json)
     if ('lastclass' in json && json.lastclass.timestamp > Announcer.request.lastclass)
     {
         Announcer.request.lastclass = json.lastclass.timestamp;
-        setResult('#specclass', json.lastclass);
+        $('#specclass .class').html(json.lastclass.class);
+        $('#specclass .champ').html(json.lastclass.champ);
     }
 
     if ('lastprotimer' in json && json.lastprotimer.timestamp > Announcer.request.lastprotimer)
@@ -41,6 +35,7 @@ function processData(json)
 }
 
 $(document).ready(function(){
+    announcer_common_ready();
     Announcer.request = {
         lastclass:  0,
         classcode:  "",
