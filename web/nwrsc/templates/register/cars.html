@@ -41,7 +41,7 @@ gCars['{{c.carid}}'] = {{c|to_json|safe}};
 <table>
 <tr><td colspan=3 class='title'>My Cars in {{g.settings.seriesname}}</td></tr>
 {% if g.settings.classinglink %}
-<tr><td colspan=3 class='text-center p-0'><a href="{{g.settings.classinglink}}" target="helptab"><span class='fa fa-external-link'></span>Classing Help</a></td></tr>
+<tr><td colspan=3 class='text-center p-0'><a href="{{g.settings.classinglink}}" target="helptab"><span class='far fa-file-alt'></span> Classing Help</a></td></tr>
 {% endif %}
 {% for car in cars.values()|msort("classcode","number") %}
     <tr><td>

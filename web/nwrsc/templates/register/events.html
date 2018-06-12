@@ -107,7 +107,7 @@ var gItems = {{pitems|to_json|safe}};
     {% set eclass = ev.isOpen() and "eventopen show" or "eventclosed" %}
     <div class='eventheader {{eclass}} row justify-content-start'>
         <a data-toggle='collapse' href='#eventtog{{ev.eventid}}'>
-        <span class='far'></span>
+        <span class='far {{ev.isOpen() and "fa-minus-square" or "fa-plus-square"}}'></span>
         <span class='eventdate'>{{ev.date.strftime('%a %b %d')}}</span>
         <span class='eventname'>{{ev.name}}</span>
         </a>

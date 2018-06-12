@@ -30,7 +30,6 @@ Scorekeeper.add_collapse_icons = function(cid)
     var i = $("a[href=\""+cid+"\"]");
     c.on('hidden.bs.collapse', function () { i.find('svg').attr('data-icon', 'plus-square'); });
     c.on('shown.bs.collapse',  function () { i.find('svg').attr('data-icon', 'minus-square'); });
-    i.find('svg').attr('data-icon', c.hasClass("show") ? 'minus-square' : 'plus-square');
 };
 
 Scorekeeper.shownavmenu = function(nav, menu)

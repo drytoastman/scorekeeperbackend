@@ -238,11 +238,11 @@ table.registration {
             width: 100%;
         }
 
-        &.eventopen a {
+        &.eventopen * {
             color: #2828ff;
         }
 
-        &.eventclosed span {
+        &.eventclosed * {
             color: #888;
         }
 
