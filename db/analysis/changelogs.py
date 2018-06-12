@@ -10,12 +10,12 @@ import time
 psycopg2.extras.register_uuid()
 psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
 
-def print_log(table, action, otime, ltime, old, new):
+def print_log(table, action, otime, ltime, old, new, idfield):
     if action == 'I':
-        print("{} Insert {}: {}, {}, {}".format(table, new['driverid'], otime, ltime, ""))
+        print("{} Insert {}: {}, {}, {}".format(table, new[idfield], otime, ltime, ""))
         return
     elif action == 'D':
-        print("{} Delete {}: {}, {}, {}".format(table, old['driverid'], otime, ltime, ""))
+        print("{} Delete {}: {}, {}, {}".format(table, old[idfield], otime, ltime, ""))
         return
 
     # else update
@@ -30,7 +30,7 @@ def print_log(table, action, otime, ltime, old, new):
            diff[k] = (None, new[k])
         elif old[k] != new[k]:
            diff[k] = (old[k], new[k])
-    print("{} Update {}: {}, {}, {}".format(table, old['driverid'], otime, ltime, diff))
+    print("{} Update {}: {}, {}, {}".format(table, old[idfield], otime, ltime, diff))
 
 
 def parse_dump_file(name):
@@ -46,15 +46,23 @@ def parse_dump_file(name):
                     (logid, series, app, table, action, otime, ltime, old, new) = line.strip().split('\t')
                     print_log(table, action, otime, ltime, json.loads(old), json.loads(new))
 
-def parse_database(port):
+def parse_drivers(port):
     db = connect_port(port)
     with db.cursor() as cur:
         cur.execute("select * from publiclog where tablen='drivers' order by otime")
         for row in cur.fetchall():
-            print_log(row['tablen'], row['action'], row['otime'], row['ltime'], row['olddata'], row['newdata'])
+            print_log(row['tablen'], row['action'], row['otime'], row['ltime'], row['olddata'], row['newdata'], 'driverid')
         cur.execute("select * from drivers")
         for row in cur.fetchall():
             print(row)
+
+def parse_runs(port, series):
+    db = connect_port(port)
+    with db.cursor() as cur:
+        cur.execute("set search_path=%s,'public'", (series,))
+        cur.execute("select * from serieslog where tablen='runs' order by otime")
+        for row in cur.fetchall():
+            print_log(row['tablen'], row['action'], row['otime'], row['ltime'], row['olddata'], row['newdata'], 'carid')
 
 def connect_port(port):
     args = {
@@ -69,6 +77,6 @@ def connect_port(port):
 
 
 if __name__ == '__main__':
-    parse_database(int(sys.argv[1]))
+    parse_runs(int(sys.argv[1]), sys.argv[2])
     #parse_dump_file(sys.argv[1])
 
