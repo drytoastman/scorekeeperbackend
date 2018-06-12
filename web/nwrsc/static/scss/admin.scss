@@ -1,6 +1,6 @@
 $basecolor : #28a745;
 
-@import "../bootstrap/4.1.0/css/bootstrap";
+@import "../bootstrap/4.1.1/css/bootstrap";
 @import "common.scss";
 
 @include bootstraptheme("admin", $basecolor);
@@ -21,6 +21,30 @@ $basecolor : #28a745;
 button.small {
   font-size: 0.75rem;
   padding: 0.4rem 0.70rem;
+}
+
+
+table.emailheaders {
+    width: 100%;
+    margin-bottom: 0.8rem;
+
+    td:nth-child(1) {
+        white-space: nowrap;
+        text-align: right;
+        font-weight: bold;
+        font-size: 1rem;
+        padding-right: 1rem;
+    }
+    td:nth-child(2) {
+        width: 100%;
+        input {
+            width: 95%;
+        }
+    }
+}
+
+input.send {
+    margin-top: 1rem;
 }
 
 .superauth {

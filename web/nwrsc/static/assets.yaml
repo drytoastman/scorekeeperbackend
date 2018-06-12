@@ -6,7 +6,7 @@ jquery:
 
 bootstrap:
     contents:
-        - bootstrap/4.1.0/js/bootstrap.bundle.js
+        - bootstrap/4.1.1/js/bootstrap.bundle.js
 
 chartjs:
     contents:

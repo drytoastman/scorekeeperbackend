@@ -81,6 +81,14 @@ $(document).ready(function(){
         },
         buttons: [
             {
+                className: 'btn btn-outline-admin', 
+                text: 'Send Email To', 
+                action: function (e, dt, node, config) {
+                    $("#emailtoolvalue").val("somedata");
+                    $("#emailtoolform").submit();
+                }
+            },
+            {
                 extend: 'copyHtml5',
                 className: 'btn btn-outline-admin',
                 text: 'Copy Valid Email',
@@ -178,6 +186,10 @@ $(document).ready(function(){
 </textarea>
 </div>
 {% endcall %}
+
+<form style="display: hidden" action="{{url_for(".emailtool")}}" method="POST" id="emailtoolform">
+    <input type='hidden' name="emaillist" value="" id="emailtoolvalue" />
+</form>
 
 {% endblock content %}
 

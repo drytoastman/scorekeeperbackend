@@ -369,9 +369,14 @@ def activitylist():
     return json_encode(list(Attendance.getActivity().values()))
 
 
-@Admin.route("/sendemail")
-def sendemail():
-    return render_template('/admin/sendemail.html')
+@Admin.route("/emailtool", methods=['GET','POST'])
+def emailtool():
+    return render_template('/admin/emailtool.html')
+
+@Admin.route("/postemail", methods=['POST'])
+def postemail():
+    log.warning(request.form)
+    return str(request.form)
 
 
 

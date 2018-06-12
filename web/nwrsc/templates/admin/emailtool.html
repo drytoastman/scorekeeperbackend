@@ -1,0 +1,48 @@
+{% extends "admin/bluebase.html" %}
+
+{% block headers %}
+{{super()}}
+<script type="text/javascript" src="/static/tinymce/tinymce.min.js"></script>
+<script>
+$(document).ready(function() {
+    tinymce.init({ 
+        selector:'textarea', 
+        height: 400,
+        plugins: "textcolor",
+        menubar: false,
+        statusbar: false,
+        toolbar: "fontselect fontsizeselect bold italic underline strikethrough forecolor backcolor alignleft aligncenter alignright alignjustify indent outdent undo redo"
+    });
+});
+</script>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h2>Group Email</h2>
+
+<form action='{{url_for('.emailtool')}}' method='post'>
+
+<table class='emailheaders'>
+<tr>
+    <td>List</td>
+    <td><input type='text' name='to' value='{{emaillist}}'/></td>
+</tr>
+<tr>
+    <td>From</td>
+    <td><input type='text' name='from' value=''/></td>
+</tr>
+<tr>
+    <td>Subject</td>
+    <td><input type='text' name='subject' value=''/></td>
+</tr>
+</table>
+
+<textarea name='body'></textarea>
+<input type='submit' class='btn btn-admin send' value='Send'/>
+</form>
+
+</div>
+{% endblock content %}
+
