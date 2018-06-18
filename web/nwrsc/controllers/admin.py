@@ -371,12 +371,22 @@ def activitylist():
 
 @Admin.route("/emailtool", methods=['GET','POST'])
 def emailtool():
-    return render_template('/admin/emailtool.html')
-
-@Admin.route("/postemail", methods=['POST'])
-def postemail():
-    log.warning(request.form)
-    return str(request.form)
+    log.warning(request.form.keys())
+    if 'emaillist' in request.form:
+        emaillist = json.loads(request.form['emaillist'])
+        return render_template('/admin/emailtool.html', token=current_app.usts.dumps(emaillist), count=len(emaillist))
+    elif 'token' in request.form:
+        try:
+            emaillist = current_app.usts.loads(request.form['token'], max_age=86400) # 1 day expiry
+            with mail.connect() as conn:
+                for e in emaillist:
+                    message = '...'
+                    subject = "hello, %s" % user.name
+                    msg = Message(recipients=[user.email], body=message, subject=subject)
+                    conn.send(msg)
+        except Exception as e:
+            log.exception(e)
+    return "what?"
 
 
 

@@ -84,7 +84,20 @@ $(document).ready(function(){
                 className: 'btn btn-outline-admin', 
                 text: 'Send Email To', 
                 action: function (e, dt, node, config) {
-                    $("#emailtoolvalue").val("somedata");
+                    var data;
+                    if (thetable.rows('.selected').count() > 0)
+                        data = thetable.rows({selected: true});
+                    else
+                        data = thetable.rows({filter: 'applied'});
+
+                    var list = [];
+                    data[0].forEach(function(rownum) {
+                        var x = thetable.row(rownum).data();
+                        if (x.optoutmail || !x.email.match(Scorekeeper.emailRegex)) return;
+                        list.push({driverid:x.driverid, firstname:x.firstname, lastname:x.lastname, email:x.email});
+                    });
+
+                    $("#emailtoolvalue").val(JSON.stringify(list));
                     $("#emailtoolform").submit();
                 }
             },
@@ -96,7 +109,12 @@ $(document).ready(function(){
                 header: false, 
                 exportOptions: { 
                     columns: ':visible',
-                    rows: function (row, data) { return (!data.optoutmail && data.email.match(Scorekeeper.emailRegex)); },
+                    rows: function (row, data) {
+                        // inefficient, how can we get the selected rows before this process starts?
+                        var selected = thetable.rows('.selected')[0];
+                        if ((selected.length > 0) && !selected.includes(row)) return false;
+                        return (!data.optoutmail && data.email.match(Scorekeeper.emailRegex));
+                    },
                     format: { body: function (data, row, column, node) {
                             if (column == 0) { return '"'+data; }
                             if (column == 1) { return data+'"'; }
@@ -189,6 +207,7 @@ $(document).ready(function(){
 
 <form style="display: hidden" action="{{url_for(".emailtool")}}" method="POST" id="emailtoolform">
     <input type='hidden' name="emaillist" value="" id="emailtoolvalue" />
+    <input type='hidden' name="emailcount" value="" id="emailtoolcount" />
 </form>
 
 {% endblock content %}
