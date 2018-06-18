@@ -377,8 +377,11 @@ class Result(object):
             if entrantlist:
                 break
 
+        if not entrantlist:
+            return tuple([[], []])
+
         # Convert discovered drivers down into a list ordered by input list order
-        drivers = [drivers[cid] for cid in carids]
+        drivers = [drivers[cid] for cid in carids if cid in drivers]
 
         # Decorate entrants with run change information
         for d in drivers:

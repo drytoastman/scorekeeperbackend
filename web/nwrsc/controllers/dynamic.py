@@ -171,19 +171,21 @@ def formatProTimer(events):
 
 def entrantTables(store, settings, classdata, carid, results, champ):
     (group, drivers) = Result.getDecoratedClassResults(settings, results, carid)
-    if not len(drivers):
-        store['entrant'] = "No result data for carid {}".format(carid)
-
-    store['entrant'] = render_template('/announcer/entrant.html', event=g.event, driver=drivers[0])
-    store['class']   = render_template('/announcer/class.html', event=g.event, classcode=drivers[0]['classcode'], group=group)
-    if not champ:
-        store['champ'] = ""
-    elif g.event.ispractice:
-        store['champ'] = "practice event"
-    elif classdata.classlist[drivers[0]['classcode']].champtrophy:
-        store['champ'] = render_template('/announcer/champ.html', event=g.event, classcode=drivers[0]['classcode'], champ=Result.getDecoratedChampResults(champ, *drivers))
+    if len(drivers):
+        store['entrant'] = render_template('/announcer/entrant.html', event=g.event, driver=drivers[0])
+        store['class']   = render_template('/announcer/class.html', event=g.event, classcode=drivers[0]['classcode'], group=group)
+        if not champ:
+            store['champ'] = ""
+        elif g.event.ispractice:
+            store['champ'] = "practice event"
+        elif classdata.classlist[drivers[0]['classcode']].champtrophy:
+            store['champ'] = render_template('/announcer/champ.html', event=g.event, classcode=drivers[0]['classcode'], champ=Result.getDecoratedChampResults(champ, *drivers))
+        else:
+            store['champ'] = "Not a champ class"
     else:
-        store['champ'] = "Not a champ class"
+        store['entrant'] = "No result data"
+        store['class'] = "No result data"
+        store['champ'] = "No result data"
 
     # We reuse the same data again, clear the current flag so that are decorations don't bleed
     for e in group:

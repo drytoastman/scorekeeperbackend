@@ -13,7 +13,20 @@ table {
 
 td, th {
     border: 1px solid #999;
-    padding: 2px;
+    padding: 3px;
+}
+
+td.diff1 {
+    display: none;
+}
+
+td.index {
+    font-size: 0.7rem !important;
+    white-space: nowrap;
+}
+
+td.name {
+    white-space: nowrap;
 }
 
 tr {
