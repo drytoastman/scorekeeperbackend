@@ -18,7 +18,9 @@ def verify_object(syncx, pid, coltuple, attrtuple, sqlget):
     obj = {}
     for k in syncx:
         with syncx[k].cursor() as cur:
-            cur.execute(sqlget, (pid,))
+            if type(pid) is not tuple:
+                pid = (pid,)
+            cur.execute(sqlget, pid)
             obj[k] = cur.fetchone()
         syncx[k].rollback()
 
@@ -55,6 +57,9 @@ def verify_item( syncx,  itemid, coltuple):
 
 def verify_weekend(syncx, uid, coltuple):
     verify_object( syncx, uid, coltuple, (), "SELECT * FROM weekendmembers WHERE uniqueid=%s")
+
+def verify_runorder(syncx, rid, coltuple):
+    verify_object(  syncx, rid, coltuple, (), "SELECT * FROM runorder WHERE eventid=%s AND course=%s AND rungroup=%s AND row=%s")
 
 def verify_update_logs_only_changes(syncx):
     for db in syncx:
