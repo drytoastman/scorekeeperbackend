@@ -93,6 +93,13 @@ def setup():
         return "This is not available off of the main server"
 
     g.superauth = isSuperAuth()
+    try:
+        token = current_app.usts.loads(request.args['token'], max_age=86400) # 1 day token expiry
+        if token['superauth']:
+            g.superauth = True
+    except:
+        pass
+
     if not g.superauth and not isAuth(g.series) and request.endpoint not in authendpoints:
         recordPath()
         return login()
@@ -467,7 +474,8 @@ def cards():
         return render_template('admin/cards.html', registered=registered)
 
     elif page == 'html2pdf':
-        cmd = ["wkhtmltopdf", "--disable-smart-shrinking", "--zoom", "0.90", "--page-height", "5in", "--page-width", "8in", "http://127.0.0.1{}".format(url_for('.cards', type=ctype, page='template')), "-"]
+        url = "http://127.0.0.1{}".format(url_for('.cards', type=ctype, page='template', token=current_app.usts.dumps({'superauth': 1})))
+        cmd = ["wkhtmltopdf", "--disable-smart-shrinking", "--zoom", "0.90", "--page-height", "5in", "--page-width", "8in", url, "-"]
         def generate_pdf():
             log.info("Running %s", cmd)
             yield subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout
