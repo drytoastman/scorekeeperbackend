@@ -1,5 +1,6 @@
 __pycache__
 .cache
+.pytest_cache
 *.pyc
 *.db
 *.swp
