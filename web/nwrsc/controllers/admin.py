@@ -93,7 +93,7 @@ def setup():
         return "This is not available off of the main server"
 
     g.superauth = isSuperAuth()
-    if not request.remote_addr == '127.0.0.1' and g.superauth and not isAuth(g.series) and request.endpoint not in authendpoints:
+    if not g.superauth and not isAuth(g.series) and request.endpoint not in authendpoints:
         recordPath()
         return login()
 
