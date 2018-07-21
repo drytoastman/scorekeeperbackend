@@ -2,6 +2,13 @@
 
 {% block headers %}
 {{super()}}
+<style>
+.count { 
+    font-size: 1.0rem; 
+    font-weight: bold;
+    padding: 0.4rem 0; 
+}
+</style>
 <script type="text/javascript" src="/static/tinymce/tinymce.min.js"></script>
 <script>
 $(document).ready(function() {
@@ -23,18 +30,19 @@ $(document).ready(function() {
 <h2>Group Email</h2>
 
 <form action='{{url_for('.emailtool')}}' method='post'>
+<input type='hidden' name='token' value='{{token}}'/></td>
 
 <table class='emailheaders'>
 <tr>
-    <td>List</td>
-    <td><input type='text' name='to' value='{{emaillist}}'/></td>
+    <td>List:</td>
+    <td class='count'>{{count}}</td>
 </tr>
 <tr>
-    <td>From</td>
+    <td>From:</td>
     <td><input type='text' name='from' value=''/></td>
 </tr>
 <tr>
-    <td>Subject</td>
+    <td>Subject:</td>
     <td><input type='text' name='subject' value=''/></td>
 </tr>
 </table>
