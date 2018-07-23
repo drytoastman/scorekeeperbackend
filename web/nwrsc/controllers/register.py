@@ -7,7 +7,6 @@ import uuid
 
 import itsdangerous
 from flask import abort, current_app, flash, g, get_template_attribute, redirect, request, render_template, Response, session, stream_with_context, url_for
-from flask_mail import Message
 
 from .blueprints import *
 from ..model import *
