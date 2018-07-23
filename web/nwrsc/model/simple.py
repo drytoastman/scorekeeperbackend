@@ -77,9 +77,19 @@ class Audit(object):
 
 
 class Challenge(AttrBase):
+
     @classmethod
     def getAll(cls):
         return cls.getall("select * from challenges order by challengeid")
+
+
+class EmailQueue(object):
+
+    @classmethod
+    def queueMessage(self, **kwargs):
+        with g.db.cursor() as cur:
+            cur.execute("INSERT INTO emailqueue (content) VALUES (%s)", (json.dumps(kwargs),))
+        g.db.commit()
 
 
 class EventStream(object):

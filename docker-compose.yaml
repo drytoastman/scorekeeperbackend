@@ -11,18 +11,7 @@ services:
     build:   "web"
     container_name: "web"
     command: "bash -c 'pip install -e /code && exec webserver.py'"
-    environment:
-        - UI_TIME_ZONE=US/Pacific
-        - DEBUG=1
-        - LOG_LEVEL=DEBUG
-        - WERKZEUG_DEBUG_PIN=off
-        - SUPER_ADMIN_PASSWORD=testing
-        - IS_MAIN_SERVER=1
-        - SQ_APPLICATION_ID
-        - SQ_APPLICATION_SECRET
-        - MAIL_SERVER
-        - MAIL_DEFAULT_SENDER
-        - ONSITE
+    env_file: [ default.env ]
     volumes:  
         - "dbsocket:/var/run/postgresql"
         - "logs:/var/log"
@@ -36,8 +25,7 @@ services:
     image:   "drytoastman/scdb:${TRAVIS_TAG:-latest}"
     build:   "db"
     container_name: "db"
-    environment:
-        - UI_TIME_ZONE=US/Pacific
+    env_file: [ default.env ]
     volumes:  
         - "database:/var/lib/postgresql/data"
         - "dbsocket:/var/run/postgresql"
@@ -53,16 +41,29 @@ services:
     build:   "sync"
     container_name: "sync"
     command: "bash -c 'pip install -e /code && exec syncserver.py'"
-    environment:
-        - UI_TIME_ZONE=US/Pacific
-        - DEBUG=1
-        - LOG_LEVEL=DEBUG
+    env_file: [ default.env ]
     volumes:
         - "dbsocket:/var/run/postgresql"
         - "logs:/var/log"
         - "./sync:/code"
     networks:
         net1:
+
+#  email:
+#    image:   "drytoastman/scemail:${TRAVIS_TAG:-latest}"
+#    build:   "email"
+#    container_name: "email"
+#    command: "bash -c 'pip install -e /code && exec mailman.py'"
+#    environment:
+#        - UI_TIME_ZONE=US/Pacific
+#        - DEBUG=1
+#        - LOG_LEVEL=DEBUG
+#    volumes:
+#        - "dbsocket:/var/run/postgresql"
+#        - "logs:/var/log"
+#        - "./email:/code"
+#    networks:
+#        net1:
 
 
 networks:

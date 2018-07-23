@@ -12,7 +12,6 @@ from flask import Flask, request, abort, g, current_app, message_flashed, render
 from flask_assets import Environment
 from flask_compress import Compress
 from flask_bcrypt import Bcrypt
-from flask_mail import Mail
 from itsdangerous import URLSafeTimedSerializer
 from jinja2 import ChoiceLoader, FunctionLoader
 from werkzeug.debug.tbtools import get_current_traceback
@@ -41,17 +40,11 @@ def create_app():
         "SHOWLIVE":               any2bool(os.environ.get('SHOWLIVE',  True)),
         "SECRET_KEY":                      os.environ.get('SECRET',    'replaced by environment in deployed docker-compose files'),
         "ASSETS_DEBUG":           any2bool(os.environ.get('DEBUG',     False)),
-        "MAIL_USE_TLS":           any2bool(os.environ.get('MAIL_USE_TLS',  False)),
-        "MAIL_USE_SSL":           any2bool(os.environ.get('MAIL_USE_SSL',  False)),
-        "MAIL_SERVER":                     os.environ.get('MAIL_SERVER',   None),
-        "MAIL_PORT":                       os.environ.get('MAIL_PORT',     None),
-        "MAIL_USERNAME":                   os.environ.get('MAIL_USERNAME', None),
-        "MAIL_PASSWORD":                   os.environ.get('MAIL_PASSWORD', None),
-        "MAIL_DEFAULT_SENDER":             os.environ.get('MAIL_DEFAULT_SENDER', None),
         "SUPER_ADMIN_PASSWORD":            os.environ.get('SUPER_ADMIN_PASSWORD', None),
         "SQ_APPLICATION_ID":               os.environ.get('SQ_APPLICATION_ID', None),
         "SQ_APPLICATION_SECRET":           os.environ.get('SQ_APPLICATION_SECRET', None),
         "IS_MAIN_SERVER":         any2bool(os.environ.get('IS_MAIN_SERVER', False)),
+        "MAIL_DEFAULT_SENDER":             os.environ.get('MAIL_DEFAULT_SENDER', 'nodefaultsender'),
         "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE', 'US/Pacific'),
         "PROPAGATE_EXCEPTIONS":            False,
     })
@@ -188,11 +181,9 @@ def create_app():
     theapp.jinja_loader = ChoiceLoader([ theapp.jinja_loader, FunctionLoader(custom_template_loader) ])
 
 
-    ### Crypto, Compression, Mail and optional Profiling
+    ### Crypto, Compression and optional Profiling
     theapp.hasher = Bcrypt(theapp)
     theapp.usts = URLSafeTimedSerializer(theapp.config["SECRET_KEY"])
-    if theapp.config['MAIL_SERVER'] and theapp.config['MAIL_DEFAULT_SENDER']:
-        theapp.mail = Mail(theapp)
     Compress(theapp)
     if theapp.config.get('PROFILE', False):
         theapp.wsgi_app = ProfilerMiddleware(theapp.wsgi_app, restrictions=[30])

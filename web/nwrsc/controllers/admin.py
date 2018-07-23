@@ -378,22 +378,22 @@ def activitylist():
 
 @Admin.route("/emailtool", methods=['GET','POST'])
 def emailtool():
-    log.warning(request.form.keys())
+    form = GroupEmailForm()
     if 'emaillist' in request.form:
         emaillist = json.loads(request.form['emaillist'])
-        return render_template('/admin/emailtool.html', token=current_app.usts.dumps(emaillist), count=len(emaillist))
+        return render_template('/admin/emailtool.html', token=current_app.usts.dumps(emaillist), count=len(emaillist), form=form, defaultsender=current_app.config['MAIL_DEFAULT_SENDER'])
     elif 'token' in request.form:
         try:
-            emaillist = current_app.usts.loads(request.form['token'], max_age=86400) # 1 day expiry
-            with mail.connect() as conn:
-                for e in emaillist:
-                    message = '...'
-                    subject = "hello, %s" % user.name
-                    msg = Message(recipients=[user.email], body=message, subject=subject)
-                    conn.send(msg)
+            if form.validate_on_submit():
+                EmailQueue.queueMessage(
+                    subject    = form.subject.data,
+                    recipients = current_app.usts.loads(request.form['token'], max_age=86400),
+                    replyto    = form.replyto.data,
+                    body       = form.body.data
+                )
         except Exception as e:
             log.exception(e)
-    return "what?"
+    return redirect(url_for('.contactlist'))
 
 
 

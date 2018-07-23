@@ -281,3 +281,24 @@ REVOKE ALL   ON localeventstream FROM public;
 GRANT  ALL   ON localeventstream TO mergeaccess;
 COMMENT ON TABLE localeventstream IS 'Local events useful for serving up to the announcer interface, not merged';
 
+
+CREATE TABLE emailqueue (
+    mailid  BIGSERIAL PRIMARY KEY,
+    created TIMESTAMP NOT NULL DEFAULT now(),
+    content JSONB     NOT NULL DEFAULT '{}'
+);
+REVOKE ALL ON emailqueue FROM public;
+GRANT  ALL ON emailqueue TO mergeaccess;
+GRANT  ALL ON emailqueue_mailid_seq TO mergeaccess;
+COMMENT ON TABLE emailqueue IS 'temporary storage for items the web interface wants send, mailman will consume and delete';
+
+
+CREATE TABLE unsubscribe (
+    driverid UUID NOT NULL,
+    entity   TEXT NOT NULL,
+    PRIMARY KEY (driverid, entity)
+);
+REVOKE ALL ON unsubscribe FROM public;
+GRANT  ALL ON unsubscribe TO mergeaccess;
+COMMENT ON TABLE unsubscribe IS 'map of entities a driverid has unsubscribed to, (i.e. nwr)';
+

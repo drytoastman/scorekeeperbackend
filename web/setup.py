@@ -13,7 +13,6 @@ x = setup(
         "Flask-Assets",
         "Flask-Bcrypt",
         "Flask-Compress",
-        "Flask-Mail",
         "Flask-Markdown",
         "Flask-WTF",
         "cheroot",

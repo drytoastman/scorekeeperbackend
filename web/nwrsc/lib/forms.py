@@ -314,3 +314,9 @@ class PaymentItemForm(MyFlaskForm):
     price      = FloatField(   'Price')
     submit     = SubmitField(  'Add Item')
 
+class GroupEmailForm(MyFlaskForm):
+    replyto    = MyStringField('Reply To',  [Length(min=4, max=256)])
+    subject    = MyStringField( 'Subject',   [Length(max=512)])
+    body       = MyStringField(    'Body',      [Length(max=32768)])
+    submit     = SubmitField('Send')
+
