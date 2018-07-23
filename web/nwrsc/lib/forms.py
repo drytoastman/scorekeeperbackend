@@ -6,10 +6,10 @@ import pytz
 
 from flask import current_app, flash, request, url_for
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, DateField, DateTimeField, FieldList, FloatField, Form, FormField, HiddenField, PasswordField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms import BooleanField, DateField, DateTimeField, FieldList, FileField, FloatField, Form, FormField, HiddenField, PasswordField, SelectField, StringField, SubmitField, TextAreaField
 from wtforms.fields.html5 import EmailField, IntegerField, URLField
 from wtforms.validators import Email, InputRequired, Length, Optional, Regexp, Required
-from wtforms.widgets import TextInput
+from wtforms.widgets import TextInput, TextArea
 
 log = logging.getLogger(__name__)
 
@@ -316,7 +316,11 @@ class PaymentItemForm(MyFlaskForm):
 
 class GroupEmailForm(MyFlaskForm):
     replyto    = MyStringField('Reply To',  [Length(min=4, max=256)])
-    subject    = MyStringField( 'Subject',   [Length(max=512)])
-    body       = MyStringField(    'Body',      [Length(max=32768)])
+    subject    = MyStringField('Subject',   [Length(min=4, max=512)])
+    body       = MyStringField('Body',      [Length(min=4, max=32768)], widget=TextArea())
+    token      = HiddenField('token')
+    count      = HiddenField('count')
+    attach1    = FileField('Attachment 1')
+    attach2    = FileField('Attachment 2')
     submit     = SubmitField('Send')
 

@@ -32,41 +32,40 @@ $(document).ready(function() {
 <div class='container'>
 <h3>Group Email</h3>
 
-<form action='{{url_for('.emailtool')}}' method='post'>
-<input type='hidden' name='token' value='{{token}}'/></td>
+<form action='{{url_for('.emailtool')}}' method='post' enctype="multipart/form-data">
 {{form.csrf_token()}}
+{{form.token}}
+{{form.count}}
 
 <table class='emailheaders'>
 <tr>
     <td>List:</td>
-    <td class='count'>{{count}}</td>
+    <td class='count'>{{form.count.data}}</td>
 </tr>
 <tr>
     <td>From:</td>
-    <td>Scorekeeper Mailman {{defaultsender}}</td>
+    <td>Scorekeeper Mailman &lt;{{defaultsender}}&gt;</td>
 </tr>
 <tr>
-    <td>Reply To:</td>
-    <td><input type='text' name='replyto' value=''/></td>
+    <td>{{form.replyto.label}}:</td>
+    <td>{{form.replyto}}</td>
 </tr>
 <tr>
-    <td>Subject:</td>
-    <td><input type='text' name='subject' value=''/></td>
+    <td>{{form.subject.label}}:</td>
+    <td>{{form.subject}}</td>
 </tr>
 
-<tr><td colspan=2><textarea name='body'></textarea></td></tr>
-{% for ii in range(1, 3) %}
-<tr>
-    <td colspan=2 class='attach'>
-        <label for='attach{{ii}}'>Attachment {{ii}}</label>
-        <input type="file" name="attach{{ii}}"/>
-    </td>
-</tr>
-{% endfor %}
+<tr><td colspan=2>
+    {% if form.body.errors %}
+    <div class='error'>Body error: {{form.body.errors[0]}}</div>
+    {% endif %}
+    <textarea name='body'>{{form.body.data}}</textarea>
+</td></tr>
+<tr><td colspan=2 class='attach'>{{form.attach1.label}}: {{form.attach1}}</td></tr>
+<tr><td colspan=2 class='attach'>{{form.attach2.label}}: {{form.attach2}}</td></tr>
 </table>
-<input type='submit' class='btn btn-admin send' value='Send'/>
+{{form.submit(class='btn btn-admin send')}}
 </form>
 
 </div>
 {% endblock content %}
-

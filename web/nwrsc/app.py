@@ -44,7 +44,6 @@ def create_app():
         "SQ_APPLICATION_ID":               os.environ.get('SQ_APPLICATION_ID', None),
         "SQ_APPLICATION_SECRET":           os.environ.get('SQ_APPLICATION_SECRET', None),
         "IS_MAIN_SERVER":         any2bool(os.environ.get('IS_MAIN_SERVER', False)),
-        "MAIL_DEFAULT_SENDER":             os.environ.get('MAIL_DEFAULT_SENDER', 'nodefaultsender'),
         "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE', 'US/Pacific'),
         "PROPAGATE_EXCEPTIONS":            False,
     })

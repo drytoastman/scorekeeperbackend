@@ -1,3 +1,4 @@
+import base64
 from collections import defaultdict
 from datetime import datetime, date, timedelta
 import glob
@@ -381,17 +382,30 @@ def emailtool():
     form = GroupEmailForm()
     if 'emaillist' in request.form:
         emaillist = json.loads(request.form['emaillist'])
-        return render_template('/admin/emailtool.html', token=current_app.usts.dumps(emaillist), count=len(emaillist), form=form, defaultsender=current_app.config['MAIL_DEFAULT_SENDER'])
+        form.token.data = current_app.usts.dumps(emaillist)
+        form.count.data = len(emaillist)
+        return render_template('/admin/emailtool.html', form=form, defaultsender=os.environ['MAIL_DEFAULT_SENDER'])
     elif 'token' in request.form:
         try:
             if form.validate_on_submit():
+                attachments = []
+                for d in (form.attach1.data, form.attach2.data):
+                    if d.filename:
+                        data = d.stream.read()
+                        attachments.append({'name': d.filename, 'mime': d.mimetype, 'data': base64.b64encode(data).decode() })
+
                 EmailQueue.queueMessage(
                     subject    = form.subject.data,
                     recipients = current_app.usts.loads(request.form['token'], max_age=86400),
                     replyto    = form.replyto.data,
-                    body       = form.body.data
+                    body       = form.body.data,
+                    attachments = attachments
                 )
+                flash("Group mail successfully queued")
+            else:
+                return render_template('/admin/emailtool.html', form=form, defaultsender=os.environ['MAIL_DEFAULT_SENDER'])
         except Exception as e:
+            flash("Group mail error: {}".format(e))
             log.exception(e)
     return redirect(url_for('.contactlist'))
 
