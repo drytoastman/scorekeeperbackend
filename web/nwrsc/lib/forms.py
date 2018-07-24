@@ -317,7 +317,7 @@ class PaymentItemForm(MyFlaskForm):
 class GroupEmailForm(MyFlaskForm):
     replyto    = MyStringField('Reply To',  [Length(min=4, max=256)])
     subject    = MyStringField('Subject',   [Length(min=4, max=512)])
-    body       = MyStringField('Body',      [Length(min=4, max=32768)], widget=TextArea())
+    body       = MyStringField('Body',      [Length(min=32, max=262144)], widget=TextArea())
     token      = HiddenField('token')
     count      = HiddenField('count')
     attach1    = FileField('Attachment 1')

@@ -29,7 +29,6 @@ psycopg2==2.7.1
 pycparser==2.17
 pyOpenSSL==17.5.0
 python-dateutil==2.6.0
-pytz==2017.2
 PyYAML==3.12
 reportlab==3.4.0
 requests==2.18.4
@@ -39,3 +38,4 @@ urllib3==1.22
 webassets==0.12.1
 Werkzeug==0.12.2
 WTForms==2.1
+git+https://github.com/drytoastman/scorekeepercommon.git

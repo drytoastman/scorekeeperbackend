@@ -7,10 +7,17 @@ x = setup(
     author='Brett Wilson',
     author_email='N/A',
     url='https://github.com/drytoastman/ScorekeeperBackend',
-    install_requires=["psycopg2==2.7.1", "pytz==2017.2"],
+    install_requires=[
+        "psycopg2",
+        "sccommon"
+    ],
+    dependency_links=[
+        "git+https://github.com/drytoastman/scorekeepercommon.git#egg=sccommon-2.0"
+    ],
     packages=find_packages(),
-    scripts=['bin/syncserver.py'],
+    entry_points={
+        'console_scripts': [ 'syncserver = synclogic:main' ]
+    },
     include_package_data=True,
     zip_safe=False,
 )
-

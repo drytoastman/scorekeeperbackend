@@ -40,7 +40,7 @@ services:
     image:   "drytoastman/scsync:${TRAVIS_TAG:-latest}"
     build:   "sync"
     container_name: "sync"
-    command: "bash -c 'pip install -e /code && exec syncserver.py'"
+    command: "bash -c 'pip install -e /code && syncserver'"
     env_file: [ default.env ]
     volumes:
         - "dbsocket:/var/run/postgresql"
@@ -49,21 +49,18 @@ services:
     networks:
         net1:
 
-#  email:
-#    image:   "drytoastman/scemail:${TRAVIS_TAG:-latest}"
-#    build:   "email"
-#    container_name: "email"
-#    command: "bash -c 'pip install -e /code && exec mailman.py'"
-#    environment:
-#        - UI_TIME_ZONE=US/Pacific
-#        - DEBUG=1
-#        - LOG_LEVEL=DEBUG
-#    volumes:
-#        - "dbsocket:/var/run/postgresql"
-#        - "logs:/var/log"
-#        - "./email:/code"
-#    networks:
-#        net1:
+  email:
+    image:   "drytoastman/scemail:${TRAVIS_TAG:-latest}"
+    build:   "email"
+    container_name: "email"
+    command: "bash -c 'pip install -e /code && mailman'"
+    env_file: [ default.env ]
+    volumes:
+        - "dbsocket:/var/run/postgresql"
+        - "logs:/var/log"
+        - "./email:/code"
+    networks:
+        net1:
 
 
 networks:

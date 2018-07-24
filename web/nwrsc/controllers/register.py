@@ -2,6 +2,7 @@ from collections import defaultdict
 import datetime
 import itertools
 import logging
+import os
 import time
 import uuid
 
@@ -329,7 +330,7 @@ def login():
 
 @Register.route("/emailsent")
 def emailsent():
-    return render_template("/register/emailsent.html", email=current_app.config['MAIL_DEFAULT_SENDER'])
+    return render_template("/register/emailsent.html", email=os.environ['MAIL_DEFAULT_SENDER'])
 
 
 @Register.route("/finish")

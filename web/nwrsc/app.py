@@ -2,7 +2,6 @@ import datetime
 from operator import attrgetter
 import os
 import logging
-import pytz
 import re
 import sys
 import time
@@ -206,35 +205,6 @@ class ReverseProxied(object):
         return self.app(environ, start_response)
 
 
-class DTFormatter(logging.Formatter):
-    """ Class to use datetime rather than time_struct for formatting so we can including time zone """
-    def formatTime(self, record, datefmt=None):
-        # Have to reach into environ directly here as the app isnt necessarily created yet so we can read its config
-        tz  = pytz.timezone(os.environ.get('UI_TIME_ZONE', 'US/Pacific'))
-        return datetime.datetime.fromtimestamp(record.created).astimezone(tz).strftime(datefmt)
-
-
-def logging_setup(level=logging.INFO, stderr=False, filename='/var/log/scweb.log'):
-    fmt = DTFormatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S %Z')
-    root = logging.getLogger()
-    root.setLevel(level)
-    root.handlers = []
-
-    if filename:
-        fhandler = logging.handlers.RotatingFileHandler(filename, maxBytes=10000000, backupCount=10)
-        fhandler.setFormatter(fmt)
-        fhandler.setLevel(level)
-        root.addHandler(fhandler)
-
-    if stderr:
-        shandler = logging.StreamHandler()
-        shandler.setFormatter(fmt)
-        shandler.setLevel(level)
-        root.addHandler(shandler)
-
-    logging.getLogger('werkzeug').setLevel(logging.WARN)
-
-
 def model_setup(app):
     # Database introspection at startup
     with app.app_context():
@@ -246,5 +216,3 @@ def model_setup(app):
                 log.info("Error during model initialization, waiting for db and template: %s", e)
                 time.sleep(5)
         log.info("Scorekeeper DB models initialized")
-
-

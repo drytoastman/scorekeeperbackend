@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../
 
 import nwrsc.app 
 import nwrsc.model
+from sccommon.logging import logging_setup
 
 @pytest.fixture(scope="module")
 def webdata():
@@ -56,7 +57,8 @@ def database(request, webdata):
 
 @pytest.fixture(scope="module")
 def webapp(database, webdata):
-    nwrsc.app.logging_setup(level=logging.DEBUG, stderr=True, filename=None)
+    os.environ['DEBUG'] = 1
+    logging_setup()
     theapp = nwrsc.app.create_app()
     theapp.config['DBHOST'] = webdata.host
     theapp.config['DBPORT'] = webdata.port

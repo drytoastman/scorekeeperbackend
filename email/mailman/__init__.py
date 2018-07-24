@@ -1,4 +1,6 @@
 
+
+"""
         "DBHOST":                          os.environ.get('DBHOST',    '/var/run/postgresql'),
         "DBPORT":                      int(os.environ.get('DBPORT',    5432)),
         "DBUSER":                          os.environ.get('DBUSER',    'localuser'),
@@ -12,3 +14,11 @@
  
     if theapp.config['MAIL_SERVER'] and theapp.config['MAIL_DEFAULT_SENDER']:
         theapp.mail = Mail(theapp)
+"""
+
+from sccommon.logging import logging_setup
+
+def main():
+    logging_setup('/var/log/scemail.log')
+    print ("hello world")
+

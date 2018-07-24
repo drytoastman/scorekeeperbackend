@@ -1,2 +1,2 @@
 psycopg2==2.7.1
-pytz==2017.2
+git+https://github.com/drytoastman/scorekeepercommon.git
