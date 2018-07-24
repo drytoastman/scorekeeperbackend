@@ -287,10 +287,11 @@ def login():
             for d in Driver.find(reset.firstname.data.strip(), reset.lastname.data.strip()):
                 if d.email.lower() == reset.email.data.strip().lower():
                     token = current_app.usts.dumps({'request': 'reset', 'driverid': str(d.driverid)})
+                    url = url_for('.reset', token=token, _external=True)
                     EmailQueue.queueMessage(
                         subject = "Scorekeeper Reset Request",
                         recipients=[{'email':d.email, 'firstname':d.firstname, 'lastname':d.lastname}],
-                        body = "Use the following link to continue the reset process.\n\n{}".format(url_for('.reset', token=token, _external=True))
+                        body = render_template("/register/resetemail.html", url=url)
                     )
                     return redirect(url_for(".emailsent"))
             flash("No user could be found with those parameters")
@@ -314,10 +315,11 @@ def login():
                     request.args = dict(token=token)
                     return finish()
 
+                url = url_for('.finish', token=token, _external=True)
                 EmailQueue.queueMessage(
                     subject = "Scorekeeper Profile Request",
                     recipients=[req],
-                    body = "Use the following link to complete the registration process.\n\n{}".format(url_for('.finish', token=token, _external=True))
+                    body = render_template("/register/newprofileemail.html", url=url)
                 )
                 return redirect(url_for(".emailsent"))
         else:

@@ -103,10 +103,11 @@ def sendreset():
     try:
         driver = Driver.get(uuid.UUID(request.form['driverid']))
         token = current_app.usts.dumps({'request': 'reset', 'driverid': str(driver.driverid)})
+        url = url_for('Register.reset', token=token, _external=True)
         EmailQueue.queueMessage(
             subject = "Scorekeeper Reset Request",
             recipients=[{'email':driver.email, 'firstname':driver.firstname, 'lastname':driver.lastname}],
-            body = "Use the following link to continue the reset process.\n\n{}".format(url_for('Register.reset', token=token, _external=True))
+            body = render_template("/register/resetemail.html", url=url)
         )
     except Exception as e:
         log.warning(e, exc_info=e)
