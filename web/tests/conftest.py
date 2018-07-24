@@ -57,7 +57,7 @@ def database(request, webdata):
 
 @pytest.fixture(scope="module")
 def webapp(database, webdata):
-    os.environ['DEBUG'] = 1
+    os.environ['DEBUG'] = "1"
     logging_setup()
     theapp = nwrsc.app.create_app()
     theapp.config['DBHOST'] = webdata.host
