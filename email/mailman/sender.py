@@ -4,7 +4,9 @@ from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.nonmultipart import MIMENonMultipart
 from email.mime.text import MIMEText
+import email.policy
 from email.utils import formataddr, formatdate, make_msgid, parseaddr
+import logging
 import os
 import smtplib
 import time
@@ -14,6 +16,8 @@ import psycopg2
 import psycopg2.extras
 
 psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
+
+log = logging.getLogger(__name__)
 
 
 def connect_db(port=-1):
@@ -47,7 +51,7 @@ class SenderThread(threading.Thread):
         self.sender  = os.environ.get('MAIL_DEFAULT_SENDER', None)
         self.replyto = os.environ.get('MAIL_DEFAULT_REPLYTO', None)
         self.domain  = self.sender.split('@')[1]
- 
+
     def run(self):
         self.done = False
         self.db = connect_db(6432)
@@ -61,37 +65,35 @@ class SenderThread(threading.Thread):
 
     def process_message(self, request):
         with smtplib.SMTP("") as smtp:
-            msg = MIMEMultipart()
-            alternative = MIMEMultipart('alternative')
-            alternative.attach(MIMEText(BeautifulSoup(request['body']).get_text(), 'plain'))
-            alternative.attach(MIMEText(request['body'], 'html'))
-            msg.attach(alternative)
+            html = request['body']
+            text = BeautifulSoup(html, "lxml").get_text().encode('utf-8').decode('us-ascii', 'ignore')
+
+            msg      = MIMEMultipart(policy=email.policy.SMTP)
+            alt      = MIMEMultipart('alternative')
+            textbody = MIMEText("", 'plain')
+            htmlbody = MIMEText("", 'html')
+
+            alt.attach(textbody)
+            alt.attach(htmlbody)
+            msg.attach(alt)
+            for attach in request.get('attachments', []):
+                msg.attach(Base64EncodedFile(attach['data'], attach['mime'], attach['name']))
 
             msg['From']    = formataddr(parseaddr(self.sender))
             msg['ReplyTo'] = formataddr(parseaddr(request.get('replyto', self.replyto)))
             msg['Subject'] = request['subject'].strip('\n')
             msg['Date']    = formatdate()
 
-            #attachments.append({'name': d.filename, 'mime': d.mimetype, 'data': base64.b64encode(data).decode() })
-            for attach in request.get('attachments', []):
-                msg.attach(Base64EncodedFile(attach['data'], attach['mime'], attach['name']))
-
             for rcpt in request['recipients']:
                 try:
                     del msg['Message-ID'], msg['To']
                     msg['Message-ID'] = make_msgid(domain=self.domain)
-                    msg['To'] = formataddr(("{} {}".format(rcpt['firstname'], rcpt['lastname']), rcpt['email']))
-                    print("send \n{}".format(msg))
+                    msg['To']         = formataddr(("{} {}".format(rcpt['firstname'], rcpt['lastname']), rcpt['email']))
+                    name              = "{} {}".format(rcpt['firstname'], rcpt['lastname'])
+                    htmlbody.set_payload(html.replace('{{NAME}}', name))
+                    textbody.set_payload(text.replace('{{NAME}}', name))
+                    print(msg)
+                    smtp.send_message(msg)
                 except Exception as e:
                     log.exception("Send error: %s", e)
-
-        """
-        if self.subject:
-            msg['Subject'] = sanitize_subject(force_text(self.subject), encoding)
-
-        msg['From'] = sanitize_address(self.sender, encoding)
-        msg['To'] = ', '.join(list(set(sanitize_addresses(self.recipients, encoding))))
-
-        """
-
 

@@ -392,7 +392,7 @@ def emailtool():
                 for d in (form.attach1.data, form.attach2.data):
                     if d.filename:
                         data = d.stream.read()
-                        attachments.append({'name': d.filename, 'mime': d.mimetype, 'data': base64.b64encode(data).decode() })
+                        attachments.append({'name': d.filename, 'mime': d.mimetype, 'data': base64.encodebytes(data).decode() })
 
                 EmailQueue.queueMessage(
                     subject    = form.subject.data,

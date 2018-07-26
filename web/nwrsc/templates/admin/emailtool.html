@@ -21,7 +21,9 @@ $(document).ready(function() {
         plugins: "textcolor",
         menubar: false,
         statusbar: false,
-        toolbar: "fontselect fontsizeselect bold italic underline strikethrough forecolor backcolor alignleft aligncenter alignright alignjustify indent outdent undo redo"
+        toolbar: "fontselect fontsizeselect bold italic underline strikethrough forecolor backcolor alignleft aligncenter alignright alignjustify indent outdent undo redo",
+        force_br_newlines: false,
+        force_p_newlines: false
     });
 });
 </script>
@@ -44,7 +46,7 @@ $(document).ready(function() {
 </tr>
 <tr>
     <td>From:</td>
-    <td>Scorekeeper Mailman &lt;{{defaultsender}}&gt;</td>
+    <td>{{defaultsender}}</td>
 </tr>
 <tr>
     <td>{{form.replyto.label}}:</td>

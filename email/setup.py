@@ -9,6 +9,7 @@ x = setup(
     url='https://github.com/drytoastman/ScorekeeperBackend',
     install_requires=[
         "psycopg2",
+        "beautifulsoup4",
         "sccommon"
     ],
     dependency_links=[
