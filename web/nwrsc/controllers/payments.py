@@ -219,15 +219,18 @@ def sqaurepaymentcomplete():
         response = None
 
         # Square may call us back but there seems to be a delay before we can load the transaction to check, we retry at longer intervals
+        savee = None
         for ii in range(5):
             time.sleep(ii+0.1)
             try:
                 response = squareconnect.apis.transactions_api.TransactionsApi(api_client=client).retrieve_transaction(account.accountid, transactionid)
                 break
-            except:
+            except Exception as e:
+                savee = e
                 log.warning("transaction verification failed for {}".format(transactionid))
 
         if not response:
+            if savee: log.error("exception on last try was: {}".format(savee), exc_info=savee)
             raise FlashableException("Unable to verify transaction {} with Square, contact the administrator".format(transactionid))
 
         _recordPayment(cached, transactionid, datetime.datetime.strptime(response.transaction.created_at, '%Y-%m-%dT%H:%M:%SZ'))
@@ -352,7 +355,7 @@ def accounts():
     items     = PaymentItem.getAll()
     sqappid   = current_app.config.get('SQ_APPLICATION_ID', '')
     if sqappid:
-        squareurl = 'https://connect.squareup.com/oauth2/authorize?client_id={}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE,ORDERS_WRITE,ITEMS_READ&state={}'.format(sqappid, g.series)
+        squareurl = 'https://connect.squareup.com/oauth2/authorize?client_id={}&scope=MERCHANT_PROFILE_READ,PAYMENTS_WRITE,PAYMENTS_READ,ORDERS_WRITE,ITEMS_READ&state={}'.format(sqappid, g.series)
 
     return render_template('/admin/paymentaccounts.html', accounts=accounts, items=items, squareurl=squareurl, ppacctform=ppacctform, itemform=itemform)
 
