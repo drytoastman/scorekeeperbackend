@@ -1,4 +1,3 @@
-
 from bs4 import BeautifulSoup
 from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
@@ -8,30 +7,13 @@ import email.policy
 from email.utils import formataddr, formatdate, make_msgid, parseaddr
 import logging
 import os
+import psycopg2
 import smtplib
 import time
 import threading
 
-import psycopg2
-import psycopg2.extras
-
-psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
 
 log = logging.getLogger(__name__)
-
-
-def connect_db(port=-1):
-    args = {
-      "cursor_factory": psycopg2.extras.DictCursor,
-                "host": "/var/run/postgresql",
-                "user": "localuser",
-              "dbname": "scorekeeper",
-    "application_name": "mailman"
-    }
-    if port > 0:
-        args.update({"host": "127.0.0.1", "port": port})
-    return psycopg2.connect(**args)
-
 
 class Base64EncodedFile(EmailMessage):
     def __init__(self, base64data, mimetype, filename):
@@ -45,22 +27,26 @@ class Base64EncodedFile(EmailMessage):
 
 class SenderThread(threading.Thread):
 
-    def __init__(self):
+    def __init__(self, cargs):
         threading.Thread.__init__(self)
-        self.server  = os.environ.get('MAIL_SERVER', None)
-        self.sender  = os.environ.get('MAIL_DEFAULT_SENDER', None)
-        self.replyto = os.environ.get('MAIL_DEFAULT_REPLYTO', None)
+        self.server  = os.environ['MAIL_SERVER']
+        self.sender  = os.environ['MAIL_DEFAULT_SENDER']
+        self.replyto = os.environ['MAIL_DEFAULT_REPLYTO']
         self.domain  = self.sender.split('@')[1]
+        self.cargs   = cargs
 
     def run(self):
         self.done = False
-        self.db = connect_db(6432)
         while not self.done:
-            with self.db.cursor() as cur:
-                cur.execute("SELECT * FROM emailqueue ORDER BY created LIMIT 1")
-                if cur.rowcount == 1:
-                    row = cur.fetchone()
-                    self.process_message(row['content'])
+            try:
+                with psycopg2.connect(**self.cargs) as db:
+                    with db.cursor() as cur:
+                        cur.execute("SELECT * FROM emailqueue ORDER BY created LIMIT 1")
+                        if cur.rowcount == 1:
+                            row = cur.fetchone()
+                            self.process_message(row['content'])
+            except Exception as e:
+                log.exception("Error in sender: {}".format(e))
             time.sleep(10)
 
     def process_message(self, request):
@@ -93,7 +79,7 @@ class SenderThread(threading.Thread):
                     htmlbody.set_payload(html.replace('{{NAME}}', name))
                     textbody.set_payload(text.replace('{{NAME}}', name))
                     print(msg)
-                    smtp.send_message(msg)
+                    #smtp.send_message(msg)
                 except Exception as e:
                     log.exception("Send error: %s", e)
 

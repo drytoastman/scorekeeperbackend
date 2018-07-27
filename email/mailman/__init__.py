@@ -1,25 +1,27 @@
-
-
-"""
-        "DBHOST":                          os.environ.get('DBHOST',    '/var/run/postgresql'),
-        "DBPORT":                      int(os.environ.get('DBPORT',    5432)),
-        "DBUSER":                          os.environ.get('DBUSER',    'localuser'),
-        "MAIL_SERVER":                     os.environ.get('MAIL_SERVER',   None),
-        "MAIL_DEFAULT_SENDER":             os.environ.get('MAIL_DEFAULT_SENDER', None),
- 
-    if theapp.config['MAIL_SERVER'] and theapp.config['MAIL_DEFAULT_SENDER']:
-        theapp.mail = Mail(theapp)
-"""
-
 import logging
-
+import sys
+import psycopg2
+import psycopg2.extras
 from sccommon.logging import logging_setup
 
 from .sender import SenderThread
 
+
 def main():
-    logging_setup('/var/log/scemail.log')
+    #logging_setup('/var/log/scemail.log')
+    logging.basicConfig(level=logging.NOTSET)
     log = logging.getLogger(__name__)
     log.info("starting main")
-    SenderThread().start()
 
+    psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
+    cargs = {
+      "cursor_factory": psycopg2.extras.DictCursor,
+                "host": "/var/run/postgresql",
+                "user": "localuser",
+              "dbname": "scorekeeper",
+    "application_name": "mailman"
+    }
+    if len(sys.argv) > 1:  # testing only
+        cargs.update({"host": "127.0.0.1", "port": int(sys.argv[1])})
+
+    SenderThread(cargs).start()
