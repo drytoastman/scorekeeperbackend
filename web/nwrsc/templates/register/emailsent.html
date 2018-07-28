@@ -4,15 +4,20 @@
 {{super()}}
 <style>
 .container { margin-top: 2rem; }
+.email { color: blue; }
 </style>
 {% endblock headers %}
 
 {% block content %}
 <div class='container'>
 <h2>Email Sent</h2>
-<div class='content'>
-An email from <a href='mailto:{{email}}'>{{email}}</a> has been sent with a link to finish your registration/reset.
-If nothing arrives in quick order, check your spam/junk folder.
-</div>
+<p>
+An email with the following header has been sent with a link to finish your registration/reset.
+If nothing arrives in quick order, check your spam/junk folder. 
+</p>
+
+From: <span class='email'>{{sender}}</span><br/>
+Reply-To: <span class='email'>{{replyto}}</span><br/>
+To: <span class='email'>{{rcpt}}</span><br/>
 </div>
 {% endblock content %}

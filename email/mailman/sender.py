@@ -1,9 +1,9 @@
 from bs4 import BeautifulSoup
+from email import policy
 from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.nonmultipart import MIMENonMultipart
 from email.mime.text import MIMEText
-import email.policy
 from email.utils import formataddr, formatdate, make_msgid, parseaddr
 import logging
 import os
@@ -29,9 +29,9 @@ class SenderThread(threading.Thread):
 
     def __init__(self, cargs):
         threading.Thread.__init__(self)
-        self.server  = os.environ['MAIL_SERVER']
-        self.sender  = os.environ['MAIL_DEFAULT_SENDER']
-        self.replyto = os.environ['MAIL_DEFAULT_REPLYTO']
+        self.server  = os.environ['MAIL_SEND_HOST']
+        self.sender  = os.environ['MAIL_SEND_FROM']
+        self.replyto = os.environ['MAIL_SEND_DEFAULT_REPLYTO']
         self.domain  = self.sender.split('@')[1]
         self.cargs   = cargs
 
@@ -41,20 +41,24 @@ class SenderThread(threading.Thread):
             try:
                 with psycopg2.connect(**self.cargs) as db:
                     with db.cursor() as cur:
-                        cur.execute("SELECT * FROM emailqueue ORDER BY created LIMIT 1")
-                        if cur.rowcount == 1:
+                        while True:
+                            cur.execute("SELECT * FROM emailqueue ORDER BY created LIMIT 1")
+                            if cur.rowcount == 0:
+                                break
                             row = cur.fetchone()
+                            log.debug("Processing message %s", row['mailid'])
                             self.process_message(row['content'])
+                            cur.execute("DELETE FROM emailqueue WHERE mailid=%s", (row['mailid'],))
             except Exception as e:
                 log.exception("Error in sender: {}".format(e))
             time.sleep(10)
 
     def process_message(self, request):
-        with smtplib.SMTP("") as smtp:
+        with smtplib.SMTP(self.server) as smtp:
             html = request['body']
             text = BeautifulSoup(html, "lxml").get_text().encode('utf-8').decode('us-ascii', 'ignore')
 
-            msg      = MIMEMultipart(policy=email.policy.SMTP)
+            msg      = MIMEMultipart(policy=policy.SMTP)
             alt      = MIMEMultipart('alternative')
             textbody = MIMEText("", 'plain')
             htmlbody = MIMEText("", 'html')
@@ -78,8 +82,7 @@ class SenderThread(threading.Thread):
                     name              = "{} {}".format(rcpt['firstname'], rcpt['lastname'])
                     htmlbody.set_payload(html.replace('{{NAME}}', name))
                     textbody.set_payload(text.replace('{{NAME}}', name))
-                    print(msg)
-                    #smtp.send_message(msg)
+                    smtp.send_message(msg)
                 except Exception as e:
                     log.exception("Send error: %s", e)
 

@@ -288,12 +288,13 @@ def login():
                 if d.email.lower() == reset.email.data.strip().lower():
                     token = current_app.usts.dumps({'request': 'reset', 'driverid': str(d.driverid)})
                     url = url_for('.reset', token=token, _external=True)
+                    req = {'email':d.email, 'firstname':d.firstname, 'lastname':d.lastname}
                     EmailQueue.queueMessage(
                         subject = "Scorekeeper Reset Request",
-                        recipients=[{'email':d.email, 'firstname':d.firstname, 'lastname':d.lastname}],
+                        recipients=[req],
                         body = render_template("/register/resetemail.html", url=url)
                     )
-                    return redirect(url_for(".emailsent"))
+                    return redirect(url_for(".emailsent", rcpt="{} {} <{}>".format(req['firstname'], req['lastname'], req['email'])))
             flash("No user could be found with those parameters")
         else:
             flashformerrors(reset)
@@ -321,7 +322,7 @@ def login():
                     recipients=[req],
                     body = render_template("/register/newprofileemail.html", url=url)
                 )
-                return redirect(url_for(".emailsent"))
+                return redirect(url_for(".emailsent", rcpt="{} {} <{}>".format(req['firstname'], req['lastname'], req['email'])))
         else:
             flashformerrors(register)
 
@@ -332,7 +333,7 @@ def login():
 
 @Register.route("/emailsent")
 def emailsent():
-    return render_template("/register/emailsent.html", email=os.environ['MAIL_DEFAULT_SENDER'])
+    return render_template("/register/emailsent.html", rcpt=request.args.get('rcpt', ''), sender=os.environ['MAIL_SEND_FROM'], replyto=os.environ['MAIL_SEND_DEFAULT_REPLYTO'])
 
 
 @Register.route("/finish")

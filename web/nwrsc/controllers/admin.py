@@ -384,7 +384,7 @@ def emailtool():
         emaillist = json.loads(request.form['emaillist'])
         form.token.data = current_app.usts.dumps(emaillist)
         form.count.data = len(emaillist)
-        return render_template('/admin/emailtool.html', form=form, defaultsender=os.environ['MAIL_DEFAULT_SENDER'])
+        return render_template('/admin/emailtool.html', form=form, sender=os.environ['MAIL_SEND_FROM'])
     elif 'token' in request.form:
         try:
             if form.validate_on_submit():
@@ -403,7 +403,7 @@ def emailtool():
                 )
                 flash("Group mail successfully queued")
             else:
-                return render_template('/admin/emailtool.html', form=form, defaultsender=os.environ['MAIL_DEFAULT_SENDER'])
+                return render_template('/admin/emailtool.html', form=form, sender=os.environ['MAIL_SEND_FROM'])
         except Exception as e:
             flash("Group mail error: {}".format(e))
             log.exception(e)
