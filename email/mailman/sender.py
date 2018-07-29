@@ -9,6 +9,7 @@ import logging
 import os
 import psycopg2
 import smtplib
+from sccommon.queuesleep import QueueSleepMixin
 import time
 import threading
 
@@ -25,10 +26,11 @@ class Base64EncodedFile(EmailMessage):
         self['Content-Disposition']       = 'attachment; filename="{}"'.format(filename)
 
 
-class SenderThread(threading.Thread):
+class SenderThread(threading.Thread, QueueSleepMixin):
 
     def __init__(self, cargs):
         threading.Thread.__init__(self)
+        QueueSleepMixin.__init__(self)
         self.server  = os.environ['MAIL_SEND_HOST']
         self.sender  = os.environ['MAIL_SEND_FROM']
         self.replyto = os.environ['MAIL_SEND_DEFAULT_REPLYTO']
@@ -51,7 +53,8 @@ class SenderThread(threading.Thread):
                             cur.execute("DELETE FROM emailqueue WHERE mailid=%s", (row['mailid'],))
             except Exception as e:
                 log.exception("Error in sender: {}".format(e))
-            time.sleep(10)
+
+            self.qwait(10)
 
     def process_message(self, request):
         with smtplib.SMTP(self.server) as smtp:
@@ -69,10 +72,15 @@ class SenderThread(threading.Thread):
             for attach in request.get('attachments', []):
                 msg.attach(Base64EncodedFile(attach['data'], attach['mime'], attach['name']))
 
-            msg['From']    = formataddr(parseaddr(self.sender))
-            msg['ReplyTo'] = formataddr(parseaddr(request.get('replyto', self.replyto)))
-            msg['Subject'] = request['subject'].strip('\n')
-            msg['Date']    = formatdate()
+            if 'replyto' in request:
+                replyto = parseaddr(request['replyto'])
+            else:
+                replyto = ('Scorekeeper Admin', self.replyto)
+
+            msg['From']     = formataddr(("{} via Mailman".format(replyto[0]), self.sender))
+            msg['Reply-To'] = formataddr(replyto)
+            msg['Subject']  = request['subject'].strip('\n')
+            msg['Date']     = formatdate()
 
             for rcpt in request['recipients']:
                 try:
