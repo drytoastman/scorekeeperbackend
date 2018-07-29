@@ -397,7 +397,7 @@ def emailtool():
                 EmailQueue.queueMessage(
                     subject    = form.subject.data,
                     recipients = current_app.usts.loads(request.form['token'], max_age=86400),
-                    replyto    = form.replyto.data,
+                    replyto    = "{} <{}>".format(form.replyname.data, form.replyemail.data),
                     body       = form.body.data,
                     attachments = attachments
                 )
