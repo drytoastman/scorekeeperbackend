@@ -4,9 +4,7 @@
 {% macro errorcell(tomatch, active) %}
 {% if tomatch == active %}
 <div class='row'>
-<div class='col text-center'>
-{{ m.errordisplay() }}
-</div>
+{{ m.flashdisplay('text-center w-100') }}
 </div>
 {% endif %}
 {% endmacro %}

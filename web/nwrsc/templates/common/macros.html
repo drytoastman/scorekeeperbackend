@@ -1,10 +1,10 @@
 
-{% macro errordisplay(cssclass='') %}
-<div class='formerror {{cssclass}}'>
-{% for msg in get_flashed_messages() %}
-<div class='error'>{{msg}}</div>
-{% endfor %}
-</div>
+{% macro flashdisplay(outerclass='') %}
+    <div class='{{outerclass}}'>
+    {% for cat, msg in get_flashed_messages(with_categories=true) %}
+        <div class='flash-{{cat}}'>{{msg}}</div>
+    {% endfor %}
+    </div>
 {% endmacro %}
 
 

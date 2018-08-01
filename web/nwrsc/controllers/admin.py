@@ -12,7 +12,7 @@ import re
 import subprocess
 import uuid
 
-from flask import current_app, escape, flash, g, redirect, request, render_template, Response, send_from_directory, session, url_for
+from flask import current_app, escape, flash, g, Markup, redirect, request, render_template, Response, send_from_directory, session, url_for
 
 from nwrsc.controllers.blueprints import *
 from nwrsc.lib.encoding import csv_encode, json_encode, time_print 
@@ -384,6 +384,7 @@ def emailtool():
         emaillist = json.loads(request.form['emaillist'])
         form.token.data = current_app.usts.dumps(emaillist)
         form.count.data = len(emaillist)
+        form.unsub.data = True
         return render_template('/admin/emailtool.html', form=form, sender=os.environ['MAIL_SEND_FROM'])
     elif 'token' in request.form:
         try:
@@ -399,9 +400,10 @@ def emailtool():
                     recipients = current_app.usts.loads(request.form['token'], max_age=86400),
                     replyto    = "{} <{}>".format(form.replyname.data, form.replyemail.data),
                     body       = form.body.data,
-                    attachments = attachments
+                    attachments = attachments,
+                    unsub      = form.unsub.data
                 )
-                flash("Group mail successfully queued")
+                flash("Group mail successfully queued", category='success')
             else:
                 return render_template('/admin/emailtool.html', form=form, sender=os.environ['MAIL_SEND_FROM'])
         except Exception as e:

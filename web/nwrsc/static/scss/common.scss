@@ -18,12 +18,24 @@ ul.wrap4 {
     white-space: nowrap;
 }
 
-div.error {
-    text-align: center;
-}
-
 .error {
     color: red;
+}
+
+$fred: rgb(200, 25, 25);
+.flash-message, .flash-error {
+    color: $fred;
+    background: lighten($fred, 50%);
+    border-top: 1px solid $fred;
+    border-bottom: 1px solid $fred;
+}
+
+$fgreen: rgb(61, 112, 20);
+.flash-success {
+    color: $fgreen;
+    background: lighten($fgreen, 65%);
+    border-top: 1px solid $fgreen;
+    border-bottom: 1px solid $fgreen;
 }
 
 .navbar {
