@@ -55,7 +55,7 @@ admin.js:
 admin.css:
     output:   admin.css
     filters:  [ libsass ]
-    depdends: [ scss/*.scss ]
+    depends:  [ scss/*.scss ]
     contents: [ datatables/1.10.16/datatables.css, flatpickr/4.4.6/flatpickr.css, scss/admin.scss ]
 
 
@@ -72,13 +72,13 @@ proannouncer.js:
 announcer.css:
     output:   announcer.css
     filters:  [ libsass ]
-    depdends: [ scss/*.scss ]
+    depends:  [ scss/*.scss ]
     contents: [ scss/announcer.scss ]
 
 announcermini.css:
     output:   announcermini.css
     filters:  [ libsass ]
-    depdends: [ scss/*.scss ]
+    depends:  [ scss/*.scss ]
     contents: [ scss/announcermini.scss ]
 
 
@@ -90,7 +90,7 @@ docs.js:
 docs.css:
     output: docs.css
     filters:  [ libsass ]
-    depdends: [ scss/*.scss ]
+    depends:  [ scss/*.scss ]
     contents: [ scss/docs.scss ]
 
 
@@ -102,7 +102,7 @@ register.js:
 register.css:
     output:   register.css
     filters:  [ libsass ]
-    depdends: [ scss/*.scss ]
+    depends:  [ scss/*.scss ]
     contents: [ scss/register.scss ]
 
 
@@ -114,6 +114,6 @@ results.js:
 results.css:
     output:   results.css
     filters:  [ libsass ]
-    depdends: [ scss/*.scss ]
+    depends:  [ scss/*.scss ]
     contents: [ scss/results.scss ]
 
