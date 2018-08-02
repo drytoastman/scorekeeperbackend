@@ -403,9 +403,9 @@ def emailtool():
                 for r in current_app.usts.loads(request.form['token'], max_age=86400):
                     unsub = {}
                     if form.unsub.data and r.get('driverid', ''):
-                        utoken = current_app.usts.dumps({'unsub': 1, 'series': g.series, 'driverid': r['driverid']})
+                        utoken = current_app.usts.dumps({'unsub': r['driverid'], 'series': g.series})
                         unsub['email']  = utoken
-                        unsub['url']    = url_for('Register.unsubscribe', series=g.series, token=utoken)
+                        unsub['url']    = url_for('Register.unsubscribe', series=g.series, token=utoken, _external=True)
                         unsub['series'] = g.series
 
                     EmailQueue.queueMessage(

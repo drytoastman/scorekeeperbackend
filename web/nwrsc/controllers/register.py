@@ -376,7 +376,8 @@ def reset():
 
 @Register.route("/<series>/unsubscribe")
 def unsubscribe():
-    return "Unsubscribe {}".format(request.args.get('token', ''))
+    req = current_app.usts.loads(request.args['token'], max_age=8640000) # 100 day expiry
+    return "Unsubscribe {}".format(req)
 
  
 ####################################################################
