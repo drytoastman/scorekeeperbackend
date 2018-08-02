@@ -26,6 +26,12 @@ class Base64EncodedFile(EmailMessage):
         self['Content-Disposition']       = 'attachment; filename="{}"'.format(filename)
 
 
+def addUnsub(msg, htmlbody, textbody, html, text, driverid):
+    msg['List-Id'] = "some id here"
+    msg['List-Unsubscribe'] = "<mailto:unsubscribe-espc-tech-12345N@domain.com>, <http://domain.com/member/unsubscribe/?listname=espc-tech@domain.com?id=12345N>"
+    htmlbody.set_payload(html.replace('{{NAME}}', name) + 'some extra stuff here')
+    textbody.set_payload(text.replace('{{NAME}}', name) + 'some extra stuff here')
+
 class SenderThread(threading.Thread, QueueSleepMixin):
 
     def __init__(self, cargs):
@@ -50,7 +56,8 @@ class SenderThread(threading.Thread, QueueSleepMixin):
                             row = cur.fetchone()
                             log.debug("Processing message %s", row['mailid'])
                             self.process_message(row['content'])
-                            cur.execute("DELETE FROM emailqueue WHERE mailid=%s", (row['mailid'],))
+                            break
+                            #cur.execute("DELETE FROM emailqueue WHERE mailid=%s", (row['mailid'],))
             except Exception as e:
                 log.exception("Error in sender: {}".format(e))
 
@@ -58,6 +65,10 @@ class SenderThread(threading.Thread, QueueSleepMixin):
 
     def process_message(self, request):
         with smtplib.SMTP(self.server) as smtp:
+            unsub = request.get('unsub', False)
+            if unsub:
+                for r in request['recipients']:
+
             html = request['body']
             text = BeautifulSoup(html, "lxml").get_text().encode('utf-8').decode('us-ascii', 'ignore')
 
@@ -84,12 +95,14 @@ class SenderThread(threading.Thread, QueueSleepMixin):
 
             for rcpt in request['recipients']:
                 try:
+                    if unsub and 'driverid' not in r:
+                        log.warning("Sending email to %s and unsub requested but no driver id present", r['email'])
+
                     del msg['Message-ID'], msg['To']
                     msg['Message-ID'] = make_msgid(domain=self.domain)
                     msg['To']         = formataddr(("{} {}".format(rcpt['firstname'], rcpt['lastname']), rcpt['email']))
                     name              = "{} {}".format(rcpt['firstname'], rcpt['lastname'])
-                    htmlbody.set_payload(html.replace('{{NAME}}', name))
-                    textbody.set_payload(text.replace('{{NAME}}', name))
+                    setbody(msg, htmlbody, textbody, html, text)
                     smtp.send_message(msg)
                 except Exception as e:
                     log.exception("Send error: %s", e)

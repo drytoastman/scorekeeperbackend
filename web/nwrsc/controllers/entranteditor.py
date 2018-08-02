@@ -106,7 +106,7 @@ def sendreset():
         url = url_for('Register.reset', token=token, _external=True)
         EmailQueue.queueMessage(
             subject = "Scorekeeper Reset Request",
-            recipients=[{'email':driver.email, 'firstname':driver.firstname, 'lastname':driver.lastname}],
+            recipient={'email':driver.email, 'firstname':driver.firstname, 'lastname':driver.lastname},
             body = render_template("/register/resetemail.html", url=url)
         )
     except Exception as e:

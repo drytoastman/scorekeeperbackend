@@ -291,7 +291,7 @@ def login():
                     req = {'email':d.email, 'firstname':d.firstname, 'lastname':d.lastname}
                     EmailQueue.queueMessage(
                         subject = "Scorekeeper Reset Request",
-                        recipients=[req],
+                        recipient=req,
                         body = render_template("/register/resetemail.html", url=url)
                     )
                     return redirect(url_for(".emailsent", rcpt="{} {} <{}>".format(req['firstname'], req['lastname'], req['email'])))
@@ -319,7 +319,7 @@ def login():
                 url = url_for('.finish', token=token, _external=True)
                 EmailQueue.queueMessage(
                     subject = "Scorekeeper Profile Request",
-                    recipients=[req],
+                    recipient=req,
                     body = render_template("/register/newprofileemail.html", url=url)
                 )
                 return redirect(url_for(".emailsent", rcpt="{} {} <{}>".format(req['firstname'], req['lastname'], req['email'])))
@@ -372,6 +372,11 @@ def reset():
         return render_template("register/reset.html", form=form, formerror=form.errors)
 
     raise DisplayableError(header="Confirmation Error", content="Unknown reset request type")
+
+
+@Register.route("/<series>/unsubscribe")
+def unsubscribe():
+    return "Unsubscribe {}".format(request.args.get('token', ''))
 
  
 ####################################################################

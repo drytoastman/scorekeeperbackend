@@ -13,6 +13,7 @@ import subprocess
 import uuid
 
 from flask import current_app, escape, flash, g, Markup, redirect, request, render_template, Response, send_from_directory, session, url_for
+from werkzeug import secure_filename
 
 from nwrsc.controllers.blueprints import *
 from nwrsc.lib.encoding import csv_encode, json_encode, time_print 
@@ -385,31 +386,43 @@ def emailtool():
         form.token.data = current_app.usts.dumps(emaillist)
         form.count.data = len(emaillist)
         form.unsub.data = True
-        return render_template('/admin/emailtool.html', form=form, sender=os.environ['MAIL_SEND_FROM'])
     elif 'token' in request.form:
         try:
             if form.validate_on_submit():
                 attachments = []
                 for d in (form.attach1.data, form.attach2.data):
                     if d.filename:
-                        data = d.stream.read()
-                        attachments.append({'name': d.filename, 'mime': d.mimetype, 'data': base64.encodebytes(data).decode() })
+                        dest = current_app.config.get('UPLOAD_FOLDER', '')
+                        if not dest:
+                            flash("No uploads folder, unable to do attachments")
+                        else:
+                            sfilename = secure_filename(d.filename)
+                            d.save(os.path.join(dest, sfilename))
+                            attachments.append({'name': sfilename, 'mime': d.mimetype})
 
-                EmailQueue.queueMessage(
-                    subject    = form.subject.data,
-                    recipients = current_app.usts.loads(request.form['token'], max_age=86400),
-                    replyto    = "{} <{}>".format(form.replyname.data, form.replyemail.data),
-                    body       = form.body.data,
-                    attachments = attachments,
-                    unsub      = form.unsub.data
-                )
-                flash("Group mail successfully queued", category='success')
-            else:
-                return render_template('/admin/emailtool.html', form=form, sender=os.environ['MAIL_SEND_FROM'])
+                for r in current_app.usts.loads(request.form['token'], max_age=86400):
+                    unsub = {}
+                    if form.unsub.data and r.get('driverid', ''):
+                        utoken = current_app.usts.dumps({'unsub': 1, 'series': g.series, 'driverid': r['driverid']})
+                        unsub['email']  = utoken
+                        unsub['url']    = url_for('Register.unsubscribe', series=g.series, token=utoken)
+                        unsub['series'] = g.series
+
+                    EmailQueue.queueMessage(
+                        subject     = form.subject.data,
+                        recipient   = r,
+                        replyto     = { 'name': form.replyname.data, 'email': form.replyemail.data },
+                        body        = form.body.data,
+                        unsub       = unsub,
+                        attachments = attachments,
+                    )
+                flash("Group mail queued", category='success')
+                return redirect(url_for('.contactlist'))
         except Exception as e:
             flash("Group mail error: {}".format(e))
             log.exception(e)
-    return redirect(url_for('.contactlist'))
+
+    return render_template('/admin/emailtool.html', form=form, sender=os.environ['MAIL_SEND_FROM'])
 
 
 

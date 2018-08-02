@@ -44,11 +44,12 @@ def create_app():
         "SQ_APPLICATION_SECRET":           os.environ.get('SQ_APPLICATION_SECRET', None),
         "IS_MAIN_SERVER":         any2bool(os.environ.get('IS_MAIN_SERVER', False)),
         "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE', 'US/Pacific'),
+        "UPLOAD_FOLDER":                   os.environ.get('UPLOAD_FOLDER', '/uploads'),
+        "MAX_CONTENT_LENGTH":              2 * 1024 * 1024,
         "PROPAGATE_EXCEPTIONS":            False,
     })
     theapp.config['TEMPLATES_AUTO_RELOAD'] = theapp.config['DEBUG']
     theapp.config['LIBSASS_STYLE'] = theapp.config['DEBUG'] and 'expanded' or 'compressed'
-
 
     ### WebAssets
     assets   = Environment(theapp)
@@ -188,6 +189,10 @@ def create_app():
 
     ### Reverse Proxy handler
     theapp.wsgi_app = ReverseProxied(theapp.wsgi_app)
+
+    ### Make sure uploads is present
+    if theapp.config.get('UPLOAD_FOLDER', ''):
+        os.makedirs(theapp.config['UPLOAD_FOLDER'], exist_ok=True)
 
     log.info("Scorekeeper App created")
     return theapp
