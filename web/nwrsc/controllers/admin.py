@@ -12,7 +12,7 @@ import re
 import subprocess
 import uuid
 
-from flask import current_app, escape, flash, g, Markup, redirect, request, render_template, Response, send_from_directory, session, url_for
+from flask import current_app, escape, flash, g, Markup, redirect, request, render_template, render_template_string, Response, send_from_directory, session, url_for
 from werkzeug import secure_filename
 
 from nwrsc.controllers.blueprints import *
@@ -412,7 +412,7 @@ def emailtool():
                         subject     = form.subject.data,
                         recipient   = r,
                         replyto     = { 'name': form.replyname.data, 'email': form.replyemail.data },
-                        body        = form.body.data,
+                        body        = render_template_string(form.body.data, **r),
                         unsub       = unsub,
                         attachments = attachments,
                     )
