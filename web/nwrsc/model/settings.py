@@ -19,6 +19,7 @@ class Settings(object):
         "weekendregion":        "",
         "pospointlist":         "20,16,13,11,9,7,6,5,4,3,2,1",
         "seriesname":           "",
+        "emaillistid":          "",
         "classinglink":         "",
         "resultsheader":        "",
         "resultscss":           "",

@@ -37,6 +37,7 @@ class SenderThread(threading.Thread, QueueSleepMixin):
         self.sender  = os.environ['MAIL_SEND_FROM']
         self.replyto = os.environ['MAIL_SEND_DEFAULT_REPLYTO']
         self.domain  = self.sender.split('@')[1]
+        self.policy  = policy.SMTP.clone(max_line_length=500)
         self.cargs   = cargs
 
     def run(self):
@@ -53,7 +54,6 @@ class SenderThread(threading.Thread, QueueSleepMixin):
                             log.debug("Processing message %s", row['mailid'])
                             self.process_message(smtp, row['content'])
                             cur.execute("DELETE FROM emailqueue WHERE mailid=%s", (row['mailid'],))
-                            break
             except Exception as e:
                 log.exception("Error in sender: {}".format(e))
 
@@ -89,8 +89,8 @@ class SenderThread(threading.Thread, QueueSleepMixin):
 
         if request.get('unsub', None):
             unsub = request['unsub']
-            msg['List-Id'] = unsub['series']
-            msg['List-Unsubscribe'] = "<mailto:mailman@scorekeeper.wwscc.org?subject=unsubscribe&body={}>".format(unsub['email'])
+            msg['List-Id'] = "<{}.lists.{}>".format(unsub['listid'], self.domain)
+            msg['List-Unsubscribe'] = "<mailto:mailman@scorekeeper.wwscc?subject=unsubscribe&body={}, {}>".format(unsub['email'], unsub['url'])
 
-        smtp.sendmail(self.sender, [rcpt['email']], msg.as_bytes(policy=policy.SMTP))
+        smtp.sendmail(self.sender, [rcpt['email']], msg.as_bytes(policy=self.policy))
 

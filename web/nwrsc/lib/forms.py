@@ -241,6 +241,7 @@ class ClassListForm(MyFlaskForm):
 
 class SettingsForm(MyFlaskForm):
     seriesname          = MyStringField('Series Name',        [Length(min=2, max=64)])
+    emaillistid         = MyStringField('Email List Id',      [Length(min=2, max=64)], render_kw={'title':'The unique email list identifier, used for group email unsubscribing'})
     largestcarnumber    = IntegerField( 'Largest Car Number', [Required()])
     minevents           = IntegerField( 'Min Events',         [InputRequired()])
     dropevents          = IntegerField( 'Drop X Events',      [InputRequired()])

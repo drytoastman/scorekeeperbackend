@@ -390,6 +390,7 @@ def emailtool():
         try:
             if form.validate_on_submit():
                 attachments = []
+                listid = Settings.get('emaillistid')
                 for d in (form.attach1.data, form.attach2.data):
                     if d.filename:
                         dest = current_app.config.get('UPLOAD_FOLDER', '')
@@ -403,10 +404,10 @@ def emailtool():
                 for r in current_app.usts.loads(request.form['token'], max_age=86400):
                     unsub = {}
                     if form.unsub.data and r.get('driverid', ''):
-                        utoken = current_app.usts.dumps({'unsub': r['driverid'], 'series': g.series})
+                        utoken = current_app.usts.dumps({'id': r['driverid'], 'listid': listid})
                         unsub['email']  = utoken
                         unsub['url']    = url_for('Register.unsubscribe', series=g.series, token=utoken, _external=True)
-                        unsub['series'] = g.series
+                        unsub['listid'] = listid
 
                     EmailQueue.queueMessage(
                         subject     = form.subject.data,
