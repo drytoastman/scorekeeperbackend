@@ -190,9 +190,11 @@ def create_app():
     ### Reverse Proxy handler
     theapp.wsgi_app = ReverseProxied(theapp.wsgi_app)
 
-    ### Make sure uploads is present
-    if theapp.config.get('UPLOAD_FOLDER', ''):
+    ### Make sure uploads is present or let user know
+    try:
         os.makedirs(theapp.config['UPLOAD_FOLDER'], exist_ok=True)
+    except Exception as e:
+        log.warning("Upload folder not present, uploads will be disabled: %s", str(e))
 
     log.info("Scorekeeper App created")
     return theapp
