@@ -1,4 +1,4 @@
-FROM python:3.6.5-slim-stretch
+FROM drytoastman/scpythonbase
 
 # Install our basic requirements, mainly wkhtmltopdf here
 RUN    apt-get update \

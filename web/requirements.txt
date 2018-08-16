@@ -25,7 +25,6 @@ misaka==2.1.0
 olefile==0.44
 paypalrestsdk==1.13.1
 Pillow==4.1.1
-psycopg2==2.7.1
 pycparser==2.17
 pyOpenSSL==17.5.0
 python-dateutil==2.6.0
@@ -38,4 +37,3 @@ urllib3==1.22
 webassets==0.12.1
 Werkzeug==0.12.2
 WTForms==2.1
-git+https://github.com/drytoastman/scorekeepercommon.git

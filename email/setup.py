@@ -8,12 +8,10 @@ x = setup(
     author_email='N/A',
     url='https://github.com/drytoastman/ScorekeeperBackend',
     install_requires=[
-        "psycopg2",
-        "beautifulsoup4",
-        "sccommon"
+        "sccommon",
+        "beautifulsoup4==4.6.0",
     ],
     dependency_links=[
-        "git+https://github.com/drytoastman/scorekeepercommon.git#egg=sccommon-2.0"
     ],
     entry_points={
         'console_scripts': [ 'mailman = mailman:main' ]

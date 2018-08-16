@@ -9,6 +9,7 @@ x = setup(
     url='https://github.com/drytoastman/wwscc',
 
     install_requires=[
+        "sccommon",
         "Flask",
         "Flask-Assets",
         "Flask-Bcrypt",
@@ -20,7 +21,6 @@ x = setup(
         "libsass",
         "ReportLab",
         "paypalrestsdk",
-        "psycopg2",
         "python-dateutil",
         "PyYAML",
         "squareconnect"

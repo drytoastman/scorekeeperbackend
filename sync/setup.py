@@ -8,11 +8,9 @@ x = setup(
     author_email='N/A',
     url='https://github.com/drytoastman/ScorekeeperBackend',
     install_requires=[
-        "psycopg2",
-        "sccommon"
+        "sccommon",
     ],
     dependency_links=[
-        "git+https://github.com/drytoastman/scorekeepercommon.git#egg=sccommon-2.0"
     ],
     packages=find_packages(),
     entry_points={
