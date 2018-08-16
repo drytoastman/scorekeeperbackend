@@ -408,6 +408,7 @@ def emailtool():
                         unsub['email']  = utoken
                         unsub['url']    = url_for('Register.unsubscribe', series=g.series, token=utoken, _external=True)
                         unsub['listid'] = listid
+                        form.body.data += "\n<p>&nbsp;</p><hr><p>Unsubscribe at {}</p>".format(unsub['url'])
 
                     EmailQueue.queueMessage(
                         subject     = form.subject.data,
