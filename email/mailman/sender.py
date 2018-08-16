@@ -46,13 +46,13 @@ class SenderThread(threading.Thread, QueueSleepMixin):
             try:
                 with psycopg2.connect(**self.cargs) as db:
                     with db.cursor() as cur:
-                        cur.execute("SELECT * FROM emailqueue ORDER BY created LIMIT 1")
-                        if cur.rowcount != 0:
+                        cur.execute("SELECT * FROM emailqueue ORDER BY created LIMIT 20")
+                        if cur.rowcount > 0:
                             with smtplib.SMTP(self.server) as smtp:
-                                row = cur.fetchone()
-                                log.debug("Processing message %s", row['mailid'])
-                                self.process_message(smtp, row['content'])
-                                cur.execute("DELETE FROM emailqueue WHERE mailid=%s", (row['mailid'],))
+                                for row in cur.fetchall():
+                                    log.debug("Processing message %s", row['mailid'])
+                                    self.process_message(smtp, row['content'])
+                                    cur.execute("DELETE FROM emailqueue WHERE mailid=%s", (row['mailid'],))
             except Exception as e:
                 log.exception("Error in sender: {}".format(e))
 
