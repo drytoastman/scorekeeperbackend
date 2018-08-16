@@ -12,7 +12,7 @@
 {% if error %}
     <p>{{error|safe}}</p>
 {% else %}
-    <p>{{driver.firstname}} {{driver.lastname}} &lt;{{driver.email}}&gt; will no longer receive email from the <b>{{listid|upper}}</b> admins.</p>
+    <p>{{driver.firstname}} {{driver.lastname}} &lt;{{driver.email}}&gt; will no longer receive email from the <b>{{listid}}</b> admins.</p>
     <p>If you want to unsubscribe from all scorekeeper group emails, edit your <a href='{{url_for('Register.profile')}}'>Profile</a> and select <b>"Do No Contact"</b></p>
 {% endif %}
 

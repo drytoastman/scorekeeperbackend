@@ -385,12 +385,11 @@ def unsubscribe():
         driver = Driver.get(req['id'])
         listid = req['listid']
         if driver:
-                # Unsub here
-                pass
+            Unsubscribe.set(driver.driverid, listid)
         else:
             error = "Unable to find a driver for id <b>{}</b>.  No list modifications have occured.".format(req['id'])
     except Exception as e:
-        error = "Unable to unsubscribe from <b>{}</b>: {}".format(req['listid'], e)
+        error = "Unable to unsubscribe: {}".format(e)
 
     return render_template("register/unsubscribe.html", driver=driver, error=error, listid=listid)
 

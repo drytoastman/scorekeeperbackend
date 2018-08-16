@@ -308,6 +308,27 @@ class TimerTimes():
                 return None
 
 
+class Unsubscribe():
+
+    @classmethod
+    def set(cls, driverid, listid):
+        with g.db.cursor() as cur:
+            cur.execute("INSERT INTO unsubscribe (driverid, emaillistid) VALUES (%s, %s) ON CONFLICT (driverid, emaillistid) DO NOTHING", (driverid, listid)) 
+            g.db.commit()
+
+    @classmethod
+    def clear(cls, driverid, listid):
+        with g.db.cursor() as cur:
+            cur.execute("DELETE FROM unsubscribe WHERE driverid=%s and emaillistid=%s", (driverid, listid))
+            g.db.commit()
+
+    @classmethod
+    def isset(cls, driverid, listid):
+        with g.db.cursor() as cur:
+            cur.execute("SELECT * FROM unsubscribe WHERE driverid=%s and emaillistid=%s", (driverid, listid))
+            return cur.rowcount > 0
+
+
 class WeekendMembers():
 
     @classmethod

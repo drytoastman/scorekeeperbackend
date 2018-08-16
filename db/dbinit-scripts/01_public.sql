@@ -295,10 +295,10 @@ COMMENT ON TABLE emailqueue IS 'temporary storage for items the web interface wa
 
 CREATE TABLE unsubscribe (
     driverid UUID NOT NULL,
-    entity   TEXT NOT NULL,
-    PRIMARY KEY (driverid, entity)
+    emaillistid TEXT NOT NULL,
+    PRIMARY KEY (driverid, emaillistid)
 );
 REVOKE ALL ON unsubscribe FROM public;
 GRANT  ALL ON unsubscribe TO mergeaccess;
-COMMENT ON TABLE unsubscribe IS 'map of entities a driverid has unsubscribed to, (i.e. nwr)';
+COMMENT ON TABLE unsubscribe IS 'map of emaillistids a driverid has unsubscribed from, (i.e. nwr)';
 
