@@ -26,27 +26,8 @@ log      = logging.getLogger(__name__)
 ADMINKEY = 'admin'
 AUTHKEY  = 'auth'
 SUPERKEY = 'authSuper'
-PATHKEY  = 'origpath'
 
 # Keep all session access in one place for easy browsing/control
-
-def recordPath():
-    if ADMINKEY not in session:
-        session[ADMINKEY] = {}
-    session[ADMINKEY][PATHKEY] = request.path
-    session.modified = True
-
-def clearPath():
-    if ADMINKEY not in session:
-        session[ADMINKEY] = {}
-    if PATHKEY in session[ADMINKEY]:
-        del session[ADMINKEY][PATHKEY]
-        session.modified = True
-
-def getRecordedPath():
-    if ADMINKEY not in session or PATHKEY not in session[ADMINKEY]:
-        return url_for(".index")
-    return session[ADMINKEY][PATHKEY]
 
 def authSeries(series):
     if ADMINKEY not in session:
@@ -103,11 +84,11 @@ def setup():
         pass
 
     if not g.superauth and not isAuth(g.series) and request.endpoint not in authendpoints:
-        recordPath()
+        recordPath(ADMINKEY)
         return login()
 
     if request.endpoint not in authendpoints:
-        clearPath()
+        clearPath(ADMINKEY)
 
     g.doweekendmembers = Settings.get("doweekendmembers")
     g.events  = Event.byDate()
@@ -128,7 +109,7 @@ def slogin():
     if form.validate_on_submit():
         if spw == form.password.data.strip():
             authSuper()
-            return redirect(getRecordedPath())
+            return redirect(getRecordedPath(ADMINKEY, url_for(".index")))
         flash("Incorrect password")
     return render_template('/admin/login.html', base='.slogin', form=form, series='SuperAdmin')
 
@@ -140,7 +121,7 @@ def login():
         try:
             AttrBase.testPassword(user=g.series, password=form.password.data.strip())
             authSeries(g.series)
-            return redirect(getRecordedPath())
+            return redirect(getRecordedPath(ADMINKEY, url_for(".index")))
         except Exception as e:
             log.error("Login failure: %s", e, exc_info=e)
     return render_template('/admin/login.html', base='.login', form=form, series=g.series)

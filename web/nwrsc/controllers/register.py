@@ -18,6 +18,8 @@ from ..lib.encoding import json_encode, ical_encode
 log = logging.getLogger(__name__)
 
 
+REGISTERKEY='register'
+
 @Register.before_request
 def setup():
     g.title = 'Scorekeeper Registration'
@@ -34,28 +36,36 @@ def setup():
     else:
         g.driver = None
 
+    openendpoints = ('Register.view', 'Register.ical', 'Register.login', 'Register.emailsent', 'Register.finish', 'Register.reset', 'Register.unsubscribe')
+    excendpoints  = ('Register.eventspost', 'Register.usednumbers', 'Register.payment', 'Register.paypalexecute', 'Register.squarepaymentcomplete')
+
+    if not g.driver and request.endpoint not in openendpoints:
+        if request.endpoint in excendpoints:
+            raise NotLoggedInException()
+        recordPath(REGISTERKEY)
+        return login()
+
+    if request.endpoint not in openendpoints:
+        clearPath(REGISTERKEY)
+
 
 ####################################################################
 # Authenticated functions
 
 @Register.route("/")
 def index():
-    if not g.driver: return login()
     g.selection = 'Register.events'
     return render_template('register/bluebase.html')
 
 @Register.route("/<series>/")
 def series():
     """ If logged in, just redirect to events """
-    if not g.driver: return login()
     return redirect(url_for('.events'))
 
 
 @Register.route("/profile")
 @Register.route("/<series>/profile")
 def profile():
-    if not g.driver: return login()
-
     profileform  = DriverForm(prefix='driver')
     upcoming     = getAllUpcoming(g.driver.driverid)
     attrBaseIntoForm(g.driver, profileform)
@@ -69,8 +79,6 @@ def profile():
 @Register.route("/profilepost", methods=['POST'])
 @Register.route("/<series>/profilepost", methods=['POST'])
 def profilepost():
-    if not g.driver: return login()
-
     form = DriverForm(prefix='driver')
     if form.validate_on_submit():
         formIntoAttrBase(form, g.driver)
@@ -82,8 +90,6 @@ def profilepost():
 @Register.route("/passwordupdate ", methods=['POST'])
 @Register.route("/<series>/passwordupdate", methods=['POST'])
 def passwordupdate():
-    if not g.driver: return login()
-
     form = PasswordChangeForm(prefix='password')
     if form.validate_on_submit():
         if current_app.hasher.check_password_hash(g.driver.password, form.oldpassword.data):
@@ -96,7 +102,6 @@ def passwordupdate():
 
 @Register.route("/<series>/cars")
 def cars():
-    if not g.driver: return login()
     carform = CarForm(g.classdata)
     events  = {e.eventid:e for e in Event.byDate()}
     cars    = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
@@ -108,7 +113,6 @@ def cars():
 
 @Register.route("/<series>/carspost", methods=['POST'])
 def carspost():
-    if not g.driver: return login()
     carform = CarForm(g.classdata)
 
     try:
@@ -136,8 +140,6 @@ def carspost():
 
 @Register.route("/<series>/events")
 def events():
-    if not g.driver: return login()
-
     events   = Event.byDate()
     cars     = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
     registered = defaultdict(list)
@@ -172,7 +174,6 @@ def _renderSingleEvent(event, error):
 @Register.route("/<series>/eventspost", methods=['POST'])
 def eventspost():
     """ Handles a add/change request from the user """
-    if not g.driver: raise NotLoggedInException()
     error = ""
 
     try:
@@ -376,14 +377,31 @@ def reset():
 
 @Register.route("/<series>/unsubscribe")
 def unsubscribe():
-    req = current_app.usts.loads(request.args['token'], max_age=8640000) # 100 day expiry
-    return "Unsubscribe {}".format(req)
+    error  = ""
+    listid = ""
+    driver = None
+    try:
+        req    = current_app.usts.loads(request.args['token'], max_age=8640000) # 100 day expiry
+        driver = Driver.get(req['id'])
+        listid = req['listid']
+        if driver:
+                # Unsub here
+                pass
+        else:
+            error = "Unable to find a driver for id <b>{}</b>.  No list modifications have occured.".format(req['id'])
+    except Exception as e:
+        error = "Unable to unsubscribe from <b>{}</b>: {}".format(req['listid'], e)
+
+    return render_template("register/unsubscribe.html", driver=driver, error=error, listid=listid)
 
  
 ####################################################################
 # Utility functions
 
 def redirect_series(series=""):
+    path = getRecordedPath(REGISTERKEY, None)
+    if path:
+        return redirect(path)
     if series and series in Series.active():
         return redirect(url_for(".events", series=series))
     return redirect(url_for(".index"))

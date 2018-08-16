@@ -1,4 +1,5 @@
 
+from flask import request, session
 from operator import attrgetter
 import re
 
@@ -25,6 +26,26 @@ class DisplayableError(Exception):
         Exception.__init__(self, **kwargs)
         self.header = header
         self.content = content
+
+PATHKEY  = 'origpath'
+def recordPath(key):
+    if key not in session:
+        session[key] = {}
+    session[key][PATHKEY] = request.path
+    session.modified = True
+
+def clearPath(key):
+    if key not in session:
+        session[key] = {}
+    if PATHKEY in session[key]:
+        del session[key][PATHKEY]
+        session.modified = True
+
+def getRecordedPath(key, default):
+    if key not in session or PATHKEY not in session[key]:
+        return default
+    return session[key][PATHKEY]
+
 
 def csvlist(inputstr, converter=None):
     arr = inputstr.strip().split(',')
