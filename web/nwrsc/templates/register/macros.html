@@ -7,8 +7,8 @@
 <div class='driverid'>{{driver.driverid}}</div>
 <div class='email'>{{driver.email}} <span class='optout'>{{driver.optoutmail and "Do Not Contact" or ""}}</span></div>
 <div class='barcode'>
-{% if driver.barcode %}Barcode: {{driver.barcode}} {%endif %}
-{% if driver.barcode and driver.attr.scca %},      {%endif %}
+{% if driver.barcode %}Barcode: {{driver.barcode}}{%endif %}
+{% if driver.barcode and driver.attr.scca %}&nbsp;{%endif %}
 {% if driver.attr.scca %}SCCA: {{driver.attr.scca}}{% endif %}
 </div>
 <div class='address'>{{driver.attr.address}}</div>

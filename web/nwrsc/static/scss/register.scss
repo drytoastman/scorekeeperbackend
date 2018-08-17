@@ -181,6 +181,7 @@ table.registration {
     .driverwrapper {
         .name {
             font-weight: bold;
+            font-size: 1.05rem;
         }
         :not(.name) {
             font-size: 0.9rem;
@@ -190,22 +191,27 @@ table.registration {
 
     .groupswrapper {
         margin-top: 0.2rem;
-        margin-left: 0.2rem;
+        margin-left: 0.3rem;
         .gtitle {
-            font-weight: 600;
+            font-weight: bold;
         }
 
         :not(.gtitle) {
             font-size: 0.9rem;
         }
 
+        .fa-check, .fa-times {
+            padding: 2px;
+            width: 1.3rem;
+            height: 1.3rem;
+            vertical-align: middle;
+        }
+
         .fa-check {
-            width: 1rem;
             color: green;
         }
 
         .fa-times {
-            width: 1rem;
             color: red;
         }
     }
