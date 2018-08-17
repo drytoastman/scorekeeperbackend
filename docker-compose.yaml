@@ -6,10 +6,6 @@
 version: '3.2'
 services:
 
-  base:
-    image:   "drytoastman/scpythonbase"
-    build:   "base"
-
   web:
     image:   "drytoastman/scweb:${TRAVIS_TAG:-latest}"
     build:   "web"

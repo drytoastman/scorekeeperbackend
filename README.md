@@ -10,10 +10,11 @@ They include:
 
 ## Development
 
-When doing development use **docker-compose** as the basis for management.  The local
+When doing development use **docker-compose** as the basis for management expect for the base image.  The local
 docker-compose.yaml builds from local Dockerfiles and imports the code directories as active volumes.
 Eg (as compose does not automatically rebuild):
 ```
+docker build -t scpythonbase scpythonbase
 docker-compose build
 docker-compose up
 ```

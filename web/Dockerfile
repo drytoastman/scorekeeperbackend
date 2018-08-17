@@ -1,4 +1,4 @@
-FROM drytoastman/scpythonbase
+FROM scpythonbase
 
 # Install our basic requirements, mainly wkhtmltopdf here
 RUN    apt-get update \
