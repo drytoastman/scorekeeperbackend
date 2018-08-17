@@ -323,10 +323,16 @@ class Unsubscribe():
             g.db.commit()
 
     @classmethod
-    def isset(cls, driverid, listid):
+    def get(cls, driverid):
         with g.db.cursor() as cur:
-            cur.execute("SELECT * FROM unsubscribe WHERE driverid=%s and emaillistid=%s", (driverid, listid))
-            return cur.rowcount > 0
+            cur.execute("SELECT emaillistid FROM unsubscribe WHERE driverid=%s", (driverid,))
+            return [row['emaillistid'] for row in cur.fetchall()]
+
+    @classmethod
+    def getUnsub(cls, listid):
+        with g.db.cursor() as cur:
+            cur.execute("SELECT driverid FROM unsubscribe WHERE emaillistid=%s", (listid,))
+            return [row['driverid'] for row in cur.fetchall()]
 
 
 class WeekendMembers():

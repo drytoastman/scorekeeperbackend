@@ -70,10 +70,15 @@ def profile():
     upcoming     = getAllUpcoming(g.driver.driverid)
     attrBaseIntoForm(g.driver, profileform)
 
+    listids  = Series.emailListIds()
+    unsubids = set(Unsubscribe.get(g.driver.driverid))
+
     passwordform = PasswordChangeForm(prefix='password')
     passwordform.driverid.data = g.driver.driverid
 
-    return render_template('register/profile.html', profileform=profileform, passwordform=passwordform, upcoming=upcoming, surpressmenu=True, askprofile=any2bool(request.args.get('askprofile')))
+    askprofile = any2bool(request.args.get('askprofile'))
+
+    return render_template('register/profile.html', listids=listids, unsubids=unsubids, profileform=profileform, passwordform=passwordform, upcoming=upcoming, surpressmenu=True, askprofile=askprofile)
 
 
 @Register.route("/profilepost", methods=['POST'])

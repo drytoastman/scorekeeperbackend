@@ -31,6 +31,19 @@ class Series(object):
             return [x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public', 'template')]
 
     @classmethod
+    def emailListIds(cls):
+        allseries = cls.active()
+        allids = set()
+        with g.db.cursor() as cur:
+            for s in cls.active():
+                cur.execute("select val from {}.settings where name='emaillistid'".format(s))
+                for row in cur.fetchall():
+                    allids.add(row['val'])
+        allids.discard('')
+        allids.discard(None)
+        return allids
+
+    @classmethod
     def getYear(cls, series):
         try:
             return re.search('\d{4}', series).group(0)

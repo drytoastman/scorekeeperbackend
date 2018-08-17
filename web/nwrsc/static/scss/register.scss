@@ -188,6 +188,28 @@ table.registration {
         }
     }
 
+    .groupswrapper {
+        margin-top: 0.2rem;
+        margin-left: 0.2rem;
+        .gtitle {
+            font-weight: 600;
+        }
+
+        :not(.gtitle) {
+            font-size: 0.9rem;
+        }
+
+        .fa-check {
+            width: 1rem;
+            color: green;
+        }
+
+        .fa-times {
+            width: 1rem;
+            color: red;
+        }
+    }
+
     .icallink {
         .fa-calendar {
             margin-right: 0.2rem;

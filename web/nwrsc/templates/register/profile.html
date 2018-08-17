@@ -24,10 +24,26 @@ $(document).ready(function(){
 <div class='col-md-6'>
 <div class='title'>Profile For All Series</div>
 {{rm.driverDisplay(g.driver)}}
-<div><a class='icallink' href='{{url_for(".ical", driverid=g.driver.driverid)}}'><span class='far fa-calendar'></span>Dynamic iCal Link</a></div>
+
+<div class='groupswrapper'>
+<div class='gtitle'>Email Groups</div>
+{% for eid in listids|sort %}
+<div>
+{% if eid in unsubids %}
+<span class='fas fa-times'></span>
+{% else %}
+<span class='fas fa-check'></span>
+{% endif %} 
+{{eid}}
+</div>
+{% endfor %}
+
+</div>
+
 <button class='editprofile btn btn-outline-register' title='Edit Profile' data-toggle='modal' data-target='#profilemodal'>Edit Profile</button>
 <button class='changepassword btn btn-outline-register' title='Change Password' data-toggle='modal' data-target='#passwordmodal'>Change Password</button>
 </div>
+
 
 <div class='col-md-6'>
 <div class='title'>
@@ -48,6 +64,7 @@ Upcoming Entries For All Series
 </ol>
 {% endfor %}
 {% endfor %}
+<div><a class='icallink' href='{{url_for(".ical", driverid=g.driver.driverid)}}'><span class='far fa-calendar'></span>Dynamic iCal Link</a></div>
 </div> {# title col #}
 </div> {# row #}
 
