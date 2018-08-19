@@ -25,6 +25,7 @@ $(document).ready(function(){
 <div class='title'>Profile For All Series</div>
 {{rm.driverDisplay(g.driver)}}
 
+{% if not g.driver.optoutmail %}
 <div class='groupswrapper'>
 <div class='gtitle'>Email Groups</div>
 {% for eid in listids|sort %}
@@ -39,10 +40,13 @@ $(document).ready(function(){
 {% endfor %}
 
 </div>
+{% endif %}
 
 <button class='editprofile btn btn-outline-register' title='Edit Profile' data-toggle='modal' data-target='#profilemodal'>Edit Profile</button>
 <button class='changepassword btn btn-outline-register' title='Change Password' data-toggle='modal' data-target='#passwordmodal'>Change Password</button>
+{% if not g.driver.optoutmail %}
 <button class='editgroups  btn btn-outline-register' title='Groups' data-toggle='modal' data-target='#groupsmodal'>Groups</button>
+{% endif %}
 </div>
 
 
@@ -76,7 +80,7 @@ Upcoming Entries For All Series
 {{m.modal('profilemodal',  'Profile Editor',  profileform.html( 'profileform',  url_for('.profilepost'),    'post', 'btn-register', 'col-md-4', 'col-md-8'))}}
 {{m.modal('passwordmodal', 'Password Change', passwordform.html('passwordform', url_for('.passwordupdate'), 'post', 'btn-register', 'col-md-4', 'col-md-8'))}}
 
-{% call m.modal('groupsmodal', 'Un/Subscribe to Group Emails', '') %}
+{% call m.modal('groupsmodal', 'Un/Subscribe to Emails From Clubs', '') %}
     <form id='groupsform' action='{{url_for(".subunsub")}}' method='POST'>
         {% for eid in listids|sort %}
         <div class='row'>
