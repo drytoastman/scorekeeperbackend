@@ -17,12 +17,3 @@ Scorekeeper.newCountedRow = function(listform, template)
     return false;
 }
 
-Scorekeeper.displayemail = function(data, type, row, meta)
-{
-    if (row['optoutmail']) {
-        return "**********";
-    } else {
-        return data;
-    }
-}
-

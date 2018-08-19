@@ -138,7 +138,7 @@ $(document).ready(function(){
         columns: [
             { data: 'firstname', width: '30%' },
             { data: 'lastname',  width: '30%' },
-            { data: 'email',     width: '40%', render: Scorekeeper.displayemail },
+            { data: 'email',     width: '40%' },
             { data: 'barcode',   width: '0%' },
             { data: null,        width: '0%', render: render_classes },
             { data: 'runs',      width: '0%', visible: false, render: function(data) { return Object.keys(data) }},

@@ -253,8 +253,11 @@ def payments():
 @Admin.route("/paymentlist")
 def paymentlist():
     payments = Payment.getAll()
+    unsub = Unsubscribe.getUnsub(Settings.get('emaillistid'))
     for p in payments:
         p.txtime = time_print(p.txtime, '%Y-%m-%d %H:%M %Z') 
+        if p.optoutmail or p.driverid in unsub:
+            p.email = '********'
     return json_encode(payments)
 
 @Admin.route("/delaccount", methods=['POST'])

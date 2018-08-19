@@ -356,7 +356,12 @@ def contactlist():
 
 @Admin.route("/activitylist")
 def activitylist():
-    return json_encode(list(Attendance.getActivity().values()))
+    ret = list(Attendance.getActivity().values())
+    unsub = Unsubscribe.getUnsub(Settings.get('emaillistid'))
+    for e in ret:
+        if e.optoutmail or e.driverid in unsub:
+            e.email = '********'
+    return json_encode(ret)
 
 
 @Admin.route("/emailtool", methods=['GET','POST'])
@@ -431,10 +436,14 @@ def entryadmin():
 @Admin.route("/event/<uuid:eventid>/registered")
 def registered():
     ret = Registration.getForEvent(g.eventid)
+    unsub = Unsubscribe.getUnsub(Settings.get('emaillistid'))
     for r in ret:
+        if r.optoutmail or r.driverid in unsub:
+            r.email = '********'
         r.regmodified = time_print(r.regmodified, '%m-%d %H:%M')
         r.cdesc = ' '.join(filter(None, [r.cattr.get(k, None) for k in ('year', 'make', 'model', 'color')]))
     return json_encode(list(ret))
+
 
 @Admin.route("/event/<uuid:eventid>/delreg", methods=['POST'])
 def delreg():
