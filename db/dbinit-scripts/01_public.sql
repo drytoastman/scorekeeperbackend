@@ -294,7 +294,7 @@ COMMENT ON TABLE emailqueue IS 'temporary storage for items the web interface wa
 
 
 CREATE TABLE unsubscribe (
-    driverid UUID NOT NULL,
+    driverid    UUID NOT NULL REFERENCES drivers,
     emaillistid TEXT NOT NULL,
     PRIMARY KEY (driverid, emaillistid)
 );

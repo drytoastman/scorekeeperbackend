@@ -42,6 +42,7 @@ $(document).ready(function(){
 
 <button class='editprofile btn btn-outline-register' title='Edit Profile' data-toggle='modal' data-target='#profilemodal'>Edit Profile</button>
 <button class='changepassword btn btn-outline-register' title='Change Password' data-toggle='modal' data-target='#passwordmodal'>Change Password</button>
+<button class='editgroups  btn btn-outline-register' title='Groups' data-toggle='modal' data-target='#groupsmodal'>Groups</button>
 </div>
 
 
@@ -72,7 +73,22 @@ Upcoming Entries For All Series
 </div> {# row #}
 </div> {# container #}
 
-{{m.modal('profilemodal', 'Profile Editor', profileform.html('profileform', url_for('.profilepost'), 'post', 'btn-register', 'col-md-4', 'col-md-8'))}}
+{{m.modal('profilemodal',  'Profile Editor',  profileform.html( 'profileform',  url_for('.profilepost'),    'post', 'btn-register', 'col-md-4', 'col-md-8'))}}
 {{m.modal('passwordmodal', 'Password Change', passwordform.html('passwordform', url_for('.passwordupdate'), 'post', 'btn-register', 'col-md-4', 'col-md-8'))}}
+
+{% call m.modal('groupsmodal', 'Un/Subscribe to Group Emails', '') %}
+    <form id='groupsform' action='{{url_for(".subunsub")}}' method='POST'>
+        {% for eid in listids|sort %}
+        <div class='row'>
+        <div class='col-2 p-0'><input type='checkbox' {{eid not in unsubids and 'checked' or ''}} name='{{eid}}'></input></div>
+        <div class='col pt-2'>{{eid}}</div>
+        </div>
+        {% endfor %}
+        <div class='row'>
+        <div class='col p-0'><input class="btn btn-register" type="submit" value="Update Subscriptions"></div>
+        </div>
+    </form>
+{% endcall %}
+
 
 {% endblock content %}
