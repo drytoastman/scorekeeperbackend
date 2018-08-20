@@ -4,8 +4,7 @@ script: pytest
 sudo: required
 services: [docker]
 install:
-    - pip install scpythonbase/
-    - pip install -r web/requirements.txt
+    - pip install -r scpythonbase/requirements.txt
     - pip install pytest-timeout
 
 after_success:
