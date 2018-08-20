@@ -4,13 +4,12 @@ script: pytest
 sudo: required
 services: [docker]
 install:
-    - pip install -r scpythonbase/requirements.txt
-    - pip install scpythonbase/
+    - pip install -r requirements.txt
+    - pip install common/
     - pip install pytest-timeout
 
 after_success:
     if [ ! -z "$TRAVIS_TAG" ]; then
-       docker build -t scpythonbase scpythonbase
        docker-compose build;
        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
        docker-compose push;

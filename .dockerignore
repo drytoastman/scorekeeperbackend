@@ -1,3 +1,8 @@
-db
 .git
+db
+default.env
+docker-compose.yaml
+legacy
+LICENSE
+README.md
 web/nwrsc/static/.webassets-cache
