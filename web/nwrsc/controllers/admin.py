@@ -387,6 +387,9 @@ def emailtool():
                             d.save(os.path.join(dest, sfilename))
                             attachments.append({'name': sfilename, 'mime': d.mimetype})
 
+                if form.unsub.data:
+                    form.body.data += "\n<p>&nbsp;</p><hr><p>Unsubscribe at {{url}}</p>"
+
                 for r in current_app.usts.loads(request.form['token'], max_age=86400):
                     unsub = {}
                     if form.unsub.data and r.get('driverid', ''):
@@ -394,13 +397,12 @@ def emailtool():
                         unsub['email']  = utoken
                         unsub['url']    = url_for('Register.unsubscribe', series=g.series, token=utoken, _external=True)
                         unsub['listid'] = listid
-                        form.body.data += "\n<p>&nbsp;</p><hr><p>Unsubscribe at {}</p>".format(unsub['url'])
 
                     EmailQueue.queueMessage(
                         subject     = form.subject.data,
                         recipient   = r,
                         replyto     = { 'name': form.replyname.data, 'email': form.replyemail.data },
-                        body        = render_template_string(form.body.data, **r),
+                        body        = render_template_string(form.body.data, url=unsub['url'], **r),
                         unsub       = unsub,
                         attachments = attachments,
                     )
