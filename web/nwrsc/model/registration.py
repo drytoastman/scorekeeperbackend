@@ -1,5 +1,6 @@
 from flask import g
 from .base import AttrBase, Entrant
+from .simple import Payment
 
 class Registration(AttrBase):
     TABLENAME = "registered"

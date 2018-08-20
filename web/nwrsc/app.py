@@ -113,6 +113,14 @@ def create_app():
 
     @theapp.after_request
     def logrequest(response):
+        response.headers['Expires'] = '-1'
+        response.last_modified = datetime.datetime.now()
+        response.pragma = 'no-cache'
+        response.cache_control.no_store = True
+        response.cache_control.no_cache = True
+        response.cache_control.must_revalidate = True
+        response.cache_control.max_age = 0
+
         if request.remote_addr != '127.0.0.1':
             log.debug("%s %s?%s %s %s (%s)" % (request.method, request.path, request.query_string, response.status_code, response.content_length, response.content_encoding))
         return response
