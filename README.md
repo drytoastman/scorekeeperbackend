@@ -1,7 +1,7 @@
 # Scorekeeper Backend
 
 [![Build Status](https://travis-ci.org/drytoastman/scorekeeperbackend.svg?branch=master)](https://travis-ci.org/drytoastman/scorekeeperbackend)
-[![Security Status](https://snyk.io/test/github/drytoastman/scorekeeperbackend/badge.svg?targetFile=scpythonbase/requirements.txt)](https://snyk.io/test/github/drytoastman/scorekeeperbackend?targetFile=scpythonbase/requirements.txt)
+[![Security Status](https://snyk.io/test/github/drytoastman/scorekeeperbackend/badge.svg)](https://snyk.io/test/github/drytoastman/scorekeeperbackend)
 
 This is a the collection of docker images that make up the Scorekeeper backend.
 They include:
