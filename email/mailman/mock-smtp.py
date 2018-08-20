@@ -17,7 +17,7 @@ class MockSMTPServer(smtpd.SMTPServer):
         logging.info(msg)
         
 logging.info('Starting up Mock SMTP server')
-smtp_server = MockSMTPServer((os.getenv('MOCK_SMTP_ADDRESS', '127.0.0.1'), int(os.getenv('MOCK_SMTP_PORT', '25'))), None)
+smtp_server = MockSMTPServer((os.getenv('MOCK_SMTP_ADDRESS', '0.0.0.0'), int(os.getenv('MOCK_SMTP_PORT', '25'))), None)
 
 try:
     asyncore.loop()

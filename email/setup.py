@@ -10,6 +10,7 @@ x = setup(
     install_requires=[
         "sccommon",
         "beautifulsoup4==4.6.0",
+        "lxml==3.7.3"
     ],
     dependency_links=[
     ],
