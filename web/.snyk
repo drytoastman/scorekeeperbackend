@@ -1,8 +1,0 @@
-# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.7.1
-ignore:
-  SNYK-PYTHON-WTFORMS-40581:
-    - '* > wtforms':
-        reason: 'No remediation available, waiting on wtforms 3.  Our labels are also all statically defined.'
-        expires: '2021-01-01T00:00:00.000Z'
-patch: {}
