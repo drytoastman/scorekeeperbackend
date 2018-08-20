@@ -1,4 +1,4 @@
-FROM python:3.6.5-slim-stretch
+FROM python:3.6.5-slim-stretch as base
 
 # Install our basic requirements, mainly wkhtmltopdf here
 RUN    apt-get update \
@@ -15,5 +15,14 @@ RUN    apt-get update \
     && apt-get autoremove -y gcc git \
     && rm -rf /var/lib/apt/lists/* /var/log/*
 
+# Use pip to install packages to a known location in a builder image
+FROM python:3.6.5-slim-stretch as builder
 COPY . /tmp/base
-RUN pip install /tmp/base
+RUN pip3 install --install-option="--prefix=/install" /tmp/base/common
+RUN pip3 install --install-option="--prefix=/install" /tmp/base/email
+RUN pip3 install --install-option="--prefix=/install" /tmp/base/sync
+RUN pip3 install --install-option="--prefix=/install" /tmp/base/web
+
+# Now create the final image from our base and builder pieces
+FROM base
+COPY --from=builder /install /usr/local
