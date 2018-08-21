@@ -106,6 +106,7 @@ def passwordupdate():
 
 
 @Register.route("/<series>/subunsub", methods=['POST'])
+@Register.route("/subunsub", methods=['POST'])
 def subunsub():
     subids = set(request.form.keys())
     allids = Series.emailListIds()
