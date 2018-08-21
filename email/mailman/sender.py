@@ -40,7 +40,7 @@ class SenderThread(threading.Thread, QueueSleepMixin):
         self.sender  = os.environ['MAIL_SEND_FROM']
         self.replyto = os.environ['MAIL_SEND_DEFAULT_REPLYTO']
         self.domain  = self.sender.split('@')[1]
-        self.policy  = policy.SMTP.clone(max_line_length=500)
+        self.policy  = policy.SMTP.clone(max_line_length=300)
         self.cargs   = cargs
 
     def run(self):
@@ -80,9 +80,9 @@ class SenderThread(threading.Thread, QueueSleepMixin):
         if 'replyto' in request:
             replyto = (request['replyto'].get('name', ''), request['replyto'].get('email', ''))
         else:
-            replyto = ('Scorekeeper Admin', self.replyto)
+            replyto = ('Admin', self.replyto)
 
-        msg['From']       = formataddr(("{} via Mailman".format(replyto[0]), self.sender))
+        msg['From']       = formataddr(("{} via Scorekeeeper".format(replyto[0]), self.sender))
         msg['Reply-To']   = formataddr(replyto)
         msg['Subject']    = request['subject'].strip('\n')
         msg['Date']       = formatdate()
@@ -91,8 +91,8 @@ class SenderThread(threading.Thread, QueueSleepMixin):
 
         if request.get('unsub', None):
             unsub = request['unsub']
-            msg['List-Id'] = "<{}.lists.{}>".format(unsub['listid'], self.domain)
-            msg['List-Unsubscribe'] = "<mailto:mailman@scorekeeper.wwscc?subject=unsubscribe&body={}, {}>".format(unsub['email'], unsub['url'])
+            msg['List-Id'] = "Scorekeeper {} List <{}.lists.{}>".format(unsub['listid'], unsub['listid'], self.domain)
+            msg['List-Unsubscribe'] = "<{}>".format(unsub['url'])
 
         smtp.sendmail(self.sender, [rcpt['email']], msg.as_bytes(policy=self.policy))
 

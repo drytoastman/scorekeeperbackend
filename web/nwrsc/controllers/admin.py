@@ -393,7 +393,6 @@ def emailtool():
                     unsub = {}
                     if form.unsub.data and r.get('driverid', ''):
                         utoken = current_app.usts.dumps({'id': r['driverid'], 'listid': listid})
-                        unsub['email']  = utoken
                         unsub['url']    = url_for('Register.unsubscribe', series=g.series, token=utoken, _external=True)
                         unsub['listid'] = listid
 
