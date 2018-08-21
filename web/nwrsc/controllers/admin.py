@@ -588,3 +588,13 @@ def purgedriver():
     flash("Deleted {} drivers".format(count))
     return redirect(url_for('.purge'))
 
+@Admin.route("/decodetoken")
+def decodetoken():
+    if not g.superauth:
+        return "decode is only available via superauth"
+    try:
+        base64d, timestamp = current_app.usts.make_signer(None).unsign(request.args['token'], return_timestamp=True)
+        payload = current_app.usts.load_payload(base64d)
+        return "payload ({}, {})".format(timestamp, payload)
+    except Exception as e:
+        return "Exception {}: {}".format(e.__class__.__name__, e)
