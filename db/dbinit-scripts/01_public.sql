@@ -302,3 +302,11 @@ REVOKE ALL ON unsubscribe FROM public;
 GRANT  ALL ON unsubscribe TO mergeaccess;
 COMMENT ON TABLE unsubscribe IS 'map of emaillistids a driverid has unsubscribed from, (i.e. nwr)';
 
+CREATE TABLE emailfailures(
+    email  TEXT,
+    status TEXT,
+    time   TIMESTAMP NOT NULL DEFAULT now()
+);
+REVOKE ALL ON emailfailures FROM public;
+GRANT  ALL ON emailfailures TO mergeaccess;
+

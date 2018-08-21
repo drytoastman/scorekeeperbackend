@@ -80,12 +80,12 @@ class ReceiverThread(threading.Thread, QueueSleepMixin):
 
     def process_failure(self, headers):
         orig   = RHeader(headers, 'Original-Recipient')
-        final  = RHeader(headers, 'Final-Recipient')
-        date   = RHeader(headers, 'Arrival-Date')
+        #final  = RHeader(headers, 'Final-Recipient')
+        #date   = RHeader(headers, 'Arrival-Date')
         mta    = RHeader(headers, 'Reporting-MTA')
         rmta   = RHeader(headers, 'Remote-MTA')
         status = RHeader(headers, 'Status')
-        code   = RHeader(headers, 'Diagnostic-Code')
+        #code   = RHeader(headers, 'Diagnostic-Code')
 
         log.warning("Failure report for:")
         log.warning("\t{}".format(orig))
@@ -95,6 +95,5 @@ class ReceiverThread(threading.Thread, QueueSleepMixin):
 
         with psycopg2.connect(**self.cargs) as db:
             with db.cursor() as cur:
-                pass
-                #cur.execute("UPDATE deliveryfailures SET count=count+1 WHERE driverid=(select something)")
+                cur.execute("INSERT INTO emailfailures (email, status) VALUES (%s,%s)", (orig, status))
 
