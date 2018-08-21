@@ -30,6 +30,7 @@ services:
     volumes:  
         - "dbsocket:/var/run/postgresql"
         - "logs:/var/log"
+        - "uploads:/var/uploads"
         - "./web:/code"
     networks:
         net1:
@@ -56,6 +57,7 @@ services:
     volumes:
         - "dbsocket:/var/run/postgresql"
         - "logs:/var/log"
+        - "uploads:/var/uploads"
         - "./email:/code"
     networks:
         net1:
@@ -84,4 +86,6 @@ volumes:
     external:
       name: "scsocket"
 
-
+  uploads:
+    external:
+      name: "scuploads"

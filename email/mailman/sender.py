@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from email import encoders
 from email import policy
 from email.header import Header
 from email.message import EmailMessage
@@ -17,15 +18,17 @@ import urllib.parse
 
 
 log = logging.getLogger(__name__)
+UPLOAD_DIR = '/var/uploads'
 
 class Base64EncodedFile(EmailMessage):
-    def __init__(self, base64data, mimetype, filename):
+    def __init__(self, mimetype, filename):
         EmailMessage.__init__(self)
-        self.set_payload(base64data)
-        self['Content-Type']              = '{}; name="{}"'.format(mimetype, filename)
-        self['MIME-Version']              = '1.0'
-        self['Content-Transfer-Encoding'] = 'base64'
-        self['Content-Disposition']       = 'attachment; filename="{}"'.format(filename)
+        with open(os.path.join(UPLOAD_DIR, filename), 'rb') as fp:
+            self.set_payload(fp.read())
+        self['MIME-Version']        = '1.0'
+        self['Content-Type']        = '{}; name="{}"'.format(mimetype, filename)
+        self['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+        encoders.encode_base64(self)
 
 
 class SenderThread(threading.Thread, QueueSleepMixin):
@@ -71,7 +74,7 @@ class SenderThread(threading.Thread, QueueSleepMixin):
         alt.attach(htmlbody)
         msg.attach(alt)
         for attach in request.get('attachments', []):
-            msg.attach(Base64EncodedFile(attach['data'], attach['mime'], attach['name']))
+            msg.attach(Base64EncodedFile(attach['mime'], attach['name']))
 
         rcpt = request['recipient']
         if 'replyto' in request:
