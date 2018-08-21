@@ -6,21 +6,6 @@
 version: '3.2'
 services:
 
-  web:
-    image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
-    build:   "."
-    container_name: "web"
-    command: "bash -c 'pip install -e /code && exec webserver.py'"
-    env_file: [ default.env ]
-    volumes:  
-        - "dbsocket:/var/run/postgresql"
-        - "logs:/var/log"
-        - "./web:/code"
-    networks:
-        net1:
-    ports:
-        - "80:80"  # Web for all
-
   db:
     image:   "drytoastman/scdb:${TRAVIS_TAG:-latest}"
     build:   "db"
@@ -35,6 +20,21 @@ services:
     ports:
         - "54329:5432" # DB for external SSL connections
         - "127.0.0.1:6432:6432" # DB for trusted localhost
+
+  web:
+    image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
+    build:   "."
+    container_name: "web"
+    command: "bash -c 'pip install -e /code && exec webserver.py'"
+    env_file: [ default.env ]
+    volumes:  
+        - "dbsocket:/var/run/postgresql"
+        - "logs:/var/log"
+        - "./web:/code"
+    networks:
+        net1:
+    ports:
+        - "80:80"  # Web for all
 
   sync:
     image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
