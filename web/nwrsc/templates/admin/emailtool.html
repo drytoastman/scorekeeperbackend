@@ -11,6 +11,11 @@
 .attach {
     text-align: left !important;
 }
+.noattach {
+    text-align: left !important;
+    font-weight: lighter !important;
+    font-style: italic;
+}
 </style>
 <script type="text/javascript" src="/static/tinymce/tinymce.min.js"></script>
 <script>
@@ -67,8 +72,12 @@ $(document).ready(function() {
     {% endif %}
     <textarea name='body'>{{form.body.data}}</textarea>
 </td></tr>
+{% if attachments %}
 <tr><td colspan=2 class='attach'>{{form.attach1.label}}: {{form.attach1}}</td></tr>
 <tr><td colspan=2 class='attach'>{{form.attach2.label}}: {{form.attach2}}</td></tr>
+{% else %}
+<tr><td colspan=2 class='noattach'>No uploads folder present, attachments are not possible</td></tr>
+{% endif %}
 <tr><td colspan=2 class='attach'>{{form.unsub.label}}: {{form.unsub}}</td></tr>
 </table>
 {{form.submit(class='btn btn-admin send')}}

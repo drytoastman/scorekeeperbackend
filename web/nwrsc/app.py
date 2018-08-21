@@ -44,12 +44,16 @@ def create_app():
         "SQ_APPLICATION_SECRET":           os.environ.get('SQ_APPLICATION_SECRET', None),
         "IS_MAIN_SERVER":         any2bool(os.environ.get('IS_MAIN_SERVER', False)),
         "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE', 'US/Pacific'),
-        "UPLOAD_FOLDER":                   os.environ.get('UPLOAD_FOLDER', '/uploads'),
+        "UPLOAD_FOLDER":                   "/var/uploads",
         "MAX_CONTENT_LENGTH":              2 * 1024 * 1024,
         "PROPAGATE_EXCEPTIONS":            False,
     })
     theapp.config['TEMPLATES_AUTO_RELOAD'] = theapp.config['DEBUG']
     theapp.config['LIBSASS_STYLE'] = theapp.config['DEBUG'] and 'expanded' or 'compressed'
+
+    if not os.path.isdir(theapp.config['UPLOAD_FOLDER']):
+        log.warning("Upload folder not present, uploads will be disabled")
+        del theapp.config['UPLOAD_FOLDER']
 
     ### WebAssets
     assets   = Environment(theapp)
@@ -113,13 +117,14 @@ def create_app():
 
     @theapp.after_request
     def logrequest(response):
-        response.headers['Expires'] = '-1'
-        response.last_modified = datetime.datetime.now()
-        response.pragma = 'no-cache'
-        response.cache_control.no_store = True
-        response.cache_control.no_cache = True
-        response.cache_control.must_revalidate = True
-        response.cache_control.max_age = 0
+        if not response.cache_control.max_age: # Not set somewhere else, set to no-cache
+            response.headers['Expires'] = '-1'
+            response.last_modified = datetime.datetime.now()
+            response.pragma = 'no-cache'
+            response.cache_control.no_store = True
+            response.cache_control.no_cache = True
+            response.cache_control.must_revalidate = True
+            response.cache_control.max_age = 0
 
         if request.remote_addr != '127.0.0.1':
             log.debug("%s %s?%s %s %s (%s)" % (request.method, request.path, request.query_string, response.status_code, response.content_length, response.content_encoding))
@@ -197,12 +202,6 @@ def create_app():
 
     ### Reverse Proxy handler
     theapp.wsgi_app = ReverseProxied(theapp.wsgi_app)
-
-    ### Make sure uploads is present or let user know
-    try:
-        os.makedirs(theapp.config['UPLOAD_FOLDER'], exist_ok=True)
-    except Exception as e:
-        log.warning("Upload folder not present, uploads will be disabled: %s", str(e))
 
     log.info("Scorekeeper App created")
     return theapp

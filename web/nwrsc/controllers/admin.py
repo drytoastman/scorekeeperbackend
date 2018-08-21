@@ -367,6 +367,9 @@ def activitylist():
 @Admin.route("/emailtool", methods=['GET','POST'])
 def emailtool():
     form = GroupEmailForm()
+    upfl = current_app.config.get('UPLOAD_FOLDER', '')
+    uppr = os.path.isdir(upfl)
+
     if 'emaillist' in request.form:
         emaillist = json.loads(request.form['emaillist'])
         form.token.data = current_app.usts.dumps(emaillist)
@@ -379,13 +382,9 @@ def emailtool():
                 listid = Settings.get('emaillistid')
                 for d in (form.attach1.data, form.attach2.data):
                     if d.filename:
-                        dest = current_app.config.get('UPLOAD_FOLDER', '')
-                        if not dest:
-                            flash("No uploads folder, unable to do attachments")
-                        else:
-                            sfilename = secure_filename(d.filename)
-                            d.save(os.path.join(dest, sfilename))
-                            attachments.append({'name': sfilename, 'mime': d.mimetype})
+                        sfilename = secure_filename(d.filename)
+                        d.save(os.path.join(upfl, sfilename))
+                        attachments.append({'name': sfilename, 'mime': d.mimetype})
 
                 if form.unsub.data:
                     form.body.data += "\n<p>&nbsp;</p><hr><p>Unsubscribe at {{url}}</p>"
@@ -406,13 +405,15 @@ def emailtool():
                         unsub       = unsub,
                         attachments = attachments,
                     )
+
                 flash("Group mail queued", category='success')
                 return redirect(url_for('.contactlist'))
+
         except Exception as e:
             flash("Group mail error: {}".format(e))
             log.exception(e)
 
-    return render_template('/admin/emailtool.html', form=form, sender=os.environ['MAIL_SEND_FROM'])
+    return render_template('/admin/emailtool.html', form=form, attachments=uppr, sender=os.environ['MAIL_SEND_FROM'])
 
 
 
