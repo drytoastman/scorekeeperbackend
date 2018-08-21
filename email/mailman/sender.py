@@ -78,12 +78,14 @@ class SenderThread(threading.Thread, QueueSleepMixin):
 
         rcpt = request['recipient']
         if 'replyto' in request:
-            replyto = (request['replyto'].get('name', ''), request['replyto'].get('email', ''))
+            name  = request['replyto'].get('name', '')
+            email = request['replyto'].get('email', '')
+            msg['From']     = formataddr(("{} via Scorekeeeper".format(name), self.sender))
+            msg['Reply-To'] = formataddr((name, email))
         else:
-            replyto = ('Admin', self.replyto)
+            msg['From']     = formataddr(('Admin via Scorekeeeper', self.sender))
+            msg['Reply-To'] = formataddr(('Scorekeeper Admin', self.replyto))
 
-        msg['From']       = formataddr(("{} via Scorekeeeper".format(replyto[0]), self.sender))
-        msg['Reply-To']   = formataddr(replyto)
         msg['Subject']    = request['subject'].strip('\n')
         msg['Date']       = formatdate()
         msg['Message-ID'] = make_msgid(domain=self.domain)
