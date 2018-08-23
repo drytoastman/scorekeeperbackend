@@ -66,34 +66,40 @@ class ReceiverThread(threading.Thread, QueueSleepMixin):
             self.qwait(10)
 
     def process_message(self, text):
-        msg     = email.message_from_bytes(text)
-        log.debug("Processing message from {}".format(msg['From']))
-        headers = dict()
-        for p in msg.get_payload():
-            if p.get_content_type() == 'message/delivery-status':
-                for d in p.get_payload():
-                    headers.update(d)
-        
-                action = RHeader(headers, 'Action')
-                if action.data.lower() != 'delivered':
-                    self.process_failure(headers)
+        try:
+            msg = email.message_from_bytes(text)
+            log.debug("Processing message from {}".format(msg['From']))
+            headers = dict()
+            for p in msg.get_payload():
+                if p.get_content_type() == 'message/delivery-status':
+                    for d in p.get_payload():
+                        headers.update(d)
+
+                    action = RHeader(headers, 'Action')
+                    if action.data.lower() != 'delivered':
+                        self.process_failure(headers)
+        except Exception as e:
+            log.exception("Bug in processor!")
 
     def process_failure(self, headers):
         orig   = RHeader(headers, 'Original-Recipient')
-        #final  = RHeader(headers, 'Final-Recipient')
-        #date   = RHeader(headers, 'Arrival-Date')
+        final  = RHeader(headers, 'Final-Recipient')
+        date   = RHeader(headers, 'Arrival-Date')
         mta    = RHeader(headers, 'Reporting-MTA')
         rmta   = RHeader(headers, 'Remote-MTA')
         status = RHeader(headers, 'Status')
-        #code   = RHeader(headers, 'Diagnostic-Code')
+        code   = RHeader(headers, 'Diagnostic-Code')
 
         log.warning("Failure report for:")
         log.warning("\t{}".format(orig))
+        log.warning("\t{}".format(final))
+        log.warning("\t{}".format(date))
         log.warning("\t{}".format(mta))
         log.warning("\t{}".format(rmta))
         log.warning("\t{}".format(status))
+        log.warning("\n\t{}".format(code.data.replace('\r\n', '\r').replace('\r', '\n\t')))
 
         with psycopg2.connect(**self.cargs) as db:
             with db.cursor() as cur:
-                cur.execute("INSERT INTO emailfailures (email, status) VALUES (%s,%s)", (orig, status))
+                cur.execute("INSERT INTO emailfailures (email, status) VALUES (%s,%s)", (orig.data, status.data))
 

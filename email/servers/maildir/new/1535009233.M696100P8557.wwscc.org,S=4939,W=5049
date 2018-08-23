@@ -1,0 +1,110 @@
+Return-Path: <MAILER-DAEMON>
+Delivered-To: scorekeepermailman@wwscc.org
+Received: by wwscc.org (Postfix)
+	id BC5B75BFC7C7; Thu, 23 Aug 2018 00:27:08 -0700 (PDT)
+Date: Thu, 23 Aug 2018 00:27:08 -0700 (PDT)
+From: MAILER-DAEMON@wwscc.org (Mail Delivery System)
+Subject: Undelivered Mail Returned to Sender
+To: mailman@scorekeeper.wwscc.org
+Auto-Submitted: auto-replied
+MIME-Version: 1.0
+Content-Type: multipart/report; report-type=delivery-status;
+	boundary="5641A5BFC7B4.1535009228/wwscc.org"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20180823072708.BC5B75BFC7C7@wwscc.org>
+
+This is a MIME-encapsulated message.
+
+--5641A5BFC7B4.1535009228/wwscc.org
+Content-Description: Notification
+Content-Type: text/plain; charset=us-ascii
+
+This is the mail system at host wwscc.org.
+
+I'm sorry to have to inform you that your message could not
+be delivered to one or more recipients. It's attached below.
+
+For further assistance, please send mail to postmaster.
+
+If you do so, please include this problem report. You can
+delete your own text from the attached returned message.
+
+                   The mail system
+
+<12345678910xxx1@gmail.com>: host gmail-smtp-in.l.google.com[108.177.112.27]
+    said: 550-5.1.1 The email account that you tried to reach does not exist.
+    Please try 550-5.1.1 double-checking the recipient's email address for
+    typos or 550-5.1.1 unnecessary spaces. Learn more at 550 5.1.1
+    https://support.google.com/mail/?p=NoSuchUser s66-v6si2558732jaa.98 - gsmtp
+    (in reply to RCPT TO command)
+
+--5641A5BFC7B4.1535009228/wwscc.org
+Content-Description: Delivery report
+Content-Type: message/delivery-status
+
+Reporting-MTA: dns; wwscc.org
+X-Postfix-Queue-ID: 5641A5BFC7B4
+X-Postfix-Sender: rfc822; mailman@scorekeeper.wwscc.org
+Arrival-Date: Thu, 23 Aug 2018 00:26:13 -0700 (PDT)
+
+Final-Recipient: rfc822; 12345678910xxx1@gmail.com
+Original-Recipient: rfc822;12345678910xxx1@gmail.com
+Action: failed
+Status: 5.1.1
+Remote-MTA: dns; gmail-smtp-in.l.google.com
+Diagnostic-Code: smtp; 550-5.1.1 The email account that you tried to reach does
+    not exist. Please try 550-5.1.1 double-checking the recipient's email
+    address for typos or 550-5.1.1 unnecessary spaces. Learn more at 550 5.1.1
+    https://support.google.com/mail/?p=NoSuchUser s66-v6si2558732jaa.98 - gsmtp
+
+--5641A5BFC7B4.1535009228/wwscc.org
+Content-Description: Undelivered Message
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 7bit
+
+Return-Path: <mailman@scorekeeper.wwscc.org>
+Received: from localhost (localhost [127.0.0.1])
+	by wwscc.org (Postfix) with ESMTP id 5641A5BFC7B4
+	for <12345678910xxx1@gmail.com>; Thu, 23 Aug 2018 00:26:13 -0700 (PDT)
+X-Virus-Scanned: amavisd-new at macminivault.com
+Received: from wwscc.org ([127.0.0.1])
+	by localhost (wwscc.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id oLOqP0Gi9G08 for <12345678910xxx1@gmail.com>;
+	Thu, 23 Aug 2018 00:25:56 -0700 (PDT)
+Received: from [172.18.0.4] (wwscc.org [199.38.86.14])
+	by wwscc.org (Postfix) with ESMTP id 5A57A5BFC798
+	for <12345678910xxx1@gmail.com>; Thu, 23 Aug 2018 00:25:56 -0700 (PDT)
+Content-Type: multipart/mixed; boundary="===============3765024153349803213=="
+MIME-Version: 1.0
+From: Admin via Scorekeeeper <mailman@scorekeeper.wwscc.org>
+Reply-To: Scorekeeper Admin <admin@scorekeeper.wwscc.org>
+Subject: Scorekeeper Profile Request
+Date: Thu, 23 Aug 2018 07:25:56 -0000
+Message-ID: <153500915616.1.2503793788161905027@scorekeeper.wwscc.org>
+To: Somee Nameee <12345678910xxx1@gmail.com>
+
+--===============3765024153349803213==
+Content-Type: multipart/alternative; boundary="===============9178264271496100697=="
+MIME-Version: 1.0
+
+--===============9178264271496100697==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Scorekeeper Profile Creation
+Use the following link to complete the registration process.
+https://scorekeeper.wwscc.org/register/finish?token=.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+--===============9178264271496100697==
+Content-Type: text/html; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+<h3>Scorekeeper Profile Creation</h3>
+<p>Use the following link to complete the registration process.</p>
+<a href='https://scorekeeper.wwscc.org/register/finish?token=.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'>https://scorekeeper.wwscc.org/register/finish?token=.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</a>
+--===============9178264271496100697==--
+
+--===============3765024153349803213==--
+
+--5641A5BFC7B4.1535009228/wwscc.org--
