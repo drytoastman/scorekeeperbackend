@@ -13,8 +13,9 @@ from flask_compress import Compress
 from flask_bcrypt import Bcrypt
 from itsdangerous import URLSafeTimedSerializer
 from jinja2 import ChoiceLoader, FunctionLoader
-from werkzeug.debug.tbtools import get_current_traceback
 from werkzeug.contrib.profiler import ProfilerMiddleware
+from werkzeug.debug.tbtools import get_current_traceback
+from werkzeug.exceptions import HTTPException
 
 
 from .controllers import *
@@ -165,6 +166,8 @@ def create_app():
     @theapp.errorhandler(500)
     def errorlog(e):
         """ We want to log exception information to file for later investigation when debugger framework isn't presenting it for us and present a simple reportable error for user """
+        if isinstance(e, HTTPException): # and (500 <= e.code < 600):
+            return e
         traceback = get_current_traceback(ignore_system_exceptions=True, show_hidden_frames=True)
         last = traceback.frames[-1]
         now = datetime.datetime.now().replace(microsecond=0)

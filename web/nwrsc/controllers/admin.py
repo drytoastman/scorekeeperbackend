@@ -381,7 +381,7 @@ def emailtool():
                 attachments = []
                 listid = Settings.get('emaillistid')
                 for d in (form.attach1.data, form.attach2.data):
-                    if d.filename:
+                    if d and d.filename:
                         sfilename = secure_filename(d.filename)
                         d.save(os.path.join(upfl, sfilename))
                         attachments.append({'name': sfilename, 'mime': d.mimetype})
