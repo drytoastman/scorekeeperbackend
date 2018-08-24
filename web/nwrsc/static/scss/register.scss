@@ -1,7 +1,7 @@
 $basecolor: #3771ce;
 $bordercolor: #BBB;
 
-@import "../bootstrap/4.1.1/css/bootstrap";
+@import "../bootstrap/4.1.1/css/bootstrap.scss";
 @import "common.scss";
 
 @include bootstraptheme("register", $basecolor);

@@ -2,7 +2,7 @@ $basecolor: #4682B4;
 $subheadgray: #ccc;
 $printborder: #999;
 
-@import "../bootstrap/4.1.1/css/bootstrap";
+@import "../bootstrap/4.1.1/css/bootstrap.scss";
 @import "common.scss";
 
 @include bootstraptheme("results", $basecolor);

@@ -1,6 +1,6 @@
 $basecolor : #28a745;
 
-@import "../bootstrap/4.1.1/css/bootstrap";
+@import "../bootstrap/4.1.1/css/bootstrap.scss";
 @import "common.scss";
 
 @include bootstraptheme("admin", $basecolor);
