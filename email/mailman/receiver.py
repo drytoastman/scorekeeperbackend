@@ -63,7 +63,7 @@ class ReceiverThread(threading.Thread, QueueSleepMixin):
             except Exception as e:
                 log.exception("Error receiving message")
 
-            self.qwait(10)
+            self.qwait(1800)
 
     def process_message(self, text):
         try:
