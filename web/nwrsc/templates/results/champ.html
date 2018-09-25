@@ -37,7 +37,7 @@
     <td class='name'>{{e.firstname}} {{e.lastname}}</td>
     <td class='attend'>{{e.eventcount}}</td>
     {% for event in events %}
-		{% set key = "d-"+event.date %}
+		{% set key = "d-{}-id-{}".format(event.date, event.eventid) %}
         <td class='points {{key in e.points.drop and "drop" or ""}}'>{{e.points.events[key]|t3}}</td>
     {% endfor %}
     <td class='points'>{{e.points.total|t3}}</td>

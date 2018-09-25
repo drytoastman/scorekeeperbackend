@@ -849,7 +849,7 @@ class ChampEntrant(AttrBase):
         if idx < len(self.tiebreakers):
             self.tiebreakers[idx] += 1
         self.eventcount += 1
-        self.points.set("d-%s"%event.date, entry['points'])
+        self.points.set("d-{}-id-{}".format(event.date, event.eventid), entry['points'])
 
     def __repr__(self):
         return "%s %s: %s" % (self.firstname, self.lastname, self.points.total)
