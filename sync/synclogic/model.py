@@ -50,8 +50,8 @@ class DataInterface(object):
 
     SCHEMA_VERSION = "INIT"
 
-    LOCAL_TIMEOUT  = 2
-    PEER_TIMEOUT   = 5
+    LOCAL_TIMEOUT  = 5
+    PEER_TIMEOUT   = 8
     REMOTE_TIMEOUT = 60
     APP_TIME_LIMIT = 3.0
     WEB_TIME_LIMIT = 5.0
