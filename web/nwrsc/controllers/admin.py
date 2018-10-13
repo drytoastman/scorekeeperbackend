@@ -66,7 +66,7 @@ def setup():
         return
 
     if not g.series:
-        return render_template('/admin/bluebase.html')
+        return baseindex()
 
     if g.seriestype != Series.ACTIVE:
         raise ArchivedSeriesException()
@@ -128,6 +128,9 @@ def login():
 
 
 @Admin.endpoint("Admin.base")
+def baseindex():
+    return render_template('/admin/allstatus.html', events=Event.allSeriesByDate())
+
 @Admin.route("/")
 def index():
     for e in g.events:

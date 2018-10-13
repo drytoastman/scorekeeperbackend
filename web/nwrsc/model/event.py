@@ -1,10 +1,12 @@
 from datetime import datetime
 import json
 import logging
+import operator
 import uuid
 
 from flask import g
 from .base import AttrBase
+from .series import Series
 
 log = logging.getLogger(__name__)
 
@@ -70,5 +72,14 @@ class Event(AttrBase):
     @classmethod
     def byDate(cls):
         return cls.getall("select * from events order by date")
+
+    @classmethod
+    def allSeriesByDate(cls):
+        ret = list()
+        for s in Series.active():
+            for e in cls.getall("select * from {}.events where date >= (current_date-3) order by date".format(s)):
+                e.series = s
+                ret.append(e)
+        return sorted(ret, key=operator.attrgetter('date'))
 
 

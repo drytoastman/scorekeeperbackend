@@ -1,0 +1,28 @@
+{% extends "admin/bluebase.html" %}
+{% block headers %}
+{{super()}}
+<style>
+div.event { margin-left: 1rem; margin-bottom: 0.7rem; }
+</style>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h4>Upcoming Events</h4>
+{% for e in events %}
+
+<div class='event'>
+    <b>{{e.date.strftime("%a %b %d")}}</b> - {{e.series}} - {{e.name}} -
+    {% if not e.hasOpened() %}
+    Not Yet Open
+    {% elif e.isOpen() %}
+    Open
+    {% else %}
+    Closed
+    {% endif %}
+</div>
+
+{% endfor %}
+</div>
+{% endblock %}
