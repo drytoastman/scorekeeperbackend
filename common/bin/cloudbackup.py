@@ -19,7 +19,7 @@ def dumpdb():
     with open(dumpfile, 'w') as dump:
         dump.write("UPDATE pg_database SET datallowconn = 'false' WHERE datname = 'scorekeeper';\n")
         dump.write("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'scorekeeper';\n")
-        subprocess.run(["pg_dumpall", "-h", "127.0.0.1", "-p", "6432", "-U", "postgres", "-c"], stdout=dump)
+        subprocess.run(["pg_dumpall", "-U", "postgres", "-c"], stdout=dump)
         dump.write("UPDATE pg_database SET datallowconn = 'true' WHERE datname = 'scorekeeper';\n")
 
     zipname = dumpfile+".zip"
@@ -34,7 +34,7 @@ def restoredb(zipname):
     dumpfile = zipname[:-4]
     with zipfile.ZipFile(zipname) as zip:
         zip.extract(dumpfile)
-    subprocess.run(["psql", "-h", "127.0.0.1", "-p", "6432", "-U", "postgres", "-f", dumpfile])
+    subprocess.run(["psql", "-U", "postgres", "-f", dumpfile])
     os.remove(dumpfile)
 
 

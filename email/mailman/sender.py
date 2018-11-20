@@ -36,6 +36,15 @@ class SenderThread(threading.Thread, QueueSleepMixin):
     def __init__(self, cargs):
         threading.Thread.__init__(self)
         QueueSleepMixin.__init__(self)
+
+        try:
+            with open(os.environ['SECRETS_FILE'], 'r') as fp:
+                secrets       = json.load(fp)
+                self.user     = secrets['MAIL_SEND_USER']
+                self.password = secrets['MAIL_SEND_PASS']
+        except:
+            pass
+
         self.server  = os.environ['MAIL_SEND_HOST']
         self.sender  = os.environ['MAIL_SEND_FROM']
         self.replyto = os.environ['MAIL_SEND_DEFAULT_REPLYTO']
@@ -52,6 +61,8 @@ class SenderThread(threading.Thread, QueueSleepMixin):
                         cur.execute("SELECT * FROM emailqueue ORDER BY created LIMIT 20")
                         if cur.rowcount > 0:
                             with smtplib.SMTP(self.server) as smtp:
+                                if hasattr(self, 'password'):
+                                    smtp.login(self.user, self.password)
                                 for row in cur.fetchall():
                                     log.debug("Processing message %s", row['mailid'])
                                     self.process_message(smtp, row['content'])
