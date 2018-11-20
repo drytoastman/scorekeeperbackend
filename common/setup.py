@@ -9,4 +9,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
+    scripts=['bin/cloudbackup.py', 'bin/cronjobs.py']
 )

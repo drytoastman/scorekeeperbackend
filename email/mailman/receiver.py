@@ -2,6 +2,7 @@
 
 import email
 import imaplib
+import json
 import logging
 import os
 import psycopg2
@@ -39,10 +40,12 @@ class ReceiverThread(threading.Thread, QueueSleepMixin):
     def __init__(self, cargs):
         threading.Thread.__init__(self)
         QueueSleepMixin.__init__(self)
-        self.server   = os.environ['MAIL_RECEIVE_HOST']
-        self.user     = os.environ['MAIL_RECEIVE_USER']
-        self.password = os.environ['MAIL_RECEIVE_PASS']
-        self.cargs    = cargs
+        with open(os.environ['SECRETS_FILE'], 'r') as fp:
+            secrets = json.load(fp)
+            self.user     = secrets['MAIL_RECEIVE_USER']
+            self.password = secrets['MAIL_RECEIVE_PASS']
+        self.server = os.environ['MAIL_RECEIVE_HOST']
+        self.cargs  = cargs
  
     def run(self):
         self.done = False

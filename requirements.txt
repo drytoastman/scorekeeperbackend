@@ -16,6 +16,7 @@ Flask-Compress==1.4.0
 Flask-Markdown==0.3
 Flask-Misaka==0.4.1
 Flask-WTF==0.14.2
+google-cloud-storage==1.13.0
 icalendar==4.0.2
 idna==2.7
 itsdangerous==0.24
@@ -36,6 +37,7 @@ pytz==2018.5
 PyYAML==3.13
 reportlab==3.4.0
 requests==2.19.1
+schedule==0.5.0
 six==1.11.0
 urllib3==1.23
 webassets==0.12.1

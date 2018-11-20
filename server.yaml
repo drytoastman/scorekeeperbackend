@@ -1,0 +1,65 @@
+version: '3.2'
+volumes:
+    database: {}
+    dbsocket: {}
+    logs:     {}
+    uploads:  {}
+    secrets:  {} 
+
+networks: 
+    net1: null
+
+services:
+  db:
+    image: drytoastman/scdb:latest
+    networks: { net1: {}}
+    ports: 
+        - '54329:5432'
+        - '6432:6432'
+    volumes: 
+        - database:/var/lib/postgresql/data
+        - dbsocket:/var/run/postgresql
+        - logs:/var/log
+
+  web:
+    image: drytoastman/scpython:latest
+    command: webserver.py
+    networks: { net1: {}}
+    ports: 
+        - '80:80'
+    volumes: 
+        - dbsocket:/var/run/postgresql
+        - logs:/var/log
+        - uploads:/var/uploads
+        - secrets:/secrets
+    environment: 
+        - IS_MAIN_SERVER=1
+        - MAIL_SEND_FROM=mailman@scorekeeper.wwscc.org
+        - MAIL_SEND_DEFAULT_REPLYTO=admin@scorekeeper.wwscc.org
+        - SECRETS_FILE=/secrets/secrets.json
+        - SHOWLIVE=0
+
+  email:
+    image: drytoastman/scpython:latest
+    command: mailman
+    networks: { net1: {}}
+    volumes: 
+        - dbsocket:/var/run/postgresql
+        - logs:/var/log
+        - uploads:/var/uploads
+        - secrets:/secrets
+    environment:
+        - MAIL_RECEIVE_HOST=192.168.64.1
+        - MAIL_SEND_HOST=192.168.64.1
+        - MAIL_SEND_FROM=mailman@scorekeeper.wwscc.org
+        - MAIL_SEND_DEFAULT_REPLYTO=admin@scorekeeper.wwscc.org
+        - SECRETS_FILE=/secrets/secrets.json
+
+  cron:
+    image: drytoastman/scpython:latest
+    command: cronjobs.py
+    networks: { net1: {}}
+    volumes: 
+        - dbsocket:/var/run/postgresql
+        - logs:/var/log
+        - secrets:/secrets

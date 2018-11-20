@@ -31,26 +31,31 @@ def create_app():
     ### Configuration
     theapp = Flask("nwrsc")
     theapp.config.update({
-        "DEBUG":                  any2bool(os.environ.get('DEBUG',     False)),
-        "PROFILE":                any2bool(os.environ.get('PROFILE',   False)),
-        "DBHOST":                          os.environ.get('DBHOST',    '/var/run/postgresql'),
-        "DBPORT":                      int(os.environ.get('DBPORT',    5432)),
-        "DBUSER":                          os.environ.get('DBUSER',    'localuser'),
-        "ONSITE":                 any2bool(os.environ.get('ONSITE',    False)),
-        "SHOWLIVE":               any2bool(os.environ.get('SHOWLIVE',  True)),
-        "SECRET_KEY":                      os.environ.get('SECRET',    'replaced by environment in deployed docker-compose files'),
-        "ASSETS_DEBUG":           any2bool(os.environ.get('DEBUG',     False)),
-        "SUPER_ADMIN_PASSWORD":            os.environ.get('SUPER_ADMIN_PASSWORD', None),
-        "SQ_APPLICATION_ID":               os.environ.get('SQ_APPLICATION_ID', None),
+        "ASSETS_DEBUG":           any2bool(os.environ.get('DEBUG',                 False)),
+        "DEBUG":                  any2bool(os.environ.get('DEBUG',                 False)),
+        "DBHOST":                          os.environ.get('DBHOST',                '/var/run/postgresql'),
+        "DBPORT":                      int(os.environ.get('DBPORT',                5432)),
+        "DBUSER":                          os.environ.get('DBUSER',                'localuser'),
+        "IS_MAIN_SERVER":         any2bool(os.environ.get('IS_MAIN_SERVER',        False)),
+        "MAX_CONTENT_LENGTH":                                                      2 * 1024 * 1024,
+        "ONSITE":                 any2bool(os.environ.get('ONSITE',                False)),
+        "PROFILE":                any2bool(os.environ.get('PROFILE',               False)),
+        "PROPAGATE_EXCEPTIONS":                                                    False,
+        "SECRET_KEY":                      os.environ.get('FLASK_SECRET',         'replaced by environment for laptops, secrets.json for server'),
+        "SECRETS_FILE":                    os.environ.get('SECRETS_FILE',          None),
+        "SQ_APPLICATION_ID":               os.environ.get('SQ_APPLICATION_ID',     None),
         "SQ_APPLICATION_SECRET":           os.environ.get('SQ_APPLICATION_SECRET', None),
-        "IS_MAIN_SERVER":         any2bool(os.environ.get('IS_MAIN_SERVER', False)),
-        "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE', 'US/Pacific'),
-        "UPLOAD_FOLDER":                   "/var/uploads",
-        "MAX_CONTENT_LENGTH":              2 * 1024 * 1024,
-        "PROPAGATE_EXCEPTIONS":            False,
+        "SHOWLIVE":               any2bool(os.environ.get('SHOWLIVE',              True)),
+        "SUPER_ADMIN_PASSWORD":            os.environ.get('SUPER_ADMIN_PASSWORD',  None),
+        "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE',          'US/Pacific'),
+        "UPLOAD_FOLDER":                                                           '/var/uploads',
     })
+
     theapp.config['TEMPLATES_AUTO_RELOAD'] = theapp.config['DEBUG']
-    theapp.config['LIBSASS_STYLE'] = theapp.config['DEBUG'] and 'expanded' or 'compressed'
+    theapp.config['LIBSASS_STYLE']         = theapp.config['DEBUG'] and 'expanded' or 'compressed'
+
+    if theapp.config['SECRETS_FILE']:
+        theapp.config.from_json(theapp.config['SECRETS_FILE'])
 
     if not os.path.isdir(theapp.config['UPLOAD_FOLDER']):
         log.warning("Upload folder not present, uploads will be disabled")
