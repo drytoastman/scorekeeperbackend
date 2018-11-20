@@ -71,10 +71,10 @@ class Result(object):
     def cacheAll(cls):
         info = cls.getSeriesInfo()
         for e in info.getEvents():
-            cls.getEventResults(e.eventid, True)
+            cls.getEventResults(e.eventid)
             for c in info.getChallengesForEvent(uuid.UUID(e.eventid)):
                 cls.getChallengeResults(c.challengeid)
-        cls.getChampResults(True)
+        cls.getChampResults()
 
     @classmethod
     def getSeriesInfo(cls):
