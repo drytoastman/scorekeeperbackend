@@ -363,11 +363,7 @@ def accounts():
     return render_template('/admin/paymentaccounts.html', accounts=accounts, items=items, squareurl=squareurl, ppacctform=ppacctform, itemform=itemform)
 
 
-@Admin.endpoint("Admin.cron")
-def cron():
-    if request.remote_addr != '127.0.0.1':
-        abort(404)
-
+def paymentscron():
     log.info("Payments cron")
     with g.db.cursor() as cur:
         for s in Series.active():

@@ -74,7 +74,6 @@ def create_app():
     theapp.register_blueprint(Register,  url_prefix="/register")
     theapp.register_blueprint(Results,   url_prefix="/results/<series>")
     theapp.add_url_rule('/admin/squareoauth', "Admin.squareoauth")
-    theapp.add_url_rule('/admin/cron',   "Admin.cron")
     theapp.add_url_rule('/admin/',       "Admin.base")
     theapp.add_url_rule('/announcer/',   "Announcer.base")
     theapp.add_url_rule('/results/',     "Results.base")
@@ -132,8 +131,7 @@ def create_app():
             response.cache_control.must_revalidate = True
             response.cache_control.max_age = 0
 
-        if request.remote_addr != '127.0.0.1':
-            log.debug("%s %s?%s %s %s (%s)" % (request.method, request.path, request.query_string, response.status_code, response.content_length, response.content_encoding))
+        log.debug("%s %s?%s %s %s (%s)" % (request.method, request.path, request.query_string, response.status_code, response.content_length, response.content_encoding))
         return response
 
 
@@ -179,7 +177,7 @@ def create_app():
         return render_template("common/error.html", now=now, name=os.path.basename(last.filename), line=last.lineno, exception=e, tbstring=theapp.debug and traceback.plaintext)
 
 
-    #### Jinja 
+    #### Jinja
     theapp.jinja_env.filters['timeprint'] = time_print
     theapp.jinja_env.filters['t3'] = t3
     theapp.jinja_env.filters['d2'] = d2
@@ -225,6 +223,14 @@ class ReverseProxied(object):
         server = environ.get('HTTP_X_FORWARDED_SERVER', '').split(',')[0]
         if server: environ['HTTP_HOST'] = server
         return self.app(environ, start_response)
+
+
+def cron_jobs(host='/var/run/postgresql', port=5432, app='cronjobs'):
+    from nwrsc.controllers.payments import paymentscron
+    dbapp = Flask("nwrsc")
+    with dbapp.app_context():
+        g.db = AttrBase.connect(host=host, port=port, user='localuser', app=app)
+        paymentscron()
 
 
 def model_setup(app):

@@ -4,14 +4,17 @@ import schedule
 import subprocess
 import time
 
+
 def cloudbackup():
-    subprocess.run(['cloudbackup.py', '--creds', '/secrets/scorekeeperbackup.creds.json', '--backup'])
+    subprocess.run(['cloudbackup.py', '--creds', '/secrets/scorekeeper.creds.json', '--backup'])
 
-def squarerenew():
-    subprocess.run(['wget', 'http://web/cron'])
+def webcron():
+    from nwrsc.app import cron_jobs
+    cron_jobs()
 
-schedule.every().hour.do(squarerenew)
-schedule.every().day.at("3:30").do(cloudbackup)
+# UTC
+schedule.every().day.at("11:00").do(webcron)
+schedule.every().day.at("11:30").do(cloudbackup)
 
 while True:
     schedule.run_pending()

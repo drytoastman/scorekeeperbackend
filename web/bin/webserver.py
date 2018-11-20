@@ -32,16 +32,6 @@ def patchinit(orig):
 def justdie(self, timeout=None):
     return
 
-class CronThread(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.daemon = True
-
-    def run(self):
-        while True:
-            time.sleep(3600) # Sleep an hour
-            requests.get('http://localhost/admin/cron')
-
 if __name__ == '__main__':
     pidfile = os.path.expanduser('~/nwrscwebserver.pid')
     signal.signal(signal.SIGABRT, removepid)
@@ -50,21 +40,16 @@ if __name__ == '__main__':
     with open(pidfile, 'w') as fp:
         fp.write(str(os.getpid()))
 
-    cron = bool(os.environ.get('DOCRON', False))
-    port = int(os.environ.get('PORT', 80))
-
     logging_setup('/var/log/scweb.log')
     logging.getLogger('werkzeug').setLevel(logging.WARN)
     theapp = nwrsc.app.create_app()
     nwrsc.app.model_setup(theapp)
 
     logging.getLogger("webserver").info("starting server")
-    if cron:
-       CronThread().start()
 
     threadpool.WorkerThread.__init__ = patchinit(threadpool.WorkerThread.__init__)
     threadpool.ThreadPool.stop = justdie 
-    server = wsgi.Server(('0.0.0.0', port), theapp, numthreads=100, shutdown_timeout=1, server_name="Scorekeeper 2.3")
+    server = wsgi.Server(('0.0.0.0', int(os.environ.get('PORT', 80))), theapp, numthreads=100, shutdown_timeout=1, server_name="Scorekeeper 2.3")
     server.start()
 
     removepid(0, 0) # just in case we get here somehow

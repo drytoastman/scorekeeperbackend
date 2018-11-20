@@ -58,7 +58,7 @@ def setup():
     """ Every page underneath here requires a password """
     g.title = 'Scorekeeper Admin'
     g.activeseries = Series.active()
-    outsideendpoints = ('Admin.cron', 'Admin.squareoauth')
+    outsideendpoints = ('Admin.squareoauth')
     authendpoints = ('Admin.login', 'Admin.slogin')
     mainserverendpoints = ('Admin.drivers', 'Admin.purge', 'Admin.archive')
 

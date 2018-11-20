@@ -38,8 +38,8 @@ def insertcolumns(table):
 class AttrBase(object):
 
     @classmethod
-    def connect(cls, host, port, user):
-        return psycopg2.connect(cursor_factory=psycopg2.extras.DictCursor, application_name="webserver", dbname="scorekeeper", host=host, port=port, user=user)
+    def connect(cls, host, port, user, app='webserver'):
+        return psycopg2.connect(cursor_factory=psycopg2.extras.DictCursor, application_name=app, dbname="scorekeeper", host=host, port=port, user=user)
 
     @classmethod
     def testPassword(cls, user, password):
