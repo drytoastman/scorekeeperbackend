@@ -36,7 +36,7 @@ python-dateutil==2.7.3
 pytz==2018.5
 PyYAML==3.13
 reportlab==3.4.0
-requests==2.19.1
+requests==2.20.1
 schedule==0.5.0
 six==1.11.0
 urllib3==1.23
