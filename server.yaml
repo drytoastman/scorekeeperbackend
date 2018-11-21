@@ -57,9 +57,10 @@ services:
 
   cron:
     image: drytoastman/scpython:latest
-    command: cronjobs.py
+    command: crondaemon
     networks: { net1: {}}
     volumes: 
         - dbsocket:/var/run/postgresql
-        - logs:/var/log
         - secrets:/secrets
+    environment:
+        - GOOGLE_APPLICATION_CREDENTIALS=/secrets/scorekeeper.creds.json
