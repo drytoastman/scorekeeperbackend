@@ -12,17 +12,18 @@ RUN    apt-get update \
 COPY requirements.txt /tmp
 RUN    apt-get update \
     && apt-get install -y gcc git \
-    && pip install --no-cache-dir -r /tmp/requirements.txt \
+    && pip install --no-cache-dir --disable-pip-version-check -r /tmp/requirements.txt \
     && apt-get autoremove -y gcc git \
     && rm -rf /var/lib/apt/lists/* /var/log/*
 
 # Use pip to install packages to a known location in a builder image
 FROM python:3.6.5-slim-stretch as builder
 COPY . /tmp/base
-RUN pip3 install --install-option="--prefix=/install" /tmp/base/common
-RUN pip3 install --install-option="--prefix=/install" /tmp/base/email
-RUN pip3 install --install-option="--prefix=/install" /tmp/base/sync
-RUN pip3 install --install-option="--prefix=/install" /tmp/base/web
+ENV PYTHONWARNINGS="ignore"
+RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/common
+RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/email
+RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/sync
+RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/web
 
 # Now create the final image from our base and builder pieces
 FROM base
