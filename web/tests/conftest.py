@@ -63,10 +63,12 @@ def webapp(database, webdata):
     theapp.config['DBHOST'] = webdata.host
     theapp.config['DBPORT'] = webdata.port
     theapp.config['WTF_CSRF_ENABLED'] = False
+    theapp.config['SUPER_ADMIN_PASSWORD'] = 'letmein'
     theapp.testing = True
     nwrsc.app.model_setup(theapp)
     webapp = theapp.test_client()
     webapp.post('/register/login', data={'login-username':'username', 'login-password':'password', 'login-submit':'Login'}, follow_redirects=True)
+    webapp.post('/admin/{}/slogin'.format(webdata.series), data={'password':'letmein'}, follow_redirects=True)
     return webapp
 
 

@@ -92,6 +92,9 @@ class Series(object):
                     cur.execute("insert into {}.classlist (select * from {}.classlist)".format(series, g.series))
                     if ccars:
                         cur.execute("insert into {}.cars (select * from {}.cars)".format(series, g.series))
+                else:
+                    # Need a blank index regardless of copying, fixes bug #78
+                    cur.execute("insert into {}.indexlist (indexcode, descrip, value) VALUES ('', 'No Index', 1.0)".format(series))
                 db.commit()
 
     @classmethod
