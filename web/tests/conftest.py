@@ -41,7 +41,7 @@ def database(request, webdata):
         except:
             time.sleep(1)
     else:
-        raise exception("unable to get connection to {}".format(db.name))
+        raise Exception("unable to get connection to webdb")
 
     with db.cursor() as cur, open(os.path.join(os.path.dirname(__file__), 'testdata/basic.sql'), 'r') as fp:
         cur.execute("SELECT verify_user(%s, %s)",  (webdata.series, webdata.series))
