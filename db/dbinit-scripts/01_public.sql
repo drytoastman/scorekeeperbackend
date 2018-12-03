@@ -117,6 +117,55 @@ LANGUAGE plpgsql;
 COMMENT ON FUNCTION updatechecks() IS 'Do not UPDATE rows if there are no changes or the only change is [modified] (except when syncing), also disallow some primary key changes in UPDATE';
 
 
+CREATE OR REPLACE FUNCTION runorderconstraints() RETURNS TRIGGER AS $body$
+DECLARE
+  jcarid TEXT;
+  cararray TEXT[];
+BEGIN
+  -- check that the carids exist in the cars table
+  FOR jcarid IN SELECT * FROM jsonb_array_elements_text(NEW.cars)
+  LOOP
+    IF NOT EXISTS (SELECT 1 FROM cars WHERE carid = uuid(jcarid)) THEN
+      RAISE EXCEPTION 'Attempting to create a row with an unknown carid';
+    END IF;
+  END LOOP;
+
+  -- check that the cars don't exist in another runorder on the same course
+  IF (SELECT NEW.cars ?| (select array_agg(cagg) FROM (select cagg FROM runorder, jsonb_array_elements_text(cars) cagg WHERE eventid=NEW.eventid AND course=NEW.course AND rungroup!=NEW.rungroup) sub)) THEN
+      RAISE EXCEPTION 'Car cannot be in multiple rungroups with the same course';
+  END IF;
+
+  RETURN NEW;
+END;
+$body$
+LANGUAGE plpgsql;
+COMMENT ON FUNCTION runorderconstraints() IS 'Complex check of constraints for cars JSONB in runorder';
+
+
+CREATE OR REPLACE FUNCTION classorderconstraints() RETURNS TRIGGER AS $body$
+DECLARE
+  jcode TEXT;
+BEGIN
+  -- check that the classcodes exist in the classlist table
+  FOR jcode IN SELECT * FROM jsonb_array_elements_text(NEW.classes)
+  LOOP
+    IF NOT EXISTS (SELECT 1 FROM classlist WHERE classcode = jcode) THEN
+      RAISE EXCEPTION 'Attempting to create a row with an unknown class code';
+    END IF;
+  END LOOP;
+
+  -- check that the classes don't exist in another group for the same event
+  IF (SELECT NEW.classes ?| (select array_agg(cagg) FROM (select cagg FROM classorder, jsonb_array_elements_text(classes) cagg WHERE eventid=NEW.eventid AND rungroup!=NEW.rungroup) sub)) THEN
+      RAISE EXCEPTION 'Class cannot be in multiple rungroups for the same event';
+  END IF;
+
+  RETURN NEW;
+END;
+$body$
+LANGUAGE plpgsql;
+COMMENT ON FUNCTION classorderconstraints() IS 'Complex check of constraints for classes JSONB in classorder';
+
+
 CREATE OR REPLACE FUNCTION verify_user(IN name varchar, IN password varchar) RETURNS boolean AS $body$
 DECLARE
 BEGIN

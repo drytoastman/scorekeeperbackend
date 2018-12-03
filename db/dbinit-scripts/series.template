@@ -254,33 +254,31 @@ COMMENT ON TABLE payments IS 'The list of payments made, there is potential part
 
 CREATE TABLE runorder (
     eventid  UUID       NOT NULL REFERENCES events, 
-    course   INTEGER    NOT NULL, 
-    rungroup INTEGER    NOT NULL, 
-    row      INTEGER    NOT NULL, 
-    carid    UUID       NOT NULL REFERENCES cars, 
+    course   INTEGER    NOT NULL CHECK (course > 0), 
+    rungroup INTEGER    NOT NULL CHECK (rungroup > 0), 
+    cars     JSONB      NOT NULL DEFAULT '[]',
     modified TIMESTAMP  NOT NULL DEFAULT now(),
-    PRIMARY KEY (eventid, course, rungroup, row),
-    CONSTRAINT validrunorder CHECK (course > 0 and rungroup > 0 and row > 0),
-    CONSTRAINT oneentrypercourse UNIQUE (eventid, course, carid) DEFERRABLE INITIALLY DEFERRED
+    PRIMARY KEY (eventid, course, rungroup)
 );
 REVOKE ALL ON runorder FROM public;
 GRANT  ALL ON runorder TO <seriesname>;
 CREATE TRIGGER ordermod AFTER INSERT OR UPDATE OR DELETE ON runorder FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
+CREATE TRIGGER ordercon BEFORE INSERT OR UPDATE ON runorder FOR EACH ROW EXECUTE PROCEDURE runorderconstraints('<seriesname>');
 CREATE TRIGGER orderuni BEFORE UPDATE ON runorder FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'course', 'rungroup', 'row');
 COMMENT ON TABLE runorder IS 'This is the list of cars in each rungroup as seen in data entry';
 
 
 CREATE TABLE classorder (
-    eventid   UUID        NOT NULL REFERENCES events, 
-    classcode VARCHAR(16) NOT NULL REFERENCES classlist, 
-    rungroup  INTEGER     NOT NULL, 
-    gorder    INTEGER     NOT NULL, 
-    modified  TIMESTAMP   NOT NULL DEFAULT now(),
-    PRIMARY KEY (eventid, classcode) DEFERRABLE INITIALLY DEFERRED
+    eventid   UUID      NOT NULL REFERENCES events, 
+    rungroup  INTEGER   NOT NULL, 
+    classes   JSONB     NOT NULL DEFAULT '[]',
+    modified  TIMESTAMP NOT NULL DEFAULT now(),
+    PRIMARY KEY (eventid, rungroup)
 );
 REVOKE ALL ON classorder FROM public;
 GRANT  ALL ON classorder TO <seriesname>;
 CREATE TRIGGER classordermod AFTER INSERT OR UPDATE OR DELETE ON classorder FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
+CREATE TRIGGER classordercon BEFORE INSERT OR UPDATE ON classorder FOR EACH ROW EXECUTE PROCEDURE classorderconstraints('<seriesname>');
 CREATE TRIGGER classorderuni BEFORE UPDATE ON classorder FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'classcode');
 COMMENT ON TABLE classorder IS 'the ordering of classes inside each run group, generally only used in the Pro event for grid ordering';
 
