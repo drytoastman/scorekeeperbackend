@@ -406,7 +406,7 @@ class MergeProcess():
                 remote.seriesStatus(series, "Update {}".format(t))
                 self.listener and self.listener("update", t, localdb=localdb, remotedb=remotedb, watcher=watcher)
 
-                if t in DataInterface.ADVANCED_TABLES:
+                if t in DataInterface.ADVANCED_UPDATE_TABLES:
                     self.advancedMerge(localdb, remotedb, t, localupdate[t], remoteupdate[t], watcher)
                 else:
                     watcher.local()

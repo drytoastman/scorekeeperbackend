@@ -60,7 +60,9 @@ def test_driversync(syncdbs, syncdata):
     syncx['B'].rollback()
     with syncx['B'].cursor() as cur:
         cur.execute("DELETE FROM registered WHERE carid in (SELECT carid FROM cars WHERE driverid=%s)", (syncdata.driverid,))
-        cur.execute("DELETE FROM runorder WHERE carid in (SELECT carid FROM cars WHERE driverid=%s)", (syncdata.driverid,))
+        cur.execute("SELECT carid from cars WHERE driverid=%s", (syncdata.driverid,))
+        for r in cur.fetchall():
+            cur.execute("UPDATE runorder SET cars = cars - %s::text, modified=now() WHERE cars ? %s::text", (r[0], r[0]))
         cur.execute("DELETE FROM runs WHERE carid in (SELECT carid FROM cars WHERE driverid=%s)", (syncdata.driverid,))
         cur.execute("DELETE FROM cars WHERE driverid=%s", (syncdata.driverid,))
         cur.execute("DELETE FROM drivers WHERE driverid=%s", (syncdata.driverid,))

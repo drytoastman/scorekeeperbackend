@@ -7,6 +7,7 @@ import time
 
 psycopg2.extras.register_uuid()
 psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)
+psycopg2.extensions.register_adapter(list, psycopg2.extras.Json)
 
 from synclogic.exceptions import *
 
@@ -44,7 +45,7 @@ class DataInterface(object):
         'weekendmembers'
     ]
 
-    ADVANCED_TABLES = [
+    ADVANCED_UPDATE_TABLES = [
         'drivers'
     ]
 

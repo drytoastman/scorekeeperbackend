@@ -59,7 +59,10 @@ def verify_weekend(syncx, uid, coltuple):
     verify_object( syncx, uid, coltuple, (), "SELECT * FROM weekendmembers WHERE uniqueid=%s")
 
 def verify_runorder(syncx, rid, coltuple):
-    verify_object(  syncx, rid, coltuple, (), "SELECT * FROM runorder WHERE eventid=%s AND course=%s AND rungroup=%s AND row=%s")
+    verify_object(  syncx, rid, coltuple, (), "SELECT * FROM runorder WHERE eventid=%s AND course=%s AND rungroup=%s")
+
+def verify_classorder(syncx, rid, coltuple):
+    verify_object(  syncx, rid, coltuple, (), "SELECT * FROM classorder WHERE eventid=%s AND rungroup=%s")
 
 def verify_update_logs_only_changes(syncx):
     for db in syncx:
