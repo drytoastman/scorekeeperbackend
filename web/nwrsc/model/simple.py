@@ -55,9 +55,10 @@ class Audit(object):
     @classmethod
     def audit(cls, event, course, group):
         with g.db.cursor() as cur:
-            cur.execute("SELECT d.firstname,d.lastname,c.*,r.* FROM runorder r " \
-                        "JOIN cars c ON r.carid=c.carid JOIN drivers d ON c.driverid=d.driverid " \
-                        "WHERE r.eventid=%s and r.course=%s and r.rungroup=%s order by r.row", (event.eventid, course, group))
+            cur.execute("SELECT cars FROM runorder WHERE eventid=%s AND course=%s AND rungroup=%s", (event.eventid, course, group))
+            order = cur.fetchone()[0]
+            log.warning(order)
+            cur.execute("SELECT d.firstname,d.lastname,c.* FROM cars c JOIN drivers d ON c.driverid=d.driverid WHERE carid IN %s", (tuple(order), ))
             hold = dict()
             for res in [Entrant(**x) for x in cur.fetchall()]:
                 res.runs = [None] * event.runs
@@ -73,7 +74,7 @@ class Audit(object):
                     res.runs[:] =  res.runs + [None]*(run.run - event.runs)
                 res.runs[run.run-1] = run
 
-            return list(hold.values())
+            return list([hold[x] for x in order])
 
 
 class Challenge(AttrBase):
@@ -202,25 +203,10 @@ class Run(AttrBase):
 class RunOrder(AttrBase):
 
     @classmethod
-    def getNextCarIdInOrder(cls, carid, eventid, course=1):
-        """ returns the carid of the next car in order after the given carid """
-        with g.db.cursor() as cur:
-            cur.execute("SELECT carid FROM runorder WHERE eventid=%s AND course=%s AND rungroup=" +
-                        "(SELECT rungroup FROM runorder WHERE carid=%s AND eventid=%s AND course=%s LIMIT 1) " +
-                        "ORDER BY row", (eventid, course, carid, eventid, course))
-            order = [x[0] for x in cur.fetchall()]
-            for ii, rid in enumerate(order):
-                if rid == carid:
-                    return order[(ii+1)%len(order)]
-
-    @classmethod
     def getNextRunOrder(cls, carid, eventid, course=1):
-        """ Returns a list of objects (classcode, carid, row) for the next cars in order after carid """
+        """ Returns a list of objects (classcode, carid) for the next cars in order after carid """
         with g.db.cursor() as cur:
-            cur.execute("SELECT c.classcode,r.carid,r.row FROM runorder r JOIN cars c on r.carid=c.carid " +
-                        "WHERE eventid=%s AND course=%s AND rungroup=" +
-                        "(SELECT rungroup FROM runorder WHERE carid=%s AND eventid=%s AND course=%s LIMIT 1) " +
-                        "ORDER BY r.row", (eventid, course, carid, eventid, course))
+            cur.execute("WITH r AS (SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND %s=ANY(cars) LIMIT 1) SELECT c.carid,c.classcode from cars c JOIN r ON r.cid=c.carid", (eventid, course, carid));
             order = [RunOrder(**x) for x in cur.fetchall()]
             ret = []
             for ii, row in enumerate(order):

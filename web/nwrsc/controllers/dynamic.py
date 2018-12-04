@@ -213,7 +213,8 @@ def loadAnnouncerResults(carid, mini=False):
 
     data = {'current':{}, 'next':{}}
     order = list()
-    for n in RunOrder.getNextRunOrder(carid, g.eventid):
+    nextcars = RunOrder.getNextRunOrder(carid, g.eventid)
+    for n in nextcars:
         if n.classcode in results:
             for e in results[n.classcode]:
                 if e['carid'] == str(n.carid):
@@ -227,7 +228,7 @@ def loadAnnouncerResults(carid, mini=False):
         data['topraw'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':False, 'counted':False}, carid=carid))
         for ii in range(1, g.event.segments+1):
             data['topseg%d'% ii] = toptimestable(Result.getTopTimesTable(classdata, results, {'seg':ii}, carid=carid))
-        nextid = RunOrder.getNextCarIdInOrder(carid, g.eventid)
+        nextid = nextcars and nextcars[0] or None
         entrantTables(data['next'], settings, classdata, nextid, results, champ)
 
     return data

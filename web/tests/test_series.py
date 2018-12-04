@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-def test_(webapp, webdb, webdata):
+def test_newseries(webapp, webdb, webdata):
 
     url = '/admin/{}/newseries'.format(webdata.series)
 

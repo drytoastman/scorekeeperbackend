@@ -159,7 +159,7 @@ def create_app():
     @theapp.errorhandler(DisplayableError)
     def displayable(e):
         log.info(e.content, exc_info=e.__cause__ and e or None)
-        return render_template("common/simple.html", header=e.header, content=e.content)
+        return render_template("common/simple.html", header=e.header, content=e.content), 500
 
     @message_flashed.connect_via(theapp)
     def log_flashes(sender, message, category):
@@ -174,7 +174,7 @@ def create_app():
         traceback = get_current_traceback(ignore_system_exceptions=True, show_hidden_frames=True)
         last = traceback.frames[-1]
         now = datetime.datetime.now().replace(microsecond=0)
-        return render_template("common/error.html", now=now, name=os.path.basename(last.filename), line=last.lineno, exception=e, tbstring=theapp.debug and traceback.plaintext)
+        return render_template("common/error.html", now=now, name=os.path.basename(last.filename), line=last.lineno, exception=e, tbstring=theapp.debug and traceback.plaintext), 500
 
 
     #### Jinja

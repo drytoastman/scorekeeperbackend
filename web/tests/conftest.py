@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from bs4 import BeautifulSoup
 import logging
 import os
 import pytest
@@ -13,6 +14,19 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../
 import nwrsc.app 
 import nwrsc.model
 from sccommon.logging import logging_setup
+
+log = logging.getLogger('nwrsc.testhelpers')
+
+def check_return(response):
+    soup  = BeautifulSoup(response.data, "lxml")
+    errormessages = soup.findAll('div', {'class': 'flash-message'})
+    if errormessages:
+        log.warning(errormessages)
+        raise Exception(errormessages[0])
+    if response.status_code != 200:
+        log.warning(soup.get_text().encode('utf-8').decode('us-ascii', 'ignore'))
+    assert response.status_code == 200
+
 
 @pytest.fixture(scope="module")
 def webdata():

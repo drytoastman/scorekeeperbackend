@@ -84,16 +84,11 @@ class RunGroups(defaultdict):
     def update(self, eventid, newgroups):
         with g.db.cursor() as cur:
             for group, classes in newgroups.items():
-                for row, cls in enumerate(classes):
-                    log.debug("{}, {}, {}, {}".format(group, classes, row, cls))
-                    if group == 0:
-                        cur.execute("DELETE FROM classorder WHERE eventid=%s AND classcode=%s", (eventid, cls))
-                        continue
-                    (fg,fr) = self.find(cls)
-                    if fg == 0:
-                        cur.execute("INSERT INTO classorder (eventid, classcode, rungroup, gorder, modified) VALUES (%s,%s,%s,%s,now())", (eventid, cls, group, row))
-                    elif group != fg or row != fr:
-                        cur.execute("UPDATE classorder SET rungroup=%s, gorder=%s, modified=now() WHERE eventid=%s AND classcode=%s", (group, row, eventid, cls))
+                log.debug("{}, {}".format(group, classes))
+                if group == 0:
+                    continue
+                cur.execute("INSERT INTO classorder (eventid, rungroup, classes, modified) VALUES (%s, %s, %s, now()) ON CONFLICT (eventid, rungroup) DO UPDATE SET classes=%s, modified=now()",
+                            (eventid, group, classes, classes))
             g.db.commit()
 
     @classmethod
@@ -104,7 +99,7 @@ class RunGroups(defaultdict):
             ret[100+ii]
 
         with g.db.cursor() as cur:
-            cur.execute("SELECT * FROM classorder WHERE eventid=%s ORDER BY rungroup, gorder", (eventid,))
+            cur.execute("SELECT rungroup,unnest(classes) as classcode FROM classorder WHERE eventid=%s ORDER BY rungroup", (eventid,))
             active = ['HOLD']
             for x in cur.fetchall():
                 active.append(x['classcode'])
