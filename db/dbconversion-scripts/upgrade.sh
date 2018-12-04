@@ -19,10 +19,10 @@ while true; do
                 public=""
                 series=""
                 if [ -f "$ent/public.sql" ]; then
-                    public=`cat $ent/public.sql | tr -d "\n" | sed "s/'/''/g"`
+                    public=`cat $ent/public.sql | tr "\n" "\r" | sed "s/'/''/g"`
                 fi
                 if [ -f "$ent/series.sql" ]; then
-                    series=`cat $ent/series.sql | tr -d "\n" | sed "s/'/''/g"`
+                    series=`cat $ent/series.sql | tr "\n" "\r" | sed "s/'/''/g"`
                 fi
                 echo "Converting $inversion to $outversion"
                 psql -U postgres -d scorekeeper -c "SELECT upgrade('$series', '$public', '$outversion');"
