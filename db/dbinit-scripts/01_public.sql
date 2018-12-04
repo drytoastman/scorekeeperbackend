@@ -119,19 +119,17 @@ COMMENT ON FUNCTION updatechecks() IS 'Do not UPDATE rows if there are no change
 
 CREATE OR REPLACE FUNCTION runorderconstraints() RETURNS TRIGGER AS $body$
 DECLARE
-  jcarid TEXT;
-  cararray TEXT[];
+  _carid UUID;
 BEGIN
   -- check that the carids exist in the cars table
-  FOR jcarid IN SELECT * FROM jsonb_array_elements_text(NEW.cars)
-  LOOP
-    IF NOT EXISTS (SELECT 1 FROM cars WHERE carid = uuid(jcarid)) THEN
+  FOREACH _carid IN ARRAY NEW.cars LOOP
+    IF NOT EXISTS (SELECT 1 FROM cars WHERE carid = _carid) THEN
       RAISE EXCEPTION 'Attempting to create a row with an unknown carid';
     END IF;
   END LOOP;
 
   -- check that the cars don't exist in another runorder on the same course
-  IF (SELECT NEW.cars ?| (select array_agg(cagg) FROM (select cagg FROM runorder, jsonb_array_elements_text(cars) cagg WHERE eventid=NEW.eventid AND course=NEW.course AND rungroup!=NEW.rungroup) sub)) THEN
+  IF (SELECT NEW.cars && array_agg(c) FROM (SELECT unnest(cars) FROM runorder WHERE eventid=NEW.eventid AND course=NEW.course AND rungroup!=NEW.rungroup) AS dt(c) ) THEN
       RAISE EXCEPTION 'Car cannot be in multiple rungroups with the same course';
   END IF;
 
@@ -139,23 +137,22 @@ BEGIN
 END;
 $body$
 LANGUAGE plpgsql;
-COMMENT ON FUNCTION runorderconstraints() IS 'Complex check of constraints for cars JSONB in runorder';
+COMMENT ON FUNCTION runorderconstraints() IS 'Complex check of constraints for cars ARRAY in runorder';
 
 
 CREATE OR REPLACE FUNCTION classorderconstraints() RETURNS TRIGGER AS $body$
 DECLARE
-  jcode TEXT;
+  _code TEXT;
 BEGIN
   -- check that the classcodes exist in the classlist table
-  FOR jcode IN SELECT * FROM jsonb_array_elements_text(NEW.classes)
-  LOOP
-    IF NOT EXISTS (SELECT 1 FROM classlist WHERE classcode = jcode) THEN
+  FOREACH _code IN ARRAY NEW.classes LOOP
+    IF NOT EXISTS (SELECT 1 FROM classlist WHERE classcode = _code) THEN
       RAISE EXCEPTION 'Attempting to create a row with an unknown class code';
     END IF;
   END LOOP;
 
   -- check that the classes don't exist in another group for the same event
-  IF (SELECT NEW.classes ?| (select array_agg(cagg) FROM (select cagg FROM classorder, jsonb_array_elements_text(classes) cagg WHERE eventid=NEW.eventid AND rungroup!=NEW.rungroup) sub)) THEN
+  IF (SELECT NEW.classes && array_agg(c) FROM (SELECT unnest(classes) FROM classorder WHERE eventid=NEW.eventid AND rungroup!=NEW.rungroup) AS dt(c) ) THEN
       RAISE EXCEPTION 'Class cannot be in multiple rungroups for the same event';
   END IF;
 
@@ -163,7 +160,7 @@ BEGIN
 END;
 $body$
 LANGUAGE plpgsql;
-COMMENT ON FUNCTION classorderconstraints() IS 'Complex check of constraints for classes JSONB in classorder';
+COMMENT ON FUNCTION classorderconstraints() IS 'Complex check of constraints for classes ARRAY in classorder';
 
 
 CREATE OR REPLACE FUNCTION verify_user(IN name varchar, IN password varchar) RETURNS boolean AS $body$

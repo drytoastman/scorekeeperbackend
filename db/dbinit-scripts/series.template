@@ -256,7 +256,7 @@ CREATE TABLE runorder (
     eventid  UUID       NOT NULL REFERENCES events, 
     course   INTEGER    NOT NULL CHECK (course > 0), 
     rungroup INTEGER    NOT NULL CHECK (rungroup > 0), 
-    cars     JSONB      NOT NULL DEFAULT '[]',
+    cars     UUID[]     NOT NULL,
     modified TIMESTAMP  NOT NULL DEFAULT now(),
     PRIMARY KEY (eventid, course, rungroup)
 );
@@ -270,8 +270,8 @@ COMMENT ON TABLE runorder IS 'This is the list of cars in each rungroup as seen 
 
 CREATE TABLE classorder (
     eventid   UUID      NOT NULL REFERENCES events, 
-    rungroup  INTEGER   NOT NULL, 
-    classes   JSONB     NOT NULL DEFAULT '[]',
+    rungroup  INTEGER   NOT NULL CHECK (rungroup > 0), 
+    classes   TEXT[]    NOT NULL,
     modified  TIMESTAMP NOT NULL DEFAULT now(),
     PRIMARY KEY (eventid, rungroup)
 );
