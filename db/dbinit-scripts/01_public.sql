@@ -122,6 +122,10 @@ DECLARE
   _carid UUID;
 BEGIN
   -- check that the carids exist in the cars table
+  IF NEW.cars IS NULL THEN
+    RAISE EXCEPTION 'Runorder list cannot be null';
+  END IF;
+
   FOREACH _carid IN ARRAY NEW.cars LOOP
     IF NOT EXISTS (SELECT 1 FROM cars WHERE carid = _carid) THEN
       RAISE EXCEPTION 'Attempting to create a row with an unknown carid';
@@ -145,6 +149,10 @@ DECLARE
   _code TEXT;
 BEGIN
   -- check that the classcodes exist in the classlist table
+  IF NEW.classes IS NULL THEN
+    RAISE EXCEPTION 'Class order list cannot be null';
+  END IF;
+
   FOREACH _code IN ARRAY NEW.classes LOOP
     IF NOT EXISTS (SELECT 1 FROM classlist WHERE classcode = _code) THEN
       RAISE EXCEPTION 'Attempting to create a row with an unknown class code';
