@@ -56,6 +56,8 @@ class Audit(object):
     def audit(cls, event, course, group):
         with g.db.cursor() as cur:
             cur.execute("SELECT cars FROM runorder WHERE eventid=%s AND course=%s AND rungroup=%s", (event.eventid, course, group))
+            if not cur.rowcount:
+                return list()
             order = cur.fetchone()[0]
             log.warning(order)
             cur.execute("SELECT d.firstname,d.lastname,c.* FROM cars c JOIN drivers d ON c.driverid=d.driverid WHERE carid IN %s", (tuple(order), ))
