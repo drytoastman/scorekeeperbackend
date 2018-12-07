@@ -12,6 +12,7 @@ from flask import current_app, request, render_template, get_template_attribute,
 
 from nwrsc.controllers.blueprints import *
 from nwrsc.model import Audit, Entrant, Result, Registration, RunGroups, Series
+from nwrsc.lib.encoding import json_encode
 from nwrsc.lib.misc import ArchivedSeriesException, csvlist, InvalidChallengeException, InvalidEventException
 
 log = logging.getLogger(__name__)
@@ -248,5 +249,7 @@ def grid():
         go.pad()
         go.number()
 
+    if 'idsonly' in request.args:
+        return json_encode(groups.idsonly())
     return render_template('/results/grid.html', groups=groups, order=order, starts=[k for k in groups if k < 100])
 
