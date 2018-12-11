@@ -73,11 +73,10 @@ class RunGroups(defaultdict):
     def idsonly(self):
         ret = {}
         for num,go in self.items():
-            ret[num] = {}
+            ret[num] = list()
             for cls,entries in go.items():
-                ret[num][cls] = list()
                 for e in entries:
-                    ret[num][cls].append({"carid": e.carid, "grid": e.grid})
+                    ret[num].append({"carid": e.carid, "grid": e.grid})
         return ret
 
     def sort(self, key):
