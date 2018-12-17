@@ -11,6 +11,6 @@ setup(
     zip_safe=False,
     entry_points={ 'console_scripts': [
                     'crondaemon = sccommon.cronjobs:crondaemon',
-                    'restoredb  = sccommon.backuprestore:restore_db'
+                    'restoredb  = sccommon.backuprestore:restorecmd'
                 ]},
 )

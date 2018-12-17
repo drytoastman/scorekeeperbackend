@@ -3,6 +3,7 @@ import operator
 import os
 import re
 import subprocess
+import sys
 import zipfile
 
 from google.cloud import storage
@@ -24,7 +25,6 @@ def backup_db(bucketname):
     bucket.blob(zipname).upload_from_filename(zipname)
     os.remove(zipname)
 
-
 def restore_db(bucketname):
     bucket = storage.Client().get_bucket(bucketname)
 
@@ -39,3 +39,6 @@ def restore_db(bucketname):
     subprocess.run(["psql", "-U", "postgres", "-f", dumpfile])
     os.remove(dumpfile)
     os.remove(zipname)
+
+def restorecmd():
+    restore_db(sys.argv[1])
