@@ -70,6 +70,15 @@ class RunGroups(defaultdict):
                 return
         raise Exception("Failed to find a rungroup for {}".format(cc))
 
+    def idsonly(self):
+        ret = {}
+        for num,go in self.items():
+            ret[num] = list()
+            for cls,entries in go.items():
+                for e in entries:
+                    ret[num].append({"carid": e.carid, "grid": e.grid})
+        return ret
+
     def sort(self, key):
         for go in self.values():
             for clist in go.values():
