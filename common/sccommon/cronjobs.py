@@ -3,7 +3,11 @@ import schedule
 import subprocess
 import time
 
+from sccommon.logging import logging_setup
+
 def crondaemon():
+    logging_setup('/var/log/cron.log')
+
     def webcron():
         try:
             from nwrsc.app import cron_jobs
