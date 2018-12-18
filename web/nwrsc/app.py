@@ -63,7 +63,7 @@ def create_app():
 
     ### WebAssets
     assets   = Environment(theapp)
-    assets.from_yaml(os.path.join(theapp.static_folder, 'assets.yaml'))
+    assets.from_module('nwrsc.assets')
 
     ### URL handling and Blueprints for the various sections
     theapp.add_url_rule('/',             'toresults', redirect_to='/results')

@@ -49,20 +49,6 @@ services:
     networks:
         net1:
 
-  email:
-    image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
-    container_name: "email"
-    command: "bash -c 'pip install -e /code && mailman'"
-    env_file: [ default.env ]
-    volumes:
-        - "dbsocket:/var/run/postgresql"
-        - "logs:/var/log"
-        - "uploads:/var/uploads"
-        - "./email:/code"
-    networks:
-        net1:
-
-
 networks:
   # create a separate network from the default
   net1:

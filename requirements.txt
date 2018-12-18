@@ -34,7 +34,6 @@ pycparser==2.18
 pyOpenSSL==18.0.0
 python-dateutil==2.7.3
 pytz==2018.5
-PyYAML==3.13
 reportlab==3.4.0
 requests==2.20.1
 schedule==0.5.0
