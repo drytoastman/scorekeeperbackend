@@ -4,9 +4,9 @@ import os, subprocess, sys
 def root():
     pypath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     try:
-        path = subprocess.run(["cygpath", "-w", pypath], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+        path = subprocess.run(["cygpath", "-m", pypath], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
         if path is not None:
-            return path
+            return path.replace("C:", "/c")
     except:
         pass
     return pypath

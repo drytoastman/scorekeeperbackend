@@ -262,7 +262,7 @@ class ClassInfo(Model):
     def caridxrestrict(self) -> str:
         """Gets the caridxrestrict of this ClassInfo.
 
-        formatted string that determine which indexcodes are allowed for this class  # noqa: E501
+        formatted string that determine which indexcodes are allowed for this class and class multiplier  # noqa: E501
 
         :return: The caridxrestrict of this ClassInfo.
         :rtype: str
@@ -273,7 +273,7 @@ class ClassInfo(Model):
     def caridxrestrict(self, caridxrestrict: str):
         """Sets the caridxrestrict of this ClassInfo.
 
-        formatted string that determine which indexcodes are allowed for this class  # noqa: E501
+        formatted string that determine which indexcodes are allowed for this class and class multiplier  # noqa: E501
 
         :param caridxrestrict: The caridxrestrict of this ClassInfo.
         :type caridxrestrict: str
@@ -331,7 +331,7 @@ class ClassInfo(Model):
     def classmultiplier(self) -> float:
         """Gets the classmultiplier of this ClassInfo.
 
-        a static multiplier that is applied to everyone in the class such as a street tire modifier  # noqa: E501
+        a static multiplier that is applied to all entries in the class if they are in the classmultiplier portion of caridxrestrict  # noqa: E501
 
         :return: The classmultiplier of this ClassInfo.
         :rtype: float
@@ -342,7 +342,7 @@ class ClassInfo(Model):
     def classmultiplier(self, classmultiplier: float):
         """Sets the classmultiplier of this ClassInfo.
 
-        a static multiplier that is applied to everyone in the class such as a street tire modifier  # noqa: E501
+        a static multiplier that is applied to all entries in the class if they are in the classmultiplier portion of caridxrestrict  # noqa: E501
 
         :param classmultiplier: The classmultiplier of this ClassInfo.
         :type classmultiplier: float
