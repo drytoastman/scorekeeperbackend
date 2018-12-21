@@ -70,16 +70,15 @@ class Event(AttrBase):
         return cls.getunique("select * from events where eventid=%s", (eventid,))
 
     @classmethod
-    def byDate(cls):
-        return cls.getall("select * from events order by date")
+    def byDate(cls, ignoreexternal=False):
+        return cls.getall("SELECT * FROM events {} ORDER BY date".format(ignoreexternal and " WHERE NOT isexternal " or " ",))
 
     @classmethod
-    def allSeriesByDate(cls):
+    def allSeriesByDate(cls, ignoreexternal=False):
         ret = list()
         for s in Series.active():
-            for e in cls.getall("select * from {}.events where date >= (current_date-3) order by date".format(s)):
+            for e in cls.getall("SELECT * FROM {}.events WHERE date >= (current_date-3) {} ORDER BY date".format(s, ignoreexternal and " WHERE NOT isexternal " or " ")):
                 e.series = s
                 ret.append(e)
         return sorted(ret, key=operator.attrgetter('date'))
-
 

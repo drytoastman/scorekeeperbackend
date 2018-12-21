@@ -520,6 +520,9 @@ definitions:
         type: string
         description: the event name
         example: "Regional #1"
+      isexternal:
+        type: boolean
+        description: true if this is an external event that we only import net results from
       runs: 
         type: integer
         description: number of runs in the event
@@ -556,9 +559,6 @@ definitions:
       ispractice:
         type: boolean
         description: true if this is a practice and does not count towards championship points
-      ispointsonly:
-        type: boolean
-        description: true if this is an external event that we only import champ points from
       countedruns:
         type: integer
         description: if > 0, the number of runs that count towards class position and points

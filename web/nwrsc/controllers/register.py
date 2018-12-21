@@ -122,7 +122,7 @@ def subunsub():
 @Register.route("/<series>/cars")
 def cars():
     carform = CarForm(g.classdata)
-    events  = {e.eventid:e for e in Event.byDate()}
+    events  = {e.eventid:e for e in Event.byDate(ignoreexternal=True)}
     cars    = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
     active  = defaultdict(set)
     for carid,eventid in Driver.activecars(g.driver.driverid):
@@ -159,7 +159,7 @@ def carspost():
 
 @Register.route("/<series>/events")
 def events():
-    events   = Event.byDate()
+    events   = Event.byDate(ignoreexternal=True)
     cars     = {c.carid:c   for c in Car.getForDriver(g.driver.driverid)}
     registered = defaultdict(list)
     pitems     = defaultdict(list)

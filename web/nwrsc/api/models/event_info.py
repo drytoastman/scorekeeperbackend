@@ -15,7 +15,7 @@ class EventInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, eventdate: date=None, modified: datetime=None, name: str=None, runs: int=None, ispro: bool=None, conepen: float=None, courses: int=None, eventid: str=None, gatepen: float=None, location: str=None, segments: int=None, ispractice: bool=None, ispointsonly: bool=None, countedruns: int=None):  # noqa: E501
+    def __init__(self, eventdate: date=None, modified: datetime=None, name: str=None, isexternal: bool=None, runs: int=None, ispro: bool=None, conepen: float=None, courses: int=None, eventid: str=None, gatepen: float=None, location: str=None, segments: int=None, ispractice: bool=None, countedruns: int=None):  # noqa: E501
         """EventInfo - a model defined in Swagger
 
         :param eventdate: The eventdate of this EventInfo.  # noqa: E501
@@ -24,6 +24,8 @@ class EventInfo(Model):
         :type modified: datetime
         :param name: The name of this EventInfo.  # noqa: E501
         :type name: str
+        :param isexternal: The isexternal of this EventInfo.  # noqa: E501
+        :type isexternal: bool
         :param runs: The runs of this EventInfo.  # noqa: E501
         :type runs: int
         :param ispro: The ispro of this EventInfo.  # noqa: E501
@@ -42,8 +44,6 @@ class EventInfo(Model):
         :type segments: int
         :param ispractice: The ispractice of this EventInfo.  # noqa: E501
         :type ispractice: bool
-        :param ispointsonly: The ispointsonly of this EventInfo.  # noqa: E501
-        :type ispointsonly: bool
         :param countedruns: The countedruns of this EventInfo.  # noqa: E501
         :type countedruns: int
         """
@@ -51,6 +51,7 @@ class EventInfo(Model):
             'eventdate': date,
             'modified': datetime,
             'name': str,
+            'isexternal': bool,
             'runs': int,
             'ispro': bool,
             'conepen': float,
@@ -60,7 +61,6 @@ class EventInfo(Model):
             'location': str,
             'segments': int,
             'ispractice': bool,
-            'ispointsonly': bool,
             'countedruns': int
         }
 
@@ -68,6 +68,7 @@ class EventInfo(Model):
             'eventdate': 'eventdate',
             'modified': 'modified',
             'name': 'name',
+            'isexternal': 'isexternal',
             'runs': 'runs',
             'ispro': 'ispro',
             'conepen': 'conepen',
@@ -77,13 +78,13 @@ class EventInfo(Model):
             'location': 'location',
             'segments': 'segments',
             'ispractice': 'ispractice',
-            'ispointsonly': 'ispointsonly',
             'countedruns': 'countedruns'
         }
 
         self._eventdate = eventdate
         self._modified = modified
         self._name = name
+        self._isexternal = isexternal
         self._runs = runs
         self._ispro = ispro
         self._conepen = conepen
@@ -93,7 +94,6 @@ class EventInfo(Model):
         self._location = location
         self._segments = segments
         self._ispractice = ispractice
-        self._ispointsonly = ispointsonly
         self._countedruns = countedruns
 
     @classmethod
@@ -175,6 +175,29 @@ class EventInfo(Model):
         """
 
         self._name = name
+
+    @property
+    def isexternal(self) -> bool:
+        """Gets the isexternal of this EventInfo.
+
+        true if this is an external event that we only import net results from  # noqa: E501
+
+        :return: The isexternal of this EventInfo.
+        :rtype: bool
+        """
+        return self._isexternal
+
+    @isexternal.setter
+    def isexternal(self, isexternal: bool):
+        """Sets the isexternal of this EventInfo.
+
+        true if this is an external event that we only import net results from  # noqa: E501
+
+        :param isexternal: The isexternal of this EventInfo.
+        :type isexternal: bool
+        """
+
+        self._isexternal = isexternal
 
     @property
     def runs(self) -> int:
@@ -382,29 +405,6 @@ class EventInfo(Model):
         """
 
         self._ispractice = ispractice
-
-    @property
-    def ispointsonly(self) -> bool:
-        """Gets the ispointsonly of this EventInfo.
-
-        true if this is an external event that we only import champ points from  # noqa: E501
-
-        :return: The ispointsonly of this EventInfo.
-        :rtype: bool
-        """
-        return self._ispointsonly
-
-    @ispointsonly.setter
-    def ispointsonly(self, ispointsonly: bool):
-        """Sets the ispointsonly of this EventInfo.
-
-        true if this is an external event that we only import champ points from  # noqa: E501
-
-        :param ispointsonly: The ispointsonly of this EventInfo.
-        :type ispointsonly: bool
-        """
-
-        self._ispointsonly = ispointsonly
 
     @property
     def countedruns(self) -> int:

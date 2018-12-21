@@ -91,7 +91,7 @@ def setup():
         clearPath(ADMINKEY)
 
     g.doweekendmembers = Settings.get("doweekendmembers")
-    g.events  = Event.byDate()
+    g.events = Event.byDate()
     if g.eventid:
         g.event=Event.get(g.eventid)
         if g.event is None:

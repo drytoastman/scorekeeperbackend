@@ -86,8 +86,13 @@ class Result(object):
 
     @classmethod
     def getEventResults(cls, eventid):
-        if cls._needUpdate(True, ('classlist', 'indexlist', 'events', 'cars', 'runs'), eventid):
-            cls._updateEventResults(eventid)
+        event = Event.get(eventid)
+        if event.isexternal:
+            if cls._needUpdate(True, ('classlist', 'events', 'externalresults'), eventid):
+                cls._updateExternalEventResults(eventid)
+        else:
+            if cls._needUpdate(True, ('classlist', 'indexlist', 'events', 'cars', 'runs'), eventid):
+                cls._updateEventResults(eventid)
         return cls._loadResults(eventid)
 
     @classmethod
@@ -103,7 +108,7 @@ class Result(object):
     def getChampResults(cls):
         """ returns a ChampClass list object """
         name = "champ"
-        if cls._needUpdate(True, ('settings', 'classlist', 'indexlist', 'events', 'cars', 'runs'), name):
+        if cls._needUpdate(True, ('settings', 'classlist', 'indexlist', 'events', 'cars', 'runs', 'externalresults'), name):
             cls._updateChampResults(name)
         res = cls._loadResults(name)
         for k, v in res.items():
@@ -221,6 +226,33 @@ class Result(object):
 
 
     @classmethod
+    def _updateExternalEventResults(cls, eventid):
+        """
+            The external event version of _updateEventResults, only do point calculation based off of net result
+        """
+        results = defaultdict(list)
+        settings  = Settings.getAll()
+        ppoints   = PosPoints(settings.pospointlist)
+
+        with g.db.cursor() as cur:
+            cur.execute("SELECT r.*,d.firstname,d.lastname FROM drivers d JOIN externalresults r ON r.driverid=d.driverid WHERE r.eventid=%s", (eventid,))
+            for e in [Entrant(**x, runs=[]) for x in cur.fetchall()]:
+                results[e.classcode].append(e)
+
+            # Now for each class we can sort and update position, trophy, points(both types)
+            for clas in results:
+                res = results[clas]
+                res.sort(key=attrgetter('net'))
+                for ii, e in enumerate(res):
+                    e.position   = ii+1
+                    e.pospoints  = ppoints.get(e.position)
+                    e.diffpoints = res[0].net*100/e.net;
+                    e.points     = settings.usepospoints and e.pospoints or e.diffpoints
+
+        cls._insertResults(eventid, results)
+
+
+    @classmethod
     def _updateEventResults(cls, eventid):
         """
             Creating the cached event result data for the given event.
@@ -235,7 +267,7 @@ class Result(object):
         classdata = ClassData.get()
         settings  = Settings.getAll()
         ppoints   = PosPoints(settings.pospointlist)
-    
+
         with g.db.cursor() as cur:
             # Fetch all of the entrants (driver/car combo), place in class lists, save pointers for quicker access
             cur.execute("SELECT distinct(c.carid),d.firstname,d.lastname,d.attr->>'scca' as scca,c.*,r2.rungroup FROM drivers d " + 

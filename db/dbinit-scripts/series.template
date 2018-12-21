@@ -137,6 +137,7 @@ CREATE TABLE events (
     eventid       UUID        PRIMARY KEY, 
     name          TEXT        NOT NULL, 
     date          DATE        NOT NULL, 
+    isexternal    BOOLEAN     NOT NULL DEFAULT FALSE,
     regopened     TIMESTAMP   NOT NULL DEFAULT now(), 
     regclosed     TIMESTAMP   NOT NULL, 
     courses       INTEGER     NOT NULL DEFAULT 1, 
@@ -203,6 +204,21 @@ GRANT  ALL ON runs TO <seriesname>;
 CREATE TRIGGER runmod AFTER INSERT OR UPDATE OR DELETE ON runs FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
 CREATE TRIGGER rununi BEFORE UPDATE ON runs FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'carid', 'course', 'run');
 COMMENT ON TABLE runs IS 'The runs in this series. Attr includes reaction, sixty, segments[n]';
+
+
+CREATE TABLE externalresults (
+    eventid   UUID NOT NULL REFERENCES events,
+    classcode VARCHAR(16) NOT NULL REFERENCES classlist,
+    driverid  UUID NOT NULL REFERENCES drivers,
+    net       FLOAT NOT NULL,
+    modified  TIMESTAMP NOT NULL DEFAULT now(),
+    PRIMARY KEY (eventid, classcode, driverid)
+);
+REVOKE ALL ON externalresults FROM public;
+GRANT  ALL ON externalresults TO <seriesname>;
+CREATE TRIGGER externalmod AFTER INSERT OR UPDATE OR DELETE ON externalresults FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
+CREATE TRIGGER externaluni BEFORE UPDATE ON externalresults FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'classcode', 'driverid');
+COMMENT ON TABLE externalresults IS 'Results for external events to apply to local series, used for integrating national pro points without run data';
 
 
 CREATE TABLE timertimes(

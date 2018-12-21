@@ -28,7 +28,7 @@ def setup():
         g.year = Series.getYear(g.series)
         g.seriesinfo = Result.getSeriesInfo()
         g.settings = g.seriesinfo.getSettings()
-        g.events = g.seriesinfo.getEvents()
+        g.events = [x for x in g.seriesinfo.getEvents() if not getattr(x, 'isexternal', False)]
         if g.eventid:
             g.event = g.seriesinfo.getEvent(g.eventid)
             if g.event is None:
@@ -166,7 +166,7 @@ def tt():
 @Results.route("/champ/")
 def champ():
     results = Result.getChampResults()
-    events  = [x for x in g.events if not x.ispractice]
+    events = [x for x in g.seriesinfo.getEvents() if not x.ispractice]
     return render_template('/results/champ.html', event="x", results=results, settings=g.settings, classdata=g.seriesinfo.getClassData(), events=events, disablemetascale=True)
 
 
