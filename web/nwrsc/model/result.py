@@ -86,13 +86,8 @@ class Result(object):
 
     @classmethod
     def getEventResults(cls, eventid):
-        event = Event.get(eventid)
-        if event.isexternal:
-            if cls._needUpdate(True, ('classlist', 'events', 'externalresults'), eventid):
-                cls._updateExternalEventResults(eventid)
-        else:
-            if cls._needUpdate(True, ('classlist', 'indexlist', 'events', 'cars', 'runs'), eventid):
-                cls._updateEventResults(eventid)
+        if cls._needUpdate(True, ('classlist', 'indexlist', 'events', 'cars', 'runs', 'externalresults'), eventid):
+            cls._updateEventResults(eventid)
         return cls._loadResults(eventid)
 
     @classmethod
@@ -226,14 +221,11 @@ class Result(object):
 
 
     @classmethod
-    def _updateExternalEventResults(cls, eventid):
+    def _updateExternalEventResults(cls, eventid, settings, ppoints):
         """
             The external event version of _updateEventResults, only do point calculation based off of net result
         """
         results = defaultdict(list)
-        settings  = Settings.getAll()
-        ppoints   = PosPoints(settings.pospointlist)
-
         with g.db.cursor() as cur:
             cur.execute("SELECT r.*,d.firstname,d.lastname FROM drivers d JOIN externalresults r ON r.driverid=d.driverid WHERE r.eventid=%s", (eventid,))
             for e in [Entrant(**x, runs=[]) for x in cur.fetchall()]:
@@ -267,6 +259,9 @@ class Result(object):
         classdata = ClassData.get()
         settings  = Settings.getAll()
         ppoints   = PosPoints(settings.pospointlist)
+
+        if event.isexternal:
+            return self._updateExternalEventResults(eventid, settings, ppoints)
 
         with g.db.cursor() as cur:
             # Fetch all of the entrants (driver/car combo), place in class lists, save pointers for quicker access
