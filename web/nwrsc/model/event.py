@@ -63,6 +63,7 @@ class Event(AttrBase):
         event.accountid = None
         event.ispro = False
         event.ispractice = False
+        event.isexternal = False
         return event
 
     @classmethod

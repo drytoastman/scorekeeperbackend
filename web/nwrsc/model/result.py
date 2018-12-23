@@ -261,7 +261,7 @@ class Result(object):
         ppoints   = PosPoints(settings.pospointlist)
 
         if event.isexternal:
-            return self._updateExternalEventResults(eventid, settings, ppoints)
+            return cls._updateExternalEventResults(eventid, settings, ppoints)
 
         with g.db.cursor() as cur:
             # Fetch all of the entrants (driver/car combo), place in class lists, save pointers for quicker access

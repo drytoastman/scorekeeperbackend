@@ -13,6 +13,15 @@ $(document).ready(function() {
         d.setMinutes(0);
         $("input[name=regclosed]").get(0)._flatpickr.setDate(d);
     }});
+    $("input[name=isexternal]").change(function() {
+        var elem = $("#eventform > div").slice(4);
+        if (this.checked) {
+            elem.hide();
+        } else {
+            elem.show();
+        }
+        elem.last().show();
+    }).trigger("change");
 });
 </script>
 {% endblock headers %}

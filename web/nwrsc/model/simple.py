@@ -115,6 +115,14 @@ class EventStream(object):
         return ret
 
 
+class ExternalResult(AttrBase):
+    TABLENAME = "externalresults"
+
+    @classmethod
+    def getAll(cls, eventid):
+        return cls.getall("SELECT r.*,d.firstname,d.lastname FROM drivers d JOIN externalresults r ON r.driverid=d.driverid WHERE r.eventid=%s", (eventid,))
+
+
 class NumberEntry(AttrBase):
     @classmethod
     def allNumbers(cls):

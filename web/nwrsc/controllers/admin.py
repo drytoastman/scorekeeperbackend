@@ -141,6 +141,22 @@ def index():
 def event():
     return render_template('/admin/event.html', event=g.event)
 
+@Admin.route("/event/<uuid:eventid>/externalresults")
+def externalresults():
+    return json_encode(ExternalResult.getAll(g.event.eventid))
+
+@Admin.route("/event/<uuid:eventid>/delexternal", methods=['post'])
+def delexternal():
+    try:
+        ExternalResult(eventid = uuid.UUID(request.form.get('eventid', None)),
+                     driverid  = uuid.UUID(request.form.get('driverid', None)),
+                     classcode = request.form.get('classcode', None)).delete()
+    except Exception as e:
+        log.exception("delete failed")
+        return "delete failed", 403
+    return ""
+
+
 @Admin.route("/numbers")
 def numbers():
     numbers = defaultdict(lambda: defaultdict(set))

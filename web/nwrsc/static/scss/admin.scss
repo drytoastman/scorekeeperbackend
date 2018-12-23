@@ -204,10 +204,16 @@ ul.eventchecks {
     }
 }
 
-.accounttable {
+.accounttable, .externaltable {
     margin: 1rem 0rem;
     th,td {
         padding: 0.1rem 0.5rem;
+    }
+}
+
+.externaltable {
+    button {
+        padding: 0.2rem;
     }
 }
 

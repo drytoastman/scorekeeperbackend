@@ -9,5 +9,5 @@ from .result import Result
 from .rungroups import RunGroups
 from .series import Series
 from .settings import Settings
-from .simple import Attendance, Audit, Challenge, EmailQueue, EventStream, NumberEntry, Payment, PaymentAccount, PaymentItem, PaymentSecret, Run, RunOrder, TempCache, TimerTimes, Unsubscribe, WeekendMembers
+from .simple import Attendance, Audit, Challenge, EmailQueue, EventStream, ExternalResult, NumberEntry, Payment, PaymentAccount, PaymentItem, PaymentSecret, Run, RunOrder, TempCache, TimerTimes, Unsubscribe, WeekendMembers
 
