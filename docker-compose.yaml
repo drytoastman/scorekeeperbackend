@@ -25,7 +25,7 @@ services:
     image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
     build:   "."
     container_name: "web"
-    command: "bash -c 'pip install -e /code && exec webserver.py'"
+    command: "bash -c 'pip --disable-pip-version-check install -e /code && exec webserver.py'"
     env_file: [ default.env ]
     volumes:  
         - "dbsocket:/var/run/postgresql"
@@ -40,7 +40,7 @@ services:
   sync:
     image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
     container_name: "sync"
-    command: "bash -c 'pip install -e /code && syncserver'"
+    command: "bash -c 'pip --disable-pip-version-check install -e /code && syncserver'"
     env_file: [ default.env ]
     volumes:
         - "dbsocket:/var/run/postgresql"
