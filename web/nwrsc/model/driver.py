@@ -16,6 +16,10 @@ class Driver(AttrBase):
         return cls.getall("SELECT * FROM drivers order by lower(lastname), lower(firstname)")
 
     @classmethod
+    def getAllForSeries(cls):
+        return cls.getall("SELECT distinct(d.driverid), d.firstname, d.lastname FROM drivers d JOIN cars c ON c.driverid=d.driverid JOIN runs r ON r.carid=c.carid")
+
+    @classmethod
     def byUsername(cls, username):
         return cls.getunique("SELECT * FROM drivers WHERE username=%s", (username.strip(),))
     

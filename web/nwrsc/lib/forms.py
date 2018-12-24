@@ -205,6 +205,18 @@ class CarForm(MyFlaskForm):
         self.indexcode.choices = [(i.indexcode, "%s - %s" % (i.indexcode, i.descrip)) for i in sorted(classdata.indexlist.values(), key=attrgetter('indexcode'))]
 
 
+class ExternalResultForm(MyFlaskForm):
+    driverid    = SelectField('Driver', [Required()])
+    classcode   = SelectField('Class',  [Required()])
+    net         = FloatField( 'Net',    render_kw={'size':5})
+    submit      = SubmitField('Add')
+
+    def __init__(self, drivers, classdata):
+        MyFlaskForm.__init__(self)
+        self.driverid.choices  = [(str(d.driverid), "%s %s" % (d.firstname, d.lastname)) for d in sorted(drivers, key=attrgetter('firstname', 'lastname'))]
+        self.classcode.choices = [(c.classcode, c.classcode) for c in sorted(classdata.classlist.values(), key=attrgetter('classcode')) if c.classcode != 'HOLD']
+
+
 class IndexForm(Form):
     indexcode   = MyStringField('IndexCode', [Length(min=2,max=8)], render_kw={'size':6})
     descrip     = MyStringField('Description',                      render_kw={'size':20})

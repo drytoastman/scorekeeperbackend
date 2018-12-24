@@ -3,11 +3,11 @@
 {% block headers %}
 {{super()}}
 <style type='text/css'>
-@media (min-width: 768px) {
-    .form-group { margin-bottom: 0; }
-    div.submit  { margin-top: 1rem; }
-    #externaltable { margin: initial; }
-}
+#externaltable { margin: initial; }
+#externalform { margin-bottom: 1rem; }
+input[type=text] { padding: 0; }
+input[type=submit] { margin-top: -5px; }
+.btn-admin { font-size: 0.9rem; padding: 0.1rem 0.4rem; }
 </style>
 
 <script>
@@ -41,6 +41,7 @@ $(document).ready(function(){
     });
 
 });
+
 </script>
 {% endblock headers %}
 
@@ -92,8 +93,19 @@ $(document).ready(function(){
 </div>
 {% else %}
 
-<h5>External Results</h5>
 
+<h5>Add New External Time</h5>
+<form id='externalform' action='{{url_for(".newexternal")}}', method='POST'>
+{% for f in exform %}
+{% if f.widget.input_type == 'submit' %}
+{{f(class_='btn small btn-admin')}}
+{% else %}
+{{f()}}
+{% endif %}
+{% endfor %}
+</form>
+
+<h5>External Results</h5>
 <table id='externaltable' class='externaltable table-striped'>
 <thead>
 <tr><th>Class</th><th>First</th><th>Last</th><th>Net</th><th></th></tr>

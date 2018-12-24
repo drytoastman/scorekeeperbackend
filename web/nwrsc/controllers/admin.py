@@ -139,13 +139,33 @@ def index():
 
 @Admin.route("/event/<uuid:eventid>/")
 def event():
-    return render_template('/admin/event.html', event=g.event)
+    exform = None
+    if g.event.isexternal:
+        exform = ExternalResultForm(Driver.getAllForSeries(), ClassData.get())
+    return render_template('/admin/event.html', event=g.event, exform=exform)
 
 @Admin.route("/event/<uuid:eventid>/externalresults")
 def externalresults():
     return json_encode(ExternalResult.getAll(g.event.eventid))
 
-@Admin.route("/event/<uuid:eventid>/delexternal", methods=['post'])
+@Admin.route("/event/<uuid:eventid>/newexternal", methods=['POST'])
+def newexternal():
+    exform = ExternalResultForm(Driver.getAllForSeries(), ClassData.get())
+    if exform.validate():
+        try:
+            res = ExternalResult()
+            formIntoAttrBase(exform, res)
+            res.eventid = g.event.eventid
+            res.insert()
+        except Exception as e:
+            flash("Exception inserting result: {}".format(e))
+            log.error("Exception insert result: {}", exc_info=e)
+    else:
+        flashformerrors(exform)
+
+    return redirect(url_for('.event'))
+
+@Admin.route("/event/<uuid:eventid>/delexternal", methods=['POST'])
 def delexternal():
     try:
         ExternalResult(eventid = uuid.UUID(request.form.get('eventid', None)),
@@ -155,6 +175,7 @@ def delexternal():
         log.exception("delete failed")
         return "delete failed", 403
     return ""
+
 
 
 @Admin.route("/numbers")

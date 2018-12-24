@@ -115,7 +115,7 @@ ul.eventchecks {
 }
 
 // Datatable touch ups
-.dataTables_wrapper {
+div.dataTables_wrapper {
     display: block !important;
 
     .dtheader div {
@@ -127,7 +127,13 @@ ul.eventchecks {
     th {
         height: 2.5rem;
     }
+
+    div.dataTables_info {
+        margin-left: 1.0rem;
+        padding-top: 0;
+    }
 }
+
 
 .indextable, .classtable {
 	margin-bottom: 15px;
@@ -208,12 +214,6 @@ ul.eventchecks {
     margin: 1rem 0rem;
     th,td {
         padding: 0.1rem 0.5rem;
-    }
-}
-
-.externaltable {
-    button {
-        padding: 0.2rem;
     }
 }
 
