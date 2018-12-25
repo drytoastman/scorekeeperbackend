@@ -137,8 +137,10 @@ def _squarepayment(event, account, purchase, cache):
                 note="{} - {}".format(event.date.strftime("%m/%d/%Y"), event.name),
                 quantity=str(count)))
 
-    client   = squareconnect.ApiClient(header_name='Authorization', header_value='Bearer '+account.secret)
-    response = squareconnect.apis.checkout_api.CheckoutApi(api_client=client).create_checkout(account.accountid, checkout)
+    api      = squareconnect.apis.checkout_api.CheckoutApi()
+    api.api_client.configuration.access_token = account.secret;
+    response = api.create_checkout(account.accountid, checkout)
+
     cache['checkoutid'] = response.checkout.id
     TempCache.put(cache['refid'], cache)
 
@@ -215,15 +217,17 @@ def sqaurepaymentcomplete():
         eventid  = uuid.UUID(cached['eventid'])
         event    = Event.get(eventid)
         account  = PaymentAccount.get(event.accountid)
-        client   = squareconnect.ApiClient(header_name='Authorization', header_value='Bearer '+account.secret)
+        api      = squareconnect.apis.transactions_api.TransactionsApi()
         response = None
+
+        api.api_client.configuration.access_token = account.secret
 
         # Square may call us back but there seems to be a delay before we can load the transaction to check, we retry at longer intervals
         savee = None
         for ii in range(5):
             time.sleep(ii+0.1)
             try:
-                response = squareconnect.apis.transactions_api.TransactionsApi(api_client=client).retrieve_transaction(account.accountid, transactionid)
+                response = api.retrieve_transaction(account.accountid, transactionid)
                 break
             except Exception as e:
                 savee = e
@@ -416,12 +420,15 @@ def squareoauth():
         tokenresponse['expires_at'] = str(dateutil.parser.parse(tokenresponse['expires_at']))
 
         # Obtain the list of locations and items
-        client = squareconnect.ApiClient(header_name='Authorization', header_value='Bearer '+tokenresponse['access_token'])
-        locresponse = squareconnect.apis.locations_api.LocationsApi(api_client=client).list_locations()
+        lapi    = squareconnect.apis.locations_api.LocationsApi()
+        lapi.api_client.configuration.access_token = tokenresponse['access_token']
+        locresponse = lapi.list_locations()
         if locresponse.errors:
             raise Exception(locresponse.errors)
 
-        catresponse = squareconnect.apis.catalog_api.CatalogApi(api_client=client).list_catalog()
+        capi = squareconnect.apis.catalog_api.CatalogApi()
+        capi.api_client.configuration.access_token = tokenresponse['access_token']
+        catresponse = capi.list_catalog()
         if catresponse.errors:
             raise Exception(catesponse.errors)
 
