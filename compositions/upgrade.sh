@@ -1,1 +1,1 @@
-docker exec $1db /dbconversion-scripts/upgrade.sh /dbconversion-scripts
+docker exec $1db$2 /dbconversion-scripts/upgrade.sh /dbconversion-scripts
