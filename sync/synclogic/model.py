@@ -37,6 +37,7 @@ class DataInterface(object):
         'challenges',
         'challengerounds',
         'challengeruns',
+        'externalresults'
     ]
 
     PUBLIC_TABLES = [
