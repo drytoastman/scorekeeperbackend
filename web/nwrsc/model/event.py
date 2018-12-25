@@ -72,7 +72,7 @@ class Event(AttrBase):
 
     @classmethod
     def byDate(cls, ignoreexternal=False):
-        return cls.getall("SELECT * FROM events {} ORDER BY date".format(ignoreexternal and " WHERE NOT isexternal " or " ",))
+        return cls.getall("SELECT * FROM events {} ORDER BY date,regopened,regclosed".format(ignoreexternal and " WHERE NOT isexternal " or " ",))
 
     @classmethod
     def allSeriesByDate(cls, ignoreexternal=False):
