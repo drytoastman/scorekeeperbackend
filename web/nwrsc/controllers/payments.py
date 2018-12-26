@@ -378,7 +378,7 @@ def paymentscron():
                 if p.type != 'square':  # Only do square renewals right now
                     continue
                 expiresin = (dateutil.parser.parse(p.attr['expires']).replace(tzinfo=None) - datetime.datetime.now()).total_seconds()
-                if expiresin > 10800: # More than 3 hours to expiry, ignore it
+                if expiresin > 259200: # More than 5 days to expiry, ignore it
                     continue
 
                 try:
