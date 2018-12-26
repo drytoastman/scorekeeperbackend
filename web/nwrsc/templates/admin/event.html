@@ -5,9 +5,11 @@
 <style type='text/css'>
 #externaltable { margin: initial; }
 #externalform { margin-bottom: 1rem; }
+#externalform button { margin-left: 1rem; }
 input[type=text] { padding: 0; }
-input[type=submit] { margin-top: -5px; }
-.btn-admin { font-size: 0.9rem; padding: 0.1rem 0.4rem; }
+input[type=submit], .btn-outline-admin { margin-top: -5px; }
+textarea { height: 20rem; width: 100%; }
+.btn { font-size: 0.9rem; padding: 0.1rem 0.4rem; }
 </style>
 
 <script>
@@ -98,12 +100,22 @@ $(document).ready(function(){
 <form id='externalform' action='{{url_for(".newexternal")}}', method='POST'>
 {% for f in exform %}
 {% if f.widget.input_type == 'submit' %}
-{{f(class_='btn small btn-admin')}}
+{{f(class_='btn btn-admin')}}
 {% else %}
 {{f()}}
 {% endif %}
 {% endfor %}
 </form>
+
+{#
+<button class='btn btn-outline-admin' data-toggle='modal' data-target='#externaltextmodal' type='button'>Raw Text Input</button>
+{% call m.modal('externaltextmodal', 'Raw Text Input', '', '') %}
+<form id='externaltextform' action='{{url_for(".externaltext")}}', method='POST'>
+<textarea name='data'></textarea>
+<input class='btn btn-admin mt-2 float-right' type='submit' value='Submit'></input>
+</form>
+{% endcall %}
+#}
 
 <h5>External Results</h5>
 <table id='externaltable' class='externaltable table-striped'>

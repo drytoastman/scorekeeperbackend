@@ -165,6 +165,49 @@ def newexternal():
 
     return redirect(url_for('.event'))
 
+#@Admin.route("/event/<uuid:eventid>/externaltext", methods=['POST'])
+def externaltext():
+    tokens  = request.form.get('data').split()
+    isfloat = re.compile('\d+\.\d+')
+    entries = list()
+    ii      = 6
+    drivers = {(d.firstname,d.lastname):d for d in Driver.getAllForSeries()}
+    classdata = ClassData.get()
+    indexrev  = {i.value:i.indexcode for i in classdata.indexlist.values()}
+
+    while ii < len(tokens):
+        if isfloat.search(tokens[ii-2]) and isfloat.search(tokens[ii-1]) and isfloat.search(tokens[ii]):
+            name = (tokens[ii-6], tokens[ii-5])
+            if name in drivers:
+                d = drivers[name]
+                extclass = tokens[ii-4]
+                try:
+                    idxclass = indexrev[float(tokens[ii-1])]
+                except:
+                    idxclass = 'N/A'
+
+                for code in classdata.classlist:
+                    if extclass == code:
+                        d.classcode = code
+                        break
+                    elif extclass in classdata.restrictedRegistrationIndexes(code):
+                        d.classcode = code
+                        break
+                    elif idxclass in classdata.restrictedRegistrationIndexes(code):
+                        d.classcode = code
+                        break
+
+                d.extclass = tokens[ii-4]
+                d.raw = tokens[ii-2]
+                d.index = tokens[ii-1]
+                d.net = tokens[ii]
+                entries.append(d)
+            ii = ii + 6
+        else:
+            ii = ii + 1
+
+    return json_encode(entries)
+
 @Admin.route("/event/<uuid:eventid>/delexternal", methods=['POST'])
 def delexternal():
     try:
