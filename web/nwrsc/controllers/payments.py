@@ -433,11 +433,10 @@ def squareoauth():
         oauth = squareconnect.OAuthApi()
         oauth.api_client.configuration.access_token = appsecret
         tokenresponse = oauth.obtain_token(squareconnect.ObtainTokenRequest(client_id=appid, client_secret=appsecret, code=authorization_code))
-        tokenresponse['expires_at'] = str(dateutil.parser.parse(tokenresponse['expires_at']))
 
         # Setup client with new access token and get the list of locations and items
         conf = squareconnect.Configuration()
-        conf.access_token = tokenresponse['access_token']
+        conf.access_token = tokenresponse.access_token
         client = squareconnect.ApiClient(conf)
 
         locresponse = squareconnect.apis.locations_api.LocationsApi(client).list_locations()
@@ -476,7 +475,11 @@ def squareoauth():
                         'currency': vdata.price_money.currency
                     }
 
-        tdata = current_app.usts.dumps(tokenresponse)
+        tdata = current_app.usts.dumps({
+                    'access_token': tokenresponse.access_token,
+                    'expires_at':   str(dateutil.parser.parse(tokenresponse.expires_at)),
+                    'merchant_id':  tokenresponse.merchant_id
+                })
         ldata = current_app.usts.dumps(locations)
         return render_template('/admin/locationselect.html', locations=locations, tdata=tdata, ldata=ldata)
 
