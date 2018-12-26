@@ -382,14 +382,23 @@ def paymentscron():
                     continue
 
                 try:
+                    appid     = current_app.config.get('SQ_APPLICATION_ID', '')
+                    appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
+                    if not appid or not appsecret:
+                        raise Exception('There is no square applcation setup in the local configuration')
+
+                    # Do the oauth call to get a new token
                     log.info("{} {} expires in {} seconds, renewing".format(s, p.accountid, expiresin))
-                    response = square_oauth_renewtoken(p.secret)
-                    p.attr['expires'] = str(dateutil.parser.parse(response['expires_at']))
+                    oauth = squareconnect.OAuthApi()
+                    oauth.api_client.configuration.access_token = appsecret
+                    response = oauth.renew_token(appid, squareconnect.RenewTokenRequest(access_token=p.secret))
+
+                    p.attr['expires'] = str(dateutil.parser.parse(response.expires_at))
                     p.update()
 
                     s = PaymentSecret()
                     s.accountid = p.accountid
-                    s.secret    = response['access_token']
+                    s.secret    = response.access_token
                     s.upsert()
 
                 except Exception as e:
@@ -411,24 +420,31 @@ def squareoauth():
         cur.execute("SET search_path=%s,'public'; commit; begin", (g.series,))
 
     try:
+        appid     = current_app.config.get('SQ_APPLICATION_ID', '')
+        appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
+        if not appid or not appsecret:
+            raise Exception('There is no square applcation setup in the local configuration')
+
         authorization_code = request.args.get('code', None)
         if not authorization_code:
-            flash('Authorization Failed')
-            return redirect(url_for('.accounts'))
+            raise Exception('No authorization code was provided to oauth endpoint')
 
-        tokenresponse = square_oauth_gettoken(authorization_code)
+        # Do the oauth call to get a new token
+        oauth = squareconnect.OAuthApi()
+        oauth.api_client.configuration.access_token = appsecret
+        tokenresponse = oauth.obtain_token(squareconnect.ObtainTokenRequest(client_id=appid, client_secret=appsecret, code=authorization_code))
         tokenresponse['expires_at'] = str(dateutil.parser.parse(tokenresponse['expires_at']))
 
-        # Obtain the list of locations and items
-        lapi    = squareconnect.apis.locations_api.LocationsApi()
-        lapi.api_client.configuration.access_token = tokenresponse['access_token']
-        locresponse = lapi.list_locations()
+        # Setup client with new access token and get the list of locations and items
+        conf = squareconnect.Configuration()
+        conf.access_token = tokenresponse['access_token']
+        client = squareconnect.ApiClient(conf)
+
+        locresponse = squareconnect.apis.locations_api.LocationsApi(client).list_locations()
         if locresponse.errors:
             raise Exception(locresponse.errors)
 
-        capi = squareconnect.apis.catalog_api.CatalogApi()
-        capi.api_client.configuration.access_token = tokenresponse['access_token']
-        catresponse = capi.list_catalog()
+        catresponse = squareconnect.apis.catalog_api.CatalogApi(client).list_catalog()
         if catresponse.errors:
             raise Exception(catesponse.errors)
 
@@ -473,58 +489,4 @@ def squareoauth():
         else:
             flash(str(e))
         return redirect(url_for('.accounts'))
-
-
-def square_oauth_gettoken(authorization_code):
-    """ Perform the second half of the oauth process, why is this not in their SDK? """
-    appid     = current_app.config.get('SQ_APPLICATION_ID', '')
-    appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
-    if not appid or not appsecret:
-        raise Exception('There is no square applcation setup in the local configuration')
-
-    oauth_headers = {
-      'Authorization': 'Client '+appsecret,
-      'Accept':        'application/json',
-      'Content-Type':  'application/json'
-    }
-
-    oauth_request = {
-      'client_id': appid,
-      'client_secret': appsecret,
-      'code': authorization_code,
-    }
-
-    connection = http.client.HTTPSConnection('connect.squareup.com')
-    connection.request('POST', '/oauth2/token', json.dumps(oauth_request), oauth_headers)
-    response = json.loads(connection.getresponse().read())
-    if not response.get('access_token', ''):
-        raise Exception('Code exchange failed: ' + str(response))
-
-    return response
-
-
-def square_oauth_renewtoken(token):
-    """ Perform the second half of the oauth process, why is this not in their SDK? """
-    appid     = current_app.config.get('SQ_APPLICATION_ID', '')
-    appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
-    if not appid or not appsecret:
-        raise Exception('There is no square applcation setup in the local configuration')
-
-    oauth_headers = {
-      'Authorization': 'Client '+appsecret,
-      'Accept':        'application/json',
-      'Content-Type':  'application/json'
-    }
-
-    oauth_request = {
-      'access_token': token,
-    }
-
-    connection = http.client.HTTPSConnection('connect.squareup.com')
-    connection.request('POST', '/oauth2/clients/'+appid+'/access-token/renew', json.dumps(oauth_request), oauth_headers)
-    response = json.loads(connection.getresponse().read())
-    if not response.get('access_token', ''):
-        raise Exception('Code renewal failed: ' + str(response))
-
-    return response
 
