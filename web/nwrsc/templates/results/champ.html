@@ -6,9 +6,13 @@
 <div class='container-fluid'>
 <!-- Series info -->
 <h3 class='seriesname'>{{settings.seriesname}} Championship Points</h3>
-{% if settings.minevents > 0 %}
-<div class='minwarning'>(Min Attendance of {{settings.minevents}} Events To Place)</div>
+
+{% if requirements|length > 0 %}
+<div class='minwarning'>
+<b>Requirements to Place:</b> <span>{{requirements|join(", ")}}</span>
+</div>
 {% endif %}
+
 <!-- Results -->
 
 <table class='champ'>
@@ -28,7 +32,7 @@
 </tr>
         
 {% for e in entrants %}
-	{% if e.eventcount < settings.minevents %}
+	{% if e.eventcount < settings.minevents or e.missingrequired|length > 0 %}
 	<tr class='missingmin'>
 	{% else %}
 	<tr>

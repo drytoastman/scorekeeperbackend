@@ -613,13 +613,13 @@ class Result(object):
         ret = defaultdict(ChampClass)
         for classcode, classmap in store.items():
             for entrant in classmap.values():
-                entrant.points.calc(bestof)
+                entrant.finalize(bestof, events)
                 ret[classcode].append(entrant)
             # Magic in PointsStorage makes this sort happen (total then first, seconds, thirds, etc based on settings
             ret[classcode].sort(key=attrgetter(*sortkeys), reverse=True)
             ii = 1
             for e in ret[classcode]:
-                if e.eventcount < settings.minevents:
+                if e.eventcount < settings.minevents or len(e.missingrequired) > 0:
                     e.position = ''
                 else:
                     e.position = ii
@@ -868,6 +868,10 @@ class ChampEntrant(AttrBase):
         except:
             raise AttributeError("No known key %s" % key)
 
+    def finalize(self, bestof, events):
+        self.points.calc(bestof)
+        self.missingrequired = [self._eventkey(e) for e in events if e.champrequire and self._eventkey(e) not in self.points.events]
+
     def addResults(self, event, entry): 
         self.firstname = entry['firstname']
         self.lastname  = entry['lastname']
@@ -876,10 +880,14 @@ class ChampEntrant(AttrBase):
         if idx < len(self.tiebreakers):
             self.tiebreakers[idx] += 1
         self.eventcount += 1
-        self.points.set("d-{}-id-{}".format(event.date, event.eventid), entry['points'])
+        self.points.set(self._eventkey(event), entry['points'])
 
     def __repr__(self):
         return "%s %s: %s" % (self.firstname, self.lastname, self.points.total)
+
+    def _eventkey(self, event):
+        return "d-{}-id-{}".format(event.date, event.eventid)
+
 
 class ChampClass(list):
     @property

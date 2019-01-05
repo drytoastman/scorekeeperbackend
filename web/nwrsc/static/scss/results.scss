@@ -20,6 +20,8 @@ $printborder: #999;
 
     .minwarning {
         text-align: center;
+        margin: 0;
+        padding: 0;
     }
 
     .classlinks { // shortcuts at top of event results
@@ -108,6 +110,10 @@ table {
             }
         }
     }
+}
+
+table.champ {
+    margin-top: 1rem;
 }
 
 // Borders to separate multiple tables of toptime data in one table

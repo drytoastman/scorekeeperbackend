@@ -16,7 +16,7 @@ class ChampEntry(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, driverid: str=None, firstname: str=None, lastname: str=None, eventcount: int=None, position: int=None, points: float=None, events: List[ChampEntryEvents]=None, tiebreakers: List[int]=None):  # noqa: E501
+    def __init__(self, driverid: str=None, firstname: str=None, lastname: str=None, eventcount: int=None, position: int=None, points: float=None, events: List[ChampEntryEvents]=None, missingrequired: List[str]=None, tiebreakers: List[int]=None):  # noqa: E501
         """ChampEntry - a model defined in Swagger
 
         :param driverid: The driverid of this ChampEntry.  # noqa: E501
@@ -33,6 +33,8 @@ class ChampEntry(Model):
         :type points: float
         :param events: The events of this ChampEntry.  # noqa: E501
         :type events: List[ChampEntryEvents]
+        :param missingrequired: The missingrequired of this ChampEntry.  # noqa: E501
+        :type missingrequired: List[str]
         :param tiebreakers: The tiebreakers of this ChampEntry.  # noqa: E501
         :type tiebreakers: List[int]
         """
@@ -44,6 +46,7 @@ class ChampEntry(Model):
             'position': int,
             'points': float,
             'events': List[ChampEntryEvents],
+            'missingrequired': List[str],
             'tiebreakers': List[int]
         }
 
@@ -55,6 +58,7 @@ class ChampEntry(Model):
             'position': 'position',
             'points': 'points',
             'events': 'events',
+            'missingrequired': 'missingrequired',
             'tiebreakers': 'tiebreakers'
         }
 
@@ -65,6 +69,7 @@ class ChampEntry(Model):
         self._position = position
         self._points = points
         self._events = events
+        self._missingrequired = missingrequired
         self._tiebreakers = tiebreakers
 
     @classmethod
@@ -236,6 +241,29 @@ class ChampEntry(Model):
         """
 
         self._events = events
+
+    @property
+    def missingrequired(self) -> List[str]:
+        """Gets the missingrequired of this ChampEntry.
+
+        array of event identifiers that are required for champ result but not attended  # noqa: E501
+
+        :return: The missingrequired of this ChampEntry.
+        :rtype: List[str]
+        """
+        return self._missingrequired
+
+    @missingrequired.setter
+    def missingrequired(self, missingrequired: List[str]):
+        """Sets the missingrequired of this ChampEntry.
+
+        array of event identifiers that are required for champ result but not attended  # noqa: E501
+
+        :param missingrequired: The missingrequired of this ChampEntry.
+        :type missingrequired: List[str]
+        """
+
+        self._missingrequired = missingrequired
 
     @property
     def tiebreakers(self) -> List[int]:

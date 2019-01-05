@@ -281,6 +281,7 @@ class EventSettingsForm(MyFlaskForm):
     eventid       = HiddenField(  'eventid')
     name          = MyStringField('Event Name',  [Length(min=4, max=32)])
     date          = DateField(    'Event Date',             render_kw={'title':'The date of the event'})  
+    champrequire  = BooleanField( 'Required For Champ',     render_kw={'title':'Check if this event must be attended to be considered for a championship result'})
     isexternal    = BooleanField( 'Is External Event',      render_kw={'title':'Check if this is an external event that we only import net results from'})
     regopened     = TZDateTimeField('Registration Opens',   render_kw={'title':'When registration should open'}, format='%Y-%m-%d %H:%M')
     regclosed     = TZDateTimeField('Registration Closes',  render_kw={'title':'When registration should close'}, format='%Y-%m-%d %H:%M')

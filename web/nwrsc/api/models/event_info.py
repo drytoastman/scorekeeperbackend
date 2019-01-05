@@ -15,7 +15,7 @@ class EventInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, eventdate: date=None, modified: datetime=None, name: str=None, isexternal: bool=None, runs: int=None, ispro: bool=None, conepen: float=None, courses: int=None, eventid: str=None, gatepen: float=None, location: str=None, segments: int=None, ispractice: bool=None, countedruns: int=None):  # noqa: E501
+    def __init__(self, eventdate: date=None, modified: datetime=None, name: str=None, champrequire: bool=None, isexternal: bool=None, runs: int=None, ispro: bool=None, conepen: float=None, courses: int=None, eventid: str=None, gatepen: float=None, location: str=None, segments: int=None, ispractice: bool=None, countedruns: int=None):  # noqa: E501
         """EventInfo - a model defined in Swagger
 
         :param eventdate: The eventdate of this EventInfo.  # noqa: E501
@@ -24,6 +24,8 @@ class EventInfo(Model):
         :type modified: datetime
         :param name: The name of this EventInfo.  # noqa: E501
         :type name: str
+        :param champrequire: The champrequire of this EventInfo.  # noqa: E501
+        :type champrequire: bool
         :param isexternal: The isexternal of this EventInfo.  # noqa: E501
         :type isexternal: bool
         :param runs: The runs of this EventInfo.  # noqa: E501
@@ -51,6 +53,7 @@ class EventInfo(Model):
             'eventdate': date,
             'modified': datetime,
             'name': str,
+            'champrequire': bool,
             'isexternal': bool,
             'runs': int,
             'ispro': bool,
@@ -68,6 +71,7 @@ class EventInfo(Model):
             'eventdate': 'eventdate',
             'modified': 'modified',
             'name': 'name',
+            'champrequire': 'champrequire',
             'isexternal': 'isexternal',
             'runs': 'runs',
             'ispro': 'ispro',
@@ -84,6 +88,7 @@ class EventInfo(Model):
         self._eventdate = eventdate
         self._modified = modified
         self._name = name
+        self._champrequire = champrequire
         self._isexternal = isexternal
         self._runs = runs
         self._ispro = ispro
@@ -175,6 +180,29 @@ class EventInfo(Model):
         """
 
         self._name = name
+
+    @property
+    def champrequire(self) -> bool:
+        """Gets the champrequire of this EventInfo.
+
+        true if entrants must attend this event to qualify for a championship trophy  # noqa: E501
+
+        :return: The champrequire of this EventInfo.
+        :rtype: bool
+        """
+        return self._champrequire
+
+    @champrequire.setter
+    def champrequire(self, champrequire: bool):
+        """Sets the champrequire of this EventInfo.
+
+        true if entrants must attend this event to qualify for a championship trophy  # noqa: E501
+
+        :param champrequire: The champrequire of this EventInfo.
+        :type champrequire: bool
+        """
+
+        self._champrequire = champrequire
 
     @property
     def isexternal(self) -> bool:

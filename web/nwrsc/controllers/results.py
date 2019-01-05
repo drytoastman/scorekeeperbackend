@@ -167,7 +167,13 @@ def tt():
 def champ():
     results = Result.getChampResults()
     events = [x for x in g.seriesinfo.getEvents() if not x.ispractice]
-    return render_template('/results/champ.html', event="x", results=results, settings=g.settings, classdata=g.seriesinfo.getClassData(), events=events, disablemetascale=True)
+    requirements = []
+    if any(e.champrequire for e in events):
+        requirements.append("Attend {}".format(', '.join([e.name for e in events if e.champrequire])))
+    if g.settings.minevents > 0:
+        requirements.append("Attend At Least {} Events".format(g.settings.minevents))
+
+    return render_template('/results/champ.html', event="x", results=results, settings=g.settings, classdata=g.seriesinfo.getClassData(), events=events, disablemetascale=True, requirements=requirements)
 
 
 ## ProSolo related data (Challenge and Dialins)

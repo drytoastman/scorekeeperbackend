@@ -520,6 +520,9 @@ definitions:
         type: string
         description: the event name
         example: "Regional #1"
+      champrequire:
+        type: boolean
+        description: true if entrants must attend this event to qualify for a championship trophy
       isexternal:
         type: boolean
         description: true if this is an external event that we only import net results from
@@ -713,6 +716,11 @@ definitions:
               type: number
               format: float
               description: the points earned at this event
+      missingrequired:
+        description: array of event identifiers that are required for champ result but not attended
+        type: array
+        items:
+            type: string
       tiebreakers:
         type: array
         description: the number of times finishing 1st, 2nd, 3rd and 4th.  Used for tiebreakers.
