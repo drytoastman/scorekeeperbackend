@@ -168,7 +168,7 @@ def champ():
     results = Result.getChampResults()
     events = [x for x in g.seriesinfo.getEvents() if not x.ispractice]
     requirements = []
-    if any(e.champrequire for e in events):
+    if any(getattr(e, 'champrequire', False) for e in events):
         requirements.append("Attend {}".format(', '.join([e.name for e in events if e.champrequire])))
     if g.settings.minevents > 0:
         requirements.append("Attend At Least {} Events".format(g.settings.minevents))
