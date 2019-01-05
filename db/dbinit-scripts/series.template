@@ -137,6 +137,7 @@ CREATE TABLE events (
     eventid       UUID        PRIMARY KEY, 
     name          TEXT        NOT NULL, 
     date          DATE        NOT NULL, 
+    champrequire  BOOLEAN     NOT NULL DEFAULT FALSE,
     isexternal    BOOLEAN     NOT NULL DEFAULT FALSE,
     regopened     TIMESTAMP   NOT NULL DEFAULT now(), 
     regclosed     TIMESTAMP   NOT NULL, 
