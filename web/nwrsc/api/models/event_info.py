@@ -15,7 +15,7 @@ class EventInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, eventdate: date=None, modified: datetime=None, name: str=None, champrequire: bool=None, isexternal: bool=None, runs: int=None, ispro: bool=None, conepen: float=None, courses: int=None, eventid: str=None, gatepen: float=None, location: str=None, segments: int=None, ispractice: bool=None, countedruns: int=None):  # noqa: E501
+    def __init__(self, eventdate: date=None, modified: datetime=None, name: str=None, champrequire: bool=None, useastiebreak: bool=None, isexternal: bool=None, runs: int=None, ispro: bool=None, conepen: float=None, courses: int=None, eventid: str=None, gatepen: float=None, location: str=None, segments: int=None, ispractice: bool=None, countedruns: int=None):  # noqa: E501
         """EventInfo - a model defined in Swagger
 
         :param eventdate: The eventdate of this EventInfo.  # noqa: E501
@@ -26,6 +26,8 @@ class EventInfo(Model):
         :type name: str
         :param champrequire: The champrequire of this EventInfo.  # noqa: E501
         :type champrequire: bool
+        :param useastiebreak: The useastiebreak of this EventInfo.  # noqa: E501
+        :type useastiebreak: bool
         :param isexternal: The isexternal of this EventInfo.  # noqa: E501
         :type isexternal: bool
         :param runs: The runs of this EventInfo.  # noqa: E501
@@ -54,6 +56,7 @@ class EventInfo(Model):
             'modified': datetime,
             'name': str,
             'champrequire': bool,
+            'useastiebreak': bool,
             'isexternal': bool,
             'runs': int,
             'ispro': bool,
@@ -72,6 +75,7 @@ class EventInfo(Model):
             'modified': 'modified',
             'name': 'name',
             'champrequire': 'champrequire',
+            'useastiebreak': 'useastiebreak',
             'isexternal': 'isexternal',
             'runs': 'runs',
             'ispro': 'ispro',
@@ -89,6 +93,7 @@ class EventInfo(Model):
         self._modified = modified
         self._name = name
         self._champrequire = champrequire
+        self._useastiebreak = useastiebreak
         self._isexternal = isexternal
         self._runs = runs
         self._ispro = ispro
@@ -203,6 +208,29 @@ class EventInfo(Model):
         """
 
         self._champrequire = champrequire
+
+    @property
+    def useastiebreak(self) -> bool:
+        """Gets the useastiebreak of this EventInfo.
+
+        true if the results from this event should be prepended to the tiebreaking array  # noqa: E501
+
+        :return: The useastiebreak of this EventInfo.
+        :rtype: bool
+        """
+        return self._useastiebreak
+
+    @useastiebreak.setter
+    def useastiebreak(self, useastiebreak: bool):
+        """Sets the useastiebreak of this EventInfo.
+
+        true if the results from this event should be prepended to the tiebreaking array  # noqa: E501
+
+        :param useastiebreak: The useastiebreak of this EventInfo.
+        :type useastiebreak: bool
+        """
+
+        self._useastiebreak = useastiebreak
 
     @property
     def isexternal(self) -> bool:

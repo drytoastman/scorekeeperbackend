@@ -16,7 +16,7 @@ class ChampEntry(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, driverid: str=None, firstname: str=None, lastname: str=None, eventcount: int=None, position: int=None, points: float=None, events: List[ChampEntryEvents]=None, missingrequired: List[str]=None, tiebreakers: List[int]=None):  # noqa: E501
+    def __init__(self, driverid: str=None, firstname: str=None, lastname: str=None, eventcount: int=None, position: int=None, points: float=None, events: List[ChampEntryEvents]=None, missingrequired: List[str]=None, tiebreakers: List[float]=None):  # noqa: E501
         """ChampEntry - a model defined in Swagger
 
         :param driverid: The driverid of this ChampEntry.  # noqa: E501
@@ -36,7 +36,7 @@ class ChampEntry(Model):
         :param missingrequired: The missingrequired of this ChampEntry.  # noqa: E501
         :type missingrequired: List[str]
         :param tiebreakers: The tiebreakers of this ChampEntry.  # noqa: E501
-        :type tiebreakers: List[int]
+        :type tiebreakers: List[float]
         """
         self.swagger_types = {
             'driverid': str,
@@ -47,7 +47,7 @@ class ChampEntry(Model):
             'points': float,
             'events': List[ChampEntryEvents],
             'missingrequired': List[str],
-            'tiebreakers': List[int]
+            'tiebreakers': List[float]
         }
 
         self.attribute_map = {
@@ -266,24 +266,24 @@ class ChampEntry(Model):
         self._missingrequired = missingrequired
 
     @property
-    def tiebreakers(self) -> List[int]:
+    def tiebreakers(self) -> List[float]:
         """Gets the tiebreakers of this ChampEntry.
 
-        the number of times finishing 1st, 2nd, 3rd and 4th.  Used for tiebreakers.  # noqa: E501
+        items used to break ties, includes the number of times finishing 1st, 2nd, 3rd and 4th, etc.  May also include specific event results  # noqa: E501
 
         :return: The tiebreakers of this ChampEntry.
-        :rtype: List[int]
+        :rtype: List[float]
         """
         return self._tiebreakers
 
     @tiebreakers.setter
-    def tiebreakers(self, tiebreakers: List[int]):
+    def tiebreakers(self, tiebreakers: List[float]):
         """Sets the tiebreakers of this ChampEntry.
 
-        the number of times finishing 1st, 2nd, 3rd and 4th.  Used for tiebreakers.  # noqa: E501
+        items used to break ties, includes the number of times finishing 1st, 2nd, 3rd and 4th, etc.  May also include specific event results  # noqa: E501
 
         :param tiebreakers: The tiebreakers of this ChampEntry.
-        :type tiebreakers: List[int]
+        :type tiebreakers: List[float]
         """
 
         self._tiebreakers = tiebreakers

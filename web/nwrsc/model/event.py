@@ -65,6 +65,7 @@ class Event(AttrBase):
         event.ispractice = False
         event.isexternal = False
         event.champrequire = False
+        event.useastiebreak = False
         return event
 
     @classmethod

@@ -523,6 +523,9 @@ definitions:
       champrequire:
         type: boolean
         description: true if entrants must attend this event to qualify for a championship trophy
+      useastiebreak:
+        type: boolean
+        description: true if the results from this event should be prepended to the tiebreaking array
       isexternal:
         type: boolean
         description: true if this is an external event that we only import net results from
@@ -723,9 +726,10 @@ definitions:
             type: string
       tiebreakers:
         type: array
-        description: the number of times finishing 1st, 2nd, 3rd and 4th.  Used for tiebreakers.
+        description: items used to break ties, includes the number of times finishing 1st, 2nd, 3rd and 4th, etc.  May also include specific event results
         items:
-            type: integer
+            type: number
+            format: float
 
   ClassChampResults:
     type: object

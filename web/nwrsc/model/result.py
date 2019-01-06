@@ -607,7 +607,6 @@ class Result(object):
 
         todrop   = settings.dropevents
         bestof   = max(todrop, completed - todrop)
-        sortkeys = ['points'] + ChampEntrant.AvailableSubKeys
 
         # Final storage where results are an ordered list rather than map
         ret = defaultdict(ChampClass)
@@ -615,8 +614,7 @@ class Result(object):
             for entrant in classmap.values():
                 entrant.finalize(bestof, events)
                 ret[classcode].append(entrant)
-            # Magic in PointsStorage makes this sort happen (total then first, seconds, thirds, etc based on settings
-            ret[classcode].sort(key=attrgetter(*sortkeys), reverse=True)
+            ret[classcode].sort(key=attrgetter('points', 'tiebreakers'), reverse=True)
             ii = 1
             for e in ret[classcode]:
                 if e.eventcount < settings.minevents or len(e.missingrequired) > 0:
@@ -851,33 +849,26 @@ class PointStorage(AttrBase):
 
 class ChampEntrant(AttrBase):
 
-    AvailableSubKeys = ['firsts', 'seconds', 'thirds', 'fourths', 'attended']
-
     def __init__(self):
         self.points       = PointStorage()
-        self.tiebreakers  = [0]*4
+        self.tiebreakers  = [0]*11
         self.eventcount   = 0
         AttrBase.__init__(self)
-
-    def __getattr__(self, key):
-        """ Implement getattr to match firsts, seconds, thirds, etc. """
-        try:
-            # 100 - turns ordering into reverse
-            if key == 'attended': return 100 - self.eventcount
-            return 100 - self.tiebreakers[{ 'firsts':0, 'seconds':1, 'thirds':2, 'fourths':3 }[key]]
-        except:
-            raise AttributeError("No known key %s" % key)
 
     def finalize(self, bestof, events):
         self.points.calc(bestof)
         self.missingrequired = [self._eventkey(e) for e in events if e.champrequire and self._eventkey(e) not in self.points.events]
+        for e in events:
+            if e.useastiebreak:
+                self.tiebreakers.insert(0, self.points.get(self._eventkey(e)) or 0)
+        self.tiebreakers.append(self.eventcount)
 
     def addResults(self, event, entry): 
         self.firstname = entry['firstname']
         self.lastname  = entry['lastname']
         self.driverid  = entry['driverid']
         idx = entry['position']-1
-        if idx < len(self.tiebreakers):
+        if idx < len(self.tiebreakers) - 1:
             self.tiebreakers[idx] += 1
         self.eventcount += 1
         self.points.set(self._eventkey(event), entry['points'])

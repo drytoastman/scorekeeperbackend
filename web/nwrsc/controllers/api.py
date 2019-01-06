@@ -65,7 +65,7 @@ class SwaggerXMLEncoder():
         if all(isinstance(x, (int,float,str)) for x in data):
             self.bits.append("<rawlist>")
             for d in data:
-                if isinstance(d, float): self.bits.append("<float>{}</int>".format(d))
+                if isinstance(d, float): self.bits.append("<float>{}</float>".format(d))
                 elif isinstance(d, int): self.bits.append("<int>{}</int>".format(d))
                 elif isinstance(d, str): self.bits.append("<string>{}</string>".format(d))
             self.bits.append("</rawlist>")

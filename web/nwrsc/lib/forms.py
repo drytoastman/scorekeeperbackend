@@ -282,6 +282,7 @@ class EventSettingsForm(MyFlaskForm):
     name          = MyStringField('Event Name',  [Length(min=4, max=32)])
     date          = DateField(    'Event Date',             render_kw={'title':'The date of the event'})  
     champrequire  = BooleanField( 'Required For Champ',     render_kw={'title':'Check if this event must be attended to be considered for a championship result'})
+    useastiebreak = BooleanField( 'Use As Tie Breaker',     render_kw={'title':'Check if this event should be prepended to the list of items used to break championship ties'})
     isexternal    = BooleanField( 'Is External Event',      render_kw={'title':'Check if this is an external event that we only import net results from'})
     regopened     = TZDateTimeField('Registration Opens',   render_kw={'title':'When registration should open'}, format='%Y-%m-%d %H:%M')
     regclosed     = TZDateTimeField('Registration Closes',  render_kw={'title':'When registration should close'}, format='%Y-%m-%d %H:%M')
