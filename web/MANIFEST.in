@@ -1,3 +1,5 @@
 recursive-include nwrsc/static *
 recursive-include nwrsc/templates *
 include nwrsc/lib/*.ttf
+include nwrsc/api/swagger.yaml
+prune nwrsc/static/.webassets-cache
