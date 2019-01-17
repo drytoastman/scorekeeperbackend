@@ -255,7 +255,7 @@ def grid():
         go.pad()
         go.number()
 
-    if 'idsonly' in request.args:
-        return json_encode(groups.idsonly())
+    if 'json' in request.args:
+        return json_encode(groups.asjson())
     return render_template('/results/grid.html', groups=groups, order=order, starts=[k for k in groups if k < 100])
 

@@ -70,13 +70,13 @@ class RunGroups(defaultdict):
                 return
         raise Exception("Failed to find a rungroup for {}".format(cc))
 
-    def idsonly(self):
+    def asjson(self):
         ret = {}
         for num,go in self.items():
             ret[num] = list()
             for cls,entries in go.items():
                 for e in entries:
-                    ret[num].append({"carid": e.carid, "grid": e.grid})
+                    ret[num].append({"carid": e.carid, "grid": e.grid, "name": e.firstname + " " + e.lastname, "net": e.net, "number": e.number, "classcode": e.classcode })
         return ret
 
     def sort(self, key):
