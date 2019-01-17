@@ -109,7 +109,7 @@ class RunGroups(defaultdict):
 
         with g.db.cursor() as cur:
             cur.execute("SELECT rungroup,unnest(classes) as classcode FROM classorder WHERE eventid=%s ORDER BY rungroup", (eventid,))
-            active = ['HOLD']
+            active = []
             for x in cur.fetchall():
                 active.append(x['classcode'])
                 ret[x['rungroup']][x['classcode']] = ClassList()
