@@ -114,7 +114,7 @@ class RunGroups(defaultdict):
                 active.append(x['classcode'])
                 ret[x['rungroup']][x['classcode']] = ClassList()
                 ret[x['rungroup']+100][x['classcode']] = ClassList()
-            cur.execute("SELECT classcode FROM classlist WHERE classcode NOT IN %s ORDER BY classcode", (tuple(active),))
+            cur.execute("SELECT classcode FROM classlist {} ORDER BY classcode".format(active and "WHERE classcode NOT IN %s" or ""), (tuple(active),))
             for x in cur.fetchall():
                 ret[0][x[0]] = ClassList()
                 ret[100][x[0]] = ClassList()
