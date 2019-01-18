@@ -42,14 +42,25 @@ clears the filter.
 ![TableFilter](images/dataentryfilter.gif)
 
 ## Change Driver/Car
-To correct a car or driver, first find the driver in the rungroup and double click the driver column. This
-will bring up the driver and car in the manual entry tab. Either select the correct driver and car from
-the lists or create a new ones as needed. When the correct values are selected, click “Swap Entrant”.
+To correct a car or driver, you can do one of two things.
+
+To just change the car to another car for the same driver that has already been created, right click on the entrant and select
+the replacement car.
+
+For more complete options, double click the driver to change. This will bring up the driver and car in the manual entry tab on
+the left. Either select the correct driver and car from the lists or create a new ones as needed. When the correct values are
+selected, click “Swap Entrant”.
+
+![SwapEntrant](images/swapentrant.gif)
 
 ## Run Errors
 To correct a run error is the same as correcting a time during data entry. Find the time in the rungroup,
 double click it to load the values into the entries on the right side of the screen, fix as needed and click
 enter.
+
+Note: You can use **c** and **g** to increment cones/gates or **C** or **G** to decrement them rather then selecting the text field directly.
+
+![FixRun](images/fixrun.gif)
 
 ## Auditing
 To perform auditing, select: **Reports -> Current Group Audit -> Order**, where order is the order you would like them printed out.
