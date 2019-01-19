@@ -2,7 +2,7 @@
 
 ## Initial download or sync
 
-Download/Merge from the [sync tool int the status window](sync.md)
+Download/Merge from the [sync tool in the status window](sync.md)
 
 ## Setup Verification 
 

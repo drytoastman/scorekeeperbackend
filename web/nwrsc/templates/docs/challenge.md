@@ -1,6 +1,6 @@
 # Challenge
 
-**<span style='color:red'>THIS NEEDS TO BE UPDATED</span>**
+**<span style='color:red'>THIS NEEDS TO BE UPDATED, PROBABLY WAIT UNTIL APPLICATION REWRITE</span>**
 
 ## Initial Setup
 
