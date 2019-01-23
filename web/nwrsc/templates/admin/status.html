@@ -16,7 +16,7 @@ div.info { margin-left: 2rem; font-family: FreeMono, monospace; font-size: 0.9re
 <div class='container'>
 <h4>Upcoming Events in {{g.series}}</h4>
 {% for e in g.events %}
-{% if e.date >= today %}
+{% if e.date >= today and not e.isexternal %}
 
 <div class='event'>
     <span class='title'>{{e.name}}</span> - {{e.attr.location}} - {{e.date.strftime("%a %b %d")}}

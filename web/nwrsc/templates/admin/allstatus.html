@@ -11,6 +11,7 @@ div.event { margin-left: 1rem; margin-bottom: 0.7rem; }
 <div class='container'>
 <h4>Upcoming Events</h4>
 {% for e in events %}
+{% if not e.isexternal %}
 
 <div class='event'>
     <b>{{e.date.strftime("%a %b %d")}}</b> - {{e.series}} - {{e.name}} -
@@ -23,6 +24,7 @@ div.event { margin-left: 1rem; margin-bottom: 0.7rem; }
     {% endif %}
 </div>
 
+{% endif %}
 {% endfor %}
 </div>
 {% endblock %}
