@@ -84,7 +84,7 @@ function closeround(ev)
         {% endif %}
         ><span class='rank'>{{ ranks[rndnum*2+(top|int)] }}</span>
         {{ e.firstname }} {{ e.lastname }}
-        <span class='dial'>{{ e.dial and e.dial|t3 or "" }}&nbsp;</span>
+        <span class='dial'>{{ e.dial and e.dial < 999 and e.dial|t3 or "" }}&nbsp;</span>
     </li>
 {% endmacro %}
 
