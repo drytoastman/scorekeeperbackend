@@ -264,7 +264,7 @@ class MergeProcess():
                         with DataInterface.mergelocks(local, localdb, remote, remotedb, series):
                             ltables = local.mergestate[series]['hashes']
                             rtables = remote.mergestate[series]['hashes']
-                            self.mergeTables(local=local, localdb=localdb, remote=remote, remotedb=remotedb, series=series, tables=set([k for k in ltables if ltables[k] != rtables[k]]))
+                            self.mergeTables(local=local, localdb=localdb, remote=remote, remotedb=remotedb, series=series, tables=set([k for k in set(ltables)|set(rtables) if ltables.get(k) != rtables.get(k)]))
                             remote.seriesStatus(series, "Commit Changes")
 
             except Exception as e:

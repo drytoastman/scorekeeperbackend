@@ -36,6 +36,7 @@ class DataInterface(object):
         'runs',
         'challenges',
         'challengerounds',
+        'challengestaging',
         'challengeruns',
         'externalresults'
     ]
