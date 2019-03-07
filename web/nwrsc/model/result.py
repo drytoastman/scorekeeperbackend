@@ -2,6 +2,7 @@ import dateutil.parser
 import datetime
 import json
 import logging
+import math
 import types
 import uuid
 
@@ -518,6 +519,7 @@ class Result(object):
             cur.execute(getruns, (challengeid,))
             for run in [AttrBase(**x) for x in cur.fetchall()]:
                 rnd = rounds[run.round]
+                if not math.isfinite(run.raw): run.raw = 999.999
                 run.net = run.status == "OK" and run.raw + (run.cones * 2) + (run.gates * 10) or 999.999
                 if   rnd.e1.carid == run.carid:
                     setattr(rnd.e1, run.course==1 and 'left' or 'right', run)
@@ -535,17 +537,18 @@ class Result(object):
                 if rnd.e1.carid == 0 or rnd.e2.carid == 0:
                     rnd.detail = 'No matchup yet'
                     continue
-                if tl is None and tr is None:
+                if not any([tl, tr, bl, br]):
                     rnd.detail = 'No runs taken'
                     continue
 
                 # Some runs taken but there was non-OK status creating a default win
-                if tl and tl.status != "OK":  rnd.winner = 2; rnd.detail = rnd.e2.firstname+" wins by default"; continue
-                if br and br.status != "OK":  rnd.winner = 1; rnd.detail = rnd.e1.firstname+" wins by default"; continue
-                if tr and tr.status != "OK":  rnd.winner = 2; rnd.detail = rnd.e2.firstname+" wins by default"; continue
-                if bl and bl.status != "OK":  rnd.winner = 1; rnd.detail = rnd.e1.firstname+" wins by default"; continue
+                topdefault = any([tl and tl.status != 'OK', tr and tr.status != 'OK'])
+                botdefault = any([bl and bl.status != 'OK', br and br.status != 'OK'])
 
-                # Some runs so present a half way status
+                if topdefault and botdefault:  rnd.detail = "Double default"; continue
+                if topdefault: rnd.winner = 2; rnd.detail = rnd.e2.firstname + " wins by default"; continue
+                if botdefault: rnd.winner = 1; rnd.detail = rnd.e1.firstname + " wins by default"; continue
+
                 if not tl or not tr: 
                     if tl and br:   hr = (tl.net - rnd.e1.dial) - (br.net - rnd.e2.dial)
                     elif tr and bl: hr = (tr.net - rnd.e1.dial) - (bl.net - rnd.e2.dial)
@@ -555,6 +558,11 @@ class Result(object):
                     elif hr < 0: rnd.detail = '%s leads by %0.3f' % (rnd.e1.firstname, hr)
                     else:        rnd.detail = 'Tied at the Half'
 
+                    continue
+
+                # For single car rounds, we need to stop here
+                if not all([tl, tr, bl, br]):
+                    rnd.detail = 'In Progress'
                     continue
 
                 # We have all the data, calculate who won
