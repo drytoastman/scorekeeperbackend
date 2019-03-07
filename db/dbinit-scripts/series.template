@@ -361,3 +361,15 @@ CREATE TRIGGER crunmod AFTER INSERT OR UPDATE OR DELETE ON challengeruns FOR EAC
 CREATE TRIGGER crununi BEFORE UPDATE ON challengeruns FOR EACH ROW EXECUTE PROCEDURE updatechecks('challengeid', 'round', 'carid', 'course');
 COMMENT ON TABLE challengeruns IS 'the list of runs for a challenge in a ProSolo, different from regular runs table';
 
+
+CREATE TABLE challengestaging (
+    challengeid UUID       PRIMARY KEY REFERENCES challenges ON DELETE CASCADE ON UPDATE CASCADE,
+    stageinfo   JSONB      NOT NULL,
+    modified    TIMESTAMP  NOT NULL DEFAULT now()
+);
+REVOKE ALL ON challengestaging FROM public;
+GRANT  ALL ON challengestaging TO <seriesname>;
+CREATE TRIGGER cstgmod AFTER INSERT OR UPDATE OR DELETE ON challengestaging FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
+CREATE TRIGGER cstguni BEFORE UPDATE ON challengestaging FOR EACH ROW EXECUTE PROCEDURE updatechecks('challengeid');
+COMMENT ON TABLE challengestaging IS 'the challenge staging info, json structure of ordered data pointing to challenge rounds upper and lower';
+
