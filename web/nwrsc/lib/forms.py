@@ -306,6 +306,38 @@ class EventSettingsForm(MyFlaskForm):
     gatepen       = FloatField(   'Gate Penalty',           render_kw={'title':'The penalty value for missing a gate'})
     submit        = SubmitField(  'Update')
 
+
+
+class NameDateForm(Form):
+    name          = MyStringField('Event Name',  [Length(min=4, max=32)])
+    date          = DateField(    'Event Date',  render_kw={'title':'The date of the event'})
+
+class MultipleEventsForm(MyFlaskForm):
+    namedates     = FieldList(FormField(NameDateForm), min_entries=1)
+    closeday      = SelectField(  'Close Day',              choices=[('0', 'Mon'), ('1','Tue'), ('2','Wed'), ('3','Thu'), ('4', 'Fri'), ('5','Sat'), ('6','Sun')])
+    closetime     = DateTimeField('Close Time',             render_kw={'title':'When registration should close, day of week and time'}, format='%H:%M')
+    opendays      = IntegerField( 'Open Reg Days Before',   render_kw={'title':'days before event registration should open'})
+    champrequire  = BooleanField( 'Required For Champ',     render_kw={'title':'Check if this event must be attended to be considered for a championship result'})
+    perlimit      = IntegerField( 'Per Driver Entry Limit', render_kw={'title':'Limit to the number of entries a single driver can register (0=nolimit)'})
+    totlimit      = IntegerField( 'Total Entry Limit',      render_kw={'title':'The total limit for all registrations for the event (0=nolimit)'})
+    accountid     = BlankSelectField('Payment Account')
+    paymentreq    = BooleanField( 'Payment Required',       render_kw={'title':'Check this box to require payment for registration'})
+    notes         = TextAreaField('Notes',                  render_kw={'title':'Notes for the event that show up on the registation page', 'rows':6})
+    ispro         = BooleanField( 'Is A ProSolo',           render_kw={'title':'Check if this is a ProSolo style event'})
+    location      = MyStringField('Location',               render_kw={'title':'The location of the event'})
+    sponsor       = MyStringField('Sponsor',                render_kw={'title':'The event sponsor'})
+    host          = MyStringField('Host',                   render_kw={'title':'The event host'})
+    chair         = MyStringField('Chair',                  render_kw={'title':'The event chair'})
+    sinlimit      = IntegerField( 'Singles Entry Limit',    render_kw={'title':'When allowing multiple entries, a limit to the number of individual people that can register (0=nolimit)'})
+    courses       = IntegerField( 'Course Count',           render_kw={'title':'The number of courses in the event'})
+    runs          = IntegerField( 'Run Count',              render_kw={'title':'The number of runs in the event'})
+    countedruns   = IntegerField( 'Runs Counted',           render_kw={'title':'The number of runs counted towards results (0=all)'})
+    segments      = IntegerField( 'Segment Count',          render_kw={'title':'The number of segments on each course'})
+    conepen       = FloatField(   'Cone Penalty',           render_kw={'title':'The penalty value for hitting a cone'})
+    gatepen       = FloatField(   'Gate Penalty',           render_kw={'title':'The penalty value for missing a gate'})
+    submit        = SubmitField(  'Submit')
+
+
 class SeriesForm(MyFlaskForm):
     name         = MyStringField(  'Series Name', [Length(min=6, max=12)])
     password     = MyPasswordField('Password',    [Length(min=4, max=12)])

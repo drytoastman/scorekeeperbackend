@@ -78,6 +78,7 @@ $(document).ready(function(){ Scorekeeper.shownavmenu('#navbarNav', '#seriesdrop
           <a class="nav-link dropdown-toggle" href="#" id="createdropdownlink" data-toggle="dropdown">Create</a>
           <div class="dropdown-menu">
             <a class='dropdown-item' href='{{url_for('.createevent')}}'>New Event</a>
+            <a class='dropdown-item' href='{{url_for('.createmultipleevents')}}'>New Events From Template</a>
             <a class='dropdown-item' href='{{url_for('.newseries')}}'>New Series From Current</a>
           </div>
         </li>

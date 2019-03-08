@@ -14,6 +14,6 @@ Scorekeeper.newCountedRow = function(listform, template)
                                .attr("name", function(ix, val) { return val.replace("0", ""+newcount); });
     newrow.find(".deleterow").click(function () { $(this).closest('tr').remove(); return false; });
     newrow.appendTo(listform + ' tbody');
-    return false;
+    return newrow;
 }
 

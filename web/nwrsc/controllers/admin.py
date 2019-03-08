@@ -380,6 +380,27 @@ def createevent():
     return render_template('/admin/eventedit.html', form=form, url=url_for('.createevent'))
 
 
+@Admin.route("/createmultipleevents", methods=['POST','GET'])
+def createmultipleevents():
+    """ Present form to create a series of events from a template """
+    form = MultipleEventsForm()
+    form.accountid.choices = [(a.accountid, a.name) for a in PaymentAccount.getAll()]
+    if request.form:
+        if form.validate():
+            template = Event()
+            formIntoAttrBase(form, template)
+            log.warning(template)
+            #return redirect(url_for('.index'))
+        else:
+            flashformerrors(form)
+    else:
+        attrBaseIntoForm(Event.new(), form)
+
+    empty = MultipleEventsForm()
+    empty.namedates.append_entry({})
+    return render_template('/admin/multipleevents.html', form=form, empty=empty, url=url_for('.createmultipleevents'))
+
+
 @Admin.route("/event/<uuid:eventid>/deleteevent")
 def deleteevent():
     """ Request to delete an event, verify if we can first, then do it """
