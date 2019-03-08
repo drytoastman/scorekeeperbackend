@@ -311,6 +311,7 @@ class SeriesForm(MyFlaskForm):
     password     = MyPasswordField('Password',    [Length(min=4, max=12)])
     copysettings = BooleanField(   'Copy Settings')
     copyclasses  = BooleanField(   'Copy Classes/Indexes')
+    copyaccounts = BooleanField(   'Copy Payment Accounts')
     copycars     = BooleanField(   'Copy Cars')
     submit       = SubmitField(    'Create')
 

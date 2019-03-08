@@ -610,15 +610,21 @@ def newseries():
         try:
             series = form.name.data.lower()
             Series.copySeries(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'], series=series,
-                              password=form.password.data, csettings=form.copysettings.data, cclasses=form.copyclasses.data, ccars=form.copycars.data)
+                              password=form.password.data, csettings=form.copysettings.data, cclasses=form.copyclasses.data, caccounts=form.copyaccounts.data, ccars=form.copycars.data)
             authSeries(series)
             return redirect(url_for('.settings', series=series))
         except Exception as e:
             flash("Error creating series: {}".format(e))
             log.warning(e)
     else:
-        form.name.data = g.series
+        try:
+            m = re.search("(.*)(\d{4})", g.series)
+            form.name.data = m.group(1) + str((date.today()+ timedelta(days=90)).year)
+        except:
+            form.name.data = g.series + "_next"
         form.copysettings.data = True
+        form.copyclasses.data = True
+        form.copyaccounts.data = True
     return render_template('/admin/newseries.html', form=form)
 
 

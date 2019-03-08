@@ -76,7 +76,7 @@ class Series(object):
         return True
 
     @classmethod
-    def copySeries(cls, host, port, series, password, csettings, cclasses, ccars):
+    def copySeries(cls, host, port, series, password, csettings, cclasses, caccounts, ccars):
         """ Create a new series and copy over from info from the current.  """
         cls._verifySeriesName(series)
         cls._verifySeriesName(g.series)
@@ -95,6 +95,10 @@ class Series(object):
                 else:
                     # Need a blank index regardless of copying, fixes bug #78
                     cur.execute("insert into {}.indexlist (indexcode, descrip, value) VALUES ('', 'No Index', 1.0)".format(series))
+                if caccounts:
+                    cur.execute("insert into {}.paymentaccounts (select * from {}.paymentaccounts)".format(series, g.series))
+                    cur.execute("insert into {}.paymentitems    (select * from {}.paymentitems)".format(series, g.series))
+                    cur.execute("insert into {}.paymentsecrets  (select * from {}.paymentsecrets)".format(series, g.series))
                 db.commit()
 
     @classmethod
