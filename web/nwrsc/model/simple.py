@@ -147,6 +147,7 @@ class PaymentAccount(AttrBase):
     @classmethod
     def deleteById(cls, accountid):
         with g.db.cursor() as cur:
+            cur.execute("update events set accountid=NULL,modified=now() where accountid=%s", (accountid, ))
             cur.execute("delete from paymentsecrets  where accountid=%s", (accountid, ))
             cur.execute("delete from paymentitems    where accountid=%s", (accountid, ))
             cur.execute("delete from paymentaccounts where accountid=%s", (accountid, ))

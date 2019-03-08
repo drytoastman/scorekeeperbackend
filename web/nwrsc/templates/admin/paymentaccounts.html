@@ -3,6 +3,12 @@
 {% block headers %}
 {{super()}}
 <script>
+
+function appenderror(txt)
+{
+    $('.errorcontainer').append($('<div>').addClass('error').text(txt));
+}
+
 $(document).ready(function(){
     $('#accounttable .delete').on('click', function() {
         var row = $(this).closest('tr');
@@ -10,9 +16,9 @@ $(document).ready(function(){
             if (response.success)
                 row.remove();
             else
-                $('.formerror').append($('<div>').addClass('error').text(response.error ? response.error : response));
+                appenderror(response.error ? response.error : response);
         }).fail(function(xhr, textStatus, errorThrown) {
-            alert(xhr.responseText);
+            appenderror(xhr.responseText);
         });
     });
 
@@ -22,9 +28,9 @@ $(document).ready(function(){
             if (response.success)
                 row.remove();
             else
-                $('.formerror').append($('<div>').addClass('error').text(response.error ? response.error : response));
+                appenderror(response.error ? response.error : response);
         }).fail(function(xhr, textStatus, errorThrown) {
-            alert(xhr.responseText);
+            appenderror(xhr.responseText);
         });
     });
 
