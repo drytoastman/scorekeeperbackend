@@ -20,7 +20,7 @@ $(document).ready(function() {
 <style>
 #namedatetemplate { display: none; }
 .flagcol { display: none; }
-.sameline { width: initial !important; }
+.sameline { width: 5rem !important; }
 .btn {
     height: 1.5rem; 
     padding: 0.1rem 0.2rem !important;
@@ -66,13 +66,20 @@ div.col-md-4 button {
 <div class='col-md-7 p-0'>{{ form.closeday(class_='sameline') }} {{ form.closetime(class_='sameline') }}</div>
 </div>
 
+<div class='row align-items-center'>
+<label class='col-md-4'>Open Reg Days Before</label>
+<div class='col-md-7 p-0'>{{form.opendays(class_='sameline')}}</div>
+</div>
+
+<hr/>
+
 {% for f in form %}
-{% if f.name not in ('namedates', 'closeday', 'closetime') and f.widget.input_type != 'submit' %}
+{% if f.name not in ('namedates', 'closeday', 'closetime', 'opendays') and f.widget.input_type != 'submit' %}
 <div class='row align-items-center'>
 {% if f.widget.input_type != 'hidden' %}
 {{ f.label(class_='col-md-4') }}
 {% endif %}
-{{ f(class_='col-md-7') }}
+{{ f(class_='col-md-4') }}
 </div>
 {% endif %}
 {% endfor %}

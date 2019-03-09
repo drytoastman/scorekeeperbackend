@@ -314,8 +314,8 @@ class NameDateForm(Form):
 
 class MultipleEventsForm(MyFlaskForm):
     namedates     = FieldList(FormField(NameDateForm), min_entries=1)
-    closeday      = SelectField(  'Close Day',              choices=[('0', 'Mon'), ('1','Tue'), ('2','Wed'), ('3','Thu'), ('4', 'Fri'), ('5','Sat'), ('6','Sun')])
-    closetime     = DateTimeField('Close Time',             render_kw={'title':'When registration should close, day of week and time'}, format='%H:%M')
+    closeday      = SelectField(  'Close Day',              choices=[('1', 'Mon'), ('2','Tue'), ('3','Wed'), ('4','Thu'), ('5', 'Fri'), ('6','Sat'), ('7','Sun')])
+    closetime     = DateTimeField('Close Time',             format='%H:%M')
     opendays      = IntegerField( 'Open Reg Days Before',   render_kw={'title':'days before event registration should open'})
     champrequire  = BooleanField( 'Required For Champ',     render_kw={'title':'Check if this event must be attended to be considered for a championship result'})
     perlimit      = IntegerField( 'Per Driver Entry Limit', render_kw={'title':'Limit to the number of entries a single driver can register (0=nolimit)'})

@@ -387,10 +387,29 @@ def createmultipleevents():
     form.accountid.choices = [(a.accountid, a.name) for a in PaymentAccount.getAll()]
     if request.form:
         if form.validate():
-            template = Event()
+            tz = pytz.timezone(current_app.config['UI_TIME_ZONE'])
+            def toutc(dt): # have to do this here, not in forms as we are splicing things together
+                return tz.localize(dt).astimezone(datetime.timezone.utc)
+
+            template = Event.new()
             formIntoAttrBase(form, template)
-            log.warning(template)
-            #return redirect(url_for('.index'))
+            for k in ('namedates', 'closeday', 'closetime', 'opendays'):
+                del template.attr[k]
+
+            for name,date in form.namedates:
+                eventdow = date.data.isoweekday()
+                closedow = int(form.closeday.data)
+                closedelta = eventdow - closedow
+                if closedelta <= 0:
+                    closedelta += 7
+
+                template.eventid = uuid.uuid1()
+                template.name = name.data
+                template.date = date.data
+                template.regopened = toutc(datetime.datetime.combine(template.date - timedelta(days=form.opendays.data), datetime.time()))
+                template.regclosed = toutc(datetime.datetime.combine(template.date - timedelta(days=closedelta), form.closetime.data.time()))
+                template.insert()
+            return redirect(url_for('.index'))
         else:
             flashformerrors(form)
     else:
