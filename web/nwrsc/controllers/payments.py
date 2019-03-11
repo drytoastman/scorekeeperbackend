@@ -306,6 +306,7 @@ def accounts():
             p.attr      = { 'expires': tdata['expires_at'], 'merchantid': tdata['merchant_id'] } 
             p.upsert()
 
+            PaymentItem.deleteByAccountId(p.accountid) # Delete previous if existing
             for _,item in location['items'].items():
                 i = PaymentItem()
                 i.itemid    = item['itemid']

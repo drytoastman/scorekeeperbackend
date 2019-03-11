@@ -171,6 +171,12 @@ class PaymentItem(AttrBase):
             cur.execute("delete from paymentitems where itemid=%s", (itemid, ))
             g.db.commit()
 
+    @classmethod
+    def deleteByAccountId(cls, accountid):
+        with g.db.cursor() as cur:
+            cur.execute("delete from paymentitems where accountid=%s", (accountid, ))
+            g.db.commit()
+
 
 class PaymentSecret(AttrBase):
     TABLENAME = "paymentsecrets"
