@@ -442,10 +442,14 @@ def squareoauth():
         locresponse = squareconnect.apis.locations_api.LocationsApi(client).list_locations()
         if locresponse.errors:
             raise Exception(locresponse.errors)
+        if not locresponse.locations:
+            raise Exception("No Locations found in Square account, there must be at least one")
 
         catresponse = squareconnect.apis.catalog_api.CatalogApi(client).list_catalog()
         if catresponse.errors:
             raise Exception(catesponse.errors)
+        if not catresponse.objects:
+            raise Exception("No Items found in Square account, there must be at least one")
 
         # Prepare a reduced list of locations and their associated items
         locations = dict()
@@ -480,6 +484,8 @@ def squareoauth():
                     'expires_at':   str(dateutil.parser.parse(tokenresponse.expires_at)),
                     'merchant_id':  tokenresponse.merchant_id
                 })
+
+        locations = [l for l in locations if l['items']]
         ldata = current_app.usts.dumps(locations)
         return render_template('/admin/locationselect.html', locations=locations, tdata=tdata, ldata=ldata)
 
