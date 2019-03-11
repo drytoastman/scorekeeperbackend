@@ -485,7 +485,7 @@ def squareoauth():
                     'merchant_id':  tokenresponse.merchant_id
                 })
 
-        locations = [l for l in locations if l['items']]
+        locations = {k:v for k,v in locations.items() if v['items']}
         ldata = current_app.usts.dumps(locations)
         return render_template('/admin/locationselect.html', locations=locations, tdata=tdata, ldata=ldata)
 
