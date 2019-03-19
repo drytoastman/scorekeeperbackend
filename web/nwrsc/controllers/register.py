@@ -28,13 +28,14 @@ def setup():
     g.selection = request.endpoint
     if 'driverid' in session:
         g.driver = Driver.get(session['driverid'])
-        if g.series:
-            if g.seriestype != Series.ACTIVE:
-                raise ArchivedSeriesException()
-            g.settings = Settings.getAll()
-            g.classdata = ClassData.get()
     else:
         g.driver = None
+
+    if g.series:
+        if g.seriestype != Series.ACTIVE:
+            raise ArchivedSeriesException()
+        g.settings = Settings.getAll()
+        g.classdata = ClassData.get()
 
     openendpoints = ('Register.view', 'Register.ical', 'Register.login', 'Register.emailsent', 'Register.finish', 'Register.reset', 'Register.unsubscribe')
     excendpoints  = ('Register.eventspost', 'Register.usednumbers', 'Register.payment', 'Register.paypalexecute', 'Register.squarepaymentcomplete')
