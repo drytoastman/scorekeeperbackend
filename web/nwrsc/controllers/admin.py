@@ -487,6 +487,11 @@ def activitylist():
     return json_encode(ret)
 
 
+@Admin.route("/ustsdecode")
+def ustsdecode():
+    return json_encode(current_app.usts.loads(request.args['token']))
+
+
 @Admin.route("/emailtool", methods=['GET','POST'])
 def emailtool():
     form = GroupEmailForm()
