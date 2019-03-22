@@ -24,8 +24,9 @@ def crondaemon():
             logging.getLogger("backup").error("Failed ro run backup: %s", e)
  
     # UTC
-    schedule.every().day.at("11:00").do(webcron)
-    schedule.every().day.at("11:30").do(backup)
+    schedule.every().day.at("11:00").do(webcron) # 4:00 AM PDT
+    schedule.every().day.at("08:00").do(backup)  # 1:00 AM PDT
+    schedule.every().day.at("20:00").do(backup)  # 1:00 PM PDT
 
     while True:
         schedule.run_pending()
