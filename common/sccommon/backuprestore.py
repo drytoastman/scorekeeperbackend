@@ -1,6 +1,7 @@
 import datetime
 import operator
 import os
+import pytz
 import re
 import subprocess
 import sys
@@ -9,7 +10,8 @@ import zipfile
 from google.cloud import storage
 
 def backup_db(bucketname):
-    dumpfile = datetime.date.today().strftime("scorekeeper-%Y-%m-%d.sql")
+    tz       = pytz.timezone(os.environ.get('UI_TIME_ZONE', 'US/Pacific'))
+    dumpfile = datetime.datetime.now().astimezone(tz).strftime("scorekeeper-%Y-%m-%d-%H:%M.sql")
     with open(dumpfile, 'w') as dump:
         dump.write("UPDATE pg_database SET datallowconn = 'false' WHERE datname = 'scorekeeper';\n")
         dump.write("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'scorekeeper';\n")
@@ -39,6 +41,9 @@ def restore_db(bucketname):
     subprocess.run(["psql", "-U", "postgres", "-f", dumpfile])
     os.remove(dumpfile)
     os.remove(zipname)
+
+def backupcmd():
+    backup_db(sys.argv[1])
 
 def restorecmd():
     restore_db(sys.argv[1])
