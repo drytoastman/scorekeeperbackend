@@ -71,4 +71,28 @@ Row Active**.
 
 ![StageMenu](images/fxcstagemenu.png)
 
+The row will become highlighted indicating that is where the next runs will be
+recorded.  If there was already an active row, it will confirm with you that
+you want to change the active row.
+
 ![ActiveRow](images/fxcactiverow.png)
+
+The data from the timer in the top right should also change to indicate the
+dialins that are set for the next drop of the tree.
+
+![TimerHeader](images/fxctimer.png)
+
+If there is ever a time when the report from the timer (top right) and the
+currently active row have different values for their dialins, the times in the
+top right will become red.  This most likely indicates that there is a network
+connection problem between the two computers.
+
+## Moving a Row
+
+If you need to move a row, either because they staged in wrong order or for
+some other reason, you can simply click and drag the row to the new location.
+If you need to activate the row, you can do so as per normal vai the context
+menu.
+
+![MoveRow](images/fxchallengemove.gif)
+
