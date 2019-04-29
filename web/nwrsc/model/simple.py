@@ -223,7 +223,7 @@ class RunOrder(AttrBase):
     def getNextRunOrder(cls, carid, eventid, course=1):
         """ Returns a list of objects (classcode, carid) for the next cars in order after carid """
         with g.db.cursor() as cur:
-            cur.execute("WITH r AS (SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND %s=ANY(cars) LIMIT 1) SELECT c.carid,c.classcode from cars c JOIN r ON r.cid=c.carid", (eventid, course, carid));
+            cur.execute("WITH r AS (SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND %s=ANY(cars)) SELECT c.carid,c.classcode from cars c JOIN r ON r.cid=c.carid", (eventid, course, carid));
             order = [RunOrder(**x) for x in cur.fetchall()]
             ret = []
             for ii, row in enumerate(order):
