@@ -184,7 +184,7 @@ def paypalexecute():
         localapi = paypalrestsdk.Api({'mode': 'live', 'client_id': account.accountid, 'client_secret': account.secret})
         payment  = paypalrestsdk.Payment.find(paymentid, api=localapi)
         if not payment.execute({"payer_id": payerid}):
-            raise FlashableError("Payment Error: " + payment.error)
+            raise FlashableException("Payment Error: " + payment.error)
 
         _recordPayment(cached, paymentid, datetime.datetime.strptime(payment.create_time, '%Y-%m-%dT%H:%M:%SZ'))
         cached['verified'] = True
