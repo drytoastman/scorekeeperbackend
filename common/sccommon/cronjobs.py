@@ -1,9 +1,33 @@
+import json
 import logging
+import os
+import psycopg2
 import schedule
 import subprocess
 import time
 
 from sccommon.logging import logging_setup
+
+def queueEmail(body):
+    args = {
+                "user": "localuser",
+              "dbname": "scorekeeper",
+    "application_name": "cronjobs"
+    }
+
+    with psycopg2.connect(**args) as db:
+        with db.cursor() as cur:
+            email = dict(
+                recipient = dict(
+                    email = os.environ['MAIL_ADMIN_ADDRESS'],
+                    firstname = 'Admin',
+                    lastname = 'User'
+                ),
+                subject = "Scorekeeper Log Report",
+                body = '<html><body><pre>'+body+'</pre></body></html>'
+            )
+            cur.execute("INSERT INTO emailqueue (content) VALUES (%s)", (json.dumps(email),))
+
 
 def crondaemon():
     logging_setup('/var/log/sccron.log')
@@ -23,15 +47,19 @@ def crondaemon():
         except Exception as e:
             logging.getLogger("backup").error("Failed ro run backup: %s", e)
 
+
     def mailerrors():
         try:
             from sccommon.logging import collect_errors
             errors = collect_errors()
+            txt = list()
+            for k in sorted(errors.keys()):
+                txt.append('\nFILE: {}\n'.format(k))
+                txt.extend(errors[k])
         except Exception as e:
-            errors = ["Failed to collect errors: {}".format(e)]
+            txt = ["Failed to collect errors: {}".format(e)]
 
-        print(errors)
-        # mail here
+        queueEmail('\n'.join(txt))
 
  
     # UTC

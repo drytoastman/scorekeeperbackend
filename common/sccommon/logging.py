@@ -1,4 +1,6 @@
 import datetime
+from dateutil.parser import parse
+from dateutil.tz import gettz
 import glob
 import logging
 import logging.handlers
@@ -35,7 +37,38 @@ def logging_setup(filename=None):
 
 
 def collect_errors(fileglob='/var/log/sc*.log'):
-    ret = []
+    ret = {}
     for f in glob.glob(fileglob):
-        ret.append(f)
+        ret[f] = collect_errors_file(f)
     return ret
+
+
+def collect_errors_file(filename):
+    collect = []
+    add = False
+    now = datetime.datetime.now(datetime.timezone.utc)
+    limit = now.replace(day=now.day-1, hour=now.hour-1)
+    tzinfos = {'PDT': gettz("US/Pacific")}
+
+    with open(filename, 'r') as fp:
+        for line in fp.readlines():
+            bits = line.split()
+            try:
+                dt = parse(' '.join(bits[0:3]), tzinfos=tzinfos)
+                if dt < limit:
+                    add = False
+                    continue
+
+                if bits[4][:-1] in ('DEBUG', 'INFO', 'LOG'):
+                    add = False
+                else:
+                    add = True
+            except ValueError as ve: # traceback or other data
+                pass
+            except Exception as e: # traceback or other data
+                collect.append("INTERNAL ERROR: " + str(e))
+
+            if add:
+                collect.append(line.strip())
+
+    return collect

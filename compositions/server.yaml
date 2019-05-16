@@ -66,3 +66,4 @@ services:
     environment:
         - GOOGLE_APPLICATION_CREDENTIALS=/secrets/scorekeeper.creds.json
         - SECRETS_FILE=/secrets/secrets.json
+        - MAIL_ADMIN_ADDRESS=admin@scorekeeper.wwscc.org
