@@ -61,6 +61,8 @@ services:
     networks: { net1: {}}
     volumes: 
         - dbsocket:/var/run/postgresql
+        - logs:/var/log
         - secrets:/secrets
     environment:
         - GOOGLE_APPLICATION_CREDENTIALS=/secrets/scorekeeper.creds.json
+        - SECRETS_FILE=/secrets/secrets.json

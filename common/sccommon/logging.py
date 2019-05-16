@@ -1,4 +1,5 @@
 import datetime
+import glob
 import logging
 import logging.handlers
 import os
@@ -31,3 +32,10 @@ def logging_setup(filename=None):
         shandler.setFormatter(fmt)
         shandler.setLevel(level)
         root.addHandler(shandler)
+
+
+def collect_errors(fileglob='/var/log/sc*.log'):
+    ret = []
+    for f in glob.glob(fileglob):
+        ret.append(f)
+    return ret

@@ -227,18 +227,20 @@ class ReverseProxied(object):
 
 def cron_jobs():
     from nwrsc.controllers.payments import paymentscron
-    dbapp = Flask("nwrsc")
+    dbapp = Flask("dbapp")
     dbapp.config.update({
         "DEBUG":                  any2bool(os.environ.get('DEBUG',                 False)),
         "DBHOST":                          os.environ.get('DBHOST',                '/var/run/postgresql'),
         "DBPORT":                      int(os.environ.get('DBPORT',                5432)),
         "DBUSER":                          os.environ.get('DBUSER',                'localuser'),
-        "SQ_APPLICATION_ID":               os.environ.get('SQ_APPLICATION_ID',     None),
-        "SQ_APPLICATION_SECRET":           os.environ.get('SQ_APPLICATION_SECRET', None),
+        "SECRETS_FILE":                    os.environ.get('SECRETS_FILE',          None),
         "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE',          'US/Pacific'),
     })
+    dbapp.config.from_json(dbapp.config['SECRETS_FILE'])
+    model_setup(dbapp)
+
     with dbapp.app_context():
-        g.db = AttrBase.connect(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'], user=current_app.config['DBUSER'], app='cronjobs')
+        g.db = AttrBase.connect(host=dbapp.config['DBHOST'], port=dbapp.config['DBPORT'], user=dbapp.config['DBUSER'], app='cronjobs')
         paymentscron()
 
 
@@ -247,7 +249,7 @@ def model_setup(app):
     with app.app_context():
         while True:
             try:
-                AttrBase.initialize(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'])
+                AttrBase.initialize(host=app.config['DBHOST'], port=app.config['DBPORT'])
                 break
             except Exception as e:
                 log.info("Error during model initialization, waiting for db and template: %s", e)

@@ -391,7 +391,8 @@ def paymentscron():
                     # Do the oauth call to get a new token
                     log.info("{} {} expires in {} seconds, renewing".format(s, p.accountid, expiresin))
                     oauth = squareconnect.OAuthApi()
-                    oauth.api_client.configuration.access_token = appsecret
+                    oauth.api_client.configuration.api_key['Authorization'] = appsecret
+                    oauth.api_client.configuration.api_key_prefix['Authorization'] = 'Client'
                     response = oauth.renew_token(appid, squareconnect.RenewTokenRequest(access_token=p.secret))
 
                     p.attr['expires'] = str(dateutil.parser.parse(response.expires_at))
