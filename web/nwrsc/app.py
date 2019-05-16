@@ -225,11 +225,20 @@ class ReverseProxied(object):
         return self.app(environ, start_response)
 
 
-def cron_jobs(host='/var/run/postgresql', port=5432, app='cronjobs'):
+def cron_jobs():
     from nwrsc.controllers.payments import paymentscron
     dbapp = Flask("nwrsc")
+    dbapp.config.update({
+        "DEBUG":                  any2bool(os.environ.get('DEBUG',                 False)),
+        "DBHOST":                          os.environ.get('DBHOST',                '/var/run/postgresql'),
+        "DBPORT":                      int(os.environ.get('DBPORT',                5432)),
+        "DBUSER":                          os.environ.get('DBUSER',                'localuser'),
+        "SQ_APPLICATION_ID":               os.environ.get('SQ_APPLICATION_ID',     None),
+        "SQ_APPLICATION_SECRET":           os.environ.get('SQ_APPLICATION_SECRET', None),
+        "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE',          'US/Pacific'),
+    })
     with dbapp.app_context():
-        g.db = AttrBase.connect(host=host, port=port, user='localuser', app=app)
+        g.db = AttrBase.connect(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'], user=current_app.config['DBUSER'], app='cronjobs')
         paymentscron()
 
 

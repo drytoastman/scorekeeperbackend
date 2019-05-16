@@ -370,6 +370,11 @@ def accounts():
 
 def paymentscron():
     log.info("Payments cron")
+    appid     = current_app.config.get('SQ_APPLICATION_ID', '')
+    appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
+    if not appid or not appsecret:
+        raise Exception('paymentscron will not work, there is no square applcation setup in the local configuration')
+
     with g.db.cursor() as cur:
         for s in Series.active():
             cur.execute("SET search_path=%s,'public'; commit; begin", (s,))
@@ -383,11 +388,6 @@ def paymentscron():
                     continue
 
                 try:
-                    appid     = current_app.config.get('SQ_APPLICATION_ID', '')
-                    appsecret = current_app.config.get('SQ_APPLICATION_SECRET', '')
-                    if not appid or not appsecret:
-                        raise Exception('There is no square applcation setup in the local configuration')
-
                     # Do the oauth call to get a new token
                     log.info("{} {} expires in {} seconds, renewing".format(s, p.accountid, expiresin))
                     oauth = squareconnect.OAuthApi()
