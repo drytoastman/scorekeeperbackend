@@ -163,7 +163,8 @@ def create_app():
 
     @message_flashed.connect_via(theapp)
     def log_flashes(sender, message, category):
-       log.warning("Flashed: " + message)
+        if 'Invalid username/password' not in message:
+            log.warning("Flashed: " + message)
 
     @theapp.errorhandler(Exception)
     @theapp.errorhandler(500)

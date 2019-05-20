@@ -112,10 +112,8 @@ def subunsub():
     subids = set(request.form.keys())
     allids = Series.emailListIds()
     for k in subids & allids:
-        log.warning("clear {}".format(k))
         Unsubscribe.clear(g.driver.driverid, k)
     for k in allids - subids:
-        log.warning("set {}".format(k))
         Unsubscribe.set(g.driver.driverid, k)
     return redirect(url_for('.profile'))
 
