@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import datetime
+import itertools
 import json
 import psycopg2
 import psycopg2.extras
@@ -64,6 +66,34 @@ def parse_runs(port, series):
         for row in cur.fetchall():
             print_log(row['tablen'], row['action'], row['otime'], row['ltime'], row['olddata'], row['newdata'], 'carid')
 
+
+def list_diff(old, new):
+    for ii, (oldid, newid) in enumerate(itertools.zip_longest(old, new)):
+        if oldid != newid:
+            print("{}: {} -> {}".format(ii, oldid, newid))
+
+
+def get_names(db):
+    ret = dict()
+    with db.cursor() as cur:
+        cur.execute("select c.carid, c.classcode, d.firstname, d.lastname from drivers d JOIN cars c ON c.driverid=d.driverid")
+        for row in cur.fetchall():
+            ret[str(row['carid'])] = "{} {} ({})".format(row['firstname'], row['lastname'], row['classcode'])
+    return ret
+
+def parse_runorder_changes(port, series):
+    db = connect_port(port)
+    with db.cursor() as cur:
+        cur.execute("set search_path=%s,'public'", (series,))
+        cur.execute("select * from serieslog where tablen='runorder' and action='U' order by otime")
+        names = get_names(db)
+        for row in cur.fetchall():
+            otime = row['otime']
+            print("{} - Course {}  - RunGroup {}".format(otime - datetime.timedelta(hours=8), row['newdata']['course'], row['newdata']['rungroup']))
+            old = [names[cid] for cid in row['olddata']['cars']]
+            new = [names[cid] for cid in row['newdata']['cars']]
+            list_diff(old, new)
+
 def connect_port(port):
     args = {
       "cursor_factory": psycopg2.extras.DictCursor,
@@ -77,6 +107,8 @@ def connect_port(port):
 
 
 if __name__ == '__main__':
-    parse_runs(int(sys.argv[1]), sys.argv[2])
+    parse_runorder_changes(6432, 'pro2019')
+
+    #parse_runs(int(sys.argv[1]), sys.argv[2])
     #parse_dump_file(sys.argv[1])
 
