@@ -54,6 +54,33 @@ def test_rungroup_reorder(syncdbs, syncdata):
     verify_runorder(syncx, (syncdata.eventid, 1, 1), (('cars', [syncdata.carid3, syncdata.carid2, syncdata.carid]),))
 
 
+def test_rungroup_move(syncdbs, syncdata):
+    """ Regression test for issue with nwacc run groups """
+    syncx, mergex = syncdbs
+
+    # Insert local
+    with syncx['A'].cursor() as cur:
+        cars1 = [ syncdata.carid, syncdata.carid3 ]
+        cars2 = [ syncdata.carid2 ]
+        cur.execute("INSERT INTO runorder (eventid, course, rungroup, cars, modified)", (syncdata.eventid, 1, 1, cars1, '2019-08-18 22:29:26.928839'))
+        cur.execute("INSERT INTO runorder (eventid, course, rungroup, cars, modified)", (syncdata.eventid, 1, 2, cars2, '2019-08-18 20:08:32.992674'))
+        syncx['A'].commit()
+
+    # Insert remote
+    with syncx['B'].cursor() as cur:
+        cars1 = [ syncdata.carid, syncdata.carid2, syncdata.carid3 ]
+        cars2 = []
+        cur.execute("INSERT INTO runorder (eventid, course, rungroup, cars, modified)", (syncdata.eventid, 1, 1, cars1, '2019-08-14 02:14:51.742448'))
+        cur.execute("INSERT INTO runorder (eventid, course, rungroup, cars, modified)", (syncdata.eventid, 1, 2, cars2, '2019-08-14 02:14:58.143713'))
+        syncx['B'].commit()
+
+    time.sleep(0.5)
+
+    dosync(syncx['A'], mergex['A'])
+
+    #verify_runorder(syncx, (syncdata.eventid, 1, 1), (('cars', [syncdata.carid3, syncdata.carid2, syncdata.carid]),))
+
+
 def test_classorder_reorder(syncdbs, syncdata):
     syncx, mergex = syncdbs
 
