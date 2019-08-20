@@ -69,6 +69,8 @@ Scorekeeper.shownavmenu('#navbarNav', '#eventdropdownlink');
           {%for event in g.events|sort(attribute='date') -%}
               <a class="dropdown-item" href='{{url_for('.event', eventid=event.eventid)}}'>{{event.name}}</a>
           {% endfor  %}
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href='{{url_for('.champ')}}'>Championship</a>
           </div>
         </li>
         {% endif %}
