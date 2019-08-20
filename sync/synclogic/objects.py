@@ -166,7 +166,7 @@ class PresentObject():
 
     @classmethod
     def loadPresent(cls, db, table):
-        assert table in DataInterface.TABLE_ORDER, "No such table {}".format(table)
+        assert table in DataInterface.ALL_TABLES, "No such table {}".format(table)
         ret = dict()
         with db.cursor() as cur:
             cur.execute("SELECT * from {}".format(table))
@@ -187,7 +187,7 @@ class DeletedObject():
 
     @classmethod
     def deletedSince(cls, db, table, when):
-        assert table in DataInterface.TABLE_ORDER, "No such table {}".format(table)
+        assert table in DataInterface.ALL_TABLES, "No such table {}".format(table)
         ret = dict()
 
         with db.cursor() as cur:

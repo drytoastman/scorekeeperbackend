@@ -28,11 +28,9 @@ class DataInterface(object):
         'paymentitems',
         'events',   
         'classlist',
-        'classorder',
         'cars',
         'registered',
         'payments',
-        'runorder',
         'runs',
         'challenges',
         'challengerounds',
@@ -40,6 +38,13 @@ class DataInterface(object):
         'challengeruns',
         'externalresults'
     ]
+
+    INTERTWINED_DATA = [
+        'classorder',
+        'runorder'
+    ]
+
+    ALL_TABLES = TABLE_ORDER + INTERTWINED_DATA
 
     PUBLIC_TABLES = [
         'drivers',
@@ -80,7 +85,7 @@ class DataInterface(object):
                 cur.execute("set search_path=%s,%s", testseries)
 
                 # Determing the primary keys for each table
-                for table in DataInterface.TABLE_ORDER:
+                for table in DataInterface.ALL_TABLES:
                     cur.execute("SELECT a.attname,t.typname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) JOIN pg_type t ON t.oid=a.atttypid " \
                                 "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
                     DataInterface.PRIMARY_KEYS[table] = OrderedDict({row[0]:row[1] for row in cur.fetchall()})
@@ -154,14 +159,15 @@ class DataInterface(object):
         return ret
 
     @classmethod
-    def insert(cls, db, objs):
+    def insert(cls, db, objs, commit=True):
         if len(objs) == 0: return True
         stmt = "INSERT INTO {} ({}) VALUES ({})".format(objs[0].table, ",".join(DataInterface.COLUMNS[objs[0].table]), ",".join(["%({})s".format(x) for x in DataInterface.COLUMNS[objs[0].table]]))
         with db.cursor() as cur:
             try:
                 cur.execute("SAVEPOINT insert_savepoint")
                 psycopg2.extras.execute_batch(cur, stmt, [o.data for o in objs])
-                db.commit()
+                if commit:
+                    db.commit()
             except psycopg2.IntegrityError as e:
                 if e.pgcode == '23503':  # Foreign Key constraint, other stuff needs to happen before we do this
                     cur.execute("ROLLBACK TO SAVEPOINT insert_savepoint")

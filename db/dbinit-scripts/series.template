@@ -281,8 +281,8 @@ CREATE TABLE runorder (
 REVOKE ALL ON runorder FROM public;
 GRANT  ALL ON runorder TO <seriesname>;
 CREATE TRIGGER ordermod AFTER INSERT OR UPDATE OR DELETE ON runorder FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
-CREATE TRIGGER ordercon BEFORE INSERT OR UPDATE ON runorder FOR EACH ROW EXECUTE PROCEDURE runorderconstraints('<seriesname>');
 CREATE TRIGGER orderuni BEFORE UPDATE ON runorder FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'course', 'rungroup', 'row');
+CREATE CONSTRAINT TRIGGER ordercon AFTER INSERT OR UPDATE ON runorder DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE runorderconstraints('<seriesname>');
 COMMENT ON TABLE runorder IS 'This is the list of cars in each rungroup as seen in data entry';
 
 
@@ -296,8 +296,8 @@ CREATE TABLE classorder (
 REVOKE ALL ON classorder FROM public;
 GRANT  ALL ON classorder TO <seriesname>;
 CREATE TRIGGER classordermod AFTER INSERT OR UPDATE OR DELETE ON classorder FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
-CREATE TRIGGER classordercon BEFORE INSERT OR UPDATE ON classorder FOR EACH ROW EXECUTE PROCEDURE classorderconstraints('<seriesname>');
 CREATE TRIGGER classorderuni BEFORE UPDATE ON classorder FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'classcode');
+CREATE CONSTRAINT TRIGGER classordercon AFTER INSERT OR UPDATE ON classorder DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE classorderconstraints('<seriesname>');
 COMMENT ON TABLE classorder IS 'the ordering of classes inside each run group, generally only used in the Pro event for grid ordering';
 
 

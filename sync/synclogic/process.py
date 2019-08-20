@@ -438,6 +438,24 @@ class MergeProcess():
                 unfinished.add(t)
                 DataInterface.insert(localdb, localundelete[t])
 
+
+        # Special tables that need insert and update done without commits in between for constraints
+        for t in DataInterface.INTERTWINED_DATA:
+            assert not self.signalled, "Quit signal received"
+            self.listener and self.listener("ins/up", t, localdb=localdb, remotedb=remotedb, watcher=watcher)
+
+            remote.seriesStatus(series, "Ins/Up {}".format(t))
+            watcher.local()
+            if localinsert[t]: DataInterface.insert(localdb,  localinsert[t], commit=False)
+            if localupdate[t]: DataInterface.update(localdb,  localupdate[t])
+
+            watcher.remote()
+            if remoteinsert[t]: DataInterface.insert(remotedb,  remoteinsert[t], commit=False)
+            if remoteupdate[t]: DataInterface.update(remotedb,  remoteupdate[t])
+
+            watcher.off()
+
+
         return unfinished
 
 

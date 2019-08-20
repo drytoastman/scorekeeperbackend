@@ -11,7 +11,7 @@ from helpers import *
 
 log = logging.getLogger(__name__)
 
-def test_rungroup_reorder(syncdbs, syncdata):
+def test_runorder_reorder(syncdbs, syncdata):
     syncx, mergex = syncdbs
 
     insert = "INSERT INTO runorder (cars, eventid, course, rungroup) VALUES (%s, %s, %s, %s)"
@@ -26,11 +26,13 @@ def test_rungroup_reorder(syncdbs, syncdata):
         cur.execute(insert, ([syncdata.carid2], syncdata.eventid, 2, 2))
         with pytest.raises(psycopg2.InternalError):
             cur.execute(insert, ([syncdata.carid2], syncdata.eventid, 1, 2))
+            syncx['A'].commit()
         syncx['A'].rollback()
 
         # make sure we can't add an invalid carid
         with pytest.raises(psycopg2.InternalError):
             cur.execute(insert, ([uuid.uuid4()], syncdata.eventid, 2, 2))
+            syncx['A'].commit()
         syncx['A'].rollback()
 
 
@@ -54,33 +56,6 @@ def test_rungroup_reorder(syncdbs, syncdata):
     verify_runorder(syncx, (syncdata.eventid, 1, 1), (('cars', [syncdata.carid3, syncdata.carid2, syncdata.carid]),))
 
 
-def test_rungroup_move(syncdbs, syncdata):
-    """ Regression test for issue with nwacc run groups """
-    syncx, mergex = syncdbs
-
-    # Insert local
-    with syncx['A'].cursor() as cur:
-        cars1 = [ syncdata.carid, syncdata.carid3 ]
-        cars2 = [ syncdata.carid2 ]
-        cur.execute("INSERT INTO runorder (eventid, course, rungroup, cars, modified)", (syncdata.eventid, 1, 1, cars1, '2019-08-18 22:29:26.928839'))
-        cur.execute("INSERT INTO runorder (eventid, course, rungroup, cars, modified)", (syncdata.eventid, 1, 2, cars2, '2019-08-18 20:08:32.992674'))
-        syncx['A'].commit()
-
-    # Insert remote
-    with syncx['B'].cursor() as cur:
-        cars1 = [ syncdata.carid, syncdata.carid2, syncdata.carid3 ]
-        cars2 = []
-        cur.execute("INSERT INTO runorder (eventid, course, rungroup, cars, modified)", (syncdata.eventid, 1, 1, cars1, '2019-08-14 02:14:51.742448'))
-        cur.execute("INSERT INTO runorder (eventid, course, rungroup, cars, modified)", (syncdata.eventid, 1, 2, cars2, '2019-08-14 02:14:58.143713'))
-        syncx['B'].commit()
-
-    time.sleep(0.5)
-
-    dosync(syncx['A'], mergex['A'])
-
-    #verify_runorder(syncx, (syncdata.eventid, 1, 1), (('cars', [syncdata.carid3, syncdata.carid2, syncdata.carid]),))
-
-
 def test_classorder_reorder(syncdbs, syncdata):
     syncx, mergex = syncdbs
 
@@ -95,11 +70,13 @@ def test_classorder_reorder(syncdbs, syncdata):
         # can't add to another group in same event
         with pytest.raises(psycopg2.InternalError):
             cur.execute(insert, (syncdata.eventid, 2, ["c3", "c4", "c5"]))
+            syncx['A'].commit()
         syncx['A'].rollback()
 
         # can't add if class doesn't exist
         with pytest.raises(psycopg2.InternalError):
             cur.execute(insert, (syncdata.eventid, 2, ["c6"]))
+            syncx['A'].commit()
         syncx['A'].rollback()
 
     time.sleep(0.1)
@@ -120,3 +97,61 @@ def test_classorder_reorder(syncdbs, syncdata):
     dosync(syncx['A'], mergex['A'])
 
     verify_classorder(syncx, (syncdata.eventid, 1), (('classes', ['c1', 'c2', 'c3']),))
+
+
+
+def test_runorder_move(syncdbs, syncdata):
+    """ Regression test for issue with run groups already on main server and modifed onsite, also make it span insert/update """
+    syncx, mergex = syncdbs
+
+    insert = "INSERT INTO runorder (eventid, course, rungroup, cars, modified) VALUES (%s, %s, %s, %s, %s)"
+    delete = "DELETE FROM runorder"
+    clear  = "DELETE FROM serieslog WHERE tablen='runorder'"
+
+    # Insert local
+    with syncx['A'].cursor() as cur:
+        cur.execute(delete)
+        cur.execute(clear)
+        cur.execute(insert, (syncdata.eventid, 1, 1, [syncdata.carid, syncdata.carid3], '2019-08-18 22:29:26.928839'))
+        cur.execute(insert, (syncdata.eventid, 1, 2, [syncdata.carid2],                 '2019-08-18 20:08:32.992674'))
+        syncx['A'].commit()
+
+    # Insert remote
+    with syncx['B'].cursor() as cur:
+        cur.execute(delete)
+        cur.execute(clear)
+        cur.execute(insert, (syncdata.eventid, 1, 1, [syncdata.carid, syncdata.carid2, syncdata.carid3], '2019-08-14 02:14:51.742448'))
+        syncx['B'].commit()
+
+    dosync(syncx['A'], mergex['A'])
+
+    verify_runorder(syncx, (syncdata.eventid, 1, 1), (('cars', [syncdata.carid, syncdata.carid3]),))
+    verify_runorder(syncx, (syncdata.eventid, 1, 2), (('cars', [syncdata.carid2]),))
+
+
+
+def test_classorder_move(syncdbs, syncdata):
+    """ test same runorder_move for classorder, no initial data to remove """
+    syncx, mergex = syncdbs
+
+    insert = "INSERT INTO classorder (eventid, rungroup, classes, modified) VALUES (%s, %s, %s, %s)"
+    delete = "DELETE FROM classorder"
+
+    # Add a second run order row and sync
+    with syncx['A'].cursor() as cur:
+        cur.execute(delete)
+        cur.execute(insert, (syncdata.eventid, 1, ["c1", "c3"], '2019-08-18 22:29:26.928839'))
+        cur.execute(insert, (syncdata.eventid, 2, ["c2"],       '2019-08-18 20:08:32.992674'))
+        syncx['A'].commit()
+
+
+    with syncx['B'].cursor() as cur:
+        cur.execute(delete)
+        cur.execute(insert, (syncdata.eventid, 1, ["c1", "c2", "c3"], '2019-08-14 02:14:51.742448'))
+        syncx['B'].commit()
+
+    dosync(syncx['A'], mergex['A'])
+
+    verify_classorder(syncx, (syncdata.eventid, 1), (('classes', ['c1', 'c3']),))
+    verify_classorder(syncx, (syncdata.eventid, 2), (('classes', ['c2']),))
+
