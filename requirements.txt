@@ -41,5 +41,5 @@ six==1.11.0
 squareconnect==2.20181212.0
 urllib3==1.24.3
 webassets==0.12.1
-Werkzeug==0.14.1
+Werkzeug==0.15.5
 WTForms==2.2.1
