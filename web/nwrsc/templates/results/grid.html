@@ -32,6 +32,7 @@ td.net  { width: 5rem; }
 
 
 {% block content %}
+{{super()}}
 {% for start in starts %}
 {% if groups[start].count > 0 or groups[start+100].count > 0 %}
 <div class='container-fluid'>

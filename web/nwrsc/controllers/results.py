@@ -7,6 +7,7 @@ import logging
 from operator import itemgetter
 import re
 import uuid
+import types
 
 from flask import current_app, request, render_template, get_template_attribute, make_response, g
 
@@ -173,7 +174,8 @@ def champ():
     if g.settings.minevents > 0:
         requirements.append("Attend At Least {} Events".format(g.settings.minevents))
 
-    return render_template('/results/champ.html', event="x", results=results, settings=g.settings, classdata=g.seriesinfo.getClassData(), events=events, disablemetascale=True, requirements=requirements)
+    event = types.SimpleNamespace(name="Championship")
+    return render_template('/results/champ.html', event=event, results=results, settings=g.settings, classdata=g.seriesinfo.getClassData(), events=events, disablemetascale=True, requirements=requirements)
 
 
 ## ProSolo related data (Challenge and Dialins)
