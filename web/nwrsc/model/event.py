@@ -21,7 +21,7 @@ class Event(AttrBase):
         g.db.commit()
 
     def getCountedRuns(self):
-        ret = getattr(self, 'counted', 0)
+        ret = getattr(self, 'countedruns', 0)
         if ret <= 0:
             return 999
         return ret
