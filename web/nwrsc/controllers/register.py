@@ -345,9 +345,10 @@ def login():
             flashformerrors(register)
 
     login.gotoseries.data = g.series
+    login.username.data = request.args.get('username', '')
     register.gotoseries.data = g.series
     return render_template('/register/login.html', active=active, login=login, reset=reset, register=register, hasemail=hasemail)
-        
+
 
 @Register.route("/emailsent")
 def emailsent():
@@ -363,6 +364,10 @@ def finish():
 
     if req.get('request', '') != 'register':
         raise DisplayableError(header="Confirmation Error", content="Sorry, this confirmation token failed as the request type is incorrect")
+
+    if Driver.byUsername(req['username']) != None:
+        return render_template('/register/alreadycomplete.html', username=req['username'])
+
     session['driverid'] = Driver.new(req['firstname'], req['lastname'], req['email'], req['username'], req['password'])
     return redirect(url_for(".profile", askprofile=1))
 

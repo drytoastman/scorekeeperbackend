@@ -1,0 +1,11 @@
+{% extends "register/bluebase.html" %}
+{% import "register/macros.html" as m %}
+
+{% block content %}
+
+<div id='loginouter' class='container'>
+<h3>Confirmation Already Complete</h3>
+<p>This confirmation link has already been completed. It was possibly followed more than once. You can instead directly <a href='{{url_for('.login', username=username)}}'>login now</a>.</p>
+</div>
+
+{% endblock content %}
