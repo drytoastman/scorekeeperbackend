@@ -17,46 +17,42 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../
 from synclogic.process import MergeProcess
 from synclogic.model import DataInterface
 
-DB = collections.namedtuple('DB', ['name', 'image', 'port', 'serverid'])
+DB = collections.namedtuple('DB', ['name', 'port', 'serverid'])
+DBIMAGE = 'drytoastman/scdb:latest'
 
 log = logging.getLogger(__name__)
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def syncdata():
-    return types.SimpleNamespace(
+    dbs = (DB('A', '7432',  uuid.uuid1()),
+           DB('B', '8432',  uuid.uuid1()),
+           DB('C', '9432',  uuid.uuid1()),
+           DB('D', '10432', uuid.uuid1()))
+
+    yield types.SimpleNamespace(
         driverid = uuid.UUID('00000000-0000-0000-0000-000000000001'),
         carid    = uuid.UUID('00000000-0000-0000-0000-000000000002'),
         carid2   = uuid.UUID('00000000-0000-0000-0000-000000000003'),
         carid3   = uuid.UUID('00000000-0000-0000-0000-000000000004'),
         eventid  = uuid.UUID('00000000-0000-0000-0000-000000000010'),
-        series   = 'testseries')
+        series   = 'testseries',
+        dbinfo   = dbs)
+
+    subprocess.run("docker kill `docker ps -q -a --filter label=pytest`", shell=True)
+    subprocess.run("docker volume rm `docker volume ls -q --filter label=pytest`", shell=True)
 
 
 @pytest.fixture(scope="module")
 def sync1db(request, syncdata):
-    TESTDBS = (DB('A', 'drytoastman/scdb:latest', '7432', uuid.uuid1()),)
-    syncx, mergex = _createdbs(request, syncdata, TESTDBS)
-    return syncx['A'], mergex['A']
-
+    return _createdbs(request, syncdata, 1)
 
 @pytest.fixture(scope="module")
 def syncdbs(request, syncdata):
-    TESTDBS = (
-        DB('A', 'drytoastman/scdb:latest', '7432', uuid.uuid1()),
-        DB('B', 'drytoastman/scdb:latest', '8432', uuid.uuid1())
-    )
-    return _createdbs(request, syncdata, TESTDBS)
-
+    return _createdbs(request, syncdata, 2)
 
 @pytest.fixture(scope="module")
 def sync4dbs(request, syncdata):
-    TESTDBS = (
-        DB('A', 'drytoastman/scdb:latest',  '7432', uuid.uuid1()),
-        DB('B', 'drytoastman/scdb:latest',  '8432', uuid.uuid1()),
-        DB('C', 'drytoastman/scdb:latest',  '9432', uuid.uuid1()),
-        DB('D', 'drytoastman/scdb:latest', '10432', uuid.uuid1())
-    )
-    return _createdbs(request, syncdata, TESTDBS)
+    return _createdbs(request, syncdata, 4)
 
 
 @pytest.fixture(scope="module")
@@ -67,16 +63,58 @@ def dataentry(request, syncdata):
     return de
 
 
-def _createdbs(request, syncdata, TESTDBS):
+def _getbasevol(syncdata):
+    basevol = "basevol"
+    if  subprocess.run(['docker', 'volume', 'inspect', 'basevol']).returncode == 0:
+        return basevol
+
+    port = syncdata.dbinfo[0].port
+    p = subprocess.run(["docker", "run", "-d", "--rm", "-v", basevol+":/var/lib/postgresql/data", "--label", "pytest", "--name", "volsetup", "-p", port+":6432", "-e", "UI_TIME_ZONE=US/Pacific", DBIMAGE], stdout=subprocess.DEVNULL)
+    if p.returncode != 0:
+        raise Exception("Failed to create base volume creation container")
+
+    # Wait until introspection on db works
+    for ii in range(20):
+        try:
+            # Introspection needed by MergeProcess
+            DataInterface.initialize(port=int(port))
+            with DataInterface.connectLocal(int(port)) as db:
+                with db.cursor() as cur:
+                    cur.execute("SELECT verify_user(%s, %s)",  (syncdata.series, syncdata.series))
+                    cur.execute("SELECT verify_series(%s)",    (syncdata.series, ))
+                    with open(os.path.join(os.path.dirname(__file__), 'testdata/basic.sql'), 'r') as fp:
+                        for line in fp:
+                            sql = line.strip()
+                            if sql:
+                                cur.execute(sql)
+                        db.commit()
+            break
+        except Exception as e:
+            time.sleep(1)
+    else:
+        raise Exception("Unable to setup base volume")
+
+    subprocess.run(["docker", "kill", "volsetup"], stdout=subprocess.DEVNULL)
+    return basevol
+
+
+def _createdbs(request, syncdata, count):
     cargs = { 'host':"127.0.0.1", 'user':'postgres', 'dbname':'scorekeeper', 'connect_timeout':20, 'cursor_factory':psycopg2.extras.DictCursor }
+    active = syncdata.dbinfo[:count]
+
+    basevol = _getbasevol(syncdata)
 
     def teardown():
-        subprocess.run(["docker", "kill"] + ["sync"+db.name for db in TESTDBS], stdout=subprocess.DEVNULL)
+        subprocess.run(["docker", "kill"] + ["sync"+db.name for db in active], stdout=subprocess.DEVNULL)
+        subprocess.run(["docker", "volume", "rm", "-f"] + ["vol"+db.name for db in active], stdout=subprocess.DEVNULL)
     request.addfinalizer(teardown)
 
-    for db in TESTDBS:
-        p = subprocess.run(["docker", "run", "-d", "--rm", "--cap-add=NET_ADMIN", "--cap-add=NET_RAW",
-                            "--name", "sync"+db.name, "-p", "{}:6432".format(db.port), "-e", "UI_TIME_ZONE=US/Pacific", db.image], stdout=subprocess.DEVNULL)
+    for db in active:
+        newvol = 'vol'+db.name
+        subprocess.run(['docker', 'volume', 'create', '--label', 'pytest', newvol])
+        subprocess.run(['docker', 'run', '--rm', '-v', 'basevol:/from', '-v', newvol+':/to', 'alpine', 'ash', '-c', 'cd /from; cp -av . /to'])
+        p = subprocess.run(["docker", "run", "-d", "--rm", "--cap-add=NET_ADMIN", "--cap-add=NET_RAW", "-v", newvol+":/var/lib/postgresql/data", "--label", "pytest",
+                            "--name", "sync"+db.name, "-p", "{}:6432".format(db.port), "-e", "UI_TIME_ZONE=US/Pacific", DBIMAGE], stdout=subprocess.DEVNULL)
         if p.returncode != 0:
             raise Exception("Failed to start " + db.name)
 
@@ -84,7 +122,7 @@ def _createdbs(request, syncdata, TESTDBS):
     for ii in range(20):
         try:
             # Introspection needed by MergeProcess
-            DataInterface.initialize(port=int(TESTDBS[0].port))
+            DataInterface.initialize(port=int(active[0].port))
             break
         except Exception as e:
             #log.warning(e)
@@ -92,11 +130,9 @@ def _createdbs(request, syncdata, TESTDBS):
     else:
         raise Exception("Unable to initialize data interface")
 
-
-    # Do setup and get connections to each
     syncx = {}
     mergex = {}
-    for db in TESTDBS:
+    for db in active:
         for jj in range(20):
             try:
                 con = psycopg2.connect(**cargs, port=db.port)
@@ -107,13 +143,10 @@ def _createdbs(request, syncdata, TESTDBS):
         else:
             raise Exception("Unable to get connection to {}".format(db.name))
 
-
         with con.cursor() as cur:
-            cur.execute("SELECT verify_user(%s, %s)",  (syncdata.series, syncdata.series))
-            cur.execute("SELECT verify_series(%s)",    (syncdata.series, ))
             cur.execute("SET search_path=%s,'public'", (syncdata.series, ))
             cur.execute("INSERT INTO mergeservers(serverid, hostname, address, ctimeout) VALUES ('00000000-0000-0000-0000-000000000000', 'localhost', '127.0.0.1', 10)")
-            for db2 in TESTDBS:
+            for db2 in active:
                 if db2 != db:
                     cur.execute("INSERT INTO mergeservers(serverid, hostname, address, ctimeout, hoststate) VALUES (%s, %s, %s, 5, 'A')", (db2.serverid, db2.name, '127.0.0.1:{}'.format(db2.port)))
         con.commit()
@@ -121,17 +154,17 @@ def _createdbs(request, syncdata, TESTDBS):
         mergex[db.name] = MergeProcess([db.port])
 
 
+    """
     # Setup some initial data
-    with syncx[TESTDBS[0].name].cursor() as cur, open(os.path.join(os.path.dirname(__file__), 'testdata/basic.sql'), 'r') as fp:
+    with syncx[active[0].name].cursor() as cur, open(os.path.join(os.path.dirname(__file__), 'testdata/basic.sql'), 'r') as fp:
         for line in fp:
             sql = line.strip()
             if sql:
                 cur.execute(sql)
-        syncx[TESTDBS[0].name].commit()
-
+        syncx[active[0].name].commit()
+    """
 
     # Do an initial merge from first db
-    mergex[TESTDBS[0].name].runonce()
+    mergex[active[0].name].runonce()
 
     return syncx, mergex
-

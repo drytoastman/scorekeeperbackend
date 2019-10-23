@@ -14,7 +14,8 @@ password = os.environ.get('PASSWORD', None)
 @pytest.mark.skipif(not series or not password, reason="no series or password set")
 def test_download(sync1db, syncdata):
     """ Test a download from the main server for timeout behavior """
-    sync, merge = sync1db
+    sync = sync1db[0]['A']
+    merge = sync1db[1]['A']
 
     with sync.cursor() as cur:
         cur.execute("DROP SCHEMA testseries CASCADE")
