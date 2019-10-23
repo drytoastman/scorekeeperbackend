@@ -3,6 +3,7 @@
 import datetime
 import json
 import logging
+import os
 import pytest
 import signal
 import subprocess
@@ -36,7 +37,9 @@ def _syncBnetup():
     subprocess.run(["docker", "exec", "syncB", "iptables", "-P", "OUTPUT", "ACCEPT"])
 
 
+donetwork = os.environ.get('DO_NETWORK_TESTS', None)
 
+@pytest.mark.skipif(not donetwork, reason="do network no set")
 def test_delayednetwork(syncdbs, syncdata):
     """ Test over a network with major delay or loss issues """
     syncx, mergex = syncdbs
@@ -60,6 +63,7 @@ def test_delayednetwork(syncdbs, syncdata):
 
 
 
+@pytest.mark.skipif(not donetwork, reason="do network no set")
 @pytest.mark.timeout(DataInterface.PEER_TIMEOUT+20, method='thread')
 def test_networkoutage(syncdbs, syncdata):
     """ Testing network disconnects, should complete before pytest timeout """
@@ -89,6 +93,7 @@ def test_networkoutage(syncdbs, syncdata):
 
 
 
+@pytest.mark.skipif(not donetwork, reason="do network no set")
 @pytest.mark.timeout(30, method='thread')
 def test_longblock(syncdbs, syncdata, dataentry):
     """ Testing blocking of a database connection for too long """
