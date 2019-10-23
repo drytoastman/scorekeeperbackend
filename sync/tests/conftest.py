@@ -39,7 +39,6 @@ def syncdata():
         dbinfo   = dbs)
 
     subprocess.run("docker kill `docker ps -q -a --filter label=pytest`", shell=True)
-    subprocess.run("docker volume rm `docker volume ls -q --filter label=pytest`", shell=True)
 
 
 @pytest.fixture(scope="module")
@@ -63,57 +62,16 @@ def dataentry(request, syncdata):
     return de
 
 
-def _getbasevol(syncdata):
-    basevol = "basevol"
-    if  subprocess.run(['docker', 'volume', 'inspect', 'basevol']).returncode == 0:
-        return basevol
-
-    port = syncdata.dbinfo[0].port
-    p = subprocess.run(["docker", "run", "-d", "--rm", "-v", basevol+":/var/lib/postgresql/data", "--label", "pytest", "--name", "volsetup", "-p", port+":6432", "-e", "UI_TIME_ZONE=US/Pacific", DBIMAGE], stdout=subprocess.DEVNULL)
-    if p.returncode != 0:
-        raise Exception("Failed to create base volume creation container")
-
-    # Wait until introspection on db works
-    for ii in range(20):
-        try:
-            # Introspection needed by MergeProcess
-            DataInterface.initialize(port=int(port))
-            with DataInterface.connectLocal(int(port)) as db:
-                with db.cursor() as cur:
-                    cur.execute("SELECT verify_user(%s, %s)",  (syncdata.series, syncdata.series))
-                    cur.execute("SELECT verify_series(%s)",    (syncdata.series, ))
-                    with open(os.path.join(os.path.dirname(__file__), 'testdata/basic.sql'), 'r') as fp:
-                        for line in fp:
-                            sql = line.strip()
-                            if sql:
-                                cur.execute(sql)
-                        db.commit()
-            break
-        except Exception as e:
-            time.sleep(1)
-    else:
-        raise Exception("Unable to setup base volume")
-
-    subprocess.run(["docker", "kill", "volsetup"], stdout=subprocess.DEVNULL)
-    return basevol
-
-
 def _createdbs(request, syncdata, count):
     cargs = { 'host':"127.0.0.1", 'user':'postgres', 'dbname':'scorekeeper', 'connect_timeout':20, 'cursor_factory':psycopg2.extras.DictCursor }
     active = syncdata.dbinfo[:count]
 
-    basevol = _getbasevol(syncdata)
-
     def teardown():
         subprocess.run(["docker", "kill"] + ["sync"+db.name for db in active], stdout=subprocess.DEVNULL)
-        subprocess.run(["docker", "volume", "rm", "-f"] + ["vol"+db.name for db in active], stdout=subprocess.DEVNULL)
     request.addfinalizer(teardown)
 
     for db in active:
-        newvol = 'vol'+db.name
-        subprocess.run(['docker', 'volume', 'create', '--label', 'pytest', newvol])
-        subprocess.run(['docker', 'run', '--rm', '-v', 'basevol:/from', '-v', newvol+':/to', 'alpine', 'ash', '-c', 'cd /from; cp -av . /to'])
-        p = subprocess.run(["docker", "run", "-d", "--rm", "--cap-add=NET_ADMIN", "--cap-add=NET_RAW", "-v", newvol+":/var/lib/postgresql/data", "--label", "pytest",
+        p = subprocess.run(["docker", "run", "-d", "--rm", "--cap-add=NET_ADMIN", "--cap-add=NET_RAW", "--label", "pytest", "--mount", "type=tmpfs,destination=/var/lib/postgresql/data",
                             "--name", "sync"+db.name, "-p", "{}:6432".format(db.port), "-e", "UI_TIME_ZONE=US/Pacific", DBIMAGE], stdout=subprocess.DEVNULL)
         if p.returncode != 0:
             raise Exception("Failed to start " + db.name)
@@ -148,13 +106,14 @@ def _createdbs(request, syncdata, count):
             cur.execute("INSERT INTO mergeservers(serverid, hostname, address, ctimeout) VALUES ('00000000-0000-0000-0000-000000000000', 'localhost', '127.0.0.1', 10)")
             for db2 in active:
                 if db2 != db:
+                    cur.execute("SELECT verify_user(%s, %s)",  (syncdata.series, syncdata.series))
+                    cur.execute("SELECT verify_series(%s)",    (syncdata.series, ))
                     cur.execute("INSERT INTO mergeservers(serverid, hostname, address, ctimeout, hoststate) VALUES (%s, %s, %s, 5, 'A')", (db2.serverid, db2.name, '127.0.0.1:{}'.format(db2.port)))
         con.commit()
         syncx[db.name]  = con
         mergex[db.name] = MergeProcess([db.port])
 
 
-    """
     # Setup some initial data
     with syncx[active[0].name].cursor() as cur, open(os.path.join(os.path.dirname(__file__), 'testdata/basic.sql'), 'r') as fp:
         for line in fp:
@@ -162,7 +121,6 @@ def _createdbs(request, syncdata, count):
             if sql:
                 cur.execute(sql)
         syncx[active[0].name].commit()
-    """
 
     # Do an initial merge from first db
     mergex[active[0].name].runonce()
