@@ -642,11 +642,6 @@ def cards():
             yield subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout
         return Response(generate_pdf(), mimetype='application/pdf')
 
-    else:
-        from nwrsc.lib.pdfcards import pdfcards
-        if ctype == 'blank': registered.append(None)
-        return pdfcards(page, g.event, registered)
-
 
 @Admin.route("/newseries", methods=['GET', 'POST'])
 def newseries():
