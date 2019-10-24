@@ -120,7 +120,7 @@ class ClassData(object):
         """
         newcodes = set(newclasses.keys())
         oldcodes = set(self.classlist.keys())
-        ignore   = set(['HOLD'])
+        ignore   = set([k for k in newcodes+oldcodes if k.startswith('_')])
         insert = newcodes - oldcodes - ignore
         update = newcodes & oldcodes - ignore
         delete = oldcodes - newcodes - ignore

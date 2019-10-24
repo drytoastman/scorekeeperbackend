@@ -153,6 +153,7 @@ CREATE TABLE events (
     gatepen       FLOAT       NOT NULL DEFAULT 10.0, 
     ispro         BOOLEAN     NOT NULL DEFAULT FALSE, 
     ispractice    BOOLEAN     NOT NULL DEFAULT FALSE, 
+    spclasses     TEXT[]      NOT NULL DEFAULT '{}',
     accountid     TEXT        REFERENCES paymentaccounts,
     attr          JSONB       NOT NULL,
     modified      TIMESTAMP   NOT NULL DEFAULT now(),

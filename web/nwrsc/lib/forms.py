@@ -6,10 +6,10 @@ import pytz
 
 from flask import current_app, flash, request, url_for
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, DateField, DateTimeField, FieldList, FileField, FloatField, Form, FormField, HiddenField, PasswordField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms import BooleanField, DateField, DateTimeField, Field, FieldList, FileField, FloatField, Form, FormField, HiddenField, PasswordField, SelectField, SelectMultipleField, StringField, SubmitField, TextAreaField
 from wtforms.fields.html5 import EmailField, IntegerField, URLField
-from wtforms.validators import Email, InputRequired, Length, Optional, Regexp, Required
-from wtforms.widgets import TextInput, TextArea
+from wtforms.validators import Email, InputRequired, Length, NoneOf, Optional, Regexp, Required
+from wtforms.widgets import CheckboxInput, ListWidget, TextInput, TextArea
 
 log = logging.getLogger(__name__)
 
@@ -79,6 +79,11 @@ class BlankSelectField(SelectField):
     def pre_validate(self, form):
         if self.data is not None:
             SelectField.pre_validate(self, form)
+
+
+class MultiCheckboxField(SelectMultipleField):
+    widget        = ListWidget()
+    option_widget = CheckboxInput()
 
 
 class MyFlaskForm(FlaskForm):
@@ -201,7 +206,7 @@ class CarForm(MyFlaskForm):
 
     def __init__(self, classdata):
         MyFlaskForm.__init__(self)
-        self.classcode.choices = [(c.classcode, "%s - %s" % (c.classcode, c.descrip)) for c in sorted(classdata.classlist.values(), key=attrgetter('classcode')) if c.classcode != 'HOLD']
+        self.classcode.choices = [(c.classcode, "%s - %s" % (c.classcode, c.descrip)) for c in sorted(classdata.classlist.values(), key=attrgetter('classcode')) if not c.classcode.startswith('_')]
         self.indexcode.choices = [(i.indexcode, "%s - %s" % (i.indexcode, i.descrip)) for i in sorted(classdata.indexlist.values(), key=attrgetter('indexcode'))]
 
 
@@ -214,7 +219,7 @@ class ExternalResultForm(MyFlaskForm):
     def __init__(self, drivers, classdata):
         MyFlaskForm.__init__(self)
         self.driverid.choices  = [(str(d.driverid), "%s %s" % (d.firstname, d.lastname)) for d in sorted(drivers, key=attrgetter('firstname', 'lastname'))]
-        self.classcode.choices = [(c.classcode, c.classcode) for c in sorted(classdata.classlist.values(), key=attrgetter('classcode')) if c.classcode != 'HOLD']
+        self.classcode.choices = [(c.classcode, c.classcode) for c in sorted(classdata.classlist.values(), key=attrgetter('classcode')) if not c.classcode.startswith('_')]
 
 
 class IndexForm(Form):
@@ -277,9 +282,10 @@ class SettingsForm(MyFlaskForm):
     submit              = SubmitField(  'Update')
 
 
+
 class EventSettingsForm(MyFlaskForm):
     eventid       = HiddenField(  'eventid')
-    name          = MyStringField('Event Name',  [Length(min=4, max=32)])
+    name          = MyStringField('Event Name',             [Length(min=4, max=32)])
     date          = DateField(    'Event Date',             render_kw={'title':'The date of the event'})  
     champrequire  = BooleanField( 'Required For Champ',     render_kw={'title':'Check if this event must be attended to be considered for a championship result'})
     useastiebreak = BooleanField( 'Use As Tie Breaker',     render_kw={'title':'Check if this event should be prepended to the list of items used to break championship ties'})
@@ -293,6 +299,11 @@ class EventSettingsForm(MyFlaskForm):
     notes         = TextAreaField('Notes',                  render_kw={'title':'Notes for the event that show up on the registation page', 'rows':6})
     ispro         = BooleanField( 'Is A ProSolo',           render_kw={'title':'Check if this is a ProSolo style event'}) 
     ispractice    = BooleanField( 'Is A Practice',          render_kw={'title':'Check if this is a practice and not counted towards championship points'})
+
+    spclasses     = MultiCheckboxField('Non-Class Event',   [NoneOf(values=[['turnedon']], message='If making a non-class event, you must select at least one special registration option from AM,PM and All Day')],
+                                                            render_kw={'title':'For events that don\'t use the standard class list, use these special classes instead'},
+                                                              choices=[('turnedon', ''), ('_AM', 'AM'), ('_PM', 'PM'), ('_DAY', 'All Day')])
+
     location      = MyStringField('Location',               render_kw={'title':'The location of the event'})
     sponsor       = MyStringField('Sponsor',                render_kw={'title':'The event sponsor'})
     host          = MyStringField('Host',                   render_kw={'title':'The event host'})

@@ -6,6 +6,7 @@
 $(document).ready(function() {
     $("input[name=regopened]").flatpickr( { enableTime: true, minuteIncrement: 30 } );
     $("input[name=regclosed]").flatpickr( { enableTime: true, minuteIncrement: 30 } );
+
 	$("input[name=date]").flatpickr( { onChange: function(dateObj, dateStr) { 
         d = new Date(dateObj[0]); 
         d.setDate(d.getDate() - 2);
@@ -13,6 +14,7 @@ $(document).ready(function() {
         d.setMinutes(0);
         $("input[name=regclosed]").get(0)._flatpickr.setDate(d);
     }});
+
     $("input[name=isexternal]").change(function() {
         var elem = $("#eventform > div").slice(6);
         if (this.checked) {
@@ -22,8 +24,47 @@ $(document).ready(function() {
         }
         elem.last().show();
     }).trigger("change");
+
+    $("#spclasses-0").change(function() {
+        var elem = $("#spclasses > li");
+        if (this.checked) {
+            elem.show();
+        } else {
+            elem.hide();
+        }
+        $(this).parent().show();
+    }).trigger("change");
 });
 </script>
+
+<style>
+#spclasses {
+    margin-bottom: 0;
+    padding: 0px;
+}
+#spclasses li {
+    display: inline;
+}
+#spclasses label {
+    width: auto;
+    height: auto;
+    vertical-align: middle;
+}
+#spclasses input {
+    width: 1.6rem;
+    vertical-align: middle;
+    margin: 0 0.7rem 0 0.1rem;
+}
+
+label[for=spclasses-0] {
+    display: none;
+}
+#spclasses-0 {
+    margin-right: 2rem !important;
+    margin-left: 0 !important;
+}
+
+</style>
 {% endblock headers %}
 
 {% block content %}

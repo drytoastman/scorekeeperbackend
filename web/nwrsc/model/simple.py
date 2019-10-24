@@ -127,7 +127,7 @@ class NumberEntry(AttrBase):
     @classmethod
     def allNumbers(cls):
         with g.db.cursor() as cur:
-            cur.execute("SELECT d.firstname, d.lastname, c.classcode, c.number FROM drivers d JOIN cars c ON c.driverid=d.driverid WHERE c.classcode!='HOLD'")
+            cur.execute("SELECT d.firstname, d.lastname, c.classcode, c.number FROM drivers d JOIN cars c ON c.driverid=d.driverid WHERE LEFT(c.classcode,1) != '_'")
             return [cls(**x) for x in cur.fetchall()]
 
 
