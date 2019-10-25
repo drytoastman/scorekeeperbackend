@@ -56,7 +56,9 @@ p {
 <p>Remove cars from the selected classes.  Cars with activity in the current series will not be removed</p>
 <ul class='columns'>
 {% for code in classdata.classlist|sort %}
+{% if code[0] != '_' %}
 <li><label><input type='checkbox' name='{{code}}'/>{{code}}</label></li>
+{% endif %}
 {% endfor %}
 </ul>
 <input class='btn btn-admin' type='submit' name='purgeclass' value='Purge Cars By Class'/>

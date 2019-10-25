@@ -100,6 +100,7 @@ function buildEntrantTable(driver, cars, series, disabledelete, disablemerge)
     table.append($('<tr>').append($('<th>').text('Address'),    $('<td>').text("{0} {1} {2} {3}".format(driver.address, driver.city, driver.state, driver.zip))));
     for (ii in cars) {
         var c = cars[ii];
+        if (c.classcode[0] == '_') continue;
         var label1 = $('<span>').addClass('cardetails').text("{0} #{1} {2} {3} {4} {5}".format(c.classcode, c.number, c.year, c.make, c.model, c.color));
         var label2 = $('<span>').addClass('carseries').text(c.series);
         table.append($('<tr>').addClass('carrow').append($('<td>').prop('colspan', 2).prop('id', c.carid).append(baction(EDIT, CAR, c.carid, false), baction(DEL, CAR, c.carid, c.activity>0), label1, label2)));
