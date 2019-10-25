@@ -39,7 +39,7 @@ def createseries(srcdb, name, password):
     #CLASSLIST
     print("\tclasses")
     cur.execute("insert into classlist values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
-                ('HOLD', 'Unknown Class', '', '', 1.0, False, False, False, False, False, 0))
+                ('_HOLD', 'Placeholder Class', '', '', 1.0, False, False, False, False, False, 0))
     allclasscodes = set()
     for r in old.execute("select * from classlist"):
         c = AttrWrapper(r, r.keys())

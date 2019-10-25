@@ -72,7 +72,7 @@ def convert(sourcefile=None, archive=False, overridename=None, settingsonly=Fals
     #CLASSLIST
     print("\tclasses")
     cur.execute("insert into classlist values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())", 
-                ('HOLD', 'Unknown Class', '', '', 1.0, False, False, False, False, False, 0))
+                ('_HOLD', 'Placeholder Class', '', '', 1.0, False, False, False, False, False, 0))
     allclasscodes = set()
     for r in old.execute("select * from classlist"):
         c = AttrWrapper(r, r.keys())
@@ -146,8 +146,8 @@ def convert(sourcefile=None, archive=False, overridename=None, settingsonly=Fals
             print("\t\tskipping car with unknown driverid {}".format(c.driverid))
             continue
         if c.classcode not in allclasscodes:
-            print("\t\tassigning unknown class {} to HOLD".format(c.classcode))
-            c.classcode = 'HOLD'
+            print("\t\tassigning unknown class {} to _HOLD".format(c.classcode))
+            c.classcode = '_HOLD'
         if c.indexcode and c.indexcode not in allindexcodes:
             print("\t\tassigning unknown index {} to AM".format(c.indexcode))
             c.indexcode = 'AM'
@@ -227,8 +227,8 @@ def convert(sourcefile=None, archive=False, overridename=None, settingsonly=Fals
             print("\t\tskipping blank classcode in classorder table")
             continue
         if oldr.classcode not in allclasscodes:
-            print("\t\tassigning unknown class {} to HOLD".format(oldr.classcode))
-            oldr.classcode = 'HOLD'
+            print("\t\tassigning unknown class {} to _HOLD".format(oldr.classcode))
+            oldr.classcode = '_HOLD'
         cur.execute("insert into classorder values (%s, %s, %s, %s, now())", (remapevent[oldr.eventid], oldr.classcode, oldr.rungroup, oldr.gorder))
 
 
