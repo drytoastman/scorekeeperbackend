@@ -27,7 +27,9 @@ var gIndexes = {{cda[1]|safe}};
 
 var gCars = Array();
 {% for c in cars.values()|msort('classcode', 'number') %}
+{% if c.classcode[0] != '_' %}
 gCars['{{c.carid}}'] = {{c|to_json|safe}};
+{% endif %}
 {%- endfor %}
 </script>
 {% endblock headers %}
@@ -44,6 +46,7 @@ gCars['{{c.carid}}'] = {{c|to_json|safe}};
 <tr><td colspan=3 class='text-center p-0'><a href="{{g.settings.classinglink}}" target="helptab"><span class='far fa-file-alt'></span> Classing Help</a></td></tr>
 {% endif %}
 {% for car in cars.values()|msort("classcode","number") %}
+{% if car.classcode[0] != '_' %}
     <tr><td>
     <div class="btn-group" role="group">
     {% if active[car.carid]|length > 0 %}
@@ -55,6 +58,7 @@ gCars['{{c.carid}}'] = {{c|to_json|safe}};
     {% endif %}
     </td>
     <td class='cardisplay'>{{rm.carDisplay(car)}}</td></tr>
+{% endif %}
 {% endfor %}
 <tr><td colspan=3 class='button'><button class='newcar btn btn-outline-register' title='Create Car' data-toggle='modal' data-target='#carmodal'>Create New Car</button></td></tr>
 </table>

@@ -8,6 +8,7 @@ import uuid
 
 import itsdangerous
 from flask import abort, current_app, flash, g, get_template_attribute, redirect, request, render_template, Response, session, stream_with_context, url_for
+from werkzeug.exceptions import BadRequestKeyError
 
 from .blueprints import *
 from ..model import *
@@ -165,6 +166,7 @@ def events():
     accounts   = dict()
     showpay    = dict()
     for r in Registration.getForDriver(g.driver.driverid):
+        r.classcode = cars[r.carid].classcode
         registered[r.eventid].append(r)
     for e in events:
         decorateEvent(e, len(registered[e.eventid]))
@@ -181,6 +183,8 @@ def _renderSingleEvent(event, error):
     """ INTERNAL: For returning HTML for a single event div in response to updates """
     cars    = {c.carid:c for c in Car.getForDriver(g.driver.driverid)}
     reg     = [ r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == event.eventid ]
+    for r in reg: r.classcode = cars[r.carid].classcode
+
     account = PaymentAccount.get(event.accountid)
     showpay = account and account.secret and any(len(r.payments) == 0 for r in reg)
     decorateEvent(event, len(reg))
@@ -189,17 +193,26 @@ def _renderSingleEvent(event, error):
     return eventdisplay(event, cars, reg, showpay, error)
 
 
+@Register.route("/<series>/eventssppost", methods=['POST'])
+def eventssppost():
+    return _eventspostinternal(request.form['eventid'], set([Car.ensureSpecialCar(g.driver.driverid, k) for (k,v) in request.form.items() if v == 'y' or v is True]))
+
 @Register.route("/<series>/eventspost", methods=['POST'])
 def eventspost():
+    return _eventspostinternal(request.form['eventid'], set([uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True]))
+
+
+def _eventspostinternal(eventid, carids):
     """ Handles a add/change request from the user """
     error = ""
+    event = None
 
     try:
-        eventid  = uuid.UUID(request.form['eventid'])
+        eventid  = uuid.UUID(eventid) #request.form['eventid'])
         event    = Event.get(eventid)
         curreg   = {r.carid:r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == event.eventid}
         oldids   = set(curreg.keys())
-        newids   = set([uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True])
+        newids   = carids #set([uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True])
 
         toadd    = set([Registration(carid=x, eventid=eventid, payments=[]) for x in newids - oldids])
         nochange = set([curreg[x] for x in newids & oldids])
@@ -218,7 +231,7 @@ def eventspost():
 
                     if otherr in nochange:
                         # Change logging requires primary key updates to delete and then insert, delete only uses primary key
-                        todel.add(otherr) 
+                        todel.add(otherr)
                         toadd.add(otherr)
                     break
             else:
@@ -239,6 +252,8 @@ def eventspost():
         g.db.rollback()
         error = "Exception in processing has been logged"
         log.warning("exception in events post", exc_info=e)
+        if not event:
+            return str(e)
 
     return _renderSingleEvent(event, error)
 
@@ -376,7 +391,7 @@ def finish():
 def reset():
     form = PasswordForm()
     if form.submit.data and form.validate_on_submit():
-        if 'driverid' not in session: 
+        if 'driverid' not in session:
             abort(400, 'No driverid present during reset, how?')
         Driver.updatepassword(session['driverid'], form.username.data.strip(), form.password.data)
         return redirect_series("")
@@ -386,7 +401,7 @@ def reset():
             req = current_app.usts.loads(request.args['token'], max_age=86400) # 1 day expiry
         except Exception as e:
             raise DisplayableError(header="Confirmation Error", content="Sorry, this confirmation token failed (%s)" % e.__class__.__name__) from e
-    
+
         if req.get('request', '') == 'reset':
             session['driverid'] = uuid.UUID(req['driverid'])
             return render_template("register/reset.html", form=form)
@@ -415,7 +430,7 @@ def unsubscribe():
 
     return render_template("register/unsubscribe.html", driver=driver, error=error, listid=listid)
 
- 
+
 ####################################################################
 # Utility functions
 
@@ -434,7 +449,7 @@ def getAllUpcoming(driverid):
             if r.date >= datetime.datetime.utcnow().date():
                 upcoming[r.date][s, r.name].append(r)
     return upcoming
- 
+
 def decorateEvent(e, mycount):
     e.drivercount  = e.getRegisteredDriverCount()
     e.entrycount   = e.getRegisteredCount()

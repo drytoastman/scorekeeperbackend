@@ -64,9 +64,28 @@ $(document).ready(function() {
         initregform('#registerform', button.data('eventid'), button.data('limit'), button.data('msg'))
     });
 
+    $('#registermodalsp').on('show.bs.modal', function (e) {
+        var button = $(e.relatedTarget) // Button that triggered the modal
+        $('#registermodalsp .spdynamic').remove();
+        button.data('classes').split(',').forEach(function(e) {
+            $('#registerspmarker').before(`
+                <div class='row align-items-center spdynamic'>
+                <input class='col-2' name='${e}' type='checkbox' value='y'/>
+                <label class='col-10' for='${e}'>${gSpecialClasses[e]}</label>
+                </div>
+            `);
+        });
+        initregform('#registerformsp', button.data('eventid'), button.data('limit'), button.data('msg'))
+    });
+
     $('#registerform input[type=submit]').click(function (e) {
         e.preventDefault();
         eventRelativeSubmit($('#registerform'));
+    });
+
+    $('#registerformsp input[type=submit]').click(function (e) {
+        e.preventDefault();
+        eventRelativeSubmit($('#registerformsp'));
     });
 
     $('#sqcheckoutbutton').click(function(e) {
@@ -86,12 +105,20 @@ $(document).ready(function() {
 
 var gRegistered = Array();
 var gAccounts = Array();
+var gSpecialClasses = Array();
+var gItems = {{pitems|to_json|safe}};
+
 {% for ev in events -%}
 {% if accounts[ev.eventid] -%}
 gAccounts["{{ev.eventid}}"] = { id: "{{accounts[ev.eventid].accountid}}", type: "{{accounts[ev.eventid].type}}" };
 {% endif -%}
-{% endfor -%}
-var gItems = {{pitems|to_json|safe}};
+{% endfor %}
+
+{% for code in g.classdata.classlist -%}
+{% if code[0] == '_' -%}
+gSpecialClasses["{{code}}"] = {{g.classdata.classlist[code].descrip|to_json|safe}};
+{% endif -%}
+{% endfor %}
 </script>
 
 {% endblock headers %}
@@ -129,10 +156,12 @@ var gItems = {{pitems|to_json|safe}};
         <div class='col-10'><a href='cars'><span class='fa fa-car'></span>Create,Edit and Delete Cars Here</a></div>
         </div>
         {% for c in cars.values() %}
+        {% if c.classcode[0] != '_' %}
         <div class='row align-items-center'>
         <input class="col-2" name="{{c.carid}}" id="{{c.carid}}" type="checkbox" value="y"/>
         <label class="col-10" for="{{c.carid}}">{{rm.carDisplay(c)}}</label>
         </div>
+        {% endif %}
         {% endfor %}
         <div class='row mt-2'>
         <div class='col text-center'><span class='statuslabel error'></span></div>
@@ -143,6 +172,17 @@ var gItems = {{pitems|to_json|safe}};
     </form>
 {% endcall %}
 
+{% call m.modal('registermodalsp', 'Register For Event', '') %}
+    <form id='registerformsp' action='{{url_for(".eventssppost")}}' method='POST'>
+        <input type='hidden' name='eventid' value=''/>
+        <div id='registerspmarker' class='row mt-2'>
+        <div class='col text-center'><span class='statuslabel error'></span></div>
+        </div>
+        <div class='row'>
+        <div class='col'><input id='regupdatebutton' type='submit' class='btn btn-register' value='Update'/></div>
+        </div>
+    </form>
+{% endcall %}
 
 {% call m.modal('paymentmodal', 'Payment Selection', '') %}
     <form id='paymentform' action='{{url_for(".payment")}}' method='POST'>

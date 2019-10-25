@@ -24,7 +24,11 @@
 {% if g.classdata %}
 {% set istr = g.classdata.getEffectiveIndex(car)[1] -%}
 {% endif %}
+{% if car.classcode[0] == '_' %}
+<span class='code'>{{g.classdata.classlist[car.classcode].descrip}}
+{% else %}
 <span class='code'>{{car.classcode}}/{{car.number}} {{istr and "("+istr+")" or ""}}
+{% endif %}
 {% if   paid %}<span class='label paid'>{{paid}}</span>{% endif %}
 {% if unpaid %}<span class='label unpaid'>Payment Required</span>{% endif %}
 </span>
@@ -42,7 +46,7 @@
     <script type="text/javascript">
     gRegistered['{{ev.eventid}}'] = [
         {% for reg in registered -%}
-        { carid: '{{reg.carid}}', payments: {{reg.payments|length}} },
+        { carid: '{{reg.carid}}', classcode: '{{reg.classcode}}', payments: {{reg.payments|length}} },
         {% endfor -%}
     ];
     </script>
@@ -102,7 +106,11 @@
 
         {%- if ev.isOpen() %}
             {%- if ev.mylimit > 0 or registered|length > 0 %}
-            <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
+                {%- if ev.getSpecialClasses()|length > 0 -%}
+                    <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-classes='{{ev.getSpecialClasses()|join(',')}}' data-toggle='modal' data-target='#registermodalsp'>Add/Change</button>
+                {% else %}
+                    <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
+                {%- endif -%}
             {%- endif %}
             {%- if showpayment %}
             <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-toggle='modal' data-target='#paymentmodal'>Make Payment</button>
