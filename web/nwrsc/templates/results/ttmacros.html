@@ -26,7 +26,7 @@
 {% if loop.first or loop.last %}
 <td class='{{loop.first and 'pos' or (loop.last and 'time' or '')}}'>{{item|t3}}</td>
 {% else %}
-<td>{{item|t3}}</td>
+<td>{{item|t3|replace("_","")}}</td>
 {% endif %}
 {%- endfor -%}
 {%- endfor -%}

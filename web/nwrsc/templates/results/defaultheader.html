@@ -3,7 +3,7 @@
 <h6 class='eventinfo'><span class='location'>{{g.event.location}}</span> - <span class='entrantcount'>{{g.entrantcount}} Entrants</span></h6>
 <div class='classlinks'>
 {% for cls in results|sort -%}
-<a href='#body{{cls}}'>{{cls}}</a>
+<a href='#body{{cls}}'>{{cls.replace("_","")}}</a>
 {% endfor %}
 </div>
 

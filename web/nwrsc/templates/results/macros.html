@@ -31,7 +31,11 @@
 {% endif %}
 <tr class='head'>
     <th colspan='{{colcount}}'>
-    <a>{{classcode}}</a> - {{g.classdata.classlist[classcode].descrip}}
+    {% if classcode[0] == "_" %}
+    {{g.classdata.classlist[classcode].descrip}}
+    {% else %}
+    {{classcode.replace("_","")}} - {{g.classdata.classlist[classcode].descrip}}
+    {% endif %}
     </th>
 </tr>
 <tr class='subhead'>

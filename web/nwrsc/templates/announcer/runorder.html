@@ -9,7 +9,7 @@
 {% else %}
 <td>{{e.firstname}} {{e.lastname}}</td>
 <td>{{e.year}} {{e.model}} {{e.color}}</td>
-<td>{{e.classcode}}</td>
+<td>{{e.classcode|replace("_","")}}</td>
 {% if r is none %}
 <td></td>
 {% else %}
