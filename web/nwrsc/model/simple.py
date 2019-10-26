@@ -59,7 +59,8 @@ class Audit(object):
             if not cur.rowcount:
                 return list()
             order = cur.fetchone()[0]
-            log.warning(order)
+            if not order:
+                return list()
             cur.execute("SELECT d.firstname,d.lastname,c.* FROM cars c JOIN drivers d ON c.driverid=d.driverid WHERE carid IN %s", (tuple(order), ))
             hold = dict()
             for res in [Entrant(**x) for x in cur.fetchall()]:
