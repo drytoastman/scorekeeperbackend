@@ -300,9 +300,8 @@ class EventSettingsForm(MyFlaskForm):
     ispro         = BooleanField( 'Is A ProSolo',           render_kw={'title':'Check if this is a ProSolo style event'}) 
     ispractice    = BooleanField( 'Is A Practice',          render_kw={'title':'Check if this is a practice and not counted towards championship points'})
 
-    spclasses     = MultiCheckboxField('Non-Class Event',   [NoneOf(values=[['turnedon']], message='If making a non-class event, you must select at least one special registration option from AM,PM and All Day')],
-                                                            render_kw={'title':'For events that don\'t use the standard class list, use these special classes instead'},
-                                                              choices=[('turnedon', ''), ('_AM', 'AM'), ('_PM', 'PM'), ('_DAY', 'All Day')])
+    sessions      = MultiCheckboxField('Non-Class Event',   render_kw={'title':'For events that don\'t use the standard class list, use these sessions instead'},
+                                                              choices=[('AM', 'AM Session'), ('PM', 'PM Session'), ('Day', 'Day Session')])
 
     location      = MyStringField('Location',               render_kw={'title':'The location of the event'})
     sponsor       = MyStringField('Sponsor',                render_kw={'title':'The event sponsor'})

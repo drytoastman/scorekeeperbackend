@@ -93,11 +93,9 @@ class Series(object):
                     if ccars:
                         cur.execute("insert into {}.cars (select * from {}.cars WHERE LEFT(classcode,1)!='_')".format(series, g.series))
                 else:
-                    # Need a blank index regardless of copying, fixes bug #78
-                    cur.execute("insert into {}.indexlist (indexcode, descrip, value) VALUES ('', 'No Index', 1.0)".format(series))
-                    # Need particular special classes as well
-                    for k,v in (('_HOLD','Unknown Class'), ('_AM','AM Session'), ('_PM','PM Session'), ('_DAY','Day Session')):
-                        cur.execute("INSERT INTO classlist (classcode,descrip,indexcode,caridxrestrict,classmultiplier,carindexed,usecarflag,eventtrophy,champtrophy,secondruns,countedruns) VALUES (%s,%s,'','',1.0,'f','f','f','f','f',0)", (k,v))
+                    # Need a blank index and HOLD class regardless of copying, fixes bug #78
+                    cur.execute("INSERT INTO {}.indexlist (indexcode, descrip, value) VALUES ('', 'No Index', 1.0)".format(series))
+                    cur.execute("INSERT INTO {}.classlist (classcode,descrip,indexcode,caridxrestrict,classmultiplier,carindexed,usecarflag,eventtrophy,champtrophy,secondruns,countedruns) VALUES (%s,%s,'','',1.0,'f','f','f','f','f',0)".format(series), ('HOLD', 'Placeholder Class'))
 
                 if caccounts:
                     cur.execute("insert into {}.paymentaccounts (select * from {}.paymentaccounts)".format(series, g.series))

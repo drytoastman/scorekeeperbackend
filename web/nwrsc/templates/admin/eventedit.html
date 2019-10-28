@@ -4,6 +4,8 @@
 {{super()}}
 <script>
 $(document).ready(function() {
+    $("#sessions").prepend("<li><input type='checkbox' id='sessions-on' {{form.sessions.data|length > 0 and "checked='checked'"|safe or ""}}/></li>");
+
     $("input[name=regopened]").flatpickr( { enableTime: true, minuteIncrement: 30 } );
     $("input[name=regclosed]").flatpickr( { enableTime: true, minuteIncrement: 30 } );
 
@@ -25,11 +27,12 @@ $(document).ready(function() {
         elem.last().show();
     }).trigger("change");
 
-    $("#spclasses-0").change(function() {
-        var elem = $("#spclasses > li");
+    $("#sessions-on").change(function() {
+        var elem = $("#sessions > li");
         if (this.checked) {
             elem.show();
         } else {
+            elem.find('input').prop('checked', false);
             elem.hide();
         }
         $(this).parent().show();
@@ -38,32 +41,28 @@ $(document).ready(function() {
 </script>
 
 <style>
-#spclasses {
+#sessions {
     margin-bottom: 0;
     padding: 0px;
 }
-#spclasses li {
+#sessions li {
     display: inline;
 }
-#spclasses label {
+#sessions label {
     width: auto;
     height: auto;
     vertical-align: middle;
 }
-#spclasses input {
+#sessions input {
     width: 1.6rem;
     vertical-align: middle;
     margin: 0 0.7rem 0 0.1rem;
 }
 
-label[for=spclasses-0] {
-    display: none;
-}
-#spclasses-0 {
+#sessions-on {
     margin-right: 2rem !important;
     margin-left: 0 !important;
 }
-
 </style>
 {% endblock headers %}
 

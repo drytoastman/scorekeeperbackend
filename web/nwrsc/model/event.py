@@ -26,12 +26,8 @@ class Event(AttrBase):
             return 999
         return ret
 
-    def getSpecialClasses(self):
-        ret = list(getattr(self, 'spclasses', []))
-        if 'turnedon' in ret and len(ret) > 1:
-            ret.remove('turnedon')
-            return ret
-        return []
+    def getSessions(self):
+        return getattr(self, 'sessions', [])
 
     def paymentRequired(self): return self.attr.get('paymentreq', False)
     def hasOpened(self): return datetime.utcnow() > self.regopened
@@ -70,7 +66,7 @@ class Event(AttrBase):
         event.accountid = None
         event.ispro = False
         event.ispractice = False
-        event.spclasses = []
+        event.sessions = []
         event.isexternal = False
         event.champrequire = False
         event.useastiebreak = False

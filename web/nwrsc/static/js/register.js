@@ -235,7 +235,7 @@ function initregform(id, eventid, limit, msg)
 {
     var me = $(id);
     var checkmax = function() {
-        var dodisable = (me.find(":checked").length >= limit);
+        var dodisable = (me.find("input[type=checkbox]:checked").length >= limit);
         me.find('input[type=checkbox]:unchecked').prop('disabled', dodisable);
         me.find('.statuslabel').html( dodisable && msg || "");
     };
@@ -244,10 +244,38 @@ function initregform(id, eventid, limit, msg)
     me.find('input[type=checkbox]').prop('checked', false).prop('disabled', false).click(checkmax);
     gRegistered[eventid].forEach(function (regentry) {
         me.find("input[name="+regentry.carid+"]").prop('checked', true);
-        me.find("input[name="+regentry.classcode+"]").prop('checked', true);
+        me.find("input[name="+regentry.session+"]").prop('checked', true);
     });
 
     checkmax();
+    return checkmax;
 }
 
 
+function initsessform(id, eventid, limit, msg, sessions, cars)
+{
+    var me = $(id);
+    me.find('.sessiondynamic').remove(); // clear out previous incarnation
+
+    sessions.split(',').forEach(function(e) {
+        $('#registersessionmarker').before(`
+            <div class='row align-items-center sessiondynamic'>
+            <div class='col-1'></div>
+            <input class='col-1' name='${e}' type='checkbox'/>
+            <label class='col-3' for='${e}'>${e} Session</label>
+            <select class='col-6 sessionselect' name='car-${e}'>
+                <option value='00000000-0000-0000-0000-000000000000'></option>
+            </select>
+            </div>
+        `);
+    });
+    cars.forEach(function(c) {
+        $(".sessionselect").append("<option value='"+c.carid+"'>"+c.desc+"</option>");
+    });
+
+    initregform(id, eventid, limit, msg)
+    
+    gRegistered[eventid].forEach(function (regentry) {
+        me.find("select[name=car-"+regentry.session+"]").val(regentry.carid);
+    });
+}

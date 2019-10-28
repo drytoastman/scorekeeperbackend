@@ -153,7 +153,7 @@ CREATE TABLE events (
     gatepen       FLOAT       NOT NULL DEFAULT 10.0, 
     ispro         BOOLEAN     NOT NULL DEFAULT FALSE, 
     ispractice    BOOLEAN     NOT NULL DEFAULT FALSE, 
-    spclasses     TEXT[]      NOT NULL DEFAULT '{}',
+    sessions      TEXT[]      NOT NULL DEFAULT '{}',
     accountid     TEXT        REFERENCES paymentaccounts,
     attr          JSONB       NOT NULL,
     modified      TIMESTAMP   NOT NULL DEFAULT now(),
@@ -242,13 +242,14 @@ COMMENT ON TABLE timertimes IS 'The list of all times received by data entry via
 CREATE TABLE registered (
     eventid    UUID      NOT NULL REFERENCES events, 
     carid      UUID      NOT NULL REFERENCES cars, 
+    session    TEXT      NOT NULL DEFAULT '',
     modified   TIMESTAMP NOT NULL DEFAULT now(),
-    PRIMARY KEY (eventid, carid)
+    PRIMARY KEY (eventid, carid, session)
 );
 REVOKE ALL ON registered FROM public;
 GRANT  ALL ON registered TO <seriesname>;
 CREATE TRIGGER regmod AFTER INSERT OR UPDATE OR DELETE ON registered FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
-CREATE TRIGGER reguni BEFORE UPDATE ON registered FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'carid');
+CREATE TRIGGER reguni BEFORE UPDATE ON registered FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'carid', 'session');
 COMMENT ON TABLE registered IS 'The list of cars registered for events';
 
 

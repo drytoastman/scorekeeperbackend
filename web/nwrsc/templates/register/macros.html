@@ -19,20 +19,20 @@
 {% endmacro %}
 
 
-{% macro carDisplay(car, unpaid=False, paid="") %}
+{% macro carDisplay(car, session='', unpaid=False, paid="") %}
 <div class='cardisplay'>
 {% if g.classdata %}
 {% set istr = g.classdata.getEffectiveIndex(car)[1] -%}
 {% endif %}
-{% if car.classcode[0] == '_' %}
-<span class='code'>{{g.classdata.classlist[car.classcode].descrip}}
+{% if session != '' %}
+<span class='code'>{{session}} Session
 {% else %}
 <span class='code'>{{car.classcode}}/{{car.number}} {{istr and "("+istr+")" or ""}}
 {% endif %}
 {% if   paid %}<span class='label paid'>{{paid}}</span>{% endif %}
 {% if unpaid %}<span class='label unpaid'>Payment Required</span>{% endif %}
 </span>
-<span class='desc'>{{car.attr.year}} {{car.attr.make}} {{car.attr.model}} {{car.attr.color}}</span> 
+<span class='desc'>{{car.attr.year}} {{car.attr.make}} {{car.attr.model}} {{car.attr.color}} {% if session != '' %}#{{car.number}}{% endif %}</span> 
 </div>
 {% endmacro %}
 
@@ -46,7 +46,7 @@
     <script type="text/javascript">
     gRegistered['{{ev.eventid}}'] = [
         {% for reg in registered -%}
-        { carid: '{{reg.carid}}', classcode: '{{reg.classcode}}', payments: {{reg.payments|length}} },
+        { carid: '{{reg.carid}}', session: '{{reg.session}}', payments: {{reg.payments|length}} },
         {% endfor -%}
     ];
     </script>
@@ -100,14 +100,14 @@
             {% else %}
                 {% set paidlabel = "" %}
             {% endif %}
-            <li>{{carDisplay(ecars[reg.carid], ev.paymentRequired() and reg.payments|length == 0, paidlabel)}}</li>
+            <li>{{carDisplay(ecars[reg.carid], reg.session, ev.paymentRequired() and reg.payments|length == 0, paidlabel)}}</li>
         {%- endfor %}
         </ol>
 
         {%- if ev.isOpen() %}
             {%- if ev.mylimit > 0 or registered|length > 0 %}
-                {%- if ev.getSpecialClasses()|length > 0 -%}
-                    <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-classes='{{ev.getSpecialClasses()|join(',')}}' data-toggle='modal' data-target='#registermodalsp'>Add/Change</button>
+                {%- if ev.getSessions()|length > 0 -%}
+                    <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-sessions='{{ev.getSessions()|join(',')}}' data-toggle='modal' data-target='#registermodalsession'>Add/Change</button>
                 {% else %}
                     <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
                 {%- endif -%}

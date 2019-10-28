@@ -67,17 +67,18 @@ class Car(AttrBase):
                 cur.execute("select distinct number from cars where classcode=%s and number not in (select number from cars where classcode=%s and driverid=%s)", (classcode, classcode, driverid))
             return [x[0] for x in cur.fetchall()]
 
+    """
     @classmethod
     def ensureSpecialCar(cls, driverid, classcode):
-        """ Ensure that a car exists for the driver with one of the special classes (startswith _) """
+        "" Ensure that a car exists for the driver with one of the special classes (startswith _) ""
         with g.db.cursor() as cur:
             carid = Car.getval("SELECT carid FROM cars WHERE driverid=%s AND classcode=%s", (driverid, classcode))
             log.warning("carid1 = {}".format(carid))
             if not carid:
                 carid = uuid.uuid1()
-                cur.execute("INSERT INTO cars (carid, driverid, classcode, indexcode, number, useclsmult, attr) VALUES (%s,%s,%s,'', 1, 'f', '{}')", (carid, driverid, classcode))
+                cur.execute("INSERT INTO cars (carid, driverid, classcode, indexcode, number, useclsmult, attr) VALUES (%s,%s,%s,'', 0, 'f', '{}')", (carid, driverid, classcode))
                 log.warning("carid2 = {}".format(carid))
                 g.db.commit()
         log.warning("returning {}".format(carid))
         return carid
-
+    """

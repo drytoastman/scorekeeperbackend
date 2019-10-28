@@ -48,7 +48,6 @@ function paypalAuthorize(data, actions)
         });
 }
 
-
 $(document).ready(function() { 
     $('[id^=eventtog]').each(function (ii, val) {
         Scorekeeper.add_collapse_icons('#'+this.id); 
@@ -64,18 +63,14 @@ $(document).ready(function() {
         initregform('#registerform', button.data('eventid'), button.data('limit'), button.data('msg'))
     });
 
-    $('#registermodalsp').on('show.bs.modal', function (e) {
+    $('#registermodalsession').on('show.bs.modal', function (e) {
         var button = $(e.relatedTarget) // Button that triggered the modal
-        $('#registermodalsp .spdynamic').remove();
-        button.data('classes').split(',').forEach(function(e) {
-            $('#registerspmarker').before(`
-                <div class='row align-items-center spdynamic'>
-                <input class='col-2' name='${e}' type='checkbox' value='y'/>
-                <label class='col-10' for='${e}'>${gSpecialClasses[e]}</label>
-                </div>
-            `);
-        });
-        initregform('#registerformsp', button.data('eventid'), button.data('limit'), button.data('msg'))
+        var cars = [
+            {% for c in cars.values() -%}
+                {carid:'{{c.carid}}', desc:'#{{c.number}} - {{c.attr.year}} {{c.attr.make}} {{c.attr.model}} {{c.attr.color}}'},
+            {% endfor -%}
+        ]
+        initsessform('#registerformsession', button.data('eventid'), button.data('limit'), button.data('msg'), button.data('sessions'), cars)
     });
 
     $('#registerform input[type=submit]').click(function (e) {
@@ -83,9 +78,9 @@ $(document).ready(function() {
         eventRelativeSubmit($('#registerform'));
     });
 
-    $('#registerformsp input[type=submit]').click(function (e) {
+    $('#registerformsession input[type=submit]').click(function (e) {
         e.preventDefault();
-        eventRelativeSubmit($('#registerformsp'));
+        eventRelativeSubmit($('#registerformsession'));
     });
 
     $('#sqcheckoutbutton').click(function(e) {
@@ -105,18 +100,11 @@ $(document).ready(function() {
 
 var gRegistered = Array();
 var gAccounts = Array();
-var gSpecialClasses = Array();
 var gItems = {{pitems|to_json|safe}};
 
 {% for ev in events -%}
 {% if accounts[ev.eventid] -%}
 gAccounts["{{ev.eventid}}"] = { id: "{{accounts[ev.eventid].accountid}}", type: "{{accounts[ev.eventid].type}}" };
-{% endif -%}
-{% endfor %}
-
-{% for code in g.classdata.classlist -%}
-{% if code[0] == '_' -%}
-gSpecialClasses["{{code}}"] = {{g.classdata.classlist[code].descrip|to_json|safe}};
 {% endif -%}
 {% endfor %}
 </script>
@@ -172,10 +160,14 @@ gSpecialClasses["{{code}}"] = {{g.classdata.classlist[code].descrip|to_json|safe
     </form>
 {% endcall %}
 
-{% call m.modal('registermodalsp', 'Register For Event', '') %}
-    <form id='registerformsp' action='{{url_for(".eventssppost")}}' method='POST'>
+{% call m.modal('registermodalsession', 'Register For Event', '') %}
+    <form id='registerformsession' action='{{url_for(".sessionspost")}}' method='POST'>
         <input type='hidden' name='eventid' value=''/>
-        <div id='registerspmarker' class='row mt-2'>
+        <div class='row'><div class='col text-center'><a href='cars'><span class='fa fa-car'></span>Create,Edit and Delete Cars Here</a></div></div>
+        <div class='row'><div class='col text-center'>If you don't select a car, a placeholder will be created for you.</div></div>
+        <div class='row'><div class='col text-center'>&nbsp;</div></div>
+
+        <div id='registersessionmarker' class='row mt-2'>
         <div class='col text-center'><span class='statuslabel error'></span></div>
         </div>
         <div class='row'>

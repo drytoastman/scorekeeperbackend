@@ -193,16 +193,20 @@ def _renderSingleEvent(event, error):
     return eventdisplay(event, cars, reg, showpay, error)
 
 
-@Register.route("/<series>/eventssppost", methods=['POST'])
-def eventssppost():
-    return _eventspostinternal(request.form['eventid'], set([Car.ensureSpecialCar(g.driver.driverid, k) for (k,v) in request.form.items() if v == 'y' or v is True]))
+@Register.route("/<series>/sessionspost", methods=['POST'])
+def sessionspost():
+    pairs = list()
+    for k,v in request.form.items():
+        if v in ('y','on') or v is True:
+            pairs.append((uuid.UUID(request.form['car-'+k]), k))
+    return _eventspostinternal(request.form['eventid'], pairs)
 
 @Register.route("/<series>/eventspost", methods=['POST'])
 def eventspost():
-    return _eventspostinternal(request.form['eventid'], set([uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True]))
+    return _eventspostinternal(request.form['eventid'], [(uuid.UUID(k),'') for (k,v) in request.form.items() if v in ('y','on') or v is True])
 
 
-def _eventspostinternal(eventid, carids):
+def _eventspostinternal(eventid, pairs):
     """ Handles a add/change request from the user """
     error = ""
     event = None
@@ -210,11 +214,11 @@ def _eventspostinternal(eventid, carids):
     try:
         eventid  = uuid.UUID(eventid) #request.form['eventid'])
         event    = Event.get(eventid)
-        curreg   = {r.carid:r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == event.eventid}
-        oldids   = set(curreg.keys())
-        newids   = carids #set([uuid.UUID(k) for (k,v) in request.form.items() if v == 'y' or v is True])
+        curreg   = {(r.carid,r.session):r for r in Registration.getForDriver(g.driver.driverid) if r.eventid == event.eventid}
+        oldids   = set([(r.carid,r.session) for r in curreg.values()])
+        newids   = set(pairs)
 
-        toadd    = set([Registration(carid=x, eventid=eventid, payments=[]) for x in newids - oldids])
+        toadd    = set([Registration(carid=reg[0], eventid=eventid, session=reg[1], payments=[]) for reg in newids - oldids])
         nochange = set([curreg[x] for x in newids & oldids])
         todel    = set([curreg[x] for x in oldids - newids])
 

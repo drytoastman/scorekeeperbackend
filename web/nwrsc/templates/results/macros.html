@@ -34,7 +34,7 @@
     {% if classcode[0] == "_" %}
     {{g.classdata.classlist[classcode].descrip}}
     {% else %}
-    {{classcode.replace("_","")}} - {{g.classdata.classlist[classcode].descrip}}
+    {{classcode}} - {{g.classdata.classlist[classcode].descrip}}
     {% endif %}
     </th>
 </tr>
