@@ -290,6 +290,7 @@ class EventSettingsForm(MyFlaskForm):
     champrequire  = BooleanField( 'Required For Champ',     render_kw={'title':'Check if this event must be attended to be considered for a championship result'})
     useastiebreak = BooleanField( 'Use As Tie Breaker',     render_kw={'title':'Check if this event should be prepended to the list of items used to break championship ties'})
     isexternal    = BooleanField( 'Is External Event',      render_kw={'title':'Check if this is an external event that we only import net results from'})
+    regtype       = SelectField(  'Registration Type',      render_kw={'title':"Used to select special registration for session based events like practice or school"}, coerce=int)
     regopened     = TZDateTimeField('Registration Opens',   render_kw={'title':'When registration should open'}, format='%Y-%m-%d %H:%M')
     regclosed     = TZDateTimeField('Registration Closes',  render_kw={'title':'When registration should close'}, format='%Y-%m-%d %H:%M')
     perlimit      = IntegerField( 'Per Driver Entry Limit', render_kw={'title':'Limit to the number of entries a single driver can register (0=nolimit)'})
@@ -299,10 +300,6 @@ class EventSettingsForm(MyFlaskForm):
     notes         = TextAreaField('Notes',                  render_kw={'title':'Notes for the event that show up on the registation page', 'rows':6})
     ispro         = BooleanField( 'Is A ProSolo',           render_kw={'title':'Check if this is a ProSolo style event'}) 
     ispractice    = BooleanField( 'Is A Practice',          render_kw={'title':'Check if this is a practice and not counted towards championship points'})
-
-    sessions      = MultiCheckboxField('Non-Class Event',   render_kw={'title':'For events that don\'t use the standard class list, use these sessions instead'},
-                                                              choices=[('AM', 'AM Session'), ('PM', 'PM Session'), ('Day', 'Day Session')])
-
     location      = MyStringField('Location',               render_kw={'title':'The location of the event'})
     sponsor       = MyStringField('Sponsor',                render_kw={'title':'The event sponsor'})
     host          = MyStringField('Host',                   render_kw={'title':'The event host'})
@@ -316,6 +313,10 @@ class EventSettingsForm(MyFlaskForm):
     gatepen       = FloatField(   'Gate Penalty',           render_kw={'title':'The penalty value for missing a gate'})
     submit        = SubmitField(  'Update')
 
+    def __init__(self, regtypes, accounts):
+        MyFlaskForm.__init__(self)
+        self.regtype.choices  = regtypes
+        self.accountid.choices = accounts
 
 
 class NameDateForm(Form):

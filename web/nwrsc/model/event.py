@@ -12,6 +12,11 @@ log = logging.getLogger(__name__)
 
 class Event(AttrBase):
     TABLENAME = "events"
+    REGTYPES = [
+        (0, 'Standard Event with Classes'),
+        (1, 'Practice with AM/PM registration (no classes)'),
+        (2, 'School with All Day registration (no classes)')
+    ]
 
     def delete(self):
         """ Override base to delete registrations and the event itself, if there are runs or other references, it will throw an IntegrityError """
@@ -27,7 +32,9 @@ class Event(AttrBase):
         return ret
 
     def getSessions(self):
-        return getattr(self, 'sessions', [])
+        if   self.regtype == 1: return ('AM', 'PM')
+        elif self.regtype == 2: return ('Day', )
+        else: return tuple()
 
     def paymentRequired(self): return self.attr.get('paymentreq', False)
     def hasOpened(self): return datetime.utcnow() > self.regopened
@@ -52,6 +59,7 @@ class Event(AttrBase):
         event.eventid = uuid.uuid1()
         event.name = ""
         event.date = datetime.today()
+        event.regtype = 0
         event.regopened = datetime.today().replace(minute=0)
         event.regclosed = datetime.today().replace(minute=0)
         event.courses = 1
@@ -66,7 +74,6 @@ class Event(AttrBase):
         event.accountid = None
         event.ispro = False
         event.ispractice = False
-        event.sessions = []
         event.isexternal = False
         event.champrequire = False
         event.useastiebreak = False

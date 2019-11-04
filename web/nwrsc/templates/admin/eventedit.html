@@ -4,8 +4,6 @@
 {{super()}}
 <script>
 $(document).ready(function() {
-    $("#sessions").prepend("<li><input type='checkbox' id='sessions-on' {{form.sessions.data|length > 0 and "checked='checked'"|safe or ""}}/></li>");
-
     $("input[name=regopened]").flatpickr( { enableTime: true, minuteIncrement: 30 } );
     $("input[name=regclosed]").flatpickr( { enableTime: true, minuteIncrement: 30 } );
 
@@ -26,44 +24,9 @@ $(document).ready(function() {
         }
         elem.last().show();
     }).trigger("change");
-
-    $("#sessions-on").change(function() {
-        var elem = $("#sessions > li");
-        if (this.checked) {
-            elem.show();
-        } else {
-            elem.find('input').prop('checked', false);
-            elem.hide();
-        }
-        $(this).parent().show();
-    }).trigger("change");
 });
 </script>
 
-<style>
-#sessions {
-    margin-bottom: 0;
-    padding: 0px;
-}
-#sessions li {
-    display: inline;
-}
-#sessions label {
-    width: auto;
-    height: auto;
-    vertical-align: middle;
-}
-#sessions input {
-    width: 1.6rem;
-    vertical-align: middle;
-    margin: 0 0.7rem 0 0.1rem;
-}
-
-#sessions-on {
-    margin-right: 2rem !important;
-    margin-left: 0 !important;
-}
-</style>
 {% endblock headers %}
 
 {% block content %}

@@ -345,8 +345,7 @@ def default():
 @Admin.route("/event/<uuid:eventid>/edit", methods=['POST','GET'])
 def eventedit():
     """ Process edit event form submission """
-    form = EventSettingsForm()
-    form.accountid.choices = [(a.accountid, a.name) for a in PaymentAccount.getAll()]
+    form = EventSettingsForm(Event.REGTYPES, [(a.accountid, a.name) for a in PaymentAccount.getAll()])
     if request.form:
         if form.validate():
             newevent = Event()
@@ -364,8 +363,7 @@ def eventedit():
 @Admin.route("/createevent", methods=['POST','GET'])
 def createevent():
     """ Present form to create a new event """
-    form = EventSettingsForm()
-    form.accountid.choices = [(a.accountid, a.name) for a in PaymentAccount.getAll()]
+    form = EventSettingsForm(Event.REGTYPES, [(a.accountid, a.name) for a in PaymentAccount.getAll()])
     if request.form:
         if form.validate():
             newevent = Event()

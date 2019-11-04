@@ -266,9 +266,8 @@ class Result(object):
 
         with g.db.cursor() as cur:
             # Fetch all of the entrants (driver/car combo), place in class lists, save pointers for quicker access
-            cur.execute("SELECT distinct(c.carid),d.firstname,d.lastname,d.attr->>'scca' as scca,c.*,r2.rungroup FROM drivers d " + 
-                        "JOIN cars c ON c.driverid=d.driverid LEFT JOIN runorder r2 ON c.carid = ANY(r2.cars) and r2.eventid=%s "
-                        "WHERE c.carid IN (SELECT distinct(carid) FROM runs WHERE eventid=%s)", (eventid, eventid))
+            cur.execute("SELECT distinct(c.carid),d.firstname,d.lastname,d.attr->>'scca' as scca,c.* FROM drivers d " + 
+                        "JOIN cars c ON c.driverid=d.driverid WHERE c.carid IN (SELECT distinct(carid) FROM runs WHERE eventid=%s)", (eventid,))
 
             for e in [Entrant(**x) for x in cur.fetchall()]:
                 if e.carid in cptrs:
@@ -284,6 +283,7 @@ class Result(object):
                 if r.raw <= 0:
                     continue # ignore crap data that can't be correct
                 match = cptrs[r.carid]
+                match.rungroup = r.rungroup
                 match.runs[r.course-1][r.run - 1] = r
                 penalty = (r.cones * event.conepen) + (r.gates * event.gatepen)
                 if r.status != "OK":

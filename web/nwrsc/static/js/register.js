@@ -243,8 +243,8 @@ function initregform(id, eventid, limit, msg)
     me.find('input[name=eventid]').val(eventid);
     me.find('input[type=checkbox]').prop('checked', false).prop('disabled', false).click(checkmax);
     gRegistered[eventid].forEach(function (regentry) {
-        me.find("input[name="+regentry.carid+"]").prop('checked', true);
-        me.find("input[name="+regentry.session+"]").prop('checked', true);
+        if (regentry.carid)   me.find("input[name="+regentry.carid+"]").prop('checked', true);
+        if (regentry.session) me.find("input[name="+regentry.session+"]").prop('checked', true);
     });
 
     checkmax();
