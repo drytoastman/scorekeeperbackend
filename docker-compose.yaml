@@ -13,7 +13,7 @@ services:
     env_file: [ default.env ]
     volumes:  
         - "database:/var/lib/postgresql/data"
-        - "dbsocket:/var/run/postgresql"
+        - "scsocket:/var/run/postgresql"
         - "logs:/var/log"
     networks:
         net1:
@@ -28,7 +28,7 @@ services:
     command: "bash -c 'pip --disable-pip-version-check install -e /code && exec webserver.py'"
     env_file: [ default.env ]
     volumes:  
-        - "dbsocket:/var/run/postgresql"
+        - "scsocket:/var/run/postgresql"
         - "logs:/var/log"
         - "uploads:/var/uploads"
         - "./web:/code"
@@ -43,7 +43,7 @@ services:
     command: "bash -c 'pip --disable-pip-version-check install -e /code && syncserver'"
     env_file: [ default.env ]
     volumes:
-        - "dbsocket:/var/run/postgresql"
+        - "scsocket:/var/run/postgresql"
         - "logs:/var/log"
         - "./sync:/code"
     networks:
@@ -68,7 +68,7 @@ volumes:
       name: "sclogs-latest"
 
   # for sharing of database unix socket across containers
-  dbsocket:
+  scsocket:
     external:
       name: "scsocket"
 
