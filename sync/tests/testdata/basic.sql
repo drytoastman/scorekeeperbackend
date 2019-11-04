@@ -14,7 +14,7 @@ INSERT INTO events (eventid, name, date, regclosed, attr) VALUES ('00000000-0000
 
 INSERT INTO runorder (eventid, course, rungroup, cars) VALUES ('00000000-0000-0000-0000-000000000010', 1, 1, '{00000000-0000-0000-0000-000000000002}');
 
-INSERT INTO runs (eventid, carid, course, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 1, 1.0, 'OK', '{}');
-INSERT INTO runs (eventid, carid, course, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 2, 2.0, 'OK', '{}');
-INSERT INTO runs (eventid, carid, course, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 3, 3.0, 'OK', '{}');
-INSERT INTO runs (eventid, carid, course, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 4, 4.0, 'OK', '{}');
+INSERT INTO runs (eventid, carid, course, rungroup, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 1, 1, 1.0, 'OK', '{}');
+INSERT INTO runs (eventid, carid, course, rungroup, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 1, 2, 2.0, 'OK', '{}');
+INSERT INTO runs (eventid, carid, course, rungroup, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 1, 3, 3.0, 'OK', '{}');
+INSERT INTO runs (eventid, carid, course, rungroup, run, raw, status, attr) VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000002', 1, 1, 4, 4.0, 'OK', '{}');

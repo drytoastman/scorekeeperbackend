@@ -22,12 +22,9 @@ def test_runorder_reorder(syncdbs, syncdata):
         cur.execute(update, ([syncdata.carid2], syncdata.eventid, 1, 1))
         syncx['A'].commit()
 
-        # make sure we can add to another course but not another rungroup with the same event/course
-        cur.execute(insert, ([syncdata.carid2], syncdata.eventid, 2, 2))
-        with pytest.raises(psycopg2.InternalError):
-            cur.execute(insert, ([syncdata.carid2], syncdata.eventid, 1, 2))
-            syncx['A'].commit()
-        syncx['A'].rollback()
+        # now also allowed in another run group as its event depdendent and enforced by application
+        cur.execute(insert, ([syncdata.carid2], syncdata.eventid, 1, 2))
+        syncx['A'].commit()
 
         # make sure we can't add an invalid carid
         with pytest.raises(psycopg2.InternalError):
