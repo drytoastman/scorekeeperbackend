@@ -136,11 +136,6 @@ BEGIN
     RAISE EXCEPTION 'You cannot add a car multiple times to the same rungroup';
   END IF;
 
-  -- check that the cars don't exist in another runorder on the same course
-  IF (SELECT NEW.cars && array_agg(c) FROM (SELECT unnest(cars) FROM runorder WHERE eventid=NEW.eventid AND course=NEW.course AND rungroup!=NEW.rungroup) AS dt(c) ) THEN
-      RAISE EXCEPTION 'Car cannot be in multiple rungroups with the same course';
-  END IF;
-
   RETURN NEW;
 END;
 $body$

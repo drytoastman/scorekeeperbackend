@@ -140,6 +140,7 @@ CREATE TABLE events (
     champrequire  BOOLEAN     NOT NULL DEFAULT FALSE,
     useastiebreak BOOLEAN     NOT NULL DEFAULT FALSE,
     isexternal    BOOLEAN     NOT NULL DEFAULT FALSE,
+    regtype       INTEGER     NOT NULL DEFAULT 0,
     regopened     TIMESTAMP   NOT NULL DEFAULT now(), 
     regclosed     TIMESTAMP   NOT NULL, 
     courses       INTEGER     NOT NULL DEFAULT 1, 
@@ -153,7 +154,6 @@ CREATE TABLE events (
     gatepen       FLOAT       NOT NULL DEFAULT 10.0, 
     ispro         BOOLEAN     NOT NULL DEFAULT FALSE, 
     ispractice    BOOLEAN     NOT NULL DEFAULT FALSE, 
-    sessions      TEXT[]      NOT NULL DEFAULT '{}',
     accountid     TEXT        REFERENCES paymentaccounts,
     attr          JSONB       NOT NULL,
     modified      TIMESTAMP   NOT NULL DEFAULT now(),
@@ -191,6 +191,7 @@ CREATE TABLE runs (
     eventid  UUID       NOT NULL REFERENCES events, 
     carid    UUID       NOT NULL REFERENCES cars, 
     course   INTEGER    NOT NULL,
+    rungroup INTEGER    NOT NULL,
     run      INTEGER    NOT NULL, 
     cones    INTEGER    NOT NULL DEFAULT 0, 
     gates    INTEGER    NOT NULL DEFAULT 0, 
@@ -198,14 +199,14 @@ CREATE TABLE runs (
     status   VARCHAR(8) NOT NULL DEFAULT 'DNS', 
     attr     JSONB      NOT NULL,
     modified TIMESTAMP  NOT NULL DEFAULT now(),
-    PRIMARY KEY (eventid, carid, course, run),
-    CONSTRAINT validrundata CHECK (course > 0 AND run > 0 and raw >= 0.0)
+    PRIMARY KEY (eventid, carid, course, rungroup, run),
+    CONSTRAINT validrundata CHECK (course > 0 AND rungroup > 0 AND run > 0 and raw >= 0.0)
 );
 CREATE INDEX ON runs(carid);
 REVOKE ALL ON runs FROM public;
 GRANT  ALL ON runs TO <seriesname>;
 CREATE TRIGGER runmod AFTER INSERT OR UPDATE OR DELETE ON runs FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
-CREATE TRIGGER rununi BEFORE UPDATE ON runs FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'carid', 'course', 'run');
+CREATE TRIGGER rununi BEFORE UPDATE ON runs FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'carid', 'course', 'runroup', 'run');
 COMMENT ON TABLE runs IS 'The runs in this series. Attr includes reaction, sixty, segments[n]';
 
 
@@ -283,8 +284,8 @@ CREATE TABLE runorder (
 REVOKE ALL ON runorder FROM public;
 GRANT  ALL ON runorder TO <seriesname>;
 CREATE TRIGGER ordermod AFTER INSERT OR UPDATE OR DELETE ON runorder FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
-CREATE TRIGGER orderuni BEFORE UPDATE ON runorder FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'course', 'rungroup', 'row');
-CREATE CONSTRAINT TRIGGER ordercon AFTER INSERT OR UPDATE ON runorder DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE runorderconstraints('<seriesname>');
+CREATE CONSTRAINT TRIGGER ordercon AFTER INSERT OR UPDATE ON runorder DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE runorderconstraints();
+CREATE TRIGGER orderuni BEFORE UPDATE ON runorder FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'course', 'rungroup');
 COMMENT ON TABLE runorder IS 'This is the list of cars in each rungroup as seen in data entry';
 
 
@@ -298,8 +299,8 @@ CREATE TABLE classorder (
 REVOKE ALL ON classorder FROM public;
 GRANT  ALL ON classorder TO <seriesname>;
 CREATE TRIGGER classordermod AFTER INSERT OR UPDATE OR DELETE ON classorder FOR EACH ROW EXECUTE PROCEDURE logmods('<seriesname>.serieslog');
+CREATE CONSTRAINT TRIGGER classordercon AFTER INSERT OR UPDATE ON classorder DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE classorderconstraints();
 CREATE TRIGGER classorderuni BEFORE UPDATE ON classorder FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'classcode');
-CREATE CONSTRAINT TRIGGER classordercon AFTER INSERT OR UPDATE ON classorder DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE classorderconstraints('<seriesname>');
 COMMENT ON TABLE classorder IS 'the ordering of classes inside each run group, generally only used in the Pro event for grid ordering';
 
 
