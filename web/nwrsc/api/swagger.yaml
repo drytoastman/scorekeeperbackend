@@ -568,6 +568,9 @@ definitions:
       countedruns:
         type: integer
         description: if > 0, the number of runs that count towards class position and points
+      regtype:
+        type: integer
+        description: 0 for regular event, 1 for AM/PM sessions without classes, 2 for Day session without classes
 
   ChallengeInfo:
     type: object

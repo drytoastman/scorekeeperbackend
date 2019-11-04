@@ -15,7 +15,7 @@ class EventInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, eventdate: date=None, modified: datetime=None, name: str=None, champrequire: bool=None, useastiebreak: bool=None, isexternal: bool=None, runs: int=None, ispro: bool=None, conepen: float=None, courses: int=None, eventid: str=None, gatepen: float=None, location: str=None, segments: int=None, ispractice: bool=None, countedruns: int=None):  # noqa: E501
+    def __init__(self, eventdate: date=None, modified: datetime=None, name: str=None, champrequire: bool=None, useastiebreak: bool=None, isexternal: bool=None, runs: int=None, ispro: bool=None, conepen: float=None, courses: int=None, eventid: str=None, gatepen: float=None, location: str=None, segments: int=None, ispractice: bool=None, countedruns: int=None, regtype: int=None):  # noqa: E501
         """EventInfo - a model defined in Swagger
 
         :param eventdate: The eventdate of this EventInfo.  # noqa: E501
@@ -50,6 +50,8 @@ class EventInfo(Model):
         :type ispractice: bool
         :param countedruns: The countedruns of this EventInfo.  # noqa: E501
         :type countedruns: int
+        :param regtype: The regtype of this EventInfo.  # noqa: E501
+        :type regtype: int
         """
         self.swagger_types = {
             'eventdate': date,
@@ -67,7 +69,8 @@ class EventInfo(Model):
             'location': str,
             'segments': int,
             'ispractice': bool,
-            'countedruns': int
+            'countedruns': int,
+            'regtype': int
         }
 
         self.attribute_map = {
@@ -86,7 +89,8 @@ class EventInfo(Model):
             'location': 'location',
             'segments': 'segments',
             'ispractice': 'ispractice',
-            'countedruns': 'countedruns'
+            'countedruns': 'countedruns',
+            'regtype': 'regtype'
         }
 
         self._eventdate = eventdate
@@ -105,6 +109,7 @@ class EventInfo(Model):
         self._segments = segments
         self._ispractice = ispractice
         self._countedruns = countedruns
+        self._regtype = regtype
 
     @classmethod
     def from_dict(cls, dikt) -> 'EventInfo':
@@ -484,3 +489,26 @@ class EventInfo(Model):
         """
 
         self._countedruns = countedruns
+
+    @property
+    def regtype(self) -> int:
+        """Gets the regtype of this EventInfo.
+
+        0 for regular event, 1 for AM/PM sessions without classes, 2 for Day session without classes  # noqa: E501
+
+        :return: The regtype of this EventInfo.
+        :rtype: int
+        """
+        return self._regtype
+
+    @regtype.setter
+    def regtype(self, regtype: int):
+        """Sets the regtype of this EventInfo.
+
+        0 for regular event, 1 for AM/PM sessions without classes, 2 for Day session without classes  # noqa: E501
+
+        :param regtype: The regtype of this EventInfo.
+        :type regtype: int
+        """
+
+        self._regtype = regtype
