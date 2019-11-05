@@ -47,8 +47,8 @@ def collect_errors_file(filename):
     collect = []
     add = False
     now = datetime.datetime.now(datetime.timezone.utc)
-    limit = now.replace(day=now.day-1, hour=now.hour-1)
-    tzinfos = {'PDT': gettz("US/Pacific")}
+    limit = now - datetime.timedelta(days=1, hours=2)
+    tzinfos = {'PDT': gettz("US/Pacific"), 'PST': gettz("US/Pacific")}
 
     with open(filename, 'r') as fp:
         for line in fp.readlines():
