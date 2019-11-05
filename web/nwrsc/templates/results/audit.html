@@ -34,7 +34,9 @@ Group:
 <th>First</th>
 <th>Last</th>
 <th>#</th>
+{% if not g.event.usingSessions() %}
 <th>Cls</th>
+{% endif %}
 {% for ii in range(event.runs) %}
     <th>Run{{ii+1}}</th>
 {% endfor %}
@@ -47,7 +49,9 @@ Group:
     <td class='{{order == "firstname" and "bold" or ""}}'>{{entrant.firstname[:8]}}</td>
     <td class='{{order == "lastname" and "bold" or ""}}'>{{entrant.lastname[:8]}}</td>
     <td>{{entrant.number if entrant.number}}</td>
+    {% if not g.event.usingSessions() %}
     <td>{{entrant.classcode}} ({{entrant.indexcode}})</td>
+    {% endif %}
 
     {% for run in entrant.runs %}
         <td>

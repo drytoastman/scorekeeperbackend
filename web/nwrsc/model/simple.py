@@ -70,7 +70,7 @@ class Audit(object):
             if not hold:
                 return list()
 
-            cur.execute("SELECT * FROM runs WHERE eventid=%s and course=%s and carid in %s", (event.eventid, course, tuple(hold.keys())))
+            cur.execute("SELECT * FROM runs WHERE eventid=%s and course=%s and rungroup=%s and carid in %s", (event.eventid, course, group, tuple(hold.keys())))
             for run in [Run(**x) for x in cur.fetchall()]:
                 res = hold[run.carid]
                 if run.run > event.runs:
