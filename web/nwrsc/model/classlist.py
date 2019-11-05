@@ -249,6 +249,23 @@ class ClassData(object):
         return (indexval, indexstr)
 
 
+    def descrip(self, classcode):
+        if classcode in self.classlist: return self.classlist[classcode].descrip
+        return "Group " + classcode
+
+    def secondruns(self, classcode):
+        if classcode in self.classlist: return self.classlist[classcode].secondruns
+        return False
+
+    def eventtrophy(self, classcode):
+        if classcode in self.classlist: return self.classlist[classcode].eventtrophy
+        return True
+
+    def champtrophy(self, classcode):
+        if classcode in self.classlist: return self.classlist[classcode].champtrophy
+        return False
+
+
     def getJSONArrays(self):
         classes = dict()
         indexes = dict()

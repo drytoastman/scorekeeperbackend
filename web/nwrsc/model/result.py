@@ -260,29 +260,37 @@ class Result(object):
         classdata = ClassData.get()
         settings  = Settings.getAll()
         ppoints   = PosPoints(settings.pospointlist)
+        sessions  = event.usingSessions()
 
         if event.isexternal:
             return cls._updateExternalEventResults(eventid, settings, ppoints)
 
         with g.db.cursor() as cur:
             # Fetch all of the entrants (driver/car combo), place in class lists, save pointers for quicker access
-            cur.execute("SELECT distinct(c.carid),d.firstname,d.lastname,d.attr->>'scca' as scca,c.* FROM drivers d " + 
-                        "JOIN cars c ON c.driverid=d.driverid WHERE c.carid IN (SELECT distinct(carid) FROM runs WHERE eventid=%s)", (eventid,))
+            cur.execute("SELECT e.rungroup,c.carid,d.firstname,d.lastname,d.attr->>'scca' as scca,c.* FROM drivers d " + 
+                        "JOIN cars c ON c.driverid=d.driverid INNER JOIN (select distinct carid, rungroup FROM runs WHERE eventid=%s) e ON c.carid = e.carid", (eventid,))
 
             for e in [Entrant(**x) for x in cur.fetchall()]:
                 if e.carid in cptrs:
                     continue # ignore duplicate carids from old series
-                (e.indexval,e.indexstr) = classdata.getEffectiveIndex(e)
+
+                if sessions:
+                    results[e.rungroup].append(e)
+                    (e.indexval,e.indexstr) = (1.0, '')
+                    e.classcode = ''
+                else:
+                    results[e.classcode].append(e)
+                    (e.indexval,e.indexstr) = classdata.getEffectiveIndex(e)
+
                 e.runs = [[Run(course=x+1,run=y+1,raw=999.999,cones=0,gates=0,pen=999.999,net=999.999,status='PLC') for y in range(event.runs)] for x in range(event.courses)]
-                results[e.classcode].append(e)
-                cptrs[e.carid] = e
+                cptrs[e.carid,e.rungroup] = e
 
             # Fetch all of the runs, calc net and assign to the correct entrant
             cur.execute("select * from runs where eventid=%s and course<=%s and run<=%s", (eventid, event.courses, event.runs))
             for r in [Run(**x) for x in cur.fetchall()]:
                 if r.raw <= 0:
                     continue # ignore crap data that can't be correct
-                match = cptrs[r.carid]
+                match = cptrs[r.carid,r.rungroup]
                 match.rungroup = r.rungroup
                 match.runs[r.course-1][r.run - 1] = r
                 penalty = (r.cones * event.conepen) + (r.gates * event.gatepen)
@@ -327,7 +335,7 @@ class Result(object):
                 res = results[clas]
                 res.sort(key=attrgetter('net'))
                 trophydepth = ceil(len(res) / 3.0)
-                eventtrophy = classdata.classlist[clas].eventtrophy
+                eventtrophy = sessions or classdata.eventtrophy(clas)
                 for ii, e in enumerate(res):
                     e.position   = ii+1
                     e.trophy     = eventtrophy and (ii < trophydepth)
@@ -607,7 +615,7 @@ class Result(object):
 
             eventresults = cls.getEventResults(event.eventid)
             for classcode in eventresults:
-                if not classdata.classlist[classcode].champtrophy:  # class doesn't get champ trophies, ignore
+                if not classdata.champtrophy(classcode):  # class doesn't get champ trophies, ignore
                     continue
                 classmap = store[classcode]
                 for entrant in eventresults[classcode]:
@@ -668,7 +676,7 @@ class Result(object):
 
             ttl = TopTimesList(title, cols, fields)
             for classcode in results:
-                if classdata.classlist[classcode].secondruns and counted:
+                if classdata.secondruns(classcode) and counted:
                     continue
 
                 for e in results[classcode]:

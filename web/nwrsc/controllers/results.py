@@ -73,7 +73,10 @@ def _resultsforclasses(clslist=None, grplist=None):
     if clslist is None and grplist is None:
         ispost         = True
         results        = resultsbase
-        g.toptimes     = Result.getTopTimesTable(g.classdata, results, {'indexed':True}, {'indexed':False})
+        toplists       = [{'indexed':True}, {'indexed':False}]
+        if g.event.usingSessions():
+            toplists   = [{'indexed':False, 'counted':False, 'title':'Top Times', 'cols':['#',   'Name', 'Time'], 'fields':['pos', 'name', 'time']}]
+        g.toptimes     = Result.getTopTimesTable(g.classdata, results, *toplists)
         g.entrantcount = sum([len(x) for x in results.values()])
     elif grplist is not None:
         ispost         = False
@@ -153,9 +156,11 @@ def tt():
         return "Implement the top segment times now. :)"
     elif course == 0 and event.courses > 1:
         keys.extend([{'indexed':indexed, 'counted':counted, 'course':c, 'title':c and "Course {}".format(c) or "Total"} for c in range(event.courses+1)])
-    elif course == 0:
+    elif course == 0 and indexed == 1:
         keys.append({'indexed':True,  'counted':counted, 'course':0, 'title':'Top Index Times'})
         keys.append({'indexed':False, 'counted':counted, 'course':0, 'title':'Top Unindexed Times'})
+    elif course == 0 and indexed == 0:
+        keys.append({'indexed':False, 'counted':counted, 'course':0, 'title':'Top Times'})
     else:
         keys.append({'indexed':indexed, 'counted':counted, 'course':course, 'title':'Course {}'.format(course)})
 

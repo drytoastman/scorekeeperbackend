@@ -29,9 +29,9 @@ ul { padding-left: 0.7rem; }
 <h5>Results</h5>
 <ul>
 <li><a href='{{url_for('.post')}}'>Event Results</a></li>
-<li><a href='{{url_for('.dist', attr='net')}}'>PAX Distribution</a></li>
+{% if not g.event.usingSessions() %}<li><a href='{{url_for('.dist', attr='net')}}'>PAX Distribution</a></li>{% endif %}
 <li><a href='{{url_for('.dist', attr='pen')}}'>Net Distribution</a></li>
-<li><a href='{{url_for('.champ')}}'>Championship</a></li>
+{% if not g.event.usingSessions() %}<li><a href='{{url_for('.champ')}}'>Championship</a></li>{% endif %}
 {%if config.SHOWLIVE and isactive -%}
 <li><a href="{{url_for('Announcer.index')}}">Announcer Panel</a></li>
 {% endif -%}
@@ -46,9 +46,11 @@ ul { padding-left: 0.7rem; }
     {% if g.event.ispro %}
 	<li><a href='{{url_for('.tt', indexed=0)}}'>Unindexed</a></li>
 	<li><a href='{{url_for('.tt', indexed=1)}}'>Indexed</a></li>
-    {% else %}
+    {% elif not g.event.usingSessions() %}
 	<li><a href='{{url_for('.tt', counted=1)}}'>Counted Runs</a></li>
 	<li><a href='{{url_for('.tt', counted=0)}}'>All Runs</a></li>
+    {% else %}
+	<li><a href='{{url_for('.tt', counted=0, indexed=0)}}'>All Runs</a></li>
     {% endif %}
 </ul>
 {%if event.segments > 1 %}
@@ -79,14 +81,16 @@ ul { padding-left: 0.7rem; }
 
 <div class='row'>
 <div class='col'>
-<h5>By RunGroup Or Active Class</h5>
+<h5>By RunGroup {%if not g.event.usingSessions()%}Or Active Class{%endif%}</h5>
 <ul class='wrap4'>
 {% for ii in range(1,5) -%}
 	<li><a href='{{url_for('.bygroup', list=ii)}}'>Group {{ii}}</a></li>
 {% endfor -%}
+{% if not g.event.usingSessions() %}
 {% for code in active|sort -%}
 	<li><a href='{{url_for('.byclass', list=code)}}'>{{code}}</a></li>
 {% endfor -%}
+{% endif %}
 </ul>
 </div>
 </div>
@@ -94,4 +98,3 @@ ul { padding-left: 0.7rem; }
 </div> {# container #}
 
 {% endblock content %}
-

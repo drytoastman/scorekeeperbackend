@@ -36,6 +36,9 @@ class Event(AttrBase):
         elif self.regtype == 2: return ('Day', )
         else: return tuple()
 
+    def usingSessions(self):
+        return self.regtype != 0
+
     def paymentRequired(self): return self.attr.get('paymentreq', False)
     def hasOpened(self): return datetime.utcnow() > self.regopened
     def hasClosed(self): return datetime.utcnow() > self.regclosed

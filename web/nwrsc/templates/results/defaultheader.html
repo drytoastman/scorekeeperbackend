@@ -1,9 +1,10 @@
 <h3 class='seriesname'>{{g.settings.seriesname}}</h3>
 <h3 class='eventname'>{{g.event.date.strftime("%a %b %d %Y")}} - {{g.event.name}}</h3>
-<h6 class='eventinfo'><span class='location'>{{g.event.location}}</span> - <span class='entrantcount'>{{g.entrantcount}} Entrants</span></h6>
+<h6 class='eventinfo'>
+{% if g.event.location %}<span class='location'>{{g.event.location}}</span> - {%endif%}
+<span class='entrantcount'>{{g.entrantcount}} Entrants</span></h6>
 <div class='classlinks'>
 {% for cls in results|sort -%}
 <a href='#body{{cls}}'>{{cls|replace("_","")}}</a>
 {% endfor %}
 </div>
-
