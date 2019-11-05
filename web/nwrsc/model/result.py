@@ -117,9 +117,9 @@ class Result(object):
         return cls._loadTopTimesTable(classdata, results, *keys, **kwargs)
 
     @classmethod
-    def getDecoratedClassResults(cls, settings, eventresults, *carids):
+    def getDecoratedClassResults(cls, settings, eventresults, *carids, rungroup=None):
         """ Decorate the objects with old and potential results for the announcer information """
-        return cls._decorateClassResults(settings, eventresults, *carids)
+        return cls._decorateClassResults(settings, eventresults, *carids, rungroup=rungroup)
 
     @classmethod
     def getDecoratedChampResults(cls, champresults, *markentrants):
@@ -397,7 +397,7 @@ class Result(object):
 
 
     @classmethod
-    def _decorateClassResults(cls, settings, eventresults, *carids):
+    def _decorateClassResults(cls, settings, eventresults, *carids, rungroup=None):
         """ Calculate things for the announcer/info displays """
         carids = list(map(str, carids)) # json data holds UUID as strings
         ppoints = PosPoints(settings.pospointlist)
@@ -407,9 +407,10 @@ class Result(object):
         # Find the class and entrants for the results
         for clscode, entrants in eventresults.items():
             for e in entrants:
-                if e['carid'] in carids:
-                    entrantlist = entrants
-                    drivers[e['carid']] = e
+                if rungroup and e['rungroup'] != rungroup: continue
+                if e['carid'] not in carids: continue
+                entrantlist = entrants
+                drivers[e['carid']] = e
             if entrantlist:
                 break
 

@@ -207,12 +207,15 @@ class Run(AttrBase):
                 args.extend([course, course])
                 filt += "AND (s.newdata->>'course'=%s OR s.olddata->>'course'=%s) "
 
-            cur.execute("select s.ltime, s.olddata->>'course' coursea, s.newdata->>'course' as courseb, c.carid, c.classcode from serieslog s " +
-                        "JOIN cars c ON c.carid=uuid(s.newdata->>'carid') OR c.carid=uuid(s.olddata->>'carid') " +
-                        "WHERE s.tablen='runs' AND s.ltime > %s AND (s.newdata->>'eventid'=%s OR s.olddata->>'eventid'=%s) " + 
+            cur.execute("select s.ltime, c.carid, c.classcode, " +
+                        "s.olddata->>'course' coursea, s.olddata->>'rungroup' groupa, " +
+                        "s.newdata->>'course' courseb, s.newdata->>'rungroup' groupb  " +
+                        "FROM serieslog s JOIN cars c ON c.carid=uuid(s.newdata->>'carid') OR c.carid=uuid(s.olddata->>'carid') " +
+                        "WHERE s.tablen='runs' AND s.ltime > %s AND (s.newdata->>'eventid'=%s OR s.olddata->>'eventid'=%s) " +
                         filt + " ORDER BY s.ltime", tuple(args))
             for row in cur.fetchall():
-                entry = dict(carid=row['carid'], classcode=row['classcode'], modified=row['ltime'], course=row['coursea'] or row['courseb'])
+                entry = dict(carid=row['carid'], classcode=row['classcode'], modified=row['ltime'],
+                            course=row['coursea'] or row['courseb'], rungroup=row['groupa'] or row['groupb'])
                 ret[row['classcode']] = entry
                 ret['last_entry']     = entry
         return ret
@@ -221,15 +224,15 @@ class Run(AttrBase):
 class RunOrder(AttrBase):
 
     @classmethod
-    def getNextRunOrder(cls, carid, eventid, course=1):
+    def getNextRunOrder(cls, carid, eventid, course, rungroup):
         """ Returns a list of objects (classcode, carid) for the next cars in order after carid """
         with g.db.cursor() as cur:
-            cur.execute("SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND %s=ANY(cars)", (eventid, course, carid));
+            cur.execute("SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND rungroup=%s", (eventid, course, rungroup));
             order = [x[0] for x in cur.fetchall()]
             ret = []
             for ii, rowcarid in enumerate(order):
                 if rowcarid == carid:
-                    for jj in range(ii+1, ii+4):
+                    for jj in range(ii+1, ii+4)[:len(order)-1]:  # get next 3 but only to length of list (no repeats)
                         cur.execute("SELECT c.carid,c.classcode,c.number from cars c WHERE carid=%s", (order[jj%len(order)], ));
                         ret.append(RunOrder(**cur.fetchone()))
                     break
@@ -258,7 +261,7 @@ class TempCache():
             cur.execute("INSERT INTO tempcache (key, data) VALUES (%s, %s) ON CONFLICT (key) DO UPDATE SET data=%s", (key, jtext, jtext))
             g.db.commit()
 
-        
+
 class TimerTimes():
 
     @classmethod

@@ -103,14 +103,14 @@ def nextresult():
                     side = le['course'] == '1' and 'left' or 'right'
                     data = loadProResults(le['carid'], side, oppcarid)
                 else:
-                    data = loadAnnouncerResults(le['carid'], mini=mini)
+                    data = loadAnnouncerResults(le['carid'], int(le['course']), int(le['rungroup']), mini=mini)
                 data['timestamp'] = le['modified'].timestamp()
                 ret['lastresult'] = data
 
         if classcode and lastclass is not None:
             lastrun = Run.getLast(g.eventid, lastclass, classcode=classcode)
             if lastrun: # Not an empty dict
-                data = loadClassResults(lastrun['last_entry']['carid'])
+                data = loadClassResults(lastrun['last_entry']['carid'], int(lastrun['last_entry']['rungroup']))
                 data['timestamp'] = lastrun['last_entry']['modified'].timestamp()
                 ret['lastclass'] = data
 
@@ -169,19 +169,19 @@ def formatProTimer(events):
     return ret
 
 
-def entrantTables(store, settings, classdata, carid, results, champ):
-    (group, drivers) = Result.getDecoratedClassResults(settings, results, carid)
+def entrantTables(store, settings, classdata, carid, results, champ, rungroup=None):
+    (group, drivers) = Result.getDecoratedClassResults(settings, results, carid, rungroup=rungroup)
     if len(drivers):
         store['entrant'] = render_template('/announcer/entrant.html', event=g.event, driver=drivers[0])
         store['class']   = render_template('/announcer/class.html', event=g.event, classcode=drivers[0]['classcode'], group=group)
         if not champ:
             store['champ'] = ""
         elif g.event.ispractice:
-            store['champ'] = "practice event"
+            store['champ'] = ""
         elif classdata.classlist[drivers[0]['classcode']].champtrophy:
             store['champ'] = render_template('/announcer/champ.html', event=g.event, classcode=drivers[0]['classcode'], champ=Result.getDecoratedChampResults(champ, *drivers))
         else:
-            store['champ'] = "Not a champ class"
+            store['champ'] = ""
     else:
         store['entrant'] = "No result data"
         store['class'] = "No result data"
@@ -192,19 +192,19 @@ def entrantTables(store, settings, classdata, carid, results, champ):
         e.pop('current',None)
 
 
-def loadClassResults(carid):
+def loadClassResults(carid, rungroup):
     settings = Settings.getAll()
     classdata = ClassData.get()
     event    = Event.get(g.eventid)
     results  = Result.getEventResults(g.eventid)
     champ    = Result.getChampResults()
     ret      = {}
-    entrantTables(ret, settings, classdata, carid, results, champ)
+    entrantTables(ret, settings, classdata, carid, results, champ, rungroup=rungroup)
 
     return ret
 
 
-def loadAnnouncerResults(carid, mini=False):
+def loadAnnouncerResults(carid, course, rungroup, mini=False):
     settings  = Settings.getAll()
     classdata = ClassData.get()
     tttable   = get_template_attribute('/results/ttmacros.html', 'toptimestable')
@@ -213,23 +213,24 @@ def loadAnnouncerResults(carid, mini=False):
 
     data = {'current':{}, 'next':{}}
     order = list()
-    nextcars = RunOrder.getNextRunOrder(carid, g.eventid)
+    nextcars = RunOrder.getNextRunOrder(carid, g.eventid, course, rungroup)
     for n in nextcars:
-        if n.classcode in results:
-            for e in results[n.classcode]:
+        key = n.classcode in results and n.classcode or str(rungroup)
+        if key in results:
+            for e in results[key]:
                 if e['carid'] == str(n.carid):
                     order.append((e, Result.getBestNetRun(e)))
                     break
 
-    entrantTables(data['current'], settings, classdata, carid, results, champ)
+    entrantTables(data['current'], settings, classdata, carid, results, champ, rungroup=rungroup)
     data['order'] = render_template('/announcer/runorder.html', order=order)
     if not mini:
-        data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True, 'counted':False}, carid=carid))
+        data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True,  'counted':False}, carid=carid))
         data['topraw'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':False, 'counted':False}, carid=carid))
         for ii in range(1, g.event.segments+1):
             data['topseg%d'% ii] = toptimestable(Result.getTopTimesTable(classdata, results, {'seg':ii}, carid=carid))
         nextid = nextcars and nextcars[0].carid or None
-        entrantTables(data['next'], settings, classdata, nextid, results, champ)
+        entrantTables(data['next'], settings, classdata, nextid, results, champ, rungroup=rungroup)
 
     return data
 
