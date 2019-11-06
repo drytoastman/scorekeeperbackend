@@ -187,7 +187,7 @@ function eventRelativeSubmit(form)
 }
 
 
-function initpaymentform(id, eventid)
+function initpaymentform(id, eventid, sessionstr)
 {
     var me = $(id);
     var itemlist = gItems[gAccounts[eventid].id];
@@ -200,11 +200,17 @@ function initpaymentform(id, eventid)
     me.find('.error').text("");
     me.find('input[name=eventid]').val(eventid);
 
+    if (sessionstr) {
+        sessions = sessionstr.split(',');
+    } else {
+        sessions = [];
+    }
+
     me.find('select').each(function(index) {
         var select = $(this);
         var container = select.closest("div.row");
 
-        select.find('option').remove(); 
+        select.find('option').remove();
         select.append($('<option>').attr('value', '').text('No Payment'));
 
         // If the car isn't registered or already paid, hide from the available list
@@ -212,11 +218,17 @@ function initpaymentform(id, eventid)
             var rowid = container.attr('id').substring(7);
             var found = false;
             $.each(regcars, function() {
-                if (this.carid != rowid) return;
+                if (sessions.length) {
+                    if (this.session != rowid) return;
+                } else {
+                    if (this.carid != rowid) return;
+                }
                 if (this.payments > 0) throw 'Already paid';
+
+                select.prop('name', 'pay+'+this.carid+'+'+this.session);
                 found = true;
             });
-            
+
             if (!found) throw 'Not registered';
         } catch (e) {
             container.css('display', 'none');

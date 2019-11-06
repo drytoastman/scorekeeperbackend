@@ -3,11 +3,13 @@
 {{super()}}
 <style>
     .index, .number { text-align: center; }
+    .grouptitle { min-width: 20rem; }
 </style>
 {% endblock headers %}
 
 {% block content %}
 {{super()}}
+{% set sess = event.usingSessions() %}
 <div class='container-fluid'>
 <h4 class='text-center eventname'>{{event.name}} Registration</h4>
 <h6 class='text-center eventinfo'>{{event.getRegisteredCount()}} Entries ({{event.getRegisteredDriverCount()}} Unique)</h6>
@@ -16,16 +18,31 @@
 <table class='registration'>
 {% for classcode,classentries in registered.items()|sort %}
 <tr class='head'>
-    <th colspan='4'>{{classcode}} - {{g.classdata.classlist[classcode].descrip}}</th>
+    {% if sess %}
+    <th colspan='3' class='grouptitle'>{{classcode}} Group</th>
+    {% else %}
+    <th colspan='4' class='grouptitle'>{{classcode}} - {{g.classdata.descrip(classcode)}}</th>
+    {% endif %}
     <th colspan='1'>{{classentries|length}} Entries</th></tr>
-<tr class='subhead'><th></th><th>Name</th><th>#</th><th>Idx</th><th>Car</th></tr>
+<tr class='subhead'>
+<th>
+</th>
+<th>Name</th>
+<th>#</th>
+{% if not sess %}
+<th>Idx</th>
+{% endif %}
+<th>Car</th>
+</tr>
 
 {% for entry in classentries %}
 <tr>
 <td class='counter'>{{loop.index}}</td>
 <td class='name'>{{entry.firstname}} {{entry.lastname}}</td>
 <td class='number'>{{entry.number}}</td>
+{% if not sess %}
 <td class='index'>{{g.classdata.getEffectiveIndex(entry)[1]}}</td>
+{% endif %}
 <td>{{entry.attr.year}} {{entry.attr.make}} {{entry.attr.model}} {{entry.attr.color}}</td>
 </tr>
 {% endfor %}

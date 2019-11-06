@@ -36,7 +36,7 @@ def payment():
         event   = Event.get(eventid)
         account = PaymentAccount.get(event.accountid)
         items   = {i.itemid:i for i in PaymentItem.getForAccount(event.accountid)}
-        if not len([1 for k,v in request.form.items() if k.startswith('pay-') and v]):
+        if not len([1 for k,v in request.form.items() if k.startswith('pay+') and v]):
             return json_encode({'error': 'No payment options selected'})
 
         cache = { 
@@ -49,10 +49,18 @@ def payment():
 
         purchase = defaultdict(int)
         for key,itemid in request.form.items():
-            if not key.startswith('pay-') or not itemid: continue
-            carid = uuid.UUID(key[4:])
-            cache['cars'][str(carid)] = {'name': items[itemid].name, 'amount':items[itemid].price/100 }
+            if not key.startswith('pay+') or not itemid: continue
+            args = key.split('+')
+            if len(args) != 3: continue
+
+            carid = uuid.UUID(args[1])
+            session = args[2]
+            cache['cars'][str(carid),session] = {'name': items[itemid].name, 'amount':items[itemid].price/100 }
             purchase[items[itemid]] += 1
+
+        if current_app.config.get('PAYMENT_FAKE', False):
+            _recordPayment(cache, uuid.uuid1(), datetime.datetime.now())
+            return "this is testing only"
 
         return {'square': _squarepayment,
                 'paypal': _paypalpayment,
@@ -149,15 +157,16 @@ def _squarepayment(event, account, purchase, cache):
 
 def _recordPayment(cached, newtxid, newtxtime):
     p         = Payment()
-    p.payid   = uuid.uuid1()
     p.eventid = uuid.UUID(cached['eventid'])
     p.refid   = cached['refid']
     p.txtype  = cached['type']
     p.txid    = newtxid
     p.txtime  = newtxtime
 
-    for caridstr, entry in cached['cars'].items():
-        p.carid    = uuid.UUID(caridstr)
+    for key, entry in cached['cars'].items():
+        p.payid    = uuid.uuid1()
+        p.carid    = uuid.UUID(key[0])
+        p.session  = key[1]
         p.itemname = entry['name']
         p.amount   = entry['amount']
         p.insert()

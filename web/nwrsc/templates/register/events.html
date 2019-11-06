@@ -55,7 +55,7 @@ $(document).ready(function() {
 
     $('#paymentmodal').on('show.bs.modal', function (e) {
         var button = $(e.relatedTarget) // Button that triggered the modal
-        initpaymentform('#paymentform', button.data('eventid'));
+        initpaymentform('#paymentform', button.data('eventid'), button.data('sessions'));
     });
 
     $('#registermodal').on('show.bs.modal', function (e) {
@@ -183,13 +183,26 @@ gAccounts["{{ev.eventid}}"] = { id: "{{accounts[ev.eventid].accountid}}", type: 
         <div class='row align-items-center' id='payrow-{{c.carid}}'>
         <div class="col">{{rm.carDisplay(c)}}</div>
         <div class="col">
-            <select name='{{"pay-{}".format(c.carid)}}'>
+            <select name='pay+{{c.carid}}+'>
+            </select>
+        </div>
+        </div>
+        {% endfor %}
+        {% for s in ('AM', 'PM', 'Day') %}
+        <div class='row align-items-center' id='payrow-{{s}}'>
+        <div class="col text-right font-weight-bold">{{s}} Session</div>
+        <div class="col">
+            <select name='pay++{{s}}'>
             </select>
         </div>
         </div>
         {% endfor %}
         <div class='row mt-2 paypal-row'>
+            {% if config.PAYMENT_FAKE %}
+            <div class='col'><input id='fakebutton' type='submit' class='btn btn-register' value='Fake Checkout'/></div>
+            {% else %}
             <div class='col text-center' id='paypal-button-container'></div>
+            {% endif %}
         </div>
         <div class='row mt-2 square-row'>
             <div class='col'><input id='sqcheckoutbutton' type='submit' class='btn btn-register' value='Square Checkout'/></div>

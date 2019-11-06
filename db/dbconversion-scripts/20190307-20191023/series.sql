@@ -16,6 +16,8 @@ ALTER TABLE registered ADD PRIMARY KEY (eventid, carid, session);
 DROP TRIGGER reguni ON registered;
 CREATE TRIGGER reguni BEFORE UPDATE ON registered FOR EACH ROW EXECUTE PROCEDURE updatechecks('eventid', 'carid', 'session');
 
+ALTER TABLE payments ADD COLUMN session TEXT NOT NULL DEFAULT '';
+
 ALTER TABLE runorder DROP CONSTRAINT runorder_pkey;
 ALTER TABLE runorder ADD PRIMARY KEY (eventid, course, rungroup);
 DROP TRIGGER ordercon ON runorder;

@@ -287,7 +287,7 @@ def view():
     g.classdata = ClassData.get()
     registered = defaultdict(list)
     for r in Registration.getForEvent(g.eventid, event.paymentRequired()):
-        registered[r.classcode].append(r)
+        registered[r.session or r.classcode].append(r)
     return render_template('register/reglist.html', event=event, registered=registered)
 
 @Register.route("/ical/<driverid>")

@@ -105,15 +105,12 @@
         </ol>
 
         {%- if ev.isOpen() %}
+            {% set slist = ev.getSessions()|join(",") %}
             {%- if ev.mylimit > 0 or registered|length > 0 %}
-                {%- if ev.getSessions()|length > 0 -%}
-                    <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-sessions='{{ev.getSessions()|join(',')}}' data-toggle='modal' data-target='#registermodalsession'>Add/Change</button>
-                {% else %}
-                    <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal'>Add/Change</button>
-                {%- endif -%}
+                <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal{{slist and "session" or ""}}' data-sessions='{{slist}}'>Add/Change</button>
             {%- endif %}
             {%- if showpayment %}
-            <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-toggle='modal' data-target='#paymentmodal'>Make Payment</button>
+                <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-toggle='modal' data-target='#paymentmodal' data-sessions='{{slist}}'>Make Payment</button>
             {%- endif %}
 
             {%- if registered|length >= ev.mylimit and ev.limitmessage %}

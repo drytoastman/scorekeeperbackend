@@ -46,7 +46,7 @@ class Event(AttrBase):
 
     def getRegisteredCount(self):
         if self.paymentRequired(): 
-            return self.getval("SELECT count(r.carid) FROM registered r JOIN payments p ON r.eventid=p.eventid and r.carid=p.carid WHERE r.eventid=%s", (self.eventid,))
+            return self.getval("SELECT count(r.carid) FROM registered r JOIN payments p ON r.eventid=p.eventid AND r.carid=p.carid AND r.session=p.session WHERE r.eventid=%s", (self.eventid,))
         else:
             return self.getval("SELECT count(carid) FROM registered WHERE eventid=%s", (self.eventid,))
 

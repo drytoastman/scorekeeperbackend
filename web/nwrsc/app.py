@@ -33,6 +33,7 @@ def create_app():
     theapp.config.update({
         "ASSETS_DEBUG":           any2bool(os.environ.get('DEBUG',                 False)),
         "DEBUG":                  any2bool(os.environ.get('DEBUG',                 False)),
+        "PAYMENT_FAKE":           any2bool(os.environ.get('PAYMENT_FAKE',          False)),
         "DBHOST":                          os.environ.get('DBHOST',                '/var/run/postgresql'),
         "DBPORT":                      int(os.environ.get('DBPORT',                5432)),
         "DBUSER":                          os.environ.get('DBUSER',                'localuser'),

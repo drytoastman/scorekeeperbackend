@@ -1,6 +1,10 @@
+import logging
+
 from flask import g
 from .base import AttrBase, Entrant
 from .simple import Payment
+
+log = logging.getLogger(__name__)
 
 class Registration(AttrBase):
     TABLENAME = "registered"
@@ -9,12 +13,12 @@ class Registration(AttrBase):
     def getForEvent(cls, eventid, paymentRequired=False):
         with g.db.cursor() as cur:
             cur.execute("SELECT d.driverid,d.firstname,d.lastname,d.email,d.barcode,d.optoutmail,c.*,r.*,r.modified as regmodified, d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s ORDER BY c.number", (eventid,))
-            retdict = {x['carid']:Entrant(**x, payments=[]) for x in cur.fetchall()}
+            retdict = {(x['carid'],x['session']):Entrant(**x, payments=[]) for x in cur.fetchall()}
 
             cur.execute("SELECT * FROM payments WHERE eventid=%s", (eventid,))
             for p in cur.fetchall():
-                if p['carid'] in retdict:
-                    retdict[p['carid']].payments.append(p)
+                if (p['carid'],p['session']) in retdict:
+                    retdict[p['carid'],p['session']].payments.append(p)
 
             if paymentRequired:
                 return list(filter(lambda x: len(x.payments) > 0, retdict.values()))
@@ -27,7 +31,7 @@ class Registration(AttrBase):
             ret = cls.getall("SELECT r.* FROM registered r JOIN cars c on r.carid=c.carid WHERE c.driverid=%s", (driverid,))
             for r in ret:
                 r.payments = []
-                cur.execute("SELECT * FROM payments WHERE eventid=%s and carid=%s", (r.eventid, r.carid))
+                cur.execute("SELECT * FROM payments WHERE eventid=%s and carid=%s and session=%s", (r.eventid, r.carid, r.session))
                 for p in cur.fetchall():
                     r.payments.append(Payment(**p))
         return ret

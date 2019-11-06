@@ -258,6 +258,7 @@ CREATE TABLE payments (
     payid      UUID      PRIMARY KEY,
     eventid    UUID      NOT NULL REFERENCES events, 
     carid      UUID      NOT NULL REFERENCES cars, 
+    session    TEXT      NOT NULL DEFAULT '',
     refid      TEXT,
     txtype     TEXT,
     txid       TEXT,
