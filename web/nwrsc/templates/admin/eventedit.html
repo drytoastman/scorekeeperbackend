@@ -15,14 +15,24 @@ $(document).ready(function() {
         $("input[name=regclosed]").get(0)._flatpickr.setDate(d);
     }});
 
-    $("input[name=isexternal]").change(function() {
-        var elem = $("#eventform > div").slice(6);
-        if (this.checked) {
-            elem.hide();
+    $("input[name=ispro]").change(function() {
+        $("input[name=courses]").val(this.checked ? 2 : 1);
+    });
+
+    $("select[name=regtype]").change(function() {
+        if (this.value != 0) {  // practice/school/etc
+            $("input[name=ispractice]").prop("checked", true).prop("disabled", true);
+            $("input[name=useastiebreak]").prop("checked", false).prop("disabled", true);
+            $("input[name=champrequire]").prop("checked", false).prop("disabled", true);
+            $("input[name=ispro]").prop("checked", false).prop("disabled", true);
+            $("input[name=isexternal]").prop("checked", false).prop("disabled", true);
         } else {
-            elem.show();
+            $("input[name=ispractice]").prop("disabled", false);
+            $("input[name=useastiebreak]").prop("disabled", false);
+            $("input[name=champrequire]").prop("disabled", false);
+            $("input[name=ispro]").prop("disabled", false);
+            $("input[name=isexternal]").prop("disabled", false);
         }
-        elem.last().show();
     }).trigger("change");
 });
 </script>

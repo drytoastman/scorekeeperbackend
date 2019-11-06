@@ -14,8 +14,8 @@ class Event(AttrBase):
     TABLENAME = "events"
     REGTYPES = [
         (0, 'Standard Event with Classes'),
-        (1, 'Practice with AM/PM registration (no classes)'),
-        (2, 'School with All Day registration (no classes)')
+        (1, 'AM/PM registration (no classes)'),
+        (2, 'Day registration (no classes)')
     ]
 
     def delete(self):
