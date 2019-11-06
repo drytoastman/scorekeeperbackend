@@ -218,28 +218,35 @@ def _eventspostinternal(eventid, pairs):
         oldids   = set([(r.carid,r.session) for r in curreg.values()])
         newids   = set(pairs)
 
-        toadd    = set([Registration(carid=reg[0], eventid=eventid, session=reg[1], payments=[]) for reg in newids - oldids])
+        toadd    = set([Registration(carid=reg[0], eventid=eventid, session=reg[1], payments=[], modified=datetime.datetime.utcnow()) for reg in newids - oldids])
         nochange = set([curreg[x] for x in newids & oldids])
         todel    = set([curreg[x] for x in oldids - newids])
 
-        # If any of the deleted cars had a payment, we need to move that to an open unchanged or new registration, favor old registrations
-        for delr in todel:
-            if not len(delr.payments): continue
-            for otherr in list(nochange) + list(toadd):
-                if not len(otherr.payments):
-                    for p in delr.payments:
-                        otherr.payments.append(p)
-                        p.carid = otherr.carid
-                        p.update()
-                    delr.payments = []
+        paydests = list(nochange) + list(toadd)
 
-                    if otherr in nochange:
-                        # Change logging requires primary key updates to delete and then insert, delete only uses primary key
-                        todel.add(otherr)
-                        toadd.add(otherr)
-                    break
-            else:
-                raise FlashableException("Change aborted, no available registered cars to move previous payment to")
+        # If any of the deleted cars had a payment, we need to move that to an open unchanged or new registration
+        for delr in list(filter(lambda r: len(r.payments), todel)):
+            # Favor same session first, no payments second, then modified time
+            if not len(paydests):
+                raise FlashableException("Change aborted: would leave orphaned payment(s) as there were no registrations to move to")
+
+            paydests.sort(key = lambda r: r.modified, reverse=True)
+            paydests.sort(key = lambda r: len(r.payments))
+            paydests.sort(key = lambda r: r.session==delr.session and 1 or 2)
+
+            otherr = paydests[0]
+            for p in delr.payments:
+                otherr.payments.append(p)
+                p.carid = otherr.carid
+                p.session = otherr.session
+                p.update()
+            delr.payments = []
+
+            if otherr in nochange:
+                # Change logging requires primary key updates to delete and then insert, delete only uses primary key
+                todel.add(otherr)
+                toadd.add(otherr)
+
 
         # Check any limits with current registration
         mycount = len(curreg) + len(toadd) - len(todel)

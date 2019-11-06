@@ -19,7 +19,7 @@
 {% endmacro %}
 
 
-{% macro carDisplay(car, session='', unpaid=False, paid="") %}
+{% macro carDisplay(car, session='', unpaid=False, paid=0) %}
 <div class='cardisplay'>
 {% if g.classdata %}
 {% set istr = g.classdata.getEffectiveIndex(car)[1] -%}
@@ -29,7 +29,7 @@
 {% else %}
 <span class='code'>{{car.classcode}}/{{car.number}} {{istr and "("+istr+")" or ""}}
 {% endif %}
-{% if   paid %}<span class='label paid'>{{paid}}</span>{% endif %}
+{% if   paid %}<span class='label paid'>Paid - {{paid|d2}}</span>{% endif %}
 {% if unpaid %}<span class='label unpaid'>Payment Required</span>{% endif %}
 </span>
 <span class='desc'>{{car.attr.year}} {{car.attr.make}} {{car.attr.model}} {{car.attr.color}} {% if session != '' %}#{{car.number}}{% endif %}</span> 
@@ -91,16 +91,7 @@
         <div class='error'>{{error}}</div>
         <ol>
         {%- for reg in registered %}
-            {% if reg.payments|length %}
-                {% if reg.payments[0].itemname %}
-                    {% set paidlabel = "Paid - " + reg.payments[0].itemname %}
-                {% else %}
-                    {% set paidlabel = "Paid" %}
-                {% endif %}
-            {% else %}
-                {% set paidlabel = "" %}
-            {% endif %}
-            <li>{{carDisplay(ecars[reg.carid], reg.session, ev.paymentRequired() and reg.payments|length == 0, paidlabel)}}</li>
+            <li>{{carDisplay(ecars[reg.carid], reg.session, ev.paymentRequired() and reg.payments|length == 0, reg.payments|sum("amount"))}}</li>
         {%- endfor %}
         </ol>
 
