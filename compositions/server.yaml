@@ -1,13 +1,16 @@
 version: '3.2'
 volumes:
-    database: {}
-    dbsocket: {}
-    logs:     {}
-    uploads:  {}
-    secrets:  {} 
+    database:
+    dbsocket:
+    logs:
+    uploads:
+    certs:
+    webdata:
+    emaildata:
+    crondata:
 
 networks: 
-    net1: null
+    net1:
 
 services:
   db:
@@ -20,6 +23,7 @@ services:
         - database:/var/lib/postgresql/data
         - dbsocket:/var/run/postgresql
         - logs:/var/log
+        - certs:/certs:ro
 
   web:
     image: drytoastman/scpython:latest
@@ -31,13 +35,13 @@ services:
         - dbsocket:/var/run/postgresql
         - logs:/var/log
         - uploads:/var/uploads
-        - secrets:/secrets
+        - webdata:/webdata:ro
     environment: 
         - IS_MAIN_SERVER=1
+        - SHOWLIVE=0
         - MAIL_SEND_FROM=mailman@scorekeeper.wwscc.org
         - MAIL_SEND_DEFAULT_REPLYTO=admin@scorekeeper.wwscc.org
-        - SECRETS_FILE=/secrets/secrets.json
-        - SHOWLIVE=0
+        - SECRETS_FILE=/webdata/websecrets.json
 
   email:
     image: drytoastman/scpython:latest
@@ -47,13 +51,13 @@ services:
         - dbsocket:/var/run/postgresql
         - logs:/var/log
         - uploads:/var/uploads
-        - secrets:/secrets
+        - emaildata:/emaildata:ro
     environment:
         - MAIL_RECEIVE_HOST=192.168.64.1
         - MAIL_SEND_HOST=192.168.64.1
         - MAIL_SEND_FROM=mailman@scorekeeper.wwscc.org
         - MAIL_SEND_DEFAULT_REPLYTO=admin@scorekeeper.wwscc.org
-        - SECRETS_FILE=/secrets/secrets.json
+        - SECRETS_FILE=/emaildata/emailsecrets.json
 
   cron:
     image: drytoastman/scpython:latest
@@ -62,8 +66,7 @@ services:
     volumes: 
         - dbsocket:/var/run/postgresql
         - logs:/var/log
-        - secrets:/secrets
+        - crondata:/crondata:ro
     environment:
         - GOOGLE_APPLICATION_CREDENTIALS=/secrets/scorekeeper.creds.json
-        - SECRETS_FILE=/secrets/secrets.json
         - MAIL_ADMIN_ADDRESS=admin@scorekeeper.wwscc.org
