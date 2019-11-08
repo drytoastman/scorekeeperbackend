@@ -32,12 +32,14 @@ class Event(AttrBase):
         return ret
 
     def getSessions(self):
-        if   self.regtype == 1: return ('AM', 'PM')
-        elif self.regtype == 2: return ('Day', )
+        regtype = getattr(self, 'regtype', 0)
+        if   regtype == 1: return ('AM', 'PM')
+        elif regtype == 2: return ('Day', )
         else: return tuple()
 
     def usingSessions(self):
-        return self.regtype != 0
+        regtype = getattr(self, 'regtype', 0)
+        return regtype != 0
 
     def paymentRequired(self): return self.attr.get('paymentreq', False)
     def hasOpened(self): return datetime.utcnow() > self.regopened

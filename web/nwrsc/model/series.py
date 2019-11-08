@@ -113,6 +113,15 @@ class Series(object):
                 cur.execute("DROP USER {}".format(g.series))
             db.commit()
 
+    @classmethod
+    def changePassword(cls, host, port, oldpassword, newpassword):
+        with AttrBase.connect(host=host, port=port, user="postgres") as db:
+            with db.cursor() as cur:
+                cur.execute("select data from localcache where name=%s", (g.series,))
+                if oldpassword == cur.fetchone()[0]:
+                    cur.execute("select verify_user(%s, %s)", (g.series, newpassword))
+                else:
+                    raise Exception("Old password does not match")
 
     @classmethod
     def archivedSeriesWithin(cls, untilyear):

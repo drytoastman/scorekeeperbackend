@@ -358,6 +358,11 @@ class SeriesForm(MyFlaskForm):
     copycars     = BooleanField(   'Copy Cars')
     submit       = SubmitField(    'Create')
 
+class SeriesPasswordForm(MyFlaskForm):
+    oldpassword  = MyPasswordField('Current Password', [Length(min=4, max=12)])
+    newpassword  = MyPasswordField('New Password',     [Length(min=4, max=12)])
+    submit       = SubmitField(    'Update')
+
 class ArchiveForm(MyFlaskForm):
     name         = MyStringField(  'Enter Series Name', [Length(min=6, max=12)])
     submit       = SubmitField(    'Archive')

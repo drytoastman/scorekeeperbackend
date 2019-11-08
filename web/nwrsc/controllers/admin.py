@@ -330,6 +330,21 @@ def settings():
     return render_template('/admin/settings.html', form=form)
 
 
+@Admin.route("/password", methods=['POST', 'GET'])
+def password():
+    form = SeriesPasswordForm()
+    if request.form:
+        try:
+            if form.validate():
+                Series.changePassword(host=current_app.config['DBHOST'], port=current_app.config['DBPORT'], oldpassword=form.oldpassword.data, newpassword=form.newpassword.data)
+                return redirect(url_for('.index'))
+            else:
+                flashformerrors(form)
+        except Exception as e:
+            flash("Unable to change password: {}".format(e))
+    return render_template('/admin/password.html', form=form)
+
+
 @Admin.route("/default")
 def default():
     if 'resultsheader' in request.args:
