@@ -259,8 +259,8 @@ def classlist():
             flashformerrors(form)
     else:
         g.classdata = ClassData.get()
+        g.classdata.classlist.pop('HOLD', None)
         for key, cls in sorted(g.classdata.classlist.items()):
-            if key.startswith('_'): continue
             form.classlist.append_entry(cls)
 
     empty = ClassListForm()
