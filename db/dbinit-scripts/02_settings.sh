@@ -28,7 +28,6 @@ log_line_prefix = '%t %a '
 log_timezone=$UI_TIME_ZONE
 log_statement = none
 log_min_duration_statement = 1000
-password_encryption = off
 " >> postgresql.conf
 
 cp /docker-entrypoint-initdb.d/series.template series.sql

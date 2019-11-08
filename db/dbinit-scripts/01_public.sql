@@ -174,10 +174,11 @@ CREATE OR REPLACE FUNCTION verify_user(IN name varchar, IN password varchar) RET
 DECLARE
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename=name) THEN
-        EXECUTE format('CREATE USER %I UNENCRYPTED PASSWORD %L', name, password);
+        EXECUTE format('CREATE USER %I PASSWORD %L', name, password);
     ELSE
-        EXECUTE format('ALTER USER %I UNENCRYPTED PASSWORD %L', name, password);
+        EXECUTE format('ALTER USER %I PASSWORD %L', name, password);
     END IF;
+    EXECUTE format('INSERT INTO localcache (name, data) VALUES (%S, %S) ON CONFLICT (name) DO UPDATE SET data=%S', name, password, password);
     RETURN TRUE;
 END;
 $body$
@@ -304,6 +305,7 @@ CREATE TRIGGER weekuni BEFORE UPDATE ON weekendmembers FOR EACH ROW EXECUTE PROC
 COMMENT ON TABLE weekendmembers IS 'A table for storing weekend membership information';
 COMMENT ON COLUMN weekendmembers.uniqueid IS 'We provide our own unique id incase they use a second unconnected laptop to add a duplicate member number';
 
+--- Everything under this point is not synced with other scorekeeper instances, they are local to this system only
 
 CREATE TABLE mergeservers (
     serverid   UUID       PRIMARY KEY,
@@ -363,3 +365,9 @@ CREATE TABLE emailfailures(
 REVOKE ALL ON emailfailures FROM public;
 GRANT  ALL ON emailfailures TO mergeaccess;
 
+CREATE TABLE localcache (
+    name TEXT PRIMARY KEY,
+    data TEXT
+);
+REVOKE ALL ON localcache FROM public;
+GRANT  ALL ON localcache TO mergeaccess;
