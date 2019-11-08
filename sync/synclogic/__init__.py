@@ -1,10 +1,15 @@
 import logging
 import signal
+import socket
 import sys
 import time
 import threading
 
-from sccommon.logging import logging_setup
+import warnings
+warnings.filterwarnings("ignore", ".*psycopg2 wheel package will be renamed.*")
+
+from sccommon.logging  import logging_setup
+from synclogic.model   import DataInterface
 from synclogic.process import MergeProcess
 
 def main():
@@ -33,3 +38,22 @@ def main():
     while not done:
         time.sleep(1)
     log.info("exiting main")
+
+
+class DumbServer():
+    def __init__(self, hostaddr):
+        self.address  = socket.gethostbyname(hostaddr)
+        self.ctimeout = 10
+    def recordConnectFailure(self):
+        pass
+
+def remotelist():
+    with DataInterface.connectRemote(server=DumbServer(sys.argv[1]), user='nulluser', password='nulluser') as db:
+        with db.cursor() as cur:
+            cur.execute("select schema_name from information_schema.schemata")
+            print(','.join(sorted(s[0] for s in cur.fetchall() if not s[0].startswith('pg_') and s[0] not in ("information_schema", "public", "template"))))
+
+
+def remotepassword():
+    with DataInterface.connectRemote(server=DumbServer(sys.argv[1]), user=sys.argv[2], password=sys.argv[3]) as db:
+        print("accepted")

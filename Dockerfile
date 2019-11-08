@@ -1,4 +1,4 @@
-FROM python:3.6.5-slim-stretch as base
+FROM python:3.6.9-slim-stretch as base
 
 # Install our basic requirements, mainly wkhtmltopdf here
 RUN    apt-get update \
@@ -17,7 +17,7 @@ RUN    apt-get update \
     && rm -rf /var/lib/apt/lists/* /var/log/*
 
 # Use pip to install packages to a known location in a builder image
-FROM python:3.6.5-slim-stretch as builder
+FROM python:3.6.9-slim-stretch as builder
 COPY . /tmp/base
 ENV PYTHONWARNINGS="ignore"
 RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/common

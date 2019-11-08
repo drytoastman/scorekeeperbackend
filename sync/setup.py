@@ -9,5 +9,9 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    entry_points={ 'console_scripts': [ 'syncserver = synclogic:main' ] },
+    entry_points={ 'console_scripts': [
+                        'syncserver = synclogic:main',
+                        'remotelist = synclogic:remotelist',
+                        'remotepassword = synclogic:remotepassword'
+                  ]},
 )

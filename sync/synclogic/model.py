@@ -128,6 +128,10 @@ class DataInterface(object):
                     "port": 54329,
                   "dbname": "scorekeeper",
         "application_name": "syncremote",
+                  "sslkey": "/certs/server.key",
+                 "sslcert": "/certs/server.cert",
+             #"sslrootcert": "/certs/root.cert",
+                 #"sslmode": "verify-ca"
            # Must add host, user and password
         }
         try:

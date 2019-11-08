@@ -91,11 +91,11 @@ class Series(object):
                     cur.execute("insert into {}.indexlist (select * from {}.indexlist)".format(series, g.series))
                     cur.execute("insert into {}.classlist (select * from {}.classlist)".format(series, g.series))
                     if ccars:
-                        cur.execute("insert into {}.cars (select * from {}.cars WHERE LEFT(classcode,1)!='_')".format(series, g.series))
+                        cur.execute("insert into {}.cars (select * from {}.cars)".format(series, g.series))
                 else:
                     # Need a blank index and HOLD class regardless of copying, fixes bug #78
                     cur.execute("INSERT INTO {}.indexlist (indexcode, descrip, value) VALUES ('', 'No Index', 1.0)".format(series))
-                    cur.execute("INSERT INTO {}.classlist (classcode,descrip,indexcode,caridxrestrict,classmultiplier,carindexed,usecarflag,eventtrophy,champtrophy,secondruns,countedruns) VALUES (%s,%s,'','',1.0,'f','f','f','f','f',0)".format(series), ('HOLD', 'Placeholder Class'))
+                    cur.execute("INSERT INTO {}.classlist (classcode,descrip,indexcode,caridxrestrict,classmultiplier,carindexed,usecarflag,eventtrophy,champtrophy,secondruns,countedruns) VALUES ('HOLD','Placeholder Class','','',1.0,'f','f','f','f','f',0)".format(series))
 
                 if caccounts:
                     cur.execute("insert into {}.paymentaccounts (select * from {}.paymentaccounts)".format(series, g.series))
