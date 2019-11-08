@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import contextlib
 import logging
+import os
 import psycopg2
 import psycopg2.extras
 import time
@@ -128,18 +129,24 @@ class DataInterface(object):
                     "port": 54329,
                   "dbname": "scorekeeper",
         "application_name": "syncremote",
-                  "sslkey": "/certs/server.key",
-                 "sslcert": "/certs/server.cert",
-             #"sslrootcert": "/certs/root.cert",
-                 #"sslmode": "verify-ca"
            # Must add host, user and password
         }
+
         try:
             if ':' in server.address:  # If address has a port specified, use it
                 (address, port) = server.address.split(':')
                 args['port'] = port
             else:
                 address = server.address or server.hostname
+
+            if args['port'] in (54329, ):
+                args.update({
+                      "sslkey": "/certs/server.key",
+                     "sslcert": "/certs/server.cert",
+                 "sslrootcert": "/certs/root.cert",
+                     "sslmode": "verify-ca"
+                })
+
             db = psycopg2.connect(host=address, user=user, password=password, connect_timeout=server.ctimeout, **args)
             with db.cursor() as cur:
                 if server.address:

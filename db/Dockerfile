@@ -1,4 +1,4 @@
-FROM postgres:9.6.5-alpine
+FROM postgres:9.6.15-alpine
 RUN apk --no-cache add openssl socat iptables iproute2
 ENV POSTGRES_DB=scorekeeper
 ENV POSTGRES_PASSWORD=thisgetsoverwrittenlater

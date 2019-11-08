@@ -71,7 +71,7 @@ def _createdbs(request, syncdata, count):
     request.addfinalizer(teardown)
 
     for db in active:
-        p = subprocess.run(["docker", "run", "-d", "--rm", "--cap-add=NET_ADMIN", "--cap-add=NET_RAW", "--label", "pytest", "--mount", "type=tmpfs,destination=/var/lib/postgresql/data",
+        p = subprocess.run(["docker", "run", "-d", "--rm", "--cap-add=NET_ADMIN", "--cap-add=NET_RAW", "-e", "NOCLIENTCERT=1", "--label", "pytest", "--mount", "type=tmpfs,destination=/var/lib/postgresql/data",
                             "--name", "sync"+db.name, "-p", "{}:6432".format(db.port), "-e", "UI_TIME_ZONE=US/Pacific", DBIMAGE], stdout=subprocess.DEVNULL)
         if p.returncode != 0:
             raise Exception("Failed to start " + db.name)

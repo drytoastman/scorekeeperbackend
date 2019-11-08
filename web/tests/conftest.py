@@ -42,7 +42,7 @@ def webdata():
 
 @pytest.fixture(scope="module")
 def database(request, webdata):
-    if subprocess.run(["docker", "run", "-d", "--rm", "--name", "webdb", "-p", "{}:{}".format(webdata.port, webdata.port), "drytoastman/scdb:latest"], stdout=subprocess.DEVNULL).returncode != 0:
+    if subprocess.run(["docker", "run", "-d", "--rm", "--name", "webdb", "-e", "NOCLIENTCERT=1", "-p", "{}:{}".format(webdata.port, webdata.port), "drytoastman/scdb:latest"], stdout=subprocess.DEVNULL).returncode != 0:
         raise Exception("Failed to start webdb")
     def teardown():
         subprocess.run(["docker", "kill", "webdb"], stdout=subprocess.DEVNULL)

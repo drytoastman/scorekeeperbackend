@@ -4,6 +4,7 @@ script: pytest
 sudo: required
 services: [docker]
 install:
+    - docker-compose build db
     - pip install -r requirements.txt
     - pip install common/
     - pip install pytest-timeout
