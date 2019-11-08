@@ -178,7 +178,7 @@ BEGIN
     ELSE
         EXECUTE format('ALTER USER %I PASSWORD %L', name, password);
     END IF;
-    EXECUTE format('INSERT INTO localcache (name, data) VALUES (%S, %S) ON CONFLICT (name) DO UPDATE SET data=%S', name, password, password);
+    EXECUTE format('INSERT INTO localcache (name, data) VALUES (%L, %L) ON CONFLICT (name) DO UPDATE SET data=%L', name, password, password);
     RETURN TRUE;
 END;
 $body$
