@@ -157,9 +157,9 @@ class DataInterface(object):
     def loadPasswords(cls, db):
         ret = dict()
         with db.cursor() as cur:
-            cur.execute("SELECT * FROM pg_shadow WHERE passwd NOT LIKE 'md5%'")
+            cur.execute("SELECT * FROM localcache")
             for row in cur.fetchall():
-                ret[row['usename']] = row['passwd']
+                ret[row['name']] = row['data']
         return ret
 
     @classmethod
