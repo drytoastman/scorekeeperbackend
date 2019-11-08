@@ -332,7 +332,7 @@ def settings():
 
 @Admin.route("/password", methods=['POST', 'GET'])
 def password():
-    form = SeriesPasswordForm()
+    form = ChangePasswordForm()
     if request.form:
         try:
             if form.validate():
