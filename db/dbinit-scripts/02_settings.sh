@@ -2,11 +2,8 @@ cd /var/lib/postgresql/data
 
 if [ $NOCLIENTCERT ]; then
     APPEND=""
-    SSLDIR=""
-    /docker-entrypoint-initdb.d/certgen.bash
 else
     APPEND="clientcert=1"
-    SSLDIR="/certs/"
 fi
 
 echo "
@@ -25,9 +22,9 @@ fi
 echo "
 ssl = on
 log_destination = stderr
-ssl_ca_file = '${SSLDIR}root.cert'
-ssl_cert_file = '${SSLDIR}server.cert'
-ssl_key_file = '${SSLDIR}server.key'
+ssl_ca_file = '/certs/root.cert'
+ssl_cert_file = '/certs/server.cert'
+ssl_key_file = '/certs/server.key'
 logging_collector = on
 log_directory = '/var/log'
 log_filename = 'scdb.log'
