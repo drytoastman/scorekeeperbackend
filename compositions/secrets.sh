@@ -5,21 +5,27 @@ if [ $# -ne 3 ] || ( [ $1 != 'backup' ] && [ $1 != 'restore' ] ); then
     exit -1;
 fi
 
-for VOL in 'certs' 'webdata' 'emaildata' 'crondata'; do
-    docker volume create $2_$VOL;
+for VOL in 'webdata' 'emaildata' 'crondata'; do
+    docker volume create $2_$VOL
 done
+docker volume create certs
 
-if [ $1 = 'backup' ]; then
-    CMD="tar -czvf /host/$3 /certs /webdata /emaildata /crondata"
-fi 
+
+docker run --rm --name volload -d \
+           -v certs:/certs \
+           -v $2_webdata:/webdata \
+           -v $2_emaildata:/emaildata \
+           -v $2_crondata:/crondata \
+           alpine ash -c 'while sleep 3600; do :; done'
 
 if [ $1 = 'restore' ]; then
-    CMD="tar -C / -xvf /host/$3"
+    docker cp $3 volload:/tmp
+    docker exec volload tar -C / -xvf /tmp/$3
 fi
 
-docker run --rm -v ${PWD#/cygdrive}:/host \
-                -v $2_certs:/certs \
-                -v $2_webdata:/webdata \
-                -v $2_emaildata:/emaildata \
-                -v $2_crondata:/crondata \
-                alpine $CMD
+if [ $1 = 'backup' ]; then
+    docker exec volload tar -czvf /tmp/backup.tgz /certs /webdata /emaildata /crondata
+    docker cp volload:/tmp/backup.tgz $3
+fi
+
+docker kill volload
