@@ -4,7 +4,7 @@ volumes:
     dbsocket:
     logs:
     uploads:
-    certs:
+    certs: { external: { name: "certs" }}
     webdata:
     emaildata:
     crondata:
@@ -23,7 +23,7 @@ services:
         - database:/var/lib/postgresql/data
         - dbsocket:/var/run/postgresql
         - logs:/var/log
-        - certs:/certs:ro
+        - certs:/certs
 
   web:
     image: drytoastman/scpython:latest

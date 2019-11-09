@@ -21,11 +21,11 @@ fi
 
 echo "
 ssl = on
-log_destination = stderr
 ssl_ca_file = '/certs/root.cert'
 ssl_cert_file = '/certs/server.cert'
 ssl_key_file = '/certs/server.key'
 logging_collector = on
+log_destination = stderr
 log_directory = '/var/log'
 log_filename = 'scdb.log'
 log_truncate_on_rotation = off

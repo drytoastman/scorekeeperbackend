@@ -10,7 +10,7 @@ volumes:
   socket:
   logs:
   uploads:
-  certs:
+  certs: { external: { name: "certs" }}
   webdata:
 
 networks:
@@ -26,7 +26,7 @@ services:
         - "database:/var/lib/postgresql/data"
         - "socket:/var/run/postgresql"
         - "logs:/var/log"
-        - "certs:/certs:ro"
+        - "certs:/certs"
     networks:
         net1:
     ports:
