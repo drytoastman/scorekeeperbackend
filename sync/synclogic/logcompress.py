@@ -5,8 +5,8 @@ from .model import DataInterface
 from .objects import row2json
 
 def compress_logtables():
-    DataInterface.initialize(6432)
-    with DataInterface.connectLocal(6432) as db:
+    DataInterface.initialize()
+    with DataInterface.connectLocal() as db:
         with db.cursor() as cur:
             print("public")
             objs = list()
