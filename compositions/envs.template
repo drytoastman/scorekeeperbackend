@@ -1,8 +1,10 @@
-# These should be filled in in a secrets file
+# These should be filled in secrets files
+# EMAIL
 MAIL_RECEIVE_USER
 MAIL_RECEIVE_PASS
 MAIL_SEND_USER
 MAIL_SEND_PASS
+# WEB
 SQ_APPLICATION_ID
 SQ_APPLICATION_SECRET
 SECRET_KEY

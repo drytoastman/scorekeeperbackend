@@ -200,7 +200,7 @@ CREATE TABLE runs (
     attr     JSONB      NOT NULL,
     modified TIMESTAMP  NOT NULL DEFAULT now(),
     PRIMARY KEY (eventid, carid, course, rungroup, run),
-    CONSTRAINT validrundata CHECK (course > 0 AND rungroup > 0 AND run > 0 and raw >= 0.0)
+    CONSTRAINT validrundata CHECK (course > 0 AND rungroup >= 0 AND run > 0 and raw >= 0.0)
 );
 CREATE INDEX ON runs(carid);
 REVOKE ALL ON runs FROM public;

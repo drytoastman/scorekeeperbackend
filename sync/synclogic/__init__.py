@@ -49,7 +49,7 @@ class DumbServer():
 
 def remotelist():
     with DataInterface.connectRemote(server=DumbServer(sys.argv[1]), user='nulluser', password='nulluser') as db:
-        return ','.join(DataInterface.seriesList(db))
+        print(','.join(DataInterface.seriesList(db)))
 
 def remotepassword():
     with DataInterface.connectRemote(server=DumbServer(sys.argv[1]), user=sys.argv[2], password=sys.argv[3]) as db:
