@@ -1,7 +1,7 @@
 version: '3.2'
 volumes:
     database:
-    dbsocket:
+    socket:
     logs:
     uploads:
     certs: { external: { name: "certs" }}
@@ -21,7 +21,7 @@ services:
         - '6432:6432'
     volumes: 
         - database:/var/lib/postgresql/data
-        - dbsocket:/var/run/postgresql
+        - socket:/var/run/postgresql
         - logs:/var/log
         - certs:/certs
 
@@ -32,7 +32,7 @@ services:
     ports: 
         - '80:80'
     volumes: 
-        - dbsocket:/var/run/postgresql
+        - socket:/var/run/postgresql
         - logs:/var/log
         - uploads:/var/uploads
         - webdata:/webdata:ro
@@ -48,7 +48,7 @@ services:
     command: mailman
     networks: { net1: {}}
     volumes: 
-        - dbsocket:/var/run/postgresql
+        - socket:/var/run/postgresql
         - logs:/var/log
         - uploads:/var/uploads
         - emaildata:/emaildata:ro
@@ -64,9 +64,9 @@ services:
     command: crondaemon
     networks: { net1: {}}
     volumes: 
-        - dbsocket:/var/run/postgresql
+        - socket:/var/run/postgresql
         - logs:/var/log
         - crondata:/crondata:ro
     environment:
-        - GOOGLE_APPLICATION_CREDENTIALS=/secrets/scorekeeper.creds.json
+        - GOOGLE_APPLICATION_CREDENTIALS=/crondata/scorekeeper.creds.json
         - MAIL_ADMIN_ADDRESS=admin@scorekeeper.wwscc.org
