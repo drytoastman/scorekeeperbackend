@@ -49,10 +49,7 @@ class DumbServer():
 
 def remotelist():
     with DataInterface.connectRemote(server=DumbServer(sys.argv[1]), user='nulluser', password='nulluser') as db:
-        with db.cursor() as cur:
-            cur.execute("select schema_name from information_schema.schemata")
-            print(','.join(sorted(s[0] for s in cur.fetchall() if not s[0].startswith('pg_') and s[0] not in ("information_schema", "public", "template"))))
-
+        return ','.join(DataInterface.seriesList(db))
 
 def remotepassword():
     with DataInterface.connectRemote(server=DumbServer(sys.argv[1]), user=sys.argv[2], password=sys.argv[3]) as db:

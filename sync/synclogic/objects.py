@@ -24,12 +24,16 @@ def row2json(dbobj):
         data = dbobj[k]
         if k == 'attr':
             ret['attr'] = data
+        elif type(data) is datetime.date:
+            ret[k] = data.isoformat()
         elif type(data) is datetime.datetime:
             ret[k] = data.replace(microsecond=0).isoformat()
             if data.microsecond:
                 ret[k] += ".{:06d}".format(data.microsecond).rstrip('0')  # Match the trimmed zeros of the log entries
         elif type(data) is uuid.UUID:
             ret[k] = str(data)
+        elif type(data) is list:
+            ret[k] = list(map(str, data))
         else:
             ret[k] = data
     return ret

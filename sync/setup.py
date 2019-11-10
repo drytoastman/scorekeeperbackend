@@ -13,5 +13,6 @@ setup(
                         'syncserver = synclogic:main',
                         'remotelist = synclogic:remotelist',
                         'remotepassword = synclogic:remotepassword'
+                        'compresslogs   = synclogic.logcompress:compress_logtables'
                   ]},
 )

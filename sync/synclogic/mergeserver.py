@@ -146,12 +146,10 @@ class MergeServer(object):
 
     def updateSeriesFrom(self, scandb):
         """ Update the mergestate dict related to deleted or added series """
-        with scandb.cursor() as cur:
-            cur.execute("SELECT schema_name FROM information_schema.schemata")
-            serieslist   = set([x[0] for x in cur.fetchall() if not x[0].startswith('pg_') and x[0] not in ('information_schema', 'public', 'template')])
-            cachedseries = set(self.mergestate.keys())
-            if serieslist == cachedseries:
-                return
+        serieslist = set(DataInterface.seriesList(scandb))
+        cachedseries = set(self.mergestate.keys())
+        if serieslist == cachedseries:
+            return
 
         for deleted in cachedseries - serieslist:
             del self.mergestate[deleted]

@@ -235,6 +235,13 @@ class DataInterface(object):
 
 
     @classmethod
+    def seriesList(cls, db):
+        with db.cursor() as cur:
+            cur.execute("select schema_name from information_schema.schemata")
+            return sorted(s[0] for s in cur.fetchall() if not s[0].startswith('pg_') and s[0] not in ("information_schema", "public", "template"))
+
+
+    @classmethod
     @contextlib.contextmanager
     def mergelocks(cls, local, localdb, remote, remotedb, series):
         """
