@@ -1,11 +1,19 @@
 # Installing on Windows
 
-*Make sure  [Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows) and [Java 8](https://java.com/en/download/win10.jsp) are installed first.*
+*Make sure Docker is installed and works, either [Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows) (Home) or [Docker Desktop](https://docs.docker.com/docker-for-windows/) (Pro) depending on your version of Windows*
 
-1. Download and run the latest ScorekeeperSetup.exe installer from <https://github.com/drytoastman/scorekeeperfrontend/releases> 
-    * Windows 10 Pro users will get a reminder that Hyper-V must disabled to use Docker-Toolbox (based on Oracle VirtualBox)
-    * The installer may foward you to websites to install Java 8 and/or Docker-Toolbox if they are not present already
+1. Download and run the latest ScorekeeperSetup.exe installer from <https://github.com/drytoastman/scorekeeperfrontend/releases> while connected to the Internet
 
 2. The installer will perform all setup and put an entry in the startup folder and on the desktop
-    * This version has to run a virtual machine which takes about 60 seconds to startup the first time after logging in
+    * It now installs its own embedded version of Java so you no longer need a system version of Java installed
+    * It also opens ports in the firewall:
+        - 80 (onsite web results, announcer page, etc)
+        - 5454 (scorekeeper peer discovery)
+        - 54328 (network timer port, Prosolo)
+        - 54329 (scorekeeper sync port to postgres)
 
+3. At the last step of installation
+    1. Scorekeeper will be started to make sure the backend is downloaded and a database is initialized
+    2. You will be asked **Select the new certificates archive file**, select the certs.tgz file provided by your administrator
+
+4. If your need to rerun **#3** for any reason, there will be a shortcut install in the start menu call **Scorekeeper Prepare** that you can run.
