@@ -25,8 +25,8 @@ $(document).ready(function() {
     height: 1.5rem; 
     padding: 0.1rem 0.2rem !important;
 }
-div.col-md-4 { text-align: right; }
-div.col-md-4 button { 
+div.col-md-5 { text-align: right; }
+div.col-md-5 button { 
     display: block; 
     margin-left: auto;
     margin-right: 0;
@@ -46,11 +46,11 @@ div.col-md-4 button {
 
 
 <div class='row align-items-center'>
-<div class='col-md-4'>
+<div class='col-md-5'>
 <label>Names and Dates</label>
 <button class='btn btn-outline-admin addbutton small'>Add</button>
 </div>
-<div class='col-md-7 p-0'>
+<div class='col-md-6 p-0'>
 <table id='namedatestable'>
 <thead>
 <th>Name</th>
@@ -62,13 +62,13 @@ div.col-md-4 button {
 </div>
 
 <div class='row align-items-center'>
-<label class='col-md-4'>Close Day/Time</label>
-<div class='col-md-7 p-0'>{{ form.closeday(class_='sameline') }} {{ form.closetime(class_='sameline') }}</div>
+<label class='col-md-5'>Close Day/Time</label>
+<div class='col-md-6 p-0'>{{ form.closeday(class_='sameline') }} {{ form.closetime(class_='sameline') }}</div>
 </div>
 
 <div class='row align-items-center'>
-<label class='col-md-4'>Open Reg Days Before</label>
-<div class='col-md-7 p-0'>{{form.opendays(class_='sameline')}}</div>
+<label class='col-md-5'>Open Reg Days Before</label>
+<div class='col-md-6 p-0'>{{form.opendays(class_='sameline')}}</div>
 </div>
 
 <hr/>
@@ -77,20 +77,24 @@ div.col-md-4 button {
 {% if f.name not in ('namedates', 'closeday', 'closetime', 'opendays') and f.widget.input_type != 'submit' %}
 <div class='row align-items-center'>
 {% if f.widget.input_type != 'hidden' %}
-{{ f.label(class_='col-md-4') }}
+{% if f.render_kw and 'labelextra' in f.render_kw %}
+<div class='col-md-5 labelextra'>{{f.label()}}<br/>{{f.render_kw['labelextra']}}</div>
+{% else %}
+{{ f.label(class_='col-md-5') }}
 {% endif %}
-{{ f(class_='col-md-4') }}
+{% endif %}
+{{ f(class_='col-md-5') }}
 </div>
 {% endif %}
 {% endfor %}
 
 <div class='row'>
-<div class='col-md-4'></div>
-{{ form.submit(class_="col-md-7 btn btn-admin") }}
+<div class='col-md-5'></div>
+{{ form.submit(class_="col-md-6 btn btn-admin") }}
 </div>
 </form>
 
-{# form.html('templateform', url, 'post', 'btn-admin', 'col-md-4', 'col-md-7') | safe #}
+{# form.html('templateform', url, 'post', 'btn-admin', 'col-md-5', 'col-md-6') | safe #}
 <table id='namedatetemplate'>
     <tr data-counter="0">
     <td>{{empty.namedates[0]['name']}}</td>

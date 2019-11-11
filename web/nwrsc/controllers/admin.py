@@ -119,7 +119,7 @@ def login():
     form = SeriesPasswordForm()
     if form.validate_on_submit():
         try:
-            AttrBase.testPassword(user=g.series, password=form.password.data.strip())
+            Series.testPassword(password=form.password.data.strip())
             authSeries(g.series)
             return redirect(getRecordedPath(ADMINKEY, url_for(".index")))
         except Exception as e:
@@ -396,8 +396,7 @@ def createevent():
 @Admin.route("/createmultipleevents", methods=['POST','GET'])
 def createmultipleevents():
     """ Present form to create a series of events from a template """
-    form = MultipleEventsForm()
-    form.accountid.choices = [(a.accountid, a.name) for a in PaymentAccount.getAll()]
+    form = MultipleEventsForm(Event.REGTYPES, [(a.accountid, a.name) for a in PaymentAccount.getAll()])
     if request.form:
         if form.validate():
             tz = pytz.timezone(current_app.config['UI_TIME_ZONE'])
@@ -428,7 +427,7 @@ def createmultipleevents():
     else:
         attrBaseIntoForm(Event.new(), form)
 
-    empty = MultipleEventsForm()
+    empty = MultipleEventsForm(Event.REGTYPES, [(a.accountid, a.name) for a in PaymentAccount.getAll()])
     empty.namedates.append_entry({})
     return render_template('/admin/multipleevents.html', form=form, empty=empty, url=url_for('.createmultipleevents'))
 

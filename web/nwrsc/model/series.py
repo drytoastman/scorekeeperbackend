@@ -46,7 +46,7 @@ class Series(object):
     @classmethod
     def getYear(cls, series):
         try:
-            return re.search('\d{4}', series).group(0)
+            return "20"+re.search('\d{2}$', series).group(0)
         except:
             return "Other"
 
@@ -122,6 +122,15 @@ class Series(object):
                     cur.execute("select verify_user(%s, %s)", (g.series, newpassword))
                 else:
                     raise Exception("Old password does not match")
+
+    @classmethod
+    def testPassword(cls, password):
+        """ test using local database connection """
+        with g.db.cursor() as cur:
+            cur.execute("select data from localcache where name=%s", (g.series,))
+            if cur.fetchone()[0] != password:
+                raise Exception("Incorrect password")
+
 
     @classmethod
     def archivedSeriesWithin(cls, untilyear):

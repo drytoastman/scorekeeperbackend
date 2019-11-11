@@ -96,7 +96,7 @@ class MyFlaskForm(FlaskForm):
                 ret.append("<div class='row align-items-center'>")
                 if not hasattr(f.widget, 'input_type') or f.widget.input_type != 'hidden':
                     if f.render_kw and 'labelextra' in f.render_kw:
-                        ret.append("<div class='{} text-right'>{}<br/>{}</div>".format(labelcol, f.label(), f.render_kw['labelextra']))
+                        ret.append("<div class='{} labelextra'>{}<br/>{}</div>".format(labelcol, f.label(), f.render_kw['labelextra']))
                     else:
                         ret.append(f.label(class_=labelcol))
                 ret.append(f(class_=inputcol))
@@ -123,7 +123,7 @@ class MyFlaskForm(FlaskForm):
 def formIntoAttrBase(form, base):
     """ Take form data and put into an AttrBase object """
     for k in base.columns:
-        if hasattr(form, k):
+        if getattr(form, k, None):
             setattr(base, k, getattr(form, k).data)
     # leftover fields that aren't in the top level object
     ignore = set(base.columns + ['csrf_token', 'submit'])
@@ -133,10 +133,10 @@ def formIntoAttrBase(form, base):
 def attrBaseIntoForm(base, form):
     """ Take AttrBase data and place it in form data """
     for k in base.columns:
-        if hasattr(form, k):
+        if getattr(form, k, None):
             getattr(form, k).data = getattr(base, k)
     for k in base.attr:
-        if hasattr(form, k):
+        if getattr(form, k, None):
             getattr(form, k).data = base.attr[k]
 
 
@@ -286,15 +286,23 @@ class SettingsForm(MyFlaskForm):
 class EventSettingsForm(MyFlaskForm):
     eventid       = HiddenField(  'eventid')
     name          = MyStringField('Event Name',             [Length(min=4, max=32)])
-    date          = DateField(    'Event Date',             render_kw={'title':'The date of the event'})  
+    date          = DateField(    'Event Date',             render_kw={'title':'The date of the event'})
     regopened     = TZDateTimeField('Registration Opens',   render_kw={'title':'When registration should open'}, format='%Y-%m-%d %H:%M')
     regclosed     = TZDateTimeField('Registration Closes',  render_kw={'title':'When registration should close'}, format='%Y-%m-%d %H:%M')
     regtype       = SelectField(  'Registration Type',      render_kw={'title':"Used to select special registration for session based events like practice or school"}, coerce=int)
-    ispro         = BooleanField( 'ProSolo Event',          render_kw={'title':'Check if this is a ProSolo style event'}) 
-    ispractice    = BooleanField( 'No Championship Points',   render_kw={'title':'Check if this is a practice/school and not counted towards championship points'})
-    useastiebreak = BooleanField( 'Championship Tie Breaker', render_kw={'title':'Check if this event should be prepended to the list of items used to break championship ties'})
-    champrequire  = BooleanField( 'Championship Requirement', render_kw={'title':'Check if this event must be attended to be considered for a championship result'})
-    isexternal    = BooleanField( 'External Results',       render_kw={'title':'Check if this is an external event that we only import net results from'})
+    ispractice    = BooleanField( 'No Championship Points',   render_kw={'title':'Check if this is a practice/school and not counted towards championship points',
+                                                                         'labelextra':'Schools/Practices/etc.',
+                                                                        })
+    useastiebreak = BooleanField( 'Championship Tie Breaker', render_kw={'title':'Check if this event should be prepended to the list of items used to break championship ties',
+                                                                        'labelextra':'Prepend to place finishes tie breakers'
+                                                                        })
+    champrequire  = BooleanField( 'Championship Requirement', render_kw={'title':'Check if this event must be attended to be considered for a championship result',
+                                                                        'labelextra':'Attendance required to qualify, uncommon'
+                                                                        })
+    isexternal    = BooleanField( 'External Results',       render_kw={'title':'Check if this is an external event that we only import net results from',
+                                                                        'labelextra':'Used for including National events in championship'
+                                                                        })
+    ispro         = BooleanField( 'ProSolo Event',          render_kw={'title':'Check if this is a ProSolo style event'})
     perlimit      = IntegerField( 'Per Driver Entry Limit', render_kw={'title':'Limit to the number of entries a single driver can register (0=nolimit)'})
     totlimit      = IntegerField( 'Total Entry Limit',      render_kw={'title':'The total limit for all registrations for the event (0=nolimit)'})
     accountid     = BlankSelectField('Payment Account')
@@ -306,7 +314,7 @@ class EventSettingsForm(MyFlaskForm):
     chair         = MyStringField('Chair',                  render_kw={'title':'The event chair'})
     sinlimit      = IntegerField( 'Singles Entry Limit',    render_kw={'title':'When allowing multiple entries, a limit to the number of individual people that can register (0=nolimit)'})
     courses       = IntegerField( 'Course Count',           render_kw={'title':'The number of courses in the event'})
-    runs          = IntegerField( 'Run Count',              render_kw={'title':'The number of runs in the event'})    
+    runs          = IntegerField( 'Run Count',              render_kw={'title':'The number of runs in the event'})
     countedruns   = IntegerField( 'Runs Counted',           render_kw={'title':'The number of runs counted towards results (0=all)'})
     segments      = IntegerField( 'Segment Count',          render_kw={'title':'The number of segments on each course'})
     conepen       = FloatField(   'Cone Penalty',           render_kw={'title':'The penalty value for hitting a cone'})
@@ -323,30 +331,19 @@ class NameDateForm(Form):
     name          = MyStringField('Event Name',  [Length(min=4, max=32)])
     date          = DateField(    'Event Date',  render_kw={'title':'The date of the event'})
 
-class MultipleEventsForm(MyFlaskForm):
+class MultipleEventsForm(EventSettingsForm):
     namedates     = FieldList(FormField(NameDateForm), min_entries=1)
     closeday      = SelectField(  'Close Day',              choices=[('1', 'Mon'), ('2','Tue'), ('3','Wed'), ('4','Thu'), ('5', 'Fri'), ('6','Sat'), ('7','Sun')])
     closetime     = DateTimeField('Close Time',             format='%H:%M')
     opendays      = IntegerField( 'Open Reg Days Before',   render_kw={'title':'days before event registration should open'})
-    champrequire  = BooleanField( 'Required For Champ',     render_kw={'title':'Check if this event must be attended to be considered for a championship result'})
-    perlimit      = IntegerField( 'Per Driver Entry Limit', render_kw={'title':'Limit to the number of entries a single driver can register (0=nolimit)'})
-    totlimit      = IntegerField( 'Total Entry Limit',      render_kw={'title':'The total limit for all registrations for the event (0=nolimit)'})
-    accountid     = BlankSelectField('Payment Account')
-    paymentreq    = BooleanField( 'Payment Required',       render_kw={'title':'Check this box to require payment for registration'})
-    notes         = TextAreaField('Notes',                  render_kw={'title':'Notes for the event that show up on the registation page', 'rows':6})
-    ispro         = BooleanField( 'Is A ProSolo',           render_kw={'title':'Check if this is a ProSolo style event'})
-    location      = MyStringField('Location',               render_kw={'title':'The location of the event'})
-    sponsor       = MyStringField('Sponsor',                render_kw={'title':'The event sponsor'})
-    host          = MyStringField('Host',                   render_kw={'title':'The event host'})
-    chair         = MyStringField('Chair',                  render_kw={'title':'The event chair'})
-    sinlimit      = IntegerField( 'Singles Entry Limit',    render_kw={'title':'When allowing multiple entries, a limit to the number of individual people that can register (0=nolimit)'})
-    courses       = IntegerField( 'Course Count',           render_kw={'title':'The number of courses in the event'})
-    runs          = IntegerField( 'Run Count',              render_kw={'title':'The number of runs in the event'})
-    countedruns   = IntegerField( 'Runs Counted',           render_kw={'title':'The number of runs counted towards results (0=all)'})
-    segments      = IntegerField( 'Segment Count',          render_kw={'title':'The number of segments on each course'})
-    conepen       = FloatField(   'Cone Penalty',           render_kw={'title':'The penalty value for hitting a cone'})
-    gatepen       = FloatField(   'Gate Penalty',           render_kw={'title':'The penalty value for missing a gate'})
-    submit        = SubmitField(  'Submit')
+
+    def __init__(self, regtypes, accounts):
+        super().__init__(regtypes, accounts)
+        del self.eventid
+        del self.name
+        del self.date
+        del self.regopened
+        del self.regclosed
 
 
 class SeriesForm(MyFlaskForm):

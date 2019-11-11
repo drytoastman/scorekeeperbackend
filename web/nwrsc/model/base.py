@@ -42,11 +42,6 @@ class AttrBase(object):
         return psycopg2.connect(cursor_factory=psycopg2.extras.DictCursor, application_name=app, dbname="scorekeeper", host=host, port=port, user=user)
 
     @classmethod
-    def testPassword(cls, user, password):
-        """ Assumes container db is named as such but it works, can't use config/unix socket as it implicitly trusts any user declaration, throws exception on error """
-        psycopg2.connect(application_name="webtest", dbname="scorekeeper", host='db', port=5432, user=user, password=password).close()
-
-    @classmethod
     def initialize(cls, host, port):
         """ A little introspection to load the schema from database """
         with cls.connect(host=host, port=port, user="localuser") as db:
