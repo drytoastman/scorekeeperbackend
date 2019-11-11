@@ -67,6 +67,8 @@ services:
         - socket:/var/run/postgresql
         - logs:/var/log
         - crondata:/crondata:ro
+        - webdata:/webdata:ro
     environment:
         - GOOGLE_APPLICATION_CREDENTIALS=/crondata/scorekeeper.creds.json
+        - SECRETS_FILE=/webdata/websecrets.json
         - MAIL_ADMIN_ADDRESS=admin@scorekeeper.wwscc.org

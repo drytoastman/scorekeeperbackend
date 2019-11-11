@@ -238,7 +238,8 @@ def cron_jobs():
         "SECRETS_FILE":                    os.environ.get('SECRETS_FILE',          None),
         "UI_TIME_ZONE":                    os.environ.get('UI_TIME_ZONE',          'US/Pacific'),
     })
-    dbapp.config.from_json(dbapp.config['SECRETS_FILE'])
+    if dbapp.config['SECRETS_FILE']:
+        dbapp.config.from_json(dbapp.config['SECRETS_FILE'])
     model_setup(dbapp)
 
     with dbapp.app_context():
