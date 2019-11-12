@@ -252,6 +252,15 @@ function initregform(id, eventid, limit, msg)
         me.find('.statuslabel').html( dodisable && msg || "");
     };
 
+    if (me.find('input[type=checkbox]:enabled').length == 0) {
+        me.hide();
+        $('.nocarhelp').show();
+        return;
+    }
+
+    me.show();
+    $('.nocarhelp').hide();
+
     me.find('input[name=eventid]').val(eventid);
     me.find('input[type=checkbox]').prop('checked', false).prop('disabled', false).click(checkmax);
     gRegistered[eventid].forEach(function (regentry) {
@@ -276,14 +285,19 @@ function initsessform(id, eventid, limit, msg, sessions, cars)
             <input class='col-1' name='${e}' type='checkbox'/>
             <label class='col-3' for='${e}'>${e} Session</label>
             <select class='col-6 sessionselect' name='car-${e}'>
-                <option value='00000000-0000-0000-0000-000000000000'></option>
             </select>
             </div>
         `);
     });
-    cars.forEach(function(c) {
-        $(".sessionselect").append("<option value='"+c.carid+"'>"+c.desc+"</option>");
-    });
+
+    if (cars.length > 0) {
+        cars.forEach(function(c) {
+            $(".sessionselect").append("<option value='"+c.carid+"'>"+c.desc+"</option>");
+        });
+    } else {
+        me.find('input').prop('disabled', true);
+        me.find('select').prop('disabled', true);
+    }
 
     initregform(id, eventid, limit, msg)
     

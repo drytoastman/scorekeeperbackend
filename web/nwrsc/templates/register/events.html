@@ -137,13 +137,15 @@ gAccounts["{{ev.eventid}}"] = { id: "{{accounts[ev.eventid].accountid}}", type: 
 </div>
 
 {% call m.modal('registermodal', 'Register Cars', '') %}
-    <form id='registerform' action='{{url_for(".eventspost")}}' method='POST'>
-        <input type='hidden' name='eventid' value=''/>
-        <div class='row'>
+    <div class='row'>
         <div class='col-2'></div>
         <div class='col-10'><a href='cars'><span class='fa fa-car'></span>Create,Edit and Delete Cars Here</a></div>
-        </div>
-        {% for c in cars.values() %}
+    </div>
+    <div class='row nocarhelp'><div class='col'>You have no cars to register, you can create one at the link above</div></div>
+
+    <form id='registerform' action='{{url_for(".eventspost")}}' method='POST'>
+        <input type='hidden' name='eventid' value=''/>
+            {% for c in cars.values() %}
         {% if c.classcode[0] != '_' %}
         <div class='row align-items-center'>
         <input class="col-2" name="{{c.carid}}" id="{{c.carid}}" type="checkbox" value="y"/>
@@ -161,10 +163,14 @@ gAccounts["{{ev.eventid}}"] = { id: "{{accounts[ev.eventid].accountid}}", type: 
 {% endcall %}
 
 {% call m.modal('registermodalsession', 'Register For Event', '') %}
+    <div class='row'>
+        <div class='col text-center'><a href='cars'><span class='fa fa-car'></span>Create,Edit and Delete Cars Here</a></div>
+    </div>
+    <div class='row nocarhelp'><div class='col'>You have no cars to register, you can create one at the link above.  Class/index are not important for this event.</div></div>
+
     <form id='registerformsession' action='{{url_for(".sessionspost")}}' method='POST'>
         <input type='hidden' name='eventid' value=''/>
-        <div class='row'><div class='col text-center'><a href='cars'><span class='fa fa-car'></span>Create,Edit and Delete Cars Here</a></div></div>
-        <div class='row'><div class='col text-center'>If you don't select a car, a placeholder will be created for you.</div></div>
+        <div class='row'><div class='col text-center'>You can select any car, the class/index are ignored for this event</div></div>
         <div class='row'><div class='col text-center'>&nbsp;</div></div>
 
         <div id='registersessionmarker' class='row mt-2'>

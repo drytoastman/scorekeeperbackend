@@ -344,14 +344,10 @@ table.registration {
 }
 
 
-#registermodal, #registermodalsp {
+#registermodal {
     label {
         font-weight: normal;
         text-align: left;
-    }
-
-    .fa-car {
-        margin: 0 0.5rem 0;
     }
 
     .row:hover {
@@ -362,6 +358,15 @@ table.registration {
         margin: 0.5rem;
         margin-left: auto;
     }
+}
+
+.fa-car {
+    margin: 0 0.5rem 0;
+}
+
+.nocarhelp {
+    text-align: center;
+    font-size: 0.9rem;
 }
 
 
