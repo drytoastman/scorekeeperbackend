@@ -370,7 +370,9 @@ def eventlist():
         e.regopened = { 'display': e.regopened.strftime("%a %b %d %H:%S"), 'sort': e.regopened.timestamp() }
         e.regclosed = { 'display': e.regclosed.strftime("%a %b %d %H:%S"), 'sort': e.regclosed.timestamp() }
         e.regcount = e.getRegisteredCount()
-        e.account = PaymentAccount.get(e.accountid)
+        account = PaymentAccount.get(e.accountid)
+        if account:
+            e.account = account.name
     return json_encode(events)
 
 

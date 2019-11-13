@@ -20,7 +20,7 @@ $(document).ready(function(){
             { data: 'status' }, 
             { data: 'regtype',   render: function( data, type, row ) { return (data==2) ? "Day" : ((data==1) ? "AM/PM" : "Normal"); }},
             { data: 'limits',    render: function( data, type, row ) { return row.regcount + "/" + (row.totlimit || "-") + " ("+row.perlimit+"pp)"; }},
-            { data: 'payments',  render: function( data, type, row ) { if (row.account) { return row.account.name + (row.paymentreq ? "/REQ":"") } else return ""; }},
+            { data: 'payments',  render: function( data, type, row ) { if (row.account) { return row.account + (row.paymentreq ? "/REQ":"") } else return ""; }},
             { data: '',          render: function( data, type, row ) { return "<a href='{{url_for('.eventedit', eventid='XXX')}}'>Edit</a>".replace('XXX', row.eventid); }},
         ],
         sDom: '<"dtheader">rt<"clear">'
