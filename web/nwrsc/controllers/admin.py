@@ -357,6 +357,23 @@ def default():
     raise DisplayableError(header="Unknown request", content="Unknown argument for default")
 
 
+@Admin.route("/allevents", methods=['POST','GET'])
+def allevents():
+    return render_template('/admin/allevents.html')
+
+@Admin.route("/eventlist")
+def eventlist():
+    events = Event.byDate()
+    for e in events:
+        e.status = not e.hasOpened() and 'Not Yet Open' or e.isOpen()  and 'Open' or 'Closed'
+        e.date = { 'display': e.date.strftime("%a %b %d"), 'sort': datetime.datetime.combine(e.date, datetime.time(0)).timestamp() }
+        e.regopened = { 'display': e.regopened.strftime("%a %b %d %H:%S"), 'sort': e.regopened.timestamp() }
+        e.regclosed = { 'display': e.regclosed.strftime("%a %b %d %H:%S"), 'sort': e.regclosed.timestamp() }
+        e.regcount = e.getRegisteredCount()
+        e.account = PaymentAccount.get(e.accountid)
+    return json_encode(events)
+
+
 @Admin.route("/event/<uuid:eventid>/edit", methods=['POST','GET'])
 def eventedit():
     """ Process edit event form submission """

@@ -1,0 +1,56 @@
+{% extends "admin/bluebase.html" %}
+{% block headers %}
+{{super()}}
+<script>
+
+$(document).ready(function(){
+	thetable = $('#eventstable').DataTable({ 
+        ajax: { url:"{{url_for(".eventlist")}}", dataSrc: ''},
+        lengthMenu: [[15, 30, 50, -1], [15, 30, 50, "All"]],
+        iDisplayLength: -1,
+        autoWidth: true,
+        select: {
+            style: 'os',
+        },
+        columns: [
+            { data: 'date', render: { _: 'display', sort: 'sort' }, className: 'datetime'},
+            { data: 'name' }, 
+            { data: 'regopened', render: { _: 'display', sort: 'sort' }, className: 'datetime'},
+            { data: 'regclosed', render: { _: 'display', sort: 'sort' }, className: 'datetime'},
+            { data: 'status' }, 
+            { data: 'regtype',   render: function( data, type, row ) { return (data==2) ? "Day" : ((data==1) ? "AM/PM" : "Normal"); }},
+            { data: 'limits',    render: function( data, type, row ) { return row.regcount + "/" + (row.totlimit || "-") + " ("+row.perlimit+"pp)"; }},
+            { data: 'payments',  render: function( data, type, row ) { if (row.account) { return row.account.name + (row.paymentreq ? "/REQ":"") } else return ""; }},
+            { data: '',          render: function( data, type, row ) { return "<a href='{{url_for('.eventedit', eventid='XXX')}}'>Edit</a>".replace('XXX', row.eventid); }},
+        ],
+        sDom: '<"dtheader">rt<"clear">'
+    });
+});
+
+</script>
+{% endblock headers %}
+
+{% block content %}
+{{super()}}
+<div class='container'>
+<h4>Event Browser</h4>
+
+<table id='eventstable' class='table-striped table-bordered eventstable' cellspacing=0 width="100%">
+<thead>
+<tr>
+<th>Date</th>
+<th>Name</th>
+<th>Reg Opens</th>
+<th>Reg Closes</th>
+<th>Status</th>
+<th>Type</th>
+<th>Limits</th>
+<th>Payments</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+
+{% endblock %}
