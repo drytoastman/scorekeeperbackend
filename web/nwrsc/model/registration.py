@@ -38,7 +38,7 @@ class Registration(AttrBase):
 
     @classmethod
     def getForSeries(cls, series, driverid):
-        return cls.getall("SELECT c.*,e.eventid,e.date,e.name FROM {}.registered r JOIN {}.cars c ON r.carid=c.carid JOIN {}.events e ON e.eventid=r.eventid WHERE c.driverid=%s ORDER BY e.date".format(series,series,series), (driverid,))
+        return cls.getall("SELECT r.session,c.*,e.eventid,e.date,e.name FROM {}.registered r JOIN {}.cars c ON r.carid=c.carid JOIN {}.events e ON e.eventid=r.eventid WHERE c.driverid=%s ORDER BY e.date".format(series,series,series), (driverid,))
 
     @classmethod
     def deleteById(cls, eventid, carid):

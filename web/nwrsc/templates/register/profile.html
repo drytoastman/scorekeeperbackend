@@ -64,7 +64,7 @@ Upcoming Entries For All Series
 <span class='name'>{{name}}</span>
 <ol>
 {% for e in entries %}
-<li>{{rm.carDisplay(e)}}</li>
+<li>{{rm.carDisplay(e, e.session)}}</li>
 {% endfor %}
 </ol>
 {% endfor %}

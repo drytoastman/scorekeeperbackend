@@ -179,6 +179,11 @@ def events():
     return render_template('register/events.html', events=events, cars=cars, registered=registered, accounts=accounts, showpay=showpay, pitems=pitems)
 
 
+@Register.route("/<series>/help")
+def help():
+    return render_template('register/help.html')
+
+
 def _renderSingleEvent(event, error):
     """ INTERNAL: For returning HTML for a single event div in response to updates """
     cars    = {c.carid:c for c in Car.getForDriver(g.driver.driverid)}

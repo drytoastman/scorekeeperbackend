@@ -24,7 +24,7 @@
 {% if g.classdata %}
 {% set istr = g.classdata.getEffectiveIndex(car)[1] -%}
 {% endif %}
-{% if session != '' %}
+{% if session %}
 <span class='code'>{{session}} Session
 {% else %}
 <span class='code'>{{car.classcode}}/{{car.number}} {{istr and "("+istr+")" or ""}}
@@ -32,7 +32,7 @@
 {% if   paid %}<span class='label paid'>Paid - {{paid|d2}}</span>{% endif %}
 {% if unpaid %}<span class='label unpaid'>Payment Required</span>{% endif %}
 </span>
-<span class='desc'>{{car.attr.year}} {{car.attr.make}} {{car.attr.model}} {{car.attr.color}} {% if session != '' %}#{{car.number}}{% endif %}</span> 
+<span class='desc'>{{car.attr.year}} {{car.attr.make}} {{car.attr.model}} {{car.attr.color}} {% if session %}#{{car.number}}{% endif %}</span> 
 </div>
 {% endmacro %}
 

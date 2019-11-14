@@ -39,6 +39,7 @@ Scorekeeper.shownavmenu('#navbarNav', '#seriesdropdownlink');
         <li class="nav-item {{'active' if g.selection.endswith('profile')}}"><a class="nav-link" href="{{url_for(".profile")}}">Profile</a></li>
         <li class="nav-item {{'active' if g.selection.endswith('cars')}}"><a class="nav-link" href="{{url_for(".cars")}}">Cars</a></li>
         <li class="nav-item {{'active' if g.selection.endswith('events')}}"><a class="nav-link" href="{{url_for(".events")}}">Events</a></li>
+        <li class="nav-item {{'active' if g.selection.endswith('help')}}"><a class="nav-link" href="{{url_for(".help")}}">Help</a></li>
         {% endif %}
         <li class="nav-item"><a class="nav-link" href="{{url_for(".logout")}}">Logout</a></li>
     </ul>
