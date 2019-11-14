@@ -11,6 +11,12 @@ $(document).ready(function(){
 });
 </script>
 {% endif %}
+
+<style>
+.checklist { column-count: 4; }
+@media (max-width: 992px) { .checklist { column-count: 3 !important; }}
+</style>
+
 {% endblock %}
 
 
@@ -28,8 +34,9 @@ $(document).ready(function(){
 {% if not g.driver.optoutmail %}
 <div class='groupswrapper'>
 <div class='gtitle'>Email Groups</div>
+<div class='checklist'>
 {% for eid in listids|sort %}
-<div>
+<div class=''>
 {% if eid in unsubids %}
 <span class='fas fa-times'></span>
 {% else %}
@@ -38,6 +45,7 @@ $(document).ready(function(){
 {{eid}}
 </div>
 {% endfor %}
+</div>
 
 </div>
 {% endif %}
