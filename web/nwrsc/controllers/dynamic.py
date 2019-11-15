@@ -100,8 +100,7 @@ def nextresult():
                     back = lastresult - datetime.timedelta(seconds=60)
                     opp = Run.getLast(g.eventid, back, classcode=le['classcode'], course=le['course']=='1' and '2' or '1')
                     oppcarid = opp and opp['last_entry']['carid'] or None
-                    side = le['course'] == '1' and 'left' or 'right'
-                    data = loadProResults(le['carid'], side, oppcarid)
+                    data = loadProResults(le['carid'], int(le['course']), int(le['rungroup']), oppcarid)
                 else:
                     data = loadAnnouncerResults(le['carid'], int(le['course']), int(le['rungroup']), mini=mini)
                 data['timestamp'] = le['modified'].timestamp()
@@ -204,6 +203,19 @@ def loadClassResults(carid, rungroup):
     return ret
 
 
+def loadNextToFinish(carid, course, rungroup, results):
+    order = list()
+    nextcars = RunOrder.getNextRunOrder(carid, g.eventid, course, rungroup)
+    for n in nextcars:
+        key = n.classcode in results and n.classcode or str(rungroup)
+        if key in results:
+            for e in results[key]:
+                if e['carid'] == str(n.carid):
+                    order.append((e, Result.getBestNetRun(e, course=course)))
+                    break
+    return order
+
+
 def loadAnnouncerResults(carid, course, rungroup, mini=False):
     settings  = Settings.getAll()
     classdata = ClassData.get()
@@ -212,35 +224,30 @@ def loadAnnouncerResults(carid, course, rungroup, mini=False):
     champ     = Result.getChampResults()
 
     data = {'current':{}, 'next':{}}
-    order = list()
-    nextcars = RunOrder.getNextRunOrder(carid, g.eventid, course, rungroup)
-    for n in nextcars:
-        key = n.classcode in results and n.classcode or str(rungroup)
-        if key in results:
-            for e in results[key]:
-                if e['carid'] == str(n.carid):
-                    order.append((e, Result.getBestNetRun(e)))
-                    break
+    nextorder = loadNextToFinish(carid, course, rungroup, results)
 
     entrantTables(data['current'], settings, classdata, carid, results, champ, rungroup=rungroup)
-    data['order'] = render_template('/announcer/runorder.html', order=order)
+    data['order'] = render_template('/announcer/runorder.html', order=nextorder)
     if not mini:
         data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True,  'counted':False}, carid=carid))
         data['topraw'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':False, 'counted':False}, carid=carid))
         for ii in range(1, g.event.segments+1):
             data['topseg%d'% ii] = toptimestable(Result.getTopTimesTable(classdata, results, {'seg':ii}, carid=carid))
-        nextid = nextcars and nextcars[0].carid or None
+        nextid = nextorder and nextorder[0][0]['carid'] or None
         entrantTables(data['next'], settings, classdata, nextid, results, champ, rungroup=rungroup)
 
     return data
 
 
-def loadProResults(carid, side, opposite):
+def loadProResults(carid, course, rungroup, opposite):
     settings  = Settings.getAll()
     classdata = ClassData.get()
     tttable   = get_template_attribute('/results/ttmacros.html', 'toptimestable')
     results   = Result.getEventResults(g.eventid)
     champ     = Result.getChampResults()
+    side      = course == 1 and 'left' or 'right'
+
+    nextorder = loadNextToFinish(carid, course, rungroup, results)
 
     data = {}
     data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True, 'counted':False}, carid=carid))
@@ -254,5 +261,7 @@ def loadProResults(carid, side, opposite):
     data[side]    = render_template('/announcer/entrant.html', event=g.event, driver=drivers[0])
     data['class'] = render_template('/announcer/class.html',   event=g.event, classcode=drivers[0]['classcode'], group=classres)
     data['champ'] = render_template('/announcer/champ.html',   event=g.event, classcode=drivers[0]['classcode'], champ=champres)
+
+    data[side+'nextfinish'] = render_template('/announcer/runorder.html', order=nextorder)
 
     return data

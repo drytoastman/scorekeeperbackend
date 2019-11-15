@@ -8,6 +8,12 @@ function processData(json)
             $('#leftentrant').html(json.lastresult.left);
         if ('right' in json.lastresult)
             $('#rightentrant').html(json.lastresult.right);
+
+        if ('leftnextfinish' in json.lastresult)
+            $('#leftnextfinish').html(json.lastresult.leftnextfinish);
+        if ('rightnextfinish' in json.lastresult)
+            $('#rightnextfinish').html(json.lastresult.rightnextfinish);
+
         $('#classresult .class').html(json.lastresult.class);
         $('#classresult .champ').html(json.lastresult.champ);
         $('#topnetcell').html(json.lastresult.topnet);
@@ -29,8 +35,8 @@ function processData(json)
     if ('lastprotimer' in json && json.lastprotimer.timestamp > Announcer.request.lastprotimer)
     {
         Announcer.request.lastprotimer = json.lastprotimer.timestamp;
-        $('#lefttimer').html(json.lastprotimer.left)  
-        $('#righttimer').html(json.lastprotimer.right)  
+        $('#lefttimer').html(json.lastprotimer.left)
+        $('#righttimer').html(json.lastprotimer.right)
     }
 }
 

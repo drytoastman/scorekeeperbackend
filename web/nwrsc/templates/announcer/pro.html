@@ -13,6 +13,7 @@
 <style>
 .layout{ width: 100%; margin: 0; }
 .leftcol, .rightcol { min-width: 10rem; }
+.runorder th:nth-child(2), .runorder td:nth-child(2) { display: none; }
 </style>
 
 {% endblock %}
@@ -25,6 +26,7 @@
 <td class='leftcol'>
 <span class='header'>Left</span>
 <span id='lefttimer'></span>
+<span id='leftnextfinish'>Waiting for data</span>
 <span id='leftentrant'>Waiting for data</span>
 </td>
 
@@ -62,6 +64,7 @@
 <td class='rightcol'>
 <span class='header'>Right</span>
 <span id='righttimer'></span>
+<span id='rightnextfinish'>Waiting for data</span>
 <span id='rightentrant'>Waiting for data</span>
 </td>
 
