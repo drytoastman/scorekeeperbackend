@@ -264,5 +264,5 @@ def grid():
 
     if 'json' in request.args:
         return json_encode(groups.asjson())
-    return render_template('/results/grid.html', groups=groups, order=order, starts=[k for k in groups if k < 100])
+    return render_template('/results/grid.html', event=g.event, groups=groups, order=order, starts=[k for k in groups if k < 100])
 

@@ -38,6 +38,10 @@ h6         { margin-bottom: 0; }
     padding:    0.2rem;
     margin:     0.3rem;
 }
+
+td.grid { background-color: #dcdcdc; font-weight: bold; }
+td { padding: 1px 0.6rem; }
+
 </style>
 
 <script>
@@ -58,6 +62,9 @@ $(document).ready(function(){
             ui.item.addClass("highlight");
         }
     });
+
+    $(".gridoutput").load("{{url_for('Results.grid')}} #gridbody");
+
 });
 </script>
 {% endblock headers %}
@@ -67,14 +74,16 @@ $(document).ready(function(){
 
 <div class='container-fluid'>
 <h3>RunGroup Editor</h3>
+
+<div class='row'>
+
+<div class='col-5'>
 <ul>
 <li>Drag and Drop the classes into the correct group and order</li>
 <li>The tuple of numbers represent the number of first drivers and second drivers based on car number</li>
 <li>The panel on the right shows the current <a href="{{url_for('Results.grid')}}">grid report by number</a></li>
 </ul>
 
-<div class='row'>
-<div class='col-5'>
 <form method="post" action="{{url_for(".rungroups")}}" onSubmit="collectgroups()">
 {% for group in range(3) %}
 <div class='grouping'>
@@ -90,17 +99,19 @@ $(document).ready(function(){
 {% endif %}
 </ul>
 <input type='hidden' name='group{{group}}' value=''/>
-</div>
+</div> {# grouping #}
 {% endfor %}
 <br style="clear:both"/>
 <input class='btn btn-admin' type='submit' value='Update'/>
 </form>
+
 </div>
 
-<div class='col-7'>
-<iframe src="{{url_for('Results.grid')}}" frameborder="0"></iframe>
-</div>
-</div>
-</div>
+<div class='col-7 gridoutput'>
+
+</div> {# col 7 #}
+</div> {# row end #}
+
+</div> {#  row #}
 
 {% endblock content %}

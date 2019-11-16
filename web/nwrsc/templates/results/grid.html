@@ -9,6 +9,7 @@ td.grid, td.class,td.num { width: 3rem; }
 td.name { width: 17rem; }
 td.net  { width: 5rem; }
 .break  { page-break-before: always; }
+h4 { text-align: center; }
 </style>
 {% endblock headers %}
 
@@ -33,9 +34,11 @@ td.net  { width: 5rem; }
 
 {% block content %}
 {{super()}}
+
+<div id='gridbody'>
 {% for start in starts %}
 {% if groups[start].count > 0 or groups[start+100].count > 0 %}
-<div class='container-fluid'>
+
 <h4>Group {{start}}</h4>
 <table class='table-bordered'>
 {{entries(groups[start], 0)}}
