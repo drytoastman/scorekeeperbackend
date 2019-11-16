@@ -4,10 +4,11 @@ from .car import Car
 from .classlist import Class, Index, ClassData
 from .driver import Driver
 from .event import Event
+from .payments import Payment, PaymentAccount, PaymentItem, PaymentSecret
 from .registration import Registration
 from .result import Result
-from .rungroups import RunGroups
+from .rungroups import RunGroups, RunOrder
 from .series import Series
 from .settings import Settings
-from .simple import Attendance, Audit, Challenge, EmailQueue, EventStream, ExternalResult, NumberEntry, Payment, PaymentAccount, PaymentItem, PaymentSecret, Run, RunOrder, TempCache, TimerTimes, Unsubscribe, WeekendMembers
+from .simple import Attendance, Audit, Challenge, EmailQueue, EventStream, ExternalResult, NumberEntry, Run, TempCache, TimerTimes, Unsubscribe, WeekendMembers
 

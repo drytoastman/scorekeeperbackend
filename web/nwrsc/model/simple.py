@@ -132,65 +132,6 @@ class NumberEntry(AttrBase):
             return [cls(**x) for x in cur.fetchall()]
 
 
-class PaymentAccount(AttrBase):
-    TABLENAME = "paymentaccounts"
-
-    @classmethod
-    def getAll(cls):
-        return cls.getall("SELECT p.*,s.secret FROM paymentaccounts p LEFT JOIN paymentsecrets s ON s.accountid=p.accountid ORDER BY name")
-
-    @classmethod
-    def get(cls, accountid):
-        """ Get the payment account and also rolls in the secret from paymentsecrets """
-        if accountid is None: return None
-        return cls.getunique("select p.*,s.secret from paymentaccounts p LEFT JOIN paymentsecrets s ON s.accountid=p.accountid where p.accountid=%s", (accountid, ))
-
-    @classmethod
-    def deleteById(cls, accountid):
-        with g.db.cursor() as cur:
-            cur.execute("update events set accountid=NULL,modified=now() where accountid=%s", (accountid, ))
-            cur.execute("delete from paymentsecrets  where accountid=%s", (accountid, ))
-            cur.execute("delete from paymentitems    where accountid=%s", (accountid, ))
-            cur.execute("delete from paymentaccounts where accountid=%s", (accountid, ))
-            g.db.commit()
-
-
-class PaymentItem(AttrBase):
-    TABLENAME = "paymentitems"
-
-    @classmethod
-    def getAll(cls):
-        return cls.getall("SELECT * FROM paymentitems")
-
-    @classmethod
-    def getForAccount(cls, accountid):
-        return cls.getall("SELECT * FROM paymentitems where accountid=%s", (accountid,))
-
-    @classmethod
-    def deleteById(cls, itemid):
-        with g.db.cursor() as cur:
-            cur.execute("delete from paymentitems where itemid=%s", (itemid, ))
-            g.db.commit()
-
-    @classmethod
-    def deleteByAccountId(cls, accountid):
-        with g.db.cursor() as cur:
-            cur.execute("delete from paymentitems where accountid=%s", (accountid, ))
-            g.db.commit()
-
-
-class PaymentSecret(AttrBase):
-    TABLENAME = "paymentsecrets"
-
-
-class Payment(AttrBase):
-    TABLENAME = "payments"
-
-    @classmethod
-    def getAll(cls):
-        return cls.getall("SELECT p.*,c.*,d.driverid,d.firstname,d.lastname,d.email,d.optoutmail,e.name,e.date FROM payments p JOIN cars c ON p.carid=c.carid JOIN drivers d ON c.driverid=d.driverid JOIN events e ON p.eventid=e.eventid ORDER BY p.txtime")
-
-
 class Run(AttrBase):
 
     @classmethod
@@ -219,24 +160,6 @@ class Run(AttrBase):
                 ret[row['classcode']] = entry
                 ret['last_entry']     = entry
         return ret
-
-
-class RunOrder(AttrBase):
-
-    @classmethod
-    def getNextRunOrder(cls, carid, eventid, course, rungroup):
-        """ Returns a list of objects (classcode, carid) for the next cars in order after carid """
-        with g.db.cursor() as cur:
-            cur.execute("SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND rungroup=%s", (eventid, course, rungroup));
-            order = [x[0] for x in cur.fetchall()]
-            ret = []
-            for ii, rowcarid in enumerate(order):
-                if rowcarid == carid:
-                    for jj in range(ii+1, ii+4)[:len(order)-1]:  # get next 3 but only to length of list (no repeats)
-                        cur.execute("SELECT c.carid,c.classcode,c.number from cars c WHERE carid=%s", (order[jj%len(order)], ));
-                        ret.append(RunOrder(**cur.fetchone()))
-                    break
-            return ret
 
 
 class TempCache():

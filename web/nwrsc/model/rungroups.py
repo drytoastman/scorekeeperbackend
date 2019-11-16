@@ -3,7 +3,7 @@ import logging
 from operator import attrgetter
 
 from flask import g
-from .base import Entrant
+from .base import AttrBase, Entrant
 
 log = logging.getLogger(__name__)
 
@@ -108,15 +108,35 @@ class RunGroups(defaultdict):
             ret[100+ii]
 
         with g.db.cursor() as cur:
-            cur.execute("SELECT rungroup,unnest(classes) as classcode FROM classorder WHERE eventid=%s ORDER BY rungroup", (eventid,))
+            cur.execute("SELECT rungroup,classes FROM classorder WHERE eventid=%s ORDER BY rungroup", (eventid,))
             active = []
-            for x in cur.fetchall():
-                active.append(x['classcode'])
-                ret[x['rungroup']][x['classcode']] = ClassList()
-                ret[x['rungroup']+100][x['classcode']] = ClassList()
+            for row in cur.fetchall():
+                group = row['rungroup']
+                for code in row['classes']:
+                    active.append(code)
+                    ret[group][code]     = ClassList()
+                    ret[group+100][code] = ClassList()
+
             cur.execute("SELECT classcode FROM classlist {} ORDER BY classcode".format(active and "WHERE classcode NOT IN %s" or ""), (tuple(active),))
             for x in cur.fetchall():
                 ret[0][x[0]] = ClassList()
                 ret[100][x[0]] = ClassList()
         return ret
 
+
+class RunOrder(AttrBase):
+
+    @classmethod
+    def getNextRunOrder(cls, carid, eventid, course, rungroup):
+        """ Returns a list of objects (classcode, carid) for the next cars in order after carid """
+        with g.db.cursor() as cur:
+            cur.execute("SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND rungroup=%s", (eventid, course, rungroup));
+            order = [x[0] for x in cur.fetchall()]
+            ret = []
+            for ii, rowcarid in enumerate(order):
+                if rowcarid == carid:
+                    for jj in range(ii+1, ii+4)[:len(order)-1]:  # get next 3 but only to length of list (no repeats)
+                        cur.execute("SELECT c.carid,c.classcode,c.number from cars c WHERE carid=%s", (order[jj%len(order)], ));
+                        ret.append(RunOrder(**cur.fetchone()))
+                    break
+            return ret

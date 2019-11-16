@@ -2,7 +2,7 @@ import logging
 
 from flask import g
 from .base import AttrBase, Entrant
-from .simple import Payment
+from .payments import Payment
 
 log = logging.getLogger(__name__)
 
