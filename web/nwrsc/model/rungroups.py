@@ -1,6 +1,8 @@
+import bisect
 from collections import defaultdict, OrderedDict
 import logging
 from operator import attrgetter
+import types
 
 from flask import g
 from .base import AttrBase, Entrant
@@ -54,7 +56,7 @@ class GroupOrder(OrderedDict):
     def count(self):
         """ count of entrants in this rungroup """
         return sum(x.truecount for x in self.values())
-        
+
 
 class RunGroups(defaultdict):
     """
@@ -130,13 +132,77 @@ class RunOrder(AttrBase):
     def getNextRunOrder(cls, carid, eventid, course, rungroup):
         """ Returns a list of objects (classcode, carid) for the next cars in order after carid """
         with g.db.cursor() as cur:
-            cur.execute("SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND rungroup=%s", (eventid, course, rungroup));
+            cur.execute("SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND rungroup=%s", (eventid, course, rungroup))
             order = [x[0] for x in cur.fetchall()]
             ret = []
             for ii, rowcarid in enumerate(order):
                 if rowcarid == carid:
                     for jj in range(ii+1, ii+4)[:len(order)-1]:  # get next 3 but only to length of list (no repeats)
-                        cur.execute("SELECT c.carid,c.classcode,c.number from cars c WHERE carid=%s", (order[jj%len(order)], ));
+                        cur.execute("SELECT c.carid,c.classcode,c.number from cars c WHERE carid=%s", (order[jj%len(order)], ))
+                        ret.append(RunOrder(**cur.fetchone()))
+                    break
+            return ret
+
+
+
+    @classmethod
+    def getProGroupings(cls, eventid, rungroup):
+        """ Best effort to deduce what current runorder groupings exists by comparing runorder on the two courses """
+
+        def process(order, other):
+            cap = 0
+            ret = list()
+            for ii, e in enumerate(order):
+                try:
+                    off = other.index(e) - ii
+                    if off > 0 and cap <= 0:  # transition to being ahead in opposite course tells all, start of group
+                        ret.append(ii)
+                    cap = off
+                except ValueError:
+                    pass
+            return ret
+
+
+        with g.db.cursor() as cur:
+            cur.execute("SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND rungroup=%s", (eventid, 1, rungroup))
+            leftorder  = [x[0] for x in cur.fetchall()]
+
+            cur.execute("SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND rungroup=%s", (eventid, 2, rungroup))
+            rightorder = [x[0] for x in cur.fetchall()]
+
+            return types.SimpleNamespace(left=leftorder, right=rightorder, leftgroup=process(leftorder, rightorder), rightgroup=process(rightorder, leftorder))
+
+
+
+    @classmethod
+    def getNextRunOrderPro(cls, carid, eventid, course, rungroup, run):
+        """ Returns a list of objects (classcode, carid) for the next cars in order after carid """
+
+        with g.db.cursor() as cur:
+            pro = cls.getProGroupings(eventid, rungroup)
+
+            if course == 1:
+                order = pro.left
+                group = pro.leftgroup
+            else:
+                order = pro.right
+                group = pro.rightgroup
+
+            ret = []
+            for ii, cid in enumerate(order):
+                if cid == carid:
+                    if run%2 > 0: # odd run, wrap inside our little subgroup
+                        bi    = bisect.bisect(group, ii)
+                        start = group[bi-1]
+                        end   = group[bi]
+                    else:
+                        start = 0 # full list
+                        end   = len(order)
+
+                    for jj in range(ii+1, ii+4):
+                        if jj >= end:
+                            jj = jj - (end - start)
+                        cur.execute("SELECT c.carid,c.classcode,c.number from cars c WHERE carid=%s", (order[jj], ))
                         ret.append(RunOrder(**cur.fetchone()))
                     break
             return ret

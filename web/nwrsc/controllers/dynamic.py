@@ -100,7 +100,7 @@ def nextresult():
                     back = lastresult - datetime.timedelta(seconds=60)
                     opp = Run.getLast(g.eventid, back, classcode=le['classcode'], course=le['course']=='1' and '2' or '1')
                     oppcarid = opp and opp['last_entry']['carid'] or None
-                    data = loadProResults(le['carid'], int(le['course']), int(le['rungroup']), oppcarid)
+                    data = loadProResults(le['carid'], int(le['course']), int(le['rungroup']), int(le['run']), oppcarid)
                 else:
                     data = loadAnnouncerResults(le['carid'], int(le['course']), int(le['rungroup']), mini=mini)
                 data['timestamp'] = le['modified'].timestamp()
@@ -203,9 +203,8 @@ def loadClassResults(carid, rungroup):
     return ret
 
 
-def loadNextToFinish(carid, course, rungroup, results):
+def loadNextToFinish(nextcars, course, rungroup, results):
     order = list()
-    nextcars = RunOrder.getNextRunOrder(carid, g.eventid, course, rungroup)
     for n in nextcars:
         key = n.classcode in results and n.classcode or str(rungroup)
         if key in results:
@@ -224,7 +223,7 @@ def loadAnnouncerResults(carid, course, rungroup, mini=False):
     champ     = Result.getChampResults()
 
     data = {'current':{}, 'next':{}}
-    nextorder = loadNextToFinish(carid, course, rungroup, results)
+    nextorder = loadNextToFinish(RunOrder.getNextRunOrder(carid, g.eventid, course, rungroup), course, rungroup, results)
 
     entrantTables(data['current'], settings, classdata, carid, results, champ, rungroup=rungroup)
     data['order'] = render_template('/announcer/runorder.html', order=nextorder)
@@ -239,7 +238,7 @@ def loadAnnouncerResults(carid, course, rungroup, mini=False):
     return data
 
 
-def loadProResults(carid, course, rungroup, opposite):
+def loadProResults(carid, course, rungroup, run, opposite):
     settings  = Settings.getAll()
     classdata = ClassData.get()
     tttable   = get_template_attribute('/results/ttmacros.html', 'toptimestable')
@@ -247,7 +246,7 @@ def loadProResults(carid, course, rungroup, opposite):
     champ     = Result.getChampResults()
     side      = course == 1 and 'left' or 'right'
 
-    nextorder = loadNextToFinish(carid, course, rungroup, results)
+    nextorder = loadNextToFinish(RunOrder.getNextRunOrderPro(carid, g.eventid, course, rungroup, run), course, rungroup, results)
 
     data = {}
     data['topnet'] = tttable(Result.getTopTimesTable(classdata, results, {'indexed':True, 'counted':False}, carid=carid))
