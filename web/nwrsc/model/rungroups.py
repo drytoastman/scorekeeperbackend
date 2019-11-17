@@ -160,6 +160,7 @@ class RunOrder(AttrBase):
                     cap = off
                 except ValueError:
                     pass
+            ret.append(len(order))
             return ret
 
 
