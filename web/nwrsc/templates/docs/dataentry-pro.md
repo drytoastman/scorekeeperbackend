@@ -17,34 +17,42 @@ At the top are several options:
 1. **Grouping** - this is the grid grouping from the admin page.  Generally just group 1 and group 2.  These may or may not line up with the actual
 rungoups they end up running in.  i.e. grouping 2 may run first based on the coin flip
 
-2. **Order** - this is the order of grid entrants, either number or position.  Number ordering is used in the morning, Position ordering is used in
-the afternoon though **Reordering Run Order by Position** below is probably the better solution for the afternoon.
+2. **Sort** - this is the order of grid entrants, either number or position.  **Number** ordering is used in the morning, **Position** ordering is used in
+the afternoon.
 
 3. **Overwrite Current Order** - the default is off which means we are appending a new chunk of entries to the runorder as grid brings us new groups
-of cards.  If this is checked, the current runorder will be deleted before adding the selected entries.
+of cards.  If this is checked, the current runorder will be cleared before adding the selected entries.  This can be used when loading the first set of
+cars in the afternoon.
 
-You can see in the image that the top section of entries are greyed out.  This is becuase they are already in a runorder for the current event. The
-rest of the entries are not in the runorder and can be selected and added.  You can still selected greyed out entries, but they will be ignored. There
-are also two tables of entries, the first/single drivers and then the dual drivers.  The current implementation assumes that the dual drivers you
-select will come after the first/single drivers.
+4. **Load To** - if each data entry person is loading the grid individually, select **This Course** and it will only load entrants to the current course.
+If **Both Courses** is selected, it will load the grid to both courses at the same time.  The other data entry will seen their screen update after a sync
+occurs.  Use **Both Courses** only if the other data entry person is aware you are doing this.
 
-Upon clicking **OK**, the left course (1) will have all of the left drivers appended to the runorder followed by all of the right drivers, while
-the right course (2) will have the opposite ordering, matching the order in which they should appear to each side.  This process can be repeated for
-each new grouping of cars to be released from grid.
+You can see in the image that the top section of entries are greyed out.  This
+is because they are already in a runorder for the current event. The rest of
+the entries are not in the runorder and can be selected and added.  You can
+still selected greyed out entries, but they will be ignored. There are also two
+tables of entries, the first/single drivers and then the dual drivers.  The
+current implementation assumes that the dual drivers you select will come after
+the first/single drivers.
 
-*<span style='color:red'>Note:  This loads cars on both courses at the same time so only 1 data entry person should perform this action.  The other
-dataentry will refresh its screen automatically after a sync occurs.</span>*
-
-
-## Reordering Run Order by Position
-
-If the grouping of cars released by grid will remain the same in the afternoon, rather than start with a fresh grid and following the process above,
-you can run a single command to reorder all the entrants in the current run group.  Select **Reorder By Net** from the **ProSolo** menu.
-
-The current run order for for course 1 and 2 will be scanned for all the spots and which class they are assigned to.  These spots are then assigned
-the entrants from each class based on their finishing position with accouting for second drivers.  This will only be done for the current run group.
-
-*<span style='color:red'>Note:  This updates cars on both courses at the same time so only 1 data entry person should perform this action.  The other
-dataentry will refresh its screen automatically after a sync occurs.</span>*
+Upon clicking **OK**, the left course (**1**) will have all of the left drivers
+appended to the runorder followed by all of the right drivers, while the right
+course (**2**) will have the opposite ordering, matching the order in which
+they should appear to each side.  This process can be repeated for each new
+grouping of cars to be released from grid.
 
 
+## Group Markings and Next Cell
+
+Data entry during a Pro will attempt to be smarter amount selecting the next
+time cell.  It will look at the runorder of both courses and try and determine
+where the groups are divided up.  These will be marked with a green horizontal
+line as seen below:
+
+![GroupingLine](images/prodivider.png)
+
+On 1st, 3rd and 5th runs, if it hits one of these boundaries, it will wrap back
+up to the top of the subgrouping, otherwise it will continue down as per
+normal.  As always, the data entry person is responsible for verifying that
+they are commiting the time to the correct entrant.
