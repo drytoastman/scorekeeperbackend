@@ -8,17 +8,6 @@
 {% assets "vendor.js", "register.js" %}
 <script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
-<style>
-#rulesmodal .modal-body a { text-decoration: underline; }
-#rulesmodal .modal-body input { margin-top: 1rem; }
-
-nav a.disabled { 
-    cursor: not-allowed;
-    pointer-events: none;
-    opacity: 0.2;
-}
-
-</style>
 
 <script type="text/javascript">
 $(document).ready(function(){
@@ -102,7 +91,7 @@ Series rules have not be acknowledged yet - <a href='#' data-toggle='modal' data
 </div></div>
 {% call m.modal('rulesmodal', 'Series Rules and Regulations', '') %}
 <div class='row'><div class='col'>
-The {{g.series}} admin requests you have read and accepted the <a href='{{g.settings.seriesruleslink}}' target='helptab'>rules and regulations for the series</a>.
+The {{g.series}} admin requests that you have read and accepted the <a href='{{g.settings.seriesruleslink}}' target='helptab'>rules and regulations for the series</a>.
 </div></div>
 
 <div class='row text-center'><div class='col'>

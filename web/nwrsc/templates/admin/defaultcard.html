@@ -1,10 +1,19 @@
-<div class='header'>
-<div class='eventinfo'>
+<!-- wkhtmltopdf can't handle newer CSS like flex-box so we revert to tables for the header -->
+<table class='header'>
+<tr>
+
+<td class='eventinfo'>
 <div class='name'>{{g.event.name}}</div>
 <div class='date'>{{g.event.date}}</div>
-</div>
+</td>
 
-<div class='codes'>
+<td class='rules'>
+{% if g.settings and g.settings.requestrulesack %}
+I have read and accept the rules<input type='checkbox' {{reg.sattr.rulesack and "checked='checked'" or ""}}>
+{% endif %}
+</td>
+
+<td class='codes'>
 {% if reg.caridbarcode %}
 <svg class="barcode"
     jsbarcode-format="CODE128C"
@@ -18,8 +27,10 @@
     jsbarcode-fontSize="14"
 ></svg>
 {% endif %}
-</div>
-</div>
+</td>
+</tr>
+</table>
+
 
 <table class='entrant'>
 <tr>

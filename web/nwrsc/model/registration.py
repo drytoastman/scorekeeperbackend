@@ -12,7 +12,8 @@ class Registration(AttrBase):
     @classmethod
     def getForEvent(cls, eventid, paymentRequired=False):
         with g.db.cursor() as cur:
-            cur.execute("SELECT d.driverid,d.firstname,d.lastname,d.email,d.barcode,d.optoutmail,c.*,r.*,r.modified as regmodified, d.attr as dattr,c.attr as cattr FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid WHERE r.eventid=%s ORDER BY c.number", (eventid,))
+            cur.execute("SELECT d.driverid,d.firstname,d.lastname,d.email,d.barcode,d.optoutmail,c.*,r.*,r.modified as regmodified, d.attr as dattr,c.attr as cattr, sa.attr as sattr " +
+                        "FROM cars c JOIN drivers d ON c.driverid=d.driverid JOIN registered r ON r.carid=c.carid LEFT JOIN seriesattr sa ON c.driverid=sa.driverid WHERE r.eventid=%s ORDER BY c.number", (eventid,))
             retdict = {(x['carid'],x['session']):Entrant(**x, payments=[]) for x in cur.fetchall()}
 
             cur.execute("SELECT * FROM payments WHERE eventid=%s", (eventid,))
