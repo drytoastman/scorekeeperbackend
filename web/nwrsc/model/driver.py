@@ -71,3 +71,14 @@ class Driver(AttrBase):
             cur.execute("SELECT r.carid,r.eventid FROM runs r JOIN cars c on r.carid=c.carid WHERE c.driverid=%s union select r2.carid,r2.eventid from registered r2 JOIN cars c2 on r2.carid=c2.carid WHERE c2.driverid=%s", (driverid, driverid))
             return [(r['carid'], r['eventid']) for r in cur.fetchall()]
 
+    @property
+    def seriesattr(self):
+        if not hasattr(self, '_seriesattr'):
+            self._seriesattr =  self.getval("SELECT attr FROM seriesattr WHERE driverid=%s", (self.driverid,)) or {}
+        return self._seriesattr
+
+    def setSeriesAttr(self, key, val): #o'rulesack', True)
+        with g.db.cursor() as cur:
+            cur.execute("INSERT INTO seriesattr (driverid, attr) VALUES (%s, %s) ON CONFLICT (driverid) DO UPDATE SET attr=seriesattr.attr||%s, modified=now()", (self.driverid, {key:val}, {key:val}))
+            g.db.commit()
+

@@ -282,6 +282,13 @@ def usednumbers():
     return json_encode(sorted(list(Car.usedNumbers(g.driver.driverid, classcode, g.settings.superuniquenumbers))))
 
 
+@Register.route("/<series>/rulesaccept", methods=['POST'])
+def rulesaccept():
+    if 'accept' in request.form:
+        g.driver.setSeriesAttr('rulesack', True)
+    return redirect(request.form.get('returnto', url_for('.events')))
+
+
 @Register.route("/logout")
 def logout():
     session.pop('driverid', None)

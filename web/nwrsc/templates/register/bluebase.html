@@ -8,12 +8,21 @@
 {% assets "vendor.js", "register.js" %}
 <script type="text/javascript" src="{{ASSET_URL}}"></script>
 {% endassets %}
+<style>
+#rulesmodal .modal-body a { text-decoration: underline; }
+#rulesmodal .modal-body input { margin-top: 1rem; }
+</style>
 
 <script type="text/javascript">
 $(document).ready(function(){
 {% if not g.series and not surpressmenu %}
 Scorekeeper.shownavmenu('#navbarNav', '#seriesdropdownlink');
 {% endif %} 
+
+$('#rulesmodal .modal-body a').click(function(event) {
+    $('#rulesmodal .modal-body input[type=submit]').prop('disabled', false);
+});
+
 });
 </script>
 {% endblock %}
@@ -46,17 +55,38 @@ Scorekeeper.shownavmenu('#navbarNav', '#seriesdropdownlink');
   </div>
 </nav>
 
+
 {% if g.settings and g.settings.requestbarcodes and g.driver and not g.driver.barcode %}
-<div class='row'><div class='col barcodewarning'>
+<div class='row'><div class='col topwarning'>
 No barcode value in profile - <a href='#' data-toggle='modal' data-target='#barcodemodal'>click for help</a>
 </div></div>
 {% call m.modal('barcodemodal', 'Barcode Information', '') %}
-<p>The {{g.series}} series requests that you have a barcode set in your profile.  This is most likely the same as your SCCA number, but not necessarily.</p>
+<p>The {{g.series}} admin requests that you have a barcode set in your profile.  This is most likely the same as your SCCA number, but not necessarily.</p>
 <p>If you already have a barcode on your helmet or vehicle, please go to the <a href='{{url_for(".profile")}}'>profile</a> page, edit profile, and enter the barcode value there.</p>
 <p>If you do not have a barcode yet, one will be provided if necessary at the event and you can ignore this message.</p>
 {% endcall %}
-
 {% endif %}
+
+
+{% if g.settings and g.settings.requestrulesack and g.driver and not g.driver.seriesattr.rulesack %}
+<div class='row'><div class='col topwarning'>
+Series rules have not be acknowledged yet - <a href='#' data-toggle='modal' data-target='#rulesmodal'>click for help</a>
+</div></div>
+{% call m.modal('rulesmodal', 'Series Rules and Regulations', '') %}
+<div class='row'><div class='col'>
+The {{g.series}} admin requests you have read and accepted the <a href='{{g.settings.seriesruleslink}}' target='helptab'>rules and regulations for the series</a>.
+</div></div>
+
+<div class='row text-center'><div class='col'>
+<form action='{{url_for(".rulesaccept")}}' method='POST'>
+<input type='hidden' name='returnto' value='{{url_for(g.selection)}}'></input>
+<input type='submit' class='btn btn-register' disabled='1' name='accept' value='I have read and accept the rules'></input>
+</form>
+</div></div>
+{% endcall %}
+{% endif %}
+
+
 <div class='row'>{{ m.flashdisplay('col') }}</div>
 
 </div>

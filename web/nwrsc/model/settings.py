@@ -10,6 +10,7 @@ class Settings(object):
         "indexafterpenalties":  False,
         "usepospoints":         False,
         "requestbarcodes":      False,
+        "requestrulesack":      False,
         "doweekendmembers":     False,
         "largestcarnumber":     1999,
         "dropevents":           2,
@@ -24,6 +25,7 @@ class Settings(object):
         "resultsheader":        "",
         "resultscss":           "",
         "cardtemplate":         "",
+        "seriesruleslink":      "",
     }
  
     def __init__(self, initial = None):
