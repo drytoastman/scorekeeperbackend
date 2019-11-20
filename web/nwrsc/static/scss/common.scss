@@ -89,6 +89,12 @@ $fgreen: rgb(61, 112, 20);
     .navbar-brand img {
         margin-right: 0.7rem;
     }
+
+    a.disabled {
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: 0.4;
+    }
 }
 
 .modal-header {

@@ -11,6 +11,13 @@
 <style>
 #rulesmodal .modal-body a { text-decoration: underline; }
 #rulesmodal .modal-body input { margin-top: 1rem; }
+
+nav a.disabled { 
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.2;
+}
+
 </style>
 
 <script type="text/javascript">
@@ -27,6 +34,17 @@ $('#rulesmodal .modal-body a').click(function(event) {
 </script>
 {% endblock %}
 
+{% macro menulink(link=None, text=None) %}
+    {% if not link %}
+    {% set disable='disabled' %}
+    {% set onclick='return false;' %}
+    {% else %}
+    {% set disable='' %}
+    {% set onclick='' %}
+    {% endif %}
+
+    <a class="dropdown-item {{disable}}" target='helptab' href='{{link}}' onclick='{{onclick}}'>{{text}}</a>
+{% endmacro %}
 
 {% block content %}
 <nav class="navbar navbar-expand-sm navbar-dark bg-register">
@@ -48,7 +66,17 @@ $('#rulesmodal .modal-body a').click(function(event) {
         <li class="nav-item {{'active' if g.selection.endswith('profile')}}"><a class="nav-link" href="{{url_for(".profile")}}">Profile</a></li>
         <li class="nav-item {{'active' if g.selection.endswith('cars')}}"><a class="nav-link" href="{{url_for(".cars")}}">Cars</a></li>
         <li class="nav-item {{'active' if g.selection.endswith('events')}}"><a class="nav-link" href="{{url_for(".events")}}">Events</a></li>
-        <li class="nav-item {{'active' if g.selection.endswith('help')}}"><a class="nav-link" href="{{url_for(".help")}}">Help</a></li>
+
+        <li id="seriesdropdown" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="helpdropdownlink" data-toggle="dropdown">Info</a>
+          <div class="dropdown-menu">
+              {{ menulink(g.settings.seriesruleslink, 'Series Rulebook') }}
+              {{ menulink(g.settings.classinglink, 'Classing Information') }}
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="{{url_for('.help')}}">Site Help</a>
+          </div>
+        </li>
+
         {% endif %}
         <li class="nav-item"><a class="nav-link" href="{{url_for(".logout")}}">Logout</a></li>
     </ul>
