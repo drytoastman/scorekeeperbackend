@@ -14,9 +14,10 @@
 
 1. You run Scorekeeper from either **(DIR)/bin/ScorekeeperFrontend** or **(DIR)/bin/ScorekeeperFrontend.bat** depending on your OS
 
-1. As a one time only step, run the above command with the argument **"dockerprepare"**, this will
-    * ask you to **Select the new certificates archive file**, select the certs.tgz file provided by your administrator
-    * start Scorekeeper to make sure the backend is downloaded and a database is initialized
+1. As a one time only step, run the above command with the argument **dockerprepare** (i.e. *bin/ScorekeeperFrontend dockerprepare* )
+
+    * it will first ask you if you **want to install new certificates**, click yes if you haven't done this yet and then select the **certs.tgz** file provided by your administrator
+    * it will then start Scorekeeper to make sure the backend is downloaded and a database is initialized
 
 1. For non-Linux installs you may need to open incoming firewall ports depending on use:
     * **TCP:80**    for the local web server (results, etc)    
