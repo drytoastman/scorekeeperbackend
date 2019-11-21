@@ -10,6 +10,7 @@ import time
 import types
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
+tag = os.environ.get('TRAVIS_TAG', 'latest')
 
 import nwrsc.app 
 import nwrsc.model
@@ -42,7 +43,7 @@ def webdata():
 
 @pytest.fixture(scope="module")
 def database(request, webdata):
-    if subprocess.run(["docker", "run", "-d", "--rm", "--name", "webdb", "-e", "NOCLIENTCERT=1", "-p", "{}:{}".format(webdata.port, webdata.port), "drytoastman/scdb:latest"], stdout=subprocess.DEVNULL).returncode != 0:
+    if subprocess.run(["docker", "run", "-d", "--rm", "--name", "webdb", "-e", "NOCLIENTCERT=1", "-p", "{}:{}".format(webdata.port, webdata.port), "drytoastman/scdb:"+tag], stdout=subprocess.DEVNULL).returncode != 0:
         raise Exception("Failed to start webdb")
     def teardown():
         subprocess.run(["docker", "kill", "webdb"], stdout=subprocess.DEVNULL)
