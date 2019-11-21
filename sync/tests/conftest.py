@@ -18,7 +18,7 @@ from synclogic.process import MergeProcess
 from synclogic.model import DataInterface
 
 DB = collections.namedtuple('DB', ['name', 'port', 'serverid'])
-DBIMAGE = 'drytoastman/scdb:' + os.environ.get('TRAVIS_TAG', 'latest')
+DBIMAGE = 'drytoastman/scdb:' + (os.environ.get('TRAVIS_TAG', '') or 'latest')
 
 log = logging.getLogger(__name__)
 
