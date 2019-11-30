@@ -107,7 +107,7 @@ class DataInterface(object):
         args = {
           "cursor_factory": psycopg2.extras.DictCursor,
                     "host": "/var/run/postgresql",
-                    "user": "postgres",  # Needed to load passwords for use on connecting to other servers
+                    "user": "localuser",
                   "dbname": "scorekeeper",
         "application_name": "synclocal"
         }
