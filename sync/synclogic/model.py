@@ -1,4 +1,3 @@
-from collections import OrderedDict
 import contextlib
 import logging
 import os
@@ -89,7 +88,7 @@ class DataInterface(object):
                 for table in DataInterface.ALL_TABLES:
                     cur.execute("SELECT a.attname,t.typname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) JOIN pg_type t ON t.oid=a.atttypid " \
                                 "WHERE i.indrelid = '{}'::regclass AND i.indisprimary".format(table))
-                    DataInterface.PRIMARY_KEYS[table] = OrderedDict({row[0]:row[1] for row in cur.fetchall()})
+                    DataInterface.PRIMARY_KEYS[table] = {row[0]:row[1] for row in cur.fetchall()}
 
                     cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name=%s and table_schema in %s", (table, testseries))
                     DataInterface.COLUMNS[table] = [row[0] for row in cur.fetchall()]
@@ -98,7 +97,7 @@ class DataInterface(object):
         SUMPART = "sum(('x' || substring(t.rowhash, {}, 8))::bit(32)::bigint)"
         SUMS = "{}, {}, {}, {}".format(SUMPART.format(1), SUMPART.format(9), SUMPART.format(17), SUMPART.format(25))
         for table, pk in DataInterface.PRIMARY_KEYS.items():
-            md5cols = '||'.join("md5({}::text)".format(k) for k in list(pk.keys())+['modified'])
+            md5cols = '||'.join("md5({}::text)".format(k) for k in list(sorted(pk.keys()))+['modified'])
             DataInterface.HASH_COMMANDS[table] = "SELECT {} FROM (SELECT MD5({}) as rowhash from {}) as t".format(SUMS, md5cols, table)
 
 
