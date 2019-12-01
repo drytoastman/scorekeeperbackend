@@ -1,4 +1,6 @@
 import logging
+import signal
+import sys
 import warnings
 
 warnings.filterwarnings("ignore", ".*psycopg2 wheel package will be renamed.*")
@@ -13,6 +15,11 @@ def main():
     log = logging.getLogger(__name__)
     log.info("starting main")
 
-    resolver = ScorekeeperResolver()
-    udp_server = DNSServer(resolver, logger=ToPyLogger(log))
+    def interrupt(signum, frame):
+        sys.exit(0)
+    signal.signal(signal.SIGABRT, interrupt)
+    signal.signal(signal.SIGINT,  interrupt)
+    signal.signal(signal.SIGTERM, interrupt)
+
+    udp_server = DNSServer(resolver=ScorekeeperResolver(), logger=ToPyLogger(log))
     udp_server.start()
