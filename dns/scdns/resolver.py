@@ -55,5 +55,4 @@ class ScorekeeperResolver(BaseResolver):
                     # default to first IP, hope for the best
                     return next(iter(neighbors.keys()))
 
-            log.warning("No neighbors, how?  We should see ourselves at least.")
             raise NoNeighborsException()
