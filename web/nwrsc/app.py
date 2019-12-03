@@ -98,7 +98,7 @@ def create_app():
     def urldefaults(endpoint, values):
         """ Make sure series,eventid from the subapp URLs are available for url_for relative calls """
         for u in ('series', 'eventid', 'challengeid'):
-            if u not in values and getattr(g, u) and current_app.url_map.is_endpoint_expecting(endpoint, u):
+            if u not in values and getattr(g, u, None) and current_app.url_map.is_endpoint_expecting(endpoint, u):
                 values[u] = getattr(g, u)
 
     ## Before, After and Teardown request

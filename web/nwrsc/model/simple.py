@@ -124,6 +124,16 @@ class ExternalResult(AttrBase):
         return cls.getall("SELECT r.*,d.firstname,d.lastname FROM drivers d JOIN externalresults r ON r.driverid=d.driverid WHERE r.eventid=%s", (eventid,))
 
 
+class LocalInfo(AttrBase):
+
+    @classmethod
+    def getMyAddress(cls):
+        """ Get local IP, can't use http request as docker is usually behind NAT """
+        with g.db.cursor() as cur:
+            cur.execute("SELECT address FROM mergeservers WHERE serverid='00000000-0000-0000-0000-000000000000'")
+            return cur.fetchone()[0]
+
+
 class NumberEntry(AttrBase):
     @classmethod
     def allNumbers(cls):
