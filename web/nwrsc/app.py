@@ -67,7 +67,11 @@ def create_app():
     assets.from_module('nwrsc.assets')
 
     ### URL handling and Blueprints for the various sections
-    theapp.add_url_rule('/',             'toresults', redirect_to='/results')
+    def defaultdest(adapter):
+        if adapter.server_name.startswith('reg'): return '/register'
+        return '/results'
+
+    theapp.add_url_rule('/',             'default', redirect_to=defaultdest)
     theapp.register_blueprint(Admin,     url_prefix="/admin/<series>")
     theapp.register_blueprint(Announcer, url_prefix="/announcer/<series>")
     theapp.register_blueprint(Api,       url_prefix="/api")

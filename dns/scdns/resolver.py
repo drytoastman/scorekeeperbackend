@@ -19,7 +19,7 @@ class ScorekeeperResolver(BaseResolver):
         reply = request.reply()
         try:
             if request.q.qtype == QTYPE.A:
-                reply.add_answer(RR(request.q.qname, QTYPE.A, ttl=360, rdata=A(self._getmatch(request.q.qname))))
+                reply.add_answer(RR(request.q.qname, QTYPE.A, ttl=60, rdata=A(self._getmatch(request))))
             else:
                 reply.header.rcode = RCODE.NXDOMAIN
 
@@ -32,8 +32,11 @@ class ScorekeeperResolver(BaseResolver):
 
         return reply
 
+    def _getmatch(self, request):
+        h1 = request.q.qname.label[0].decode()
+        if not h1 in ('de', 'reg'):
+            raise NoNeighborsException()
 
-    def _getmatch(self, name):
         if self.db is None: 
             try:
                 self.db = psycopg2.connect(user="localuser", dbname="scorekeeper", application_name="dnsserver")
@@ -46,11 +49,8 @@ class ScorekeeperResolver(BaseResolver):
             if cur.rowcount == 1:
                 neighbors = json.loads(cur.fetchone()[0])
                 for ip, services in neighbors.items():
-                    if name == 'results' and 'DATAENTRY' in services:
-                        return ip
-                    if name == 'register' and 'REGISTRATION' in services:
-                        return ip
-
+                    if h1 == 'de'  and 'DATAENTRY' in services:    return ip
+                    if h1 == 'reg' and 'REGISTRATION' in services: return ip
                 if len(neighbors):
                     # default to first IP, hope for the best
                     return next(iter(neighbors.keys()))
