@@ -56,6 +56,11 @@ To enable the **de/** and **reg/** hostnames, you need to have the WiFi router
 setup to direct DNS requests to one of the Scorekeeper machines, usually data
 entry.
 
+<span style='color:#F46700'>
+Some clients may use Multicast DNS and Scorekeeper will respond to those
+automatically but some will require the usual unicast DNS location to be setup.
+</span>
+
 Most routers will let you set this value from one of the adminstration pages.
 As this is a static value, it would be wise to also setup a static DHCP
 reservation for the machine you are pointing at.  Keep in mind that static
