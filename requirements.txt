@@ -8,7 +8,6 @@ chardet==3.0.4
 cheroot==6.4.0
 click==6.7
 cryptography==2.3.1
-dnslib==0.9.10
 Flask==1.0.2
 Flask-Assets==0.12
 Flask-Bcrypt==0.7.1
