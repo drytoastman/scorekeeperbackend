@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     threadpool.WorkerThread.__init__ = patchinit(threadpool.WorkerThread.__init__)
     threadpool.ThreadPool.stop = justdie 
-    server = wsgi.Server(('0.0.0.0', int(os.environ.get('PORT', 80))), theapp, numthreads=100, shutdown_timeout=1, server_name="Scorekeeper 4.2")
+    server = wsgi.Server(('0.0.0.0', int(os.environ.get('PORT', 80))), theapp, numthreads=100, shutdown_timeout=1, server_name="Scorekeeper 4.1")
     server.start()
 
     removepid(0, 0) # just in case we get here somehow
