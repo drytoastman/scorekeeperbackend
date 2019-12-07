@@ -64,9 +64,9 @@ automatically but some will require the usual unicast DNS location to be setup.
 Most routers will let you set this value from one of the adminstration pages.
 As this is a static value, it would be wise to also setup a static DHCP
 reservation for the machine you are pointing at.  Keep in mind that static
-reservations are usually based on of MAC addresses and your ethernet interface
+reservations are usually based on the MAC address and your ethernet interface
 has a different MAC than your WiFi interface so want to connect the same way
-each time.
+each time.  If next to the router, by ethernet is best.
 
 When this is setup, the following will happen:
 
@@ -75,6 +75,6 @@ When this is setup, the following will happen:
     to the above machine
  1. when other devices go to **de/** or **reg/**, they will query the scorekeeper
     machine which is aware of all the Scorekeeper devices on the network and which applications are running
- 1. for **de**, it looks for devices running DataEntry, for **reg** it looks for devices
-    running Registration, if it can't find a match, it picks a random Scorekeeper machine
+ 1. for **de** it looks for devices running DataEntry, for **reg** it looks for devices
+    running Registration, if it can't find a match it picks a random Scorekeeper machine
     as they should all be syncing if on the same network
