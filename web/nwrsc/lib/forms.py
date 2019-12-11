@@ -213,7 +213,7 @@ class CarForm(MyFlaskForm):
 class ExternalResultForm(MyFlaskForm):
     driverid    = SelectField('Driver', [Required()])
     classcode   = SelectField('Class',  [Required()])
-    net         = FloatField( 'Net',    render_kw={'size':5})
+    net         = FloatField( 'Net',    render_kw={'size':7})
     submit      = SubmitField('Add')
 
     def __init__(self, drivers, classdata):
