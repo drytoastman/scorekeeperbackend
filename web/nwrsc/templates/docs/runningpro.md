@@ -8,14 +8,14 @@
 2. Setup 3 laptops with power and network connections along with PA, etc
     * Laptop 1 will become DataEntry for left side
     * Laptop 2 will become DataEntry for right side
-    * Laptop 3 will become ProTimer and requires some form of serial port.
+    * Laptop 3 will become ProTimer and requires some form of serial port.  You can run **StartProTimer.bat** instead of starting Scorekeeper itself.
       Connect to Jerry's hardware and test to see if commands are actually being sent over serial line.
 
 3. Setup data entry laptop(s)
     * Make sure data entry laptop is running and connected to the network, by cable is preferred but not necessary
     * Set event to proper, course=1 (Left side) or course=2 (Right side)
     * Timer => Pro Timer network, select the ProTimer service that is found.
-      If nothing is found, verify ProTimer is on and connected to the network and that firewalls are not an issue.
+      If nothing is found, verify ProTimer is on and connected to the network and that firewalls are not an issue (**rules.bat** is useful here)
     * In the Scorekeeper System Window, you should see the other Data Entry machine as a entry in the **Active Hosts** table.
       This means that they can sync with each other as the event progresses.
 
