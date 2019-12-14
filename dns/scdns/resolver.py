@@ -47,12 +47,12 @@ class ScorekeeperResolver(BaseResolver):
         with self.db.cursor() as cur:
             cur.execute("SELECT data FROM localcache WHERE name='neighbors'")
             if cur.rowcount == 1:
-                neighbors = json.loads(cur.fetchone()[0])
-                for ip, services in neighbors.items():
+                neighbors = sorted(json.loads(cur.fetchone()[0]).items())
+                for ip, services in neighbors:
                     if h1 == 'de'  and 'DATAENTRY' in services:    return ip
                     if h1 == 'reg' and 'REGISTRATION' in services: return ip
                 if len(neighbors):
                     # default to first IP, hope for the best
-                    return next(iter(neighbors.keys()))
+                    return neighbors[0][0]
 
             raise NoNeighborsException()
