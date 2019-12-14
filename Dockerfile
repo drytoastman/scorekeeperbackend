@@ -24,6 +24,7 @@ RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefi
 RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/email
 RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/sync
 RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/web
+RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/dns
 
 # Now create the final image from our base and builder pieces
 FROM base

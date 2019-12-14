@@ -60,3 +60,16 @@ services:
         - "./sync:/code"
     networks:
         net1:
+
+  dns:
+    image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
+    command: "bash -c 'pip --disable-pip-version-check install -e /code && dnsserver'"
+    env_file: [ default.env ]
+    volumes:
+        - "socket:/var/run/postgresql"
+        - "logs:/var/log"
+        - "./dns:/code"
+    networks:
+        net1:
+    ports:
+        - "53:53/udp" # DNS
