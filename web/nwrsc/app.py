@@ -215,8 +215,24 @@ def create_app():
     ### Reverse Proxy handler
     theapp.wsgi_app = ReverseProxied(theapp.wsgi_app)
 
+    ### Setup db model constants
+    model_setup(theapp)
+
     log.info("Scorekeeper App created")
     return theapp
+
+
+def model_setup(app):
+    # Database introspection at startup, pulled out for use by cron_jobs
+    with app.app_context():
+        while True:
+            try:
+                AttrBase.initialize(host=app.config['DBHOST'], port=app.config['DBPORT'])
+                break
+            except Exception as e:
+                log.info("Error during model initialization, waiting for db and template: %s", e)
+                time.sleep(5)
+        log.info("Scorekeeper DB models initialized")
 
 
 class ReverseProxied(object):
@@ -232,6 +248,10 @@ class ReverseProxied(object):
 
 
 def cron_jobs():
+    # This is generally called from a different container from the web app itself.
+    # We don't need the whole web app, just get a basic Flask app and setup so we can connect to the database
+    # and assigned that to Flask.g where it normally sits
+
     from nwrsc.controllers.payments import paymentscron
     dbapp = Flask("dbapp")
     dbapp.config.update({
@@ -249,16 +269,3 @@ def cron_jobs():
     with dbapp.app_context():
         g.db = AttrBase.connect(host=dbapp.config['DBHOST'], port=dbapp.config['DBPORT'], user=dbapp.config['DBUSER'], app='cronjobs')
         paymentscron()
-
-
-def model_setup(app):
-    # Database introspection at startup
-    with app.app_context():
-        while True:
-            try:
-                AttrBase.initialize(host=app.config['DBHOST'], port=app.config['DBPORT'])
-                break
-            except Exception as e:
-                log.info("Error during model initialization, waiting for db and template: %s", e)
-                time.sleep(5)
-        log.info("Scorekeeper DB models initialized")

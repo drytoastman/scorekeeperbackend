@@ -3,7 +3,7 @@ FROM python:3.6.9-slim-stretch as base
 # Install our basic requirements, mainly wkhtmltopdf here
 RUN    apt-get update \
     && mkdir -p /usr/share/man/man1 /usr/share/man/man7 \
-    && apt-get install --no-install-recommends -y libqt5webkit5 postgresql-client-9.6 procps ttf-liberation vim wget xz-utils \
+    && apt-get install --no-install-recommends -y libqt5webkit5 nginx postgresql-client-9.6 procps ttf-liberation vim wget xz-utils \
     && wget -q https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz \
     && tar xf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz --strip 1 \
     && rm -rf wkhtml* /bin/wkhtmltoimage /var/lib/apt/lists/* /var/log/*
@@ -29,3 +29,4 @@ RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefi
 # Now create the final image from our base and builder pieces
 FROM base
 COPY --from=builder /install /usr/local
+STOPSIGNAL SIGINT

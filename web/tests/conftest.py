@@ -73,14 +73,14 @@ def database(request, webdata):
 @pytest.fixture(scope="module")
 def webapp(database, webdata):
     os.environ['DEBUG'] = "1"
+    os.environ['DBHOST'] = webdata.host
+    os.environ['DBPORT'] = str(webdata.port)
+    os.environ['SUPER_ADMIN_PASSWORD'] = 'letmein'
     logging_setup()
     theapp = nwrsc.app.create_app()
-    theapp.config['DBHOST'] = webdata.host
-    theapp.config['DBPORT'] = webdata.port
-    theapp.config['WTF_CSRF_ENABLED'] = False
-    theapp.config['SUPER_ADMIN_PASSWORD'] = 'letmein'
     theapp.testing = True
-    nwrsc.app.model_setup(theapp)
+    theapp.config['WTF_CSRF_ENABLED'] = False
+
     webapp = theapp.test_client()
     webapp.post('/register/login', data={'login-username':'username', 'login-password':'password', 'login-submit':'Login'}, follow_redirects=True)
     webapp.post('/admin/{}/slogin'.format(webdata.series), data={'password':'letmein'}, follow_redirects=True)

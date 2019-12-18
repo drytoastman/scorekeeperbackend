@@ -15,7 +15,6 @@ class DTFormatter(logging.Formatter):
 
 def logging_setup(filename=None):
     level = getattr(logging, os.environ.get('LOG_LEVEL', 'INFO'), logging.INFO)
-    tz    = pytz.timezone(os.environ.get('UI_TIME_ZONE', 'US/Pacific'))
     debug = 'DEBUG' in os.environ
 
     fmt = DTFormatter('%(asctime)s %(name)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S %Z')
