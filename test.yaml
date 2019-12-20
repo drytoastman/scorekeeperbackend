@@ -1,0 +1,50 @@
+---
+# This compose file is meant for development purposes
+# It mounts the local user's directory and creates a link in the web container
+# so that it uses the local copy of the web service
+
+version: '3.2'
+
+volumes:
+  database: 
+  socket:
+  logs:
+  uploads:
+  certs: { external: { name: "certs" }}
+  webdata:
+
+networks:
+  net1:
+
+services:
+
+  db:
+    image:   "drytoastman/scdb:${TRAVIS_TAG:-latest}"
+    build:   "db"
+    env_file: [ default.env ]
+    volumes:  
+        - "database:/var/lib/postgresql/data"
+        - "socket:/var/run/postgresql"
+        - "logs:/var/log"
+        - "certs:/certs"
+    networks:
+        net1:
+    ports:
+        - "54329:5432" # DB for external SSL connections
+        - "127.0.0.1:6432:6432" # DB for trusted localhost
+
+  web:
+    image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
+    build:   "."
+    command: "bash -c 'pip --disable-pip-version-check install -e /code && while :; do sleep 2; done'"
+    env_file: [ default.env ]
+    volumes:  
+        - "socket:/var/run/postgresql"
+        - "logs:/var/log"
+        - "uploads:/var/uploads"
+        - "webdata:/webdata:ro"
+        - "./web:/code"
+    networks:
+        net1:
+    ports:
+        - "80:80"  # Web for all

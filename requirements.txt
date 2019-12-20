@@ -27,7 +27,7 @@ Markdown==2.6.11
 MarkupSafe==1.0
 misaka==2.1.0
 paypalrestsdk==1.13.1
-psycopg2==2.7.5
+psycopg2==2.8.4
 pycparser==2.18
 pyOpenSSL==18.0.0
 python-dateutil==2.8.1
@@ -43,10 +43,10 @@ Werkzeug==0.15.5
 WTForms==2.2.1
 
 # Async Server and websockets
-Flask-Sockets==0.2.1
 gevent-websocket==0.10.1
 gevent==1.4.0
 greenlet==0.4.15
 gunicorn==20.0.4
+psycogreen==1.0.1
 ujson==1.35
 wsaccel==0.6.2

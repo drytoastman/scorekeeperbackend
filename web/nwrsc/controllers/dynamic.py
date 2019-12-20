@@ -73,6 +73,19 @@ def index():
     else:
         return render_template('/announcer/main.html')
 
+@Api.route("/data")
+def data():
+    ws = request.environ.get('wsgi.websocket', None)
+    if not ws:
+        return "Expecting a websocket here"
+    while not ws.closed:
+        try:
+            message = ws.receive()
+            ws.send(message)
+        except:
+            pass
+    return ""
+
 @Announcer.route("/event/<uuid:eventid>/next")
 def nextresult():
     event = Event.get(g.eventid)

@@ -2,16 +2,22 @@
 
 import gevent.monkey
 gevent.monkey.patch_all()
+import psycogreen.gevent
+psycogreen.gevent.patch_psycopg()
 
 import logging
+import os
 from gunicorn.app.wsgiapp import WSGIApplication
 from sccommon.logging import logging_setup
 
 class MyApp(WSGIApplication):
     def init(self, parser, opts, args):
-        opts.worker_class = "flask_sockets.worker"
+        opts.worker_class = "geventwebsocket.gunicorn.workers.GeventWebSocketWorker"
         opts.bind = ["0.0.0.0:80"]
         opts.args=['nwrsc.app:create_app()']
+        if os.environ.get('DEBUG', False):
+            #opts.timeout = 9000  # Don't kill worker while in pdb, but causes longer reload wait if syntax error
+            opts.reload = True
         super().init(parser, opts, args=opts.args)
 
 if __name__ == '__main__':
