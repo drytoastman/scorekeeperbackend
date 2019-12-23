@@ -15,6 +15,14 @@ class MyApp(WSGIApplication):
         opts.worker_class = "geventwebsocket.gunicorn.workers.GeventWebSocketWorker"
         opts.bind = ["0.0.0.0:80"]
         opts.args=['nwrsc.app:create_app()']
+        #opts.workers = 2
+        opts.worker_tmp_dir="/dev/shm"
+        opts.logconfig_dict = {
+            "loggers" : { "gunicorn.error": { "propagate": True }},
+            "root": {},
+            "handlers": {},
+            "formatters": {}
+        }
         if os.environ.get('DEBUG', False):
             #opts.timeout = 9000  # Don't kill worker while in pdb, but causes longer reload wait if syntax error
             opts.reload = True
