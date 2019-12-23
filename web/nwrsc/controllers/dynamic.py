@@ -6,6 +6,7 @@
 import datetime
 import logging
 import math
+import select
 import time
 import types
 import urllib
@@ -73,8 +74,8 @@ def index():
     else:
         return render_template('/announcer/main.html')
 
-@Api.route("/data")
-def data():
+@Announcer.route("/event/<uuid:eventid>/ws")
+def announcerws():
     ws = request.environ.get('wsgi.websocket', None)
     if not ws:
         return "Expecting a websocket here"
@@ -85,6 +86,22 @@ def data():
         except:
             pass
     return ""
+
+
+def sockets_handler(config):
+    db = AttrBase.connect(host=config['DBHOST'], port=config['DBPORT'], user=config['DBUSER'], autocommit=True)
+    with db.cursor() as cur:
+        cur.execute("LISTEN datachange;")
+        while True:
+            if select.select([db],[],[],5) == ([],[],[]):
+                print("timeout")
+                pass
+            else:
+                db.poll()
+                while db.notifies:
+                    notify = db.notifies.pop(0)
+                    print("Got NOTIFY: {} {} {}".format(notify.pid, notify.channel, notify.payload))
+
 
 @Announcer.route("/event/<uuid:eventid>/next")
 def nextresult():

@@ -1,4 +1,5 @@
 import datetime
+import gevent
 from operator import attrgetter
 import os
 import logging
@@ -217,6 +218,9 @@ def create_app():
 
     ### Setup db model constants
     model_setup(theapp)
+
+    ### Start our dynamic websockets central handler ###
+    gevent.spawn(sockets_handler, theapp.config)
 
     log.info("Scorekeeper App created")
     return theapp

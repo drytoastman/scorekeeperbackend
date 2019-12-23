@@ -1,7 +1,9 @@
 """ Present blueprints to outside but force import of other modules that link via decorators """
 
 from .blueprints import *
-__all__ = [x for x in dir(blueprints) if "__" not in x]
+from .dynamic import sockets_handler
+
+__all__ = [x for x in dir(blueprints) if "__" not in x] + ["sockets_handler"]
 
 from . import admin
 from . import api
