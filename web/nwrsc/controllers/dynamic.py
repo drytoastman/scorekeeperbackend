@@ -74,33 +74,63 @@ def index():
     else:
         return render_template('/announcer/main.html')
 
+
 @Announcer.route("/event/<uuid:eventid>/ws")
 def announcerws():
     ws = request.environ.get('wsgi.websocket', None)
     if not ws:
         return "Expecting a websocket here"
-    while not ws.closed:
-        try:
-            message = ws.receive()
-            ws.send(message)
-        except:
-            pass
+    try:
+        handler.sockets.append(ws)
+        while not ws.closed:
+            ws.receive() # this receives any remote disconnect signals
+    except Exception as e:
+        log.warning(e)
     return ""
 
-
+handler = None
 def sockets_handler(config):
-    db = AttrBase.connect(host=config['DBHOST'], port=config['DBPORT'], user=config['DBUSER'], autocommit=True)
-    with db.cursor() as cur:
-        cur.execute("LISTEN datachange;")
+    global handler
+    handler = SocketsHandler(config)
+    handler.run()
+
+class SocketsHandler(object):
+    def __init__(self, config):
+        self.config = config
+        self.log = logging.getLogger("nwrsc.SocketsHandler")
+        self.sockets = list()
+
+    def run(self):
         while True:
-            if select.select([db],[],[],5) == ([],[],[]):
-                print("timeout")
-                pass
-            else:
-                db.poll()
-                while db.notifies:
-                    notify = db.notifies.pop(0)
-                    print("Got NOTIFY: {} {} {}".format(notify.pid, notify.channel, notify.payload))
+            try:
+                self.inner()
+            except Exception as e:
+                self.log.warning("inner exception, will retry: {}".format(e))
+
+            for ws in self.sockets:
+                ws.close()
+            self.sockets = list()
+            time.sleep(3)
+
+    def inner(self):
+        db = AttrBase.connect(host=self.config['DBHOST'], port=self.config['DBPORT'], user=self.config['DBUSER'], autocommit=True)
+        with db.cursor() as cur:
+            cur.execute("LISTEN datachange;")
+            while True:
+                if select.select([db],[],[],5) == ([],[],[]):
+                    pass
+                else:
+                    db.poll()
+                    while db.notifies:
+                        notify = db.notifies.pop(0)
+                        cnt = 0
+                        for ws in self.sockets[:]:
+                            if ws.closed:
+                                self.sockets.remove(ws)
+                            else:
+                                cnt += 1
+                                ws.send("Got NOTIFY: {} {} {}".format(notify.pid, notify.channel, notify.payload))
+                        log.warning("Send to {} sockets".format(cnt))
 
 
 @Announcer.route("/event/<uuid:eventid>/next")
