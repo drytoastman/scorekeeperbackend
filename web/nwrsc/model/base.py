@@ -35,6 +35,7 @@ def insertcolumns(table):
     return ",".join("%({})s".format(x) for x in COLUMNS[table])
 
 
+
 class AttrBase(object):
 
     @classmethod
@@ -42,6 +43,22 @@ class AttrBase(object):
         db = psycopg2.connect(cursor_factory=psycopg2.extras.DictCursor, application_name=app, dbname="scorekeeper", host=host, port=port, user=user)
         db.autocommit = autocommit
         return db
+
+
+    @classmethod
+    def changelistener(cls, host, port, user, callback):
+        import select
+        db = cls.connect(host, port, user, app='changelistener', autocommit=True)
+        with db.cursor() as cur:
+            cur.execute("LISTEN datachange;")
+            while True:
+                if select.select([db],[],[],5) == ([],[],[]):
+                    pass
+                else:
+                    db.poll()
+                    while db.notifies:
+                        notify = db.notifies.pop(0)
+                        callback(notify.payload) # payload is the table name
 
 
     @classmethod

@@ -3,10 +3,12 @@
     a lot of results of the results table but is also free to the use other series
     tables as needed.  It will not function with offline series
 """
+import collections
 import datetime
+import functools
+import json
 import logging
 import math
-import select
 import time
 import types
 import urllib
@@ -75,62 +77,60 @@ def index():
         return render_template('/announcer/main.html')
 
 
+bboard  = collections.defaultdict(set)
+remotes = set()
+
+def sockets_handler(config):
+    log = logging.getLogger("nwrsc.SocketsHandler")
+    while True:
+        try:
+            db   = AttrBase.connect(config['DBHOST'], config['DBPORT'], config['DBUSER'], app='wsserver')
+            AttrBase.changelistener(config['DBHOST'], config['DBPORT'], config['DBUSER'], functools.partial(table_change, db))
+        except Exception as e:
+            log.warning("changelistener exception, will retry: {}".format(e))
+
+        for rem in remotes:
+            rem.close()
+        bboard.clear()
+        time.sleep(3)
+
+def table_change(db, tablename):
+    msg = None
+    wsl = ()
+
+    # Generate the new result
+    if tablename == 'timertimes':
+        lastrecord = TimerTimes.getLast(db)
+        lastrecord = "1234.1231"
+        if lastrecord: # and lastrecord != lasttimer:
+            msg = json.dumps({'timer': lastrecord})
+            wsl = bboard['timer']
+
+    # Send to all those that requested it
+    for ws in wsl:
+        ws.send(msg)
+
+
 @Announcer.route("/event/<uuid:eventid>/ws")
 def announcerws():
     ws = request.environ.get('wsgi.websocket', None)
     if not ws:
         return "Expecting a websocket here"
+
+    remotes.add(ws)
     try:
-        handler.sockets.append(ws)
         while not ws.closed:
-            ws.receive() # this receives any remote disconnect signals
+            # Only received messages are requests for what to send
+            msg = json.loads(ws.receive())
+            if 'request' in msg:
+                for s in bboard.values():
+                    s.discard(ws)
+                for k,v in msg['request'].items():
+                    bboard[k].add(ws)
     except Exception as e:
         log.warning(e)
+    ws.close()
     return ""
-
-handler = None
-def sockets_handler(config):
-    global handler
-    handler = SocketsHandler(config)
-    handler.run()
-
-class SocketsHandler(object):
-    def __init__(self, config):
-        self.config = config
-        self.log = logging.getLogger("nwrsc.SocketsHandler")
-        self.sockets = list()
-
-    def run(self):
-        while True:
-            try:
-                self.inner()
-            except Exception as e:
-                self.log.warning("inner exception, will retry: {}".format(e))
-
-            for ws in self.sockets:
-                ws.close()
-            self.sockets = list()
-            time.sleep(3)
-
-    def inner(self):
-        db = AttrBase.connect(host=self.config['DBHOST'], port=self.config['DBPORT'], user=self.config['DBUSER'], autocommit=True)
-        with db.cursor() as cur:
-            cur.execute("LISTEN datachange;")
-            while True:
-                if select.select([db],[],[],5) == ([],[],[]):
-                    pass
-                else:
-                    db.poll()
-                    while db.notifies:
-                        notify = db.notifies.pop(0)
-                        cnt = 0
-                        for ws in self.sockets[:]:
-                            if ws.closed:
-                                self.sockets.remove(ws)
-                            else:
-                                cnt += 1
-                                ws.send("Got NOTIFY: {} {} {}".format(notify.pid, notify.channel, notify.payload))
-                        log.warning("Send to {} sockets".format(cnt))
 
 
 @Announcer.route("/event/<uuid:eventid>/next")
