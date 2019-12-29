@@ -21,5 +21,8 @@ def main():
     signal.signal(signal.SIGINT,  interrupt)
     signal.signal(signal.SIGTERM, interrupt)
 
+    tcp_server = DNSServer(resolver=ScorekeeperResolver(), logger=ToPyLogger(log), tcp=True)
+    tcp_server.start_thread()
+
     udp_server = DNSServer(resolver=ScorekeeperResolver(), logger=ToPyLogger(log))
     udp_server.start()
