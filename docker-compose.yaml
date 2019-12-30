@@ -72,4 +72,5 @@ services:
     networks:
         net1:
     ports:
-        - "53:53/udp" # DNS
+        - "53:53/tcp"
+        - "53:53/udp"
