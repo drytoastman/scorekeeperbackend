@@ -3,10 +3,7 @@
     a lot of results of the results table but is also free to the use other series
     tables as needed.  It will not function with offline series
 """
-import collections
 import datetime
-import functools
-import json
 import logging
 import math
 import time
@@ -75,63 +72,6 @@ def index():
         return render_template('/announcer/pro.html')
     else:
         return render_template('/announcer/main.html')
-
-
-bboard  = collections.defaultdict(set)
-remotes = set()
-
-def sockets_handler(config):
-    log = logging.getLogger("nwrsc.SocketsHandler")
-    while True:
-        try:
-            db   = AttrBase.connect(config['DBHOST'], config['DBPORT'], config['DBUSER'], app='wsserver')
-            AttrBase.changelistener(config['DBHOST'], config['DBPORT'], config['DBUSER'], functools.partial(table_change, db))
-        except Exception as e:
-            log.warning("changelistener exception, will retry: {}".format(e))
-
-        for rem in remotes:
-            rem.close()
-        bboard.clear()
-        time.sleep(3)
-
-def table_change(db, tablename):
-    msg = None
-    wsl = ()
-
-    # Generate the new result
-    if tablename == 'timertimes':
-        lastrecord = TimerTimes.getLast(db)
-        lastrecord = "1234.1231"
-        if lastrecord: # and lastrecord != lasttimer:
-            msg = json.dumps({'timer': lastrecord})
-            wsl = bboard['timer']
-
-    # Send to all those that requested it
-    for ws in wsl:
-        ws.send(msg)
-
-
-@Announcer.route("/event/<uuid:eventid>/ws")
-def announcerws():
-    ws = request.environ.get('wsgi.websocket', None)
-    if not ws:
-        return "Expecting a websocket here"
-
-    remotes.add(ws)
-    try:
-        while not ws.closed:
-            # Only received messages are requests for what to send
-            msg = json.loads(ws.receive())
-            if 'request' in msg:
-                for s in bboard.values():
-                    s.discard(ws)
-                for k,v in msg['request'].items():
-                    bboard[k].add(ws)
-    except Exception as e:
-        log.warning(e)
-    ws.close()
-    return ""
-
 
 @Announcer.route("/event/<uuid:eventid>/next")
 def nextresult():

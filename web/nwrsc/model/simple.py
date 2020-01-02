@@ -197,8 +197,8 @@ class TempCache():
 class TimerTimes():
 
     @classmethod
-    def getLast(cls, db):
-        with db.cursor() as cur:
+    def getLast(cls):
+        with g.db.cursor() as cur:
             try:
                 cur.execute("select raw from timertimes order by modified desc limit 1", ())
                 return cur.fetchone()[0]

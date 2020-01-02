@@ -91,6 +91,11 @@ def create_app():
     @theapp.route('/api/swagger.yaml')
     def resultsfeed(): return send_from_directory('api', 'swagger.yaml')
 
+    @theapp.route('/live')
+    def livews(): return live_websocket()
+    @theapp.route('/wshtml')
+    def wshtml(): return render_template("announcer/websocket.html")
+
     @theapp.url_value_preprocessor
     def preprocessor(endpoint, values):
         """ Remove the requirement for blueprint functions to put series/eventid in their function definitions """
@@ -219,8 +224,8 @@ def create_app():
     ### Setup db model constants
     model_setup(theapp)
 
-    ### Start our dynamic websockets central handler ###
-    gevent.spawn(sockets_handler, theapp.config)
+    ### Start our live websockets central handler ###
+    gevent.spawn(live_background_thread, theapp)
 
     log.info("Scorekeeper App created")
     return theapp
