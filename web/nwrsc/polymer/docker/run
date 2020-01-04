@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd $(dirname ${BASH_SOURCE[0]})/..
+winpty docker run --rm -it -p 8081:8081 -v `cygpath -w $(pwd)`:/code polymer bash
