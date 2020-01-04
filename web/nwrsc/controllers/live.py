@@ -12,6 +12,7 @@ import uuid
 from flask import current_app, g, request
 
 from nwrsc.model import *
+from nwrsc.lib.misc import t3
 
 log = logging.getLogger(__name__)
 
@@ -19,6 +20,8 @@ log = logging.getLogger(__name__)
 ## [pgnotify][attrfrozenest] = set([websocket, ...])
 bboard  = collections.defaultdict(lambda: collections.defaultdict(set))
 remotes = set()
+
+## Below happens on our single background green thread
 
 def live_background_thread(app):
     log = logging.getLogger("nwrsc.SocketsHandler")
@@ -94,70 +97,6 @@ def table_change(app, db, payload):
                     
                     
 
-
-def lastTime(db, series):
-    with db.cursor() as cur:
-        try:
-            cur.execute("set search_path='{}'".format(series))
-            cur.execute("select raw from timertimes order by modified desc limit 1", ())
-            value = cur.fetchone()[0]
-            return json.dumps({'timer': value})
-        except Exception as e:
-            return None
-
-
-
-def clean_bb(ws):
-    # Clear any old watchers
-    for attrdict in bboard.values():
-        for wslist in attrdict.values():
-            wslist.discard(ws)
-
-
-def newWatchRequest(ws):
-    clean_bb(ws)
-
-    # Get our new stuff
-    env = ws.environ['LIVE']
-    watch = env.get('watch', {})
-    series = env['series']
-
-    if Series.type(series) != Series.ACTIVE:
-        raise InvalidSeriesException()
-
-    if 'timer' in watch:
-        bboard[series+'.timertimes'][frozenset(watch['timer'].items())].add(ws)
-
-    if 'protimer' in watch:
-        bboard[series+'.localeventstream'][frozenset(watch['protimer'].items())].add(ws)
-
-    if 'results' in watch:
-        for attr in watch['results']:
-            bboard[series+'.runs'][frozenset(attr.items())].add(ws)
-
-
-def live_websocket():
-    ws = request.environ.get('wsgi.websocket', None)
-    if not ws:
-        return "Expecting a websocket here"
-
-    try:
-        remotes.add(ws)
-        while not ws.closed: # Only receive messages are requests for what to send
-            data = ws.receive()
-            if data:
-                ws.environ['LIVE'] = json.loads(data)
-                ws.environ['LAST'] = collections.defaultdict(lambda: datetime.datetime.fromtimestamp(0))
-                newWatchRequest(ws)
-    except Exception as e:
-        log.warning(e, exc_info=e)
-
-    ws.close()
-    clean_bb(ws)
-    remotes.discard(ws)
-    return ""
-
-
 def nextResult(db, series, attr, lastresult):
     event     = Event.get(attr['eventid'])
     classcode = attr.get('classcode', None)
@@ -179,6 +118,18 @@ def nextResult(db, series, attr, lastresult):
 
         data['timestamp'] = le['modified'].timestamp()
         return (data, le['modified'])
+
+
+
+def lastTime(db, series):
+    with db.cursor() as cur:
+        try:
+            cur.execute("set search_path='{}'".format(series))
+            cur.execute("select raw from timertimes order by modified desc limit 1", ())
+            value = cur.fetchone()[0]
+            return json.dumps({'timer': value})
+        except Exception as e:
+            return None
 
 
 def formatProTimer(events):
@@ -228,6 +179,7 @@ def loadNextToFinish(nextcars, course, rungroup, results):
 def loadEventResults(attr, event, carid, course, rungroup, run, **kwargs):
 
     if event.eventid not in g.resultscache:
+        # load and filter results
         results = Result.getEventResults(event.eventid)
         for clscode, elist in results.items():
             for e in elist:
@@ -239,24 +191,25 @@ def loadEventResults(attr, event, carid, course, rungroup, run, **kwargs):
     (results, group, drivers) = g.resultscache[event.eventid]
     if not drivers: return
 
-    if attr.get('champ', False):
+
+    data = {}
+    classcode = drivers[0]['classcode']
+
+    if attr.get('champ', False) and not event.ispractice and g.classdata.classlist[classcode].champtrophy:
         if not g.champcache:
             champ = Result.getChampResults()
             cgroup = Result.getDecoratedChampResults(champ, *drivers)
             g.champcache = (champ, cgroup)
         (champ, cgroup) = g.champcache
 
-    data = {}
-    classcode = drivers[0]['classcode']
-
     if attr.get('entrant', False):
         data['entrant'] = drivers[0]
 
     if attr.get('class', False):
-        data['class'] = { 'classcode':classcode, 'group':group }
+        data['class'] = { 'classcode':classcode, 'order':group }
 
     if attr.get('champ', False) and not event.ispractice and g.classdata.classlist[classcode].champtrophy:
-        data['champ'] = { 'classcode':classcode, 'group':cgroup }
+        data['champ'] = { 'classcode':classcode, 'order':cgroup }
 
     if attr.get('topnet',      False): data['topnet']      = Result.getTopTimesTable(g.classdata, results, {'indexed':True,  'counted':True },              carid=carid)
     if attr.get('topnetleft',  False): data['topnetleft']  = Result.getTopTimesTable(g.classdata, results, {'indexed':True,  'counted':True,  'course': 1}, carid=carid)
@@ -286,10 +239,69 @@ def loadEventResults(attr, event, carid, course, rungroup, run, **kwargs):
                 data['next']['entrant'] = drivers[0]
 
             if attr.get('class', False):
-                data['next']['class'] = { 'classcode':classcode, 'group':group }
+                data['next']['class'] = { 'classcode':classcode, 'order':group }
 
             if attr.get('champ', False) and not event.ispractice and g.classdata.classlist[classcode].champtrophy:
                 cgroup = Result.getDecoratedChampResults(champ, *drivers)
-                data['next']['champ'] = { 'classcode':classcode, 'group':cgroup }
+                data['next']['champ'] = { 'classcode':classcode, 'order':cgroup }
 
     return data
+
+
+## Below happens on websocket green thread
+
+def clean_bb(ws):
+    # Clear any old watchers
+    for attrdict in bboard.values():
+        for wslist in attrdict.values():
+            wslist.discard(ws)
+
+
+def newWatchRequest(ws):
+    clean_bb(ws)
+
+    # Get our new stuff
+    env = ws.environ['LIVE']
+    watch = env.get('watch', {})
+    series = env['series']
+
+    if Series.type(series) != Series.ACTIVE:
+        raise InvalidSeriesException()
+
+    if 'timer' in watch:
+        bboard[series+'.timertimes'][frozenset(watch['timer'].items())].add(ws)
+
+    if 'protimer' in watch:
+        bboard[series+'.localeventstream'][frozenset(watch['protimer'].items())].add(ws)
+
+    if 'results' in watch:
+        for attr in watch['results']:
+            bboard[series+'.runs'][frozenset(attr.items())].add(ws)
+            #table_change(series+'.runs')  # FINISH ME, don't broadcast to everyone
+
+        with AttrBase.connect(current_app.config['DBHOST'], current_app.config['DBPORT'], current_app.config['DBUSER']) as db:
+            with db.cursor() as cur:
+                cur.execute("NOTIFY datachange, '{}.runs'".format(series))
+
+
+def live_websocket():
+    ws = request.environ.get('wsgi.websocket', None)
+    if not ws:
+        return "Expecting a websocket here"
+
+    try:
+        remotes.add(ws)
+        while not ws.closed: # Only receive messages are requests for what to send
+            data = ws.receive()
+            if data:
+                ws.environ['LIVE'] = json.loads(data)
+                ws.environ['LAST'] = collections.defaultdict(lambda: datetime.datetime.fromtimestamp(0))
+                newWatchRequest(ws)
+    except Exception as e:
+        log.warning(e, exc_info=e)
+
+    ws.close()
+    clean_bb(ws)
+    remotes.discard(ws)
+    return ""
+

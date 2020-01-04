@@ -181,6 +181,7 @@ def create_app():
     @theapp.errorhandler(500)
     def errorlog(e):
         """ We want to log exception information to file for later investigation when debugger framework isn't presenting it for us and present a simple reportable error for user """
+        log.warning(str(e))
         if isinstance(e, HTTPException): # and (500 <= e.code < 600):
             return e
         traceback = get_current_traceback(ignore_system_exceptions=True, show_hidden_frames=True)

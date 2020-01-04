@@ -8,7 +8,7 @@ import uuid
 
 from flask import g
 from math import ceil
-from copy import copy
+from copy import copy, deepcopy
 from collections import defaultdict
 from operator import attrgetter, itemgetter
 
@@ -417,51 +417,52 @@ class Result(object):
         if not entrantlist:
             return tuple([[], []])
 
-        # Convert discovered drivers down into a list ordered by input list order
-        drivers = [drivers[cid] for cid in carids if cid in drivers]
-
-        # Decorate entrants with run change information
-        for d in drivers:
-            cls._decorateEntrant(d)
-            d['current'] = True
-
         # Figure out points changes for the class
         sumlist = [x['net'] for x in entrantlist]
         sumlist.remove(e['net'])
-        newlist = list(entrantlist)
 
-        for e in drivers:
+        # Return a copy so we can decorate in different ways during a single session (new websocket feed)
+        decoratedlist = deepcopy(entrantlist)
+        markedlist = list()
+
+        # Decorate our copied entrants with run change information
+        for e in decoratedlist:
             if not e:
                 continue
+            if e.get('carid', None) in carids:
+                cls._decorateEntrant(e)
+                e['current'] = True
+                markedlist.append(e)
+
             if 'oldnet' in e:
                 sumlist.append(e['oldnet'])
                 sumlist.sort()
                 position = sumlist.index(e['oldnet'])+1
                 e['oldpoints'] = settings.usepospoints and ppoints.get(position) or sumlist[0]*100/e['oldnet']
                 sumlist.remove(e['oldnet'])
-                newlist.append({'firstname':e['firstname'], 'lastname':e['lastname'], 'net':e['oldnet'], 'isold':True})
+                decoratedlist.append({'firstname':e['firstname'], 'lastname':e['lastname'], 'net':e['oldnet'], 'isold':True})
             if 'potnet' in e:
                 sumlist.append(e['potnet'])
                 sumlist.sort()
                 position = sumlist.index(e['potnet'])+1
                 e['potpoints'] = settings.usepospoints and ppoints.get(position) or sumlist[0]*100/e['potnet']
-                newlist.append({'firstname':e['firstname'], 'lastname':e['lastname'], 'net':e['potnet'], 'ispotential':True})
+                decoratedlist.append({'firstname':e['firstname'], 'lastname':e['lastname'], 'net':e['potnet'], 'ispotential':True})
 
         # Mark this entrant as current, clear others if decorate is called multiple times
-        newlist.sort(key=itemgetter('net'))
-        return tuple([newlist, drivers])
+        decoratedlist.sort(key=itemgetter('net'))
+        return tuple([decoratedlist, markedlist])
 
 
     @classmethod
     def _decorateChampResults(cls, champresults, *markentrants):
         """ Calculate things for the announcer/info displays """
         champclass = champresults[markentrants[0]['classcode']]
-        newlist = list(champclass)
+        newlist = deepcopy(champclass)
 
-        for e in champclass:
+        for e in newlist:
             entrant = None
             for me in markentrants:
-                if e['driverid'] == me['driverid']:
+                if e.get('driverid', None) == me['driverid']:
                     entrant = me
                     break
 
@@ -687,13 +688,14 @@ class Result(object):
                     # For the selected car, highlight and throw in any old/potential results if available
                     if e['carid'] == carid:
                         current = True
-                        cls._decorateEntrant(e)
+                        ecopy = deepcopy(e)  # Make a copy so decorations stay relative to this data
+                        cls._decorateEntrant(ecopy)
                         if course == 0: # don't do old/potential single course stuff at this point
-                            divisor = indexed and 1.0 or e['indexval']
-                            if 'potnet' in e:
-                                ttl.append(TopTimeEntry(fields, name=name, time=e['potnet']/divisor, ispotential=True))
-                            if 'oldnet' in e:
-                                ttl.append(TopTimeEntry(fields, name=name, time=e['oldnet']/divisor, isold=True))
+                            divisor = indexed and 1.0 or ecopy['indexval']
+                            if 'potnet' in ecopy:
+                                ttl.append(TopTimeEntry(fields, name=name, time=ecopy['potnet']/divisor, ispotential=True))
+                            if 'oldnet' in ecopy:
+                                ttl.append(TopTimeEntry(fields, name=name, time=ecopy['oldnet']/divisor, isold=True))
 
                     # Extract appropriate time for this entrant
                     time = 999.999
