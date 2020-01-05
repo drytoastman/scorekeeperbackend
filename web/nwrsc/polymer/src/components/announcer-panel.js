@@ -20,7 +20,8 @@ class AnnouncerPanel extends LitElement {
       _dataSource: { type: Object },
       entrant: { type: Object },
       cls: { type: Object },
-      champ: { type: Object }
+      champ: { type: Object },
+      timer: { type: Number }
     };
   }
 
@@ -77,6 +78,10 @@ class AnnouncerPanel extends LitElement {
         .drawer-list > a[selected] {
           color: var(--app-drawer-selected-color);
         }
+
+        .timer {
+            font-size: 150%;
+        }
       `
     ];
   }
@@ -98,6 +103,7 @@ class AnnouncerPanel extends LitElement {
       </app-drawer>
 
       <!-- Main content -->
+        <div class='timer'>${this.timer}</div>
         <entrant-table .entrant="${this.entrant}"></entrant-table>
         <class-table .cls="${this.cls}"></class-table>
         <champ-table .champ="${this.champ}"></champ-table>
@@ -112,10 +118,11 @@ class AnnouncerPanel extends LitElement {
     var me = this;
     this._dataSource = new DataSource(
         function(d) { 
-            me.entrant = d.entrant;
-            me.cls = d.class;
-            me.champ = d.champ;
-            me.next = d.next;
+            if ("entrant" in d) me.entrant = d.entrant;
+            if ("class" in d)   me.cls = d.class;
+            if ("champ" in d)   me.champ = d.champ;
+            if ("next" in d)    me.next = d.next;
+            if ("timer" in d)   me.timer = d.timer;
         }
     );
     this._dataSource.request( {
