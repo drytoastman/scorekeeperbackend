@@ -1,11 +1,12 @@
 import { LitElement, html, css } from 'lit-element';
-//import '@polymer/polymer/lib/elements/dom-if.js';
-//import '@polymer/paper-checkbox/paper-checkbox.js';
 
 // These are the elements needed by this element.
 import '@polymer/app-layout/app-drawer/app-drawer.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-tabs/paper-tabs.js';
+import '@polymer/paper-tabs/paper-tab.js';
 import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-pages/iron-pages.js';
 
 import { DataSource } from '../datasource.js';
 import './entrant-table.js';
@@ -17,11 +18,12 @@ class AnnouncerPanel extends LitElement {
     return {
       appTitle: { type: String },
       _drawerOpened: { type: Boolean },
-      _dataSource: { type: Object },
+      dataSource: { type: Object },
       entrant: { type: Object },
       cls: { type: Object },
       champ: { type: Object },
-      timer: { type: Number }
+      timer: { type: Number },
+      selected: { type: Number }
     };
   }
 
@@ -44,9 +46,12 @@ class AnnouncerPanel extends LitElement {
           --app-drawer-text-color: var(--app-light-text-color);
           --app-drawer-selected-color: #78909C;
 
+          --paper-tabs-selection-bar-color: #000;
+          --paper-tab-ink: #000;
+
           --could-have-background: #EDD;
           --could-have-color: #E77;
-        
+
           --improved-on-background: #EEF;
           --improved-on-color: #99E;
 
@@ -82,6 +87,17 @@ class AnnouncerPanel extends LitElement {
         .timer {
             font-size: 150%;
         }
+
+        .panel {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .panel * {
+            margin: 2px;
+            flex-grow: 1;
+        }
+
       `
     ];
   }
@@ -90,8 +106,6 @@ class AnnouncerPanel extends LitElement {
     // Anything that's related to rendering should be done in here.
     return html`
       <!-- Header -->
-
-        <paper-icon-button icon="menu" @click="${this.drawerToggle}"></paper-icon-button>
 
       <!-- Drawer content -->
       <app-drawer .opened="${this._drawerOpened}" @opened-changed="${this._drawerOpenedChanged}">
@@ -103,29 +117,47 @@ class AnnouncerPanel extends LitElement {
       </app-drawer>
 
       <!-- Main content -->
-        <div class='timer'>${this.timer}</div>
-        <entrant-table .entrant="${this.entrant}"></entrant-table>
-        <class-table .cls="${this.cls}"></class-table>
-        <champ-table .champ="${this.champ}"></champ-table>
-        Next
-        <class-table .cls="${this.next ? this.next.class : undefined}"></class-table>
-        <champ-table .champ="${this.next ? this.next.champ: undefined}"></champ-table>
+
+        <paper-tabs @selected-changed="${this.tabchange}">
+        <paper-icon-button icon="menu" @click="${this.drawerToggle}"></paper-icon-button>
+        <paper-tab>Prev</paper-tab>
+        <paper-tab>Last</paper-tab>
+        <paper-tab>Next</paper-tab>
+        <paper-tab>Index</paper-tab>
+        <paper-tab>Raw</paper-tab>
+        <!--<span class='timer'>${this.timer}</span> -->
+        </paper-tabs>
+
+        <iron-pages .selected="${this.selected}">
+            <div></div>
+            <div class='panel'>
+                <entrant-table .entrant="${this.entrant}"></entrant-table>
+                <class-table .cls="${this.cls}"></class-table>
+                <champ-table .champ="${this.champ}"></champ-table>
+            </div>
+            <div class='panel'>
+                <class-table .cls="${this.next ? this.next.class : undefined}"></class-table>
+                <champ-table .champ="${this.next ? this.next.champ: undefined}"></champ-table>
+            </div>
+        </iron-pages>
     `;
   }
 
   constructor() {
     super();
     var me = this;
-    this._dataSource = new DataSource(
-        function(d) { 
+    this.selected = 0;
+    this.dataSource = new DataSource(
+        function(d) {
             if ("entrant" in d) me.entrant = d.entrant;
-            if ("class" in d)   me.cls = d.class;
-            if ("champ" in d)   me.champ = d.champ;
-            if ("next" in d)    me.next = d.next;
-            if ("timer" in d)   me.timer = d.timer;
+            if ("class" in d)   me.cls     = d.class;
+            if ("champ" in d)   me.champ   = d.champ;
+            if ("next" in d)    me.next    = d.next;
+            if ("timer" in d)   me.timer   = d.timer;
         }
     );
-    this._dataSource.request( {
+
+    this.dataSource.request( {
                 series: 'nwr2019',
                 watch: {
                     timer: {},
@@ -147,6 +179,10 @@ class AnnouncerPanel extends LitElement {
 
   drawerToggle(e) {
     this._drawerOpened = !this._drawerOpened;
+  }
+
+  tabchange(e) {
+    this.selected = e.target.selected;
   }
 
   _drawerOpenedChanged(e) {

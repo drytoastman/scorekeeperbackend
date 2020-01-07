@@ -8,6 +8,10 @@ export const tablecss = css`
         vertical-align: top; 
     }
 
+    table.res {
+        width: 100%;
+    }
+
     tr.couldhave td {
         background: var(--could-have-background);
         color: var(--could-have-color);
