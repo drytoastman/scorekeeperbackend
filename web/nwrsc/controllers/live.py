@@ -228,7 +228,8 @@ def formatProTimer(events):
 
 def loadEventResults(attr, event, carid, course, rungroup, run, **kwargs):
 
-    group, drivers = g.data.event(event.eventid, *filter(None, [carid, kwargs.get('oppcarid',None)]))
+    eventid = event.eventid
+    group, drivers = g.data.event(eventid, *filter(None, [carid, kwargs.get('oppcarid',None)]))
     if not drivers: return
     cgroup = g.data.champ(*drivers)
 
@@ -244,23 +245,23 @@ def loadEventResults(attr, event, carid, course, rungroup, run, **kwargs):
     if attr.get('champ', False) and not event.ispractice and g.data.classdata.classlist[classcode].champtrophy:
         data['champ'] = { 'classcode':classcode, 'order':cgroup }
 
-    if attr.get('topnet',      False): data['topnet']      = Result.getTopTimesTable(g.data.classdata, results, {'indexed':True,  'counted':True },              carid=carid)
-    if attr.get('topnetleft',  False): data['topnetleft']  = Result.getTopTimesTable(g.data.classdata, results, {'indexed':True,  'counted':True,  'course': 1}, carid=carid)
-    if attr.get('topnetright', False): data['topnetright'] = Result.getTopTimesTable(g.data.classdata, results, {'indexed':True,  'counted':True,  'course': 2}, carid=carid)
+    if attr.get('topnet',      False): data['topnet']      = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True },              carid=carid).serial(0)
+    if attr.get('topnetleft',  False): data['topnetleft']  = Result.getTopTimesTable(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True,  'course': 1}, carid=carid).serial(0)
+    if attr.get('topnetright', False): data['topnetright'] = Result.getTopTimesTable(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True,  'course': 2}, carid=carid).serial(0)
 
-    if attr.get('topraw',      False): data['topraw']      = Result.getTopTimesTable(g.data.classdata, results, {'indexed':False, 'counted':False },             carid=carid)
-    if attr.get('toprawleft',  False): data['toprawleft']  = Result.getTopTimesTable(g.data.classdata, results, {'indexed':False, 'counted':False, 'course': 1}, carid=carid)
-    if attr.get('toprawright', False): data['toprawright'] = Result.getTopTimesTable(g.data.classdata, results, {'indexed':False, 'counted':False, 'course': 2}, carid=carid)
+    if attr.get('topraw',      False): data['topraw']      = Result.getTopTimesTable(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False },             carid=carid).serial(0)
+    if attr.get('toprawleft',  False): data['toprawleft']  = Result.getTopTimesTable(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False, 'course': 1}, carid=carid).serial(0)
+    if attr.get('toprawright', False): data['toprawright'] = Result.getTopTimesTable(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False, 'course': 2}, carid=carid).serial(0)
 
     if attr.get('next', False) or attr.get('runorder'):
         if attr.get('runorder', False):
-            data['runorder'] =  { 'course': course, 'run': run, 'next': g.data.nextorder(event.eventid, course, rungroup, carid) }
+            data['runorder'] =  { 'course': course, 'run': run, 'next': g.data.nextorder(eventid, course, rungroup, carid) }
 
         if attr.get('next', False) and not event.ispro:
             data['next'] = {}
-            nextids = g.data.nextorder(event.eventid, course, rungroup, carid)
+            nextids = g.data.nextorder(eventid, course, rungroup, carid)
             if nextids:
-                (group, drivers) = g.data.event(event.eventid, nextids[0]['carid'], rungroup=rungroup)
+                (group, drivers) = g.data.event(eventid, nextids[0]['carid'], rungroup=rungroup)
 
                 if attr.get('entrant', False):
                     data['next']['entrant'] = drivers[0]

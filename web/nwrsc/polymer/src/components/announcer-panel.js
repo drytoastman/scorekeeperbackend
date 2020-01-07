@@ -12,6 +12,7 @@ import { DataSource } from '../datasource.js';
 import './entrant-table.js';
 import './class-table.js';
 import './champ-table.js';
+import './toptimes-table.js';
 
 class AnnouncerPanel extends LitElement {
   static get properties() {
@@ -134,6 +135,7 @@ class AnnouncerPanel extends LitElement {
                 <entrant-table .entrant="${this.entrant}"></entrant-table>
                 <class-table .cls="${this.cls}"></class-table>
                 <champ-table .champ="${this.champ}"></champ-table>
+                <toptimes-table .order="${this.topnet}" type="Net"></toptimes-table>
             </div>
             <div class='panel'>
                 <class-table .cls="${this.next ? this.next.class : undefined}"></class-table>
@@ -154,6 +156,7 @@ class AnnouncerPanel extends LitElement {
             if ("champ" in d)   me.champ   = d.champ;
             if ("next" in d)    me.next    = d.next;
             if ("timer" in d)   me.timer   = d.timer;
+            if ("topnet" in d)  me.topnet  = d.topnet;
         }
     );
 
@@ -171,6 +174,7 @@ class AnnouncerPanel extends LitElement {
                             champ: true,
                             next: true,
                             runorder: true,
+                            topnet: true
                         },
                     ]
                 }

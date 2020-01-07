@@ -117,6 +117,11 @@ class Result(object):
         return cls._loadTopTimesTable(classdata, results, *keys, **kwargs)
 
     @classmethod
+    def getTopTimesLists(cls, classdata, results, *keys, **kwargs):
+        """ Get top times.  Pass in results from outside as in some cases, they are already loaded """
+        return cls._loadTopTimesTable(classdata, results, *keys, wrapInClass=TopTimesListsWrapper, **kwargs)
+
+    @classmethod
     def getDecoratedClassResults(cls, settings, eventresults, *carids, rungroup=None):
         """ Decorate the objects with old and potential results for the announcer information """
         return cls._decorateClassResults(settings, eventresults, *carids, rungroup=rungroup)
@@ -729,6 +734,8 @@ class Result(object):
 
             lists.append(ttl)
 
+        if 'wrapInClass' in kwargs:
+            return kwargs['wrapInClass'](*lists)
         return TopTimesTable(*lists)
 
 
@@ -770,6 +777,13 @@ class SeriesInfo(dict):
         return None
 
 
+class TopTimesListsWrapper():
+    def __init__(self, *lists):
+        self.lists = lists
+
+    def serial(self, index):
+        return [{k:r.__dict__.get(k,"") for k in r._fields} for r in self.lists[index]]
+
 class TopTimesList(list):
     """ A list of top times along with the title, column and field info """
     def __init__(self, title, cols, fields):
@@ -795,6 +809,7 @@ class TopTimeEntry(object):
 
 class TopTimesRow(list):
     pass
+
 
 class TopTimesTable(object):
     """ We need to zip our lists together ourselves (can't do it in template anymore) so we create our Table and Rows here """
