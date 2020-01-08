@@ -246,12 +246,12 @@ def loadEventResults(attr, event, carid, course, rungroup, run, **kwargs):
         data['champ'] = { 'classcode':classcode, 'order':cgroup }
 
     if attr.get('topnet',      False): data['topnet']      = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True },              carid=carid).serial(0)
-    if attr.get('topnetleft',  False): data['topnetleft']  = Result.getTopTimesTable(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True,  'course': 1}, carid=carid).serial(0)
-    if attr.get('topnetright', False): data['topnetright'] = Result.getTopTimesTable(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True,  'course': 2}, carid=carid).serial(0)
+    if attr.get('topnetleft',  False): data['topnetleft']  = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True,  'course': 1}, carid=carid).serial(0)
+    if attr.get('topnetright', False): data['topnetright'] = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True,  'course': 2}, carid=carid).serial(0)
 
-    if attr.get('topraw',      False): data['topraw']      = Result.getTopTimesTable(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False },             carid=carid).serial(0)
-    if attr.get('toprawleft',  False): data['toprawleft']  = Result.getTopTimesTable(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False, 'course': 1}, carid=carid).serial(0)
-    if attr.get('toprawright', False): data['toprawright'] = Result.getTopTimesTable(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False, 'course': 2}, carid=carid).serial(0)
+    if attr.get('topraw',      False): data['topraw']      = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False },             carid=carid).serial(0)
+    if attr.get('toprawleft',  False): data['toprawleft']  = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False, 'course': 1}, carid=carid).serial(0)
+    if attr.get('toprawright', False): data['toprawright'] = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False, 'course': 2}, carid=carid).serial(0)
 
     if attr.get('next', False) or attr.get('runorder'):
         if attr.get('runorder', False):

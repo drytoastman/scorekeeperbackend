@@ -12,7 +12,15 @@ class TopTimesTable extends LitElement {
   }
 
   static get styles() {
-    return [ tablecss ]
+    return [ tablecss, css`
+            td {
+                max-width: 10rem; // for the below to work
+            }
+            td.name {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+     ` ]
   }
 
 
@@ -25,9 +33,9 @@ class TopTimesTable extends LitElement {
         return html`
             <tr class='${e.current ? 'highlight' : ''} ${e.ispotential ? 'couldhave' : ''} ${e.isold ? 'improvedon' : ''}'>
             <td>${e.pos}</td>
-            <td>${e.name}</td>
+            <td class='name'>${e.name}</td>
             <td>${e.classcode}</td>
-            <td>${e.indexstr}</td>
+            <!--<td>${e.indexstr}</td>-->
             <td>${t3(e.indexval)}</td>
             <td>${t3(e.time)}</td>
             </tr>`;
@@ -38,7 +46,7 @@ class TopTimesTable extends LitElement {
         <table class='res'>
         <tbody>
         <tr class='head'><th colspan='6'>Top Times (${this.type})</th></tr>
-        <tr class='subhead'><th>#</th><th>Name</th><th>Class</th><th colspan=2>Index</th><th>Time</th></tr>
+        <tr class='subhead'><th>#</th><th>Name</th><th>Class</th><th colspan=1>Index</th><th>Time</th></tr>
         ${this.order.map(e => erow(e))}
         </tbody>
         </table>`;

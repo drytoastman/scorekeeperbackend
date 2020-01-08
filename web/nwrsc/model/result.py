@@ -782,7 +782,8 @@ class TopTimesListsWrapper():
         self.lists = lists
 
     def serial(self, index):
-        return [{k:r.__dict__.get(k,"") for k in r._fields} for r in self.lists[index]]
+        return [{k:r.__dict__.get(k,"") for k in r._fields + ['current', 'ispotential','isold'] if r.__dict__.get(k,"") } for r in self.lists[index]]
+
 
 class TopTimesList(list):
     """ A list of top times along with the title, column and field info """

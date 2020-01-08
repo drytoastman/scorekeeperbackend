@@ -8,6 +8,10 @@ export const tablecss = css`
         vertical-align: top; 
     }
 
+    td {
+        white-space: nowrap;
+    }
+
     table.res {
         width: 100%;
     }
