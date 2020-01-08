@@ -14,7 +14,7 @@ class TopTimesTable extends LitElement {
   static get styles() {
     return [ tablecss, css`
             td {
-                max-width: 10rem; // for the below to work
+                max-width: 9rem; // for the below to work
             }
             td.name {
                 overflow: hidden;

@@ -143,17 +143,16 @@ def table_change(app, db, payload):
             g.data = LazyData()
             for ws in wslist:
                 # Relay on LazyData caching to keep this efficient but not hard to follow
-                for attr in ws.environ['LIVE']['watch']['results']:
-                    try:
-                        lastkey = frozenset(attr.items())
-                        (res, ts) = nextResult(db, series, attr, ws.environ['LAST'][lastkey])
-                        if not res: continue
-                        msg = json.dumps(res)  # TODO: maybe get this cached as well
-                        ws.send(msg)
-                        ws.environ['LAST'][lastkey] = ts
-                    except Exception as e:
-                        log.warning(e)
-                        ws.close()
+                attr = ws.environ['WATCH']
+                try:
+                    (res, ts) = nextResult(db, series, attr, ws.environ['LAST'])
+                    if not res: continue
+                    msg = json.dumps(res)  # TODO: maybe get this cached as well
+                    ws.send(msg)
+                    ws.environ['LAST'] = ts
+                except Exception as e:
+                    log.warning(e)
+                    ws.close()
 
 
 def nextResult(db, series, attr, lastresult):
@@ -277,14 +276,14 @@ def loadEventResults(attr, event, carid, course, rungroup, run, **kwargs):
 
 ## Below happens on websocket green thread
 
-def newWatchRequest(ws):
+def new_watch_request(ws, req):
     for wslist in bboard.values():
         wslist.discard(ws)
 
     # Get our new stuff
-    env = ws.environ['LIVE']
-    watch = env.get('watch', {})
-    series = env['series']
+    watch  = req.get('watch', {})
+    ws.environ['WATCH'] = watch
+    series = watch['series']
 
     if Series.type(series) != Series.ACTIVE:
         raise InvalidSeriesException()
@@ -297,7 +296,7 @@ def newWatchRequest(ws):
         bboard[series+'.localeventstream'].add(ws)
         table_change(current_app, g.db, series+'.localeventstream')
 
-    if 'results' in watch:
+    if watch.keys() & set(['entrant', 'class', 'champ', 'next', 'topnet', 'topraw']):
         bboard[series+'.runs'].add(ws)
         table_change(current_app, g.db, series+'.runs')
 
@@ -309,12 +308,15 @@ def live_websocket():
 
     try:
         remotes.add(ws)
+        ws.environ['LAST'] = datetime.datetime.fromtimestamp(0)
+
         while not ws.closed: # Only receive messages are requests for what to send
             data = ws.receive()
             if data:
-                ws.environ['LIVE'] = json.loads(data)
-                ws.environ['LAST'] = collections.defaultdict(lambda: datetime.datetime.fromtimestamp(0))
-                newWatchRequest(ws)
+                req = json.loads(data)
+                if 'watch' in req:
+                    new_watch_request(ws, req)
+
     except Exception as e:
         log.warning(e, exc_info=e)
 

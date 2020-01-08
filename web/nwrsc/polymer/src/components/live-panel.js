@@ -13,7 +13,6 @@ import './entrant-table.js';
 import './class-table.js';
 import './champ-table.js';
 import './toptimes-table.js';
-import './data-selector.js';
 
 class LivePanel extends LitElement {
     static get properties() {
@@ -64,8 +63,6 @@ class LivePanel extends LitElement {
     render() {
         // Anything that's related to rendering should be done in here.
         return html`
-        <!-- <data-selector .dataSource="${this.dataSource}"></data-selector> -->
-
         <div class='appbar'>
         <paper-dropdown-menu no-animations no-label-float>
             <paper-listbox slot="dropdown-content" class="dropdown-content" selected="0" @selected-changed="${this.classChange}">
@@ -113,22 +110,17 @@ class LivePanel extends LitElement {
         this.series = 'nwr2019';
         this.eventid = '3721546e-1ee0-11e9-95b4-0242ac170003';
         var select = {
-            series: this.series,
-            eventid: this.eventid,
             watch: {
-                timer: {},
-                protimer: {},
-                results: [
-                  {
-                    eventid: this.eventid,
-                    entrant: true,
-                    class: true,
-                    champ: true,
-                    next: true,
-                    topnet: true,
-                    topraw: true,
-                  },
-                ]
+                series:  this.series,
+                eventid: this.eventid,
+                //timer:   true,
+                //protimer: true,
+                entrant: true,
+                class:   true,
+                champ:   true,
+                next:    true,
+                topnet:  true,
+                topraw:  true,
             }
         };
 
