@@ -94,10 +94,22 @@ def parse_runorder_changes(port, series):
             new = [names[cid] for cid in row['newdata']['cars']]
             list_diff(old, new)
 
+def restore_cars(port, series, start, end):
+    db = connect_port(port)
+    with db.cursor() as cur:
+        cur.execute("set search_path=%s,'public'", (series,))
+        cur.execute("select otime,olddata from serieslog WHERE tablen='cars' AND action='D' AND otime>=%s AND otime<=%s", (start,end))
+        for row in cur.fetchall():
+            print("{}, {}".format(row['otime'], row['olddata']))
+            row['olddata']['attr'] = json.dumps(row['olddata']['attr'])
+            cur.execute("insert into cars (carid,driverid,classcode,indexcode,number,useclsmult,attr,modified,created) " + 
+                  "VALUES (%(carid)s, %(driverid)s, %(classcode)s, %(indexcode)s, %(number)s, %(useclsmult)s, %(attr)s, %(modified)s, %(created)s)", row['olddata'])
+    db.commit()
+
 def connect_port(port):
     args = {
       "cursor_factory": psycopg2.extras.DictCursor,
-                "host": "127.0.0.1",
+                "host": "192.168.64.8",
                 "port": port,
                 "user": "postgres",
               "dbname": "scorekeeper",
@@ -107,8 +119,8 @@ def connect_port(port):
 
 
 if __name__ == '__main__':
-    parse_runorder_changes(6432, 'pro2019')
-
+    restore_cars(6432, 'bscc2020', '2020-01-08 05:50:20', '2020-01-08 05:59')
+    #parse_runorder_changes(6432, 'pro2019')
     #parse_runs(int(sys.argv[1]), sys.argv[2])
     #parse_dump_file(sys.argv[1])
 
