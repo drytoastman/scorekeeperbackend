@@ -1,8 +1,11 @@
 import collections
 import datetime
+import dateutil.parser
 import logging
 import operator
 import re
+import uuid
+
 from flask import g
 
 from .base import AttrBase
@@ -153,15 +156,19 @@ class Series(object):
                 events = cur.fetchone()[0]
                 for e in events:
                     cur.execute("select data from results where name=%s", (e['eventid'],))
-                    if cur.rowcount == 0:
+                    try:
+                        results = cur.fetchone()[0]
+                        edate = dateutil.parser.parse(e['date']).date()
+                        for code, entries in results.items():
+                            for entrant in entries:
+                                try:
+                                    val = uuid.UUID(entrant[key])
+                                    if val in store:
+                                        store[val] = max(store[val], edate)
+                                except:
+                                    pass
+                    except:
                         continue
-                    results = cur.fetchone()[0]
-                    for code, entries in results.items():
-                        for entrant in entries:
-                            val = entrant[key]
-                            if val in store:
-                                store[val] = max(ret[val], e['date'])
-
 
     @classmethod
     def getDriverActivity(cls, untilyear):
@@ -181,6 +188,7 @@ class Series(object):
 
             # Any archived series that are less than X years old (need to search JSON data)
             Series._updateActivityFromArchive(ret, 'driverid', untilyear)
+            cur.execute("SET search_path=%s,'public'", (g.series,))
 
         return ret
 
@@ -207,6 +215,7 @@ class Series(object):
 
             # Any archived series that are less than X years old (need to search JSON data)
             Series._updateActivityFromArchive(ret, 'carid', untilyear)
+            cur.execute("SET search_path=%s,'public'", (g.series,))
 
         return ret
 
