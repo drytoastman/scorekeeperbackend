@@ -716,11 +716,10 @@ def purge():
             for carid, activity in Series.getCarActivity(untilyear).items():
                 if activity.year < untilyear:
                     try:  # Use constraints to stop us from deleteing in use cars
-                        Car.deleteById(carid)
-                        count += 1
+                        count += Car.deleteById(carid)
                     except Exception as e:
                         g.db.rollback() 
-                        log.info("Not deleteing car {}: {}".format(carid, e))
+                        log.info("Not deleting car {}: {}".format(carid, e))
 
         flash("Deleted {} cars".format(count))
         return redirect(url_for('.purge'))
@@ -740,11 +739,10 @@ def purgedriver():
     for driverid, activity in Series.getDriverActivity(untilyear).items():
         if activity.year < untilyear:
             try:  # Use constraints to stop us from deleteing in use drivers
-                SuperAuth.deleteDriver(driverid)
-                count += 1
+                count += SuperAuth.deleteDriver(driverid)
             except Exception as e:
                 g.db.rollback() 
-                log.info("Not deleteing driver {}: {}".format(driverid, e))
+                log.info("Not deleting driver {}: {}".format(driverid, e))
     flash("Deleted {} drivers".format(count))
     return redirect(url_for('.purge'))
 
