@@ -22,7 +22,7 @@ class LivePanel extends LitElement {
             entrant:  { type: Object },
             cls:      { type: Object },
             champ:    { type: Object },
-            selected: { type: Number }
+            selected: { type: Number },
         };
     }
 
@@ -103,12 +103,10 @@ class LivePanel extends LitElement {
     classChange(e) {
         var idx = e.target.selected;
         console.log(`classchange ${e.target.children[idx].textContent}`);
-        this.series = 'nwr2019';
-        this.eventid = '3721546e-1ee0-11e9-95b4-0242ac170003';
         var select = {
             watch: {
-                series:  this.series,
-                eventid: this.eventid,
+                series:  this.attributes.series.value,
+                eventid: this.attributes.eventid.value,
                 //timer:   true,
                 //protimer: true,
                 entrant: true,
@@ -128,6 +126,7 @@ class LivePanel extends LitElement {
         super();
         var me = this;
         this.dataSource = new DataSource(
+            this.attributes.wsurl.value,
             function(d) {
                 if ("entrant" in d) me.entrant = d.entrant;
                 if ("class" in d)   me.cls     = d.class;

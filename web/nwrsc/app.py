@@ -77,6 +77,7 @@ def create_app():
     theapp.register_blueprint(Announcer, url_prefix="/announcer/<series>")
     theapp.register_blueprint(Api,       url_prefix="/api")
     theapp.register_blueprint(Docs,      url_prefix="/docs")
+    theapp.register_blueprint(Live,      url_prefix="/live")
     theapp.register_blueprint(Register,  url_prefix="/register")
     theapp.register_blueprint(Results,   url_prefix="/results/<series>")
     theapp.add_url_rule('/admin/squareoauth', "Admin.squareoauth")
@@ -90,11 +91,6 @@ def create_app():
     def robots(): return send_from_directory('static', 'robots.txt')
     @theapp.route('/api/swagger.yaml')
     def resultsfeed(): return send_from_directory('api', 'swagger.yaml')
-
-    @theapp.route('/ws')
-    def ws(): return live_websocket()
-    @theapp.route('/live/<path:path>')
-    def live(path): return send_from_directory('polymer', path)
 
     @theapp.url_value_preprocessor
     def preprocessor(endpoint, values):

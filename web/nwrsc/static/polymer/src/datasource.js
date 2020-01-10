@@ -1,8 +1,9 @@
 export class DataSource {
 
-    constructor(callback) {
+    constructor(url, callback) {
         this.ws = null;
         this.requeststr = "";
+        this.url = url
         this.callback = callback;
     }
 
@@ -17,7 +18,7 @@ export class DataSource {
             return;
         }
 
-        var ws        = new WebSocket(`ws://${window.location.hostname}/ws`);
+        var ws        = new WebSocket(this.url);
         ws.handler    = this;
         ws.requeststr = this.requeststr;
         ws.callback   = this.callback;

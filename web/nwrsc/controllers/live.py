@@ -9,8 +9,9 @@ import logging
 import time
 import uuid
 
-from flask import current_app, g, request
+from flask import current_app, g, render_template, request
 
+from nwrsc.controllers.blueprints import *
 from nwrsc.model import *
 from nwrsc.lib.misc import t3
 
@@ -301,7 +302,8 @@ def new_watch_request(ws, req):
         table_change(current_app, g.db, series+'.runs')
 
 
-def live_websocket():
+@Live.route("/websocket")
+def websocket():
     ws = request.environ.get('wsgi.websocket', None)
     if not ws:
         return "Expecting a websocket here"
@@ -324,5 +326,13 @@ def live_websocket():
     for wslist in bboard.values():
         wslist.discard(ws)
     remotes.discard(ws)
+    return ""
+
+@Live.route("/<series>/event/<uuid:eventid>/user")
+def user():
+    return render_template('live/user.html')
+
+@Live.route("/<series>/event/<uuid:eventid>/announcer")
+def announcer():
     return ""
 

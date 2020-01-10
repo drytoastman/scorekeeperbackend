@@ -33,8 +33,9 @@ ul { padding-left: 0.7rem; }
 <li><a href='{{url_for('.dist', attr='pen')}}'>Net Distribution</a></li>
 {% if not g.event.usingSessions() %}<li><a href='{{url_for('.champ')}}'>Championship</a></li>{% endif %}
 {%if config.SHOWLIVE and isactive -%}
-<li><a href="{{url_for('Announcer.index')}}">Announcer Panel</a></li>
-<li><a href="{{request.host_url}}live/index.html#{{g.series}}/{{g.eventid}}">Live</a></li>
+<li><a href="{{url_for('Announcer.index')}}">Old Announcer Panel</a></li>
+<li><a href="{{url_for('Live.announcer')}}">New Announcer</a></li>
+<li><a href="{{url_for('Live.user')}}">Live</a></li>
 {% endif -%}
 {# <li><a href='{{url_for('Api.scca')}}'>SCCA Report</a></li> #}
 </ul>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Scorekeeper Live">
+  <meta name="theme-color" content="#fff">
+  <link rel="icon" href="manifest/favicon.ico">
+  <script src="/static/polymer/node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="/static/polymer/dist/vendors~announcer~live.js" type="module"></script>
+  <script src="/static/polymer/dist/vendors~live.js" type="module"></script>
+  <script src="/static/polymer/dist/live.js" type="module"></script>
+
+  <title>Scorekeeper Live</title>
+  <style>
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      font-size: 0.95rem;
+
+      --basecolor: #3f75a2;
+      --basecolor10: #4683b6;
+      --headerfill: var(--basecolor);
+      --titlesfill: var(--basecolor10);
+      --could-have-background: #EDD;
+      --could-have-color: #E77;
+      --improved-on-background: #EEF;
+      --improved-on-color: #99E;
+      --highlight-background: #DDD;
+      --paper-tabs-selection-bar-color: #000;
+      --paper-tab-ink: #000;
+    }
+
+  </style>
+</head>
+<body>
+  <live-panel wsurl="{{url_for('Live.websocket', _scheme='ws', _external=True)}}" series="{{g.series}}" eventid="{{g.eventid}}">
+    <p id="jsyes"></p>
+    <script type="text/javascript">
+      document.getElementById('jsyes').innerHTML='Loading...'
+    </script>
+    <noscript>
+      <p>Could not render the custom element. Check that JavaScript is enabled.</p>
+    </noscript>
+  </live-panel>
+</body>
+</html>

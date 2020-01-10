@@ -1,8 +1,11 @@
 const path = require('path');
 module.exports = {
   mode: 'development',
-  entry: path.resolve(__dirname, 'src/components/live-panel.js'),
-  devtool: 'inline-source-map',
+  entry: {
+    live: './src/components/live-panel.js',
+    announcer: './src/components/announcer-panel.js',
+  },
+  //devtool: 'inline-source-map',
 
   optimization: {
     splitChunks: {
