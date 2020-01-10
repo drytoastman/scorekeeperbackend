@@ -377,17 +377,19 @@ class Result(object):
         norder1 = cls.getBestNetRun(e)
         norder2 = cls.getBestNetRun(e, norder=2)
 
+        key = 'anorder' # norder doesn't exist when counted runs take effect
+
         # Can't have any improvement if we only have one run
         if norder2:
             # Note net improvement, mark what the old net would have been
-            if lastrun['norder'] == 1 and norder2:
+            if lastrun[key] == 1 and norder2:
                 lastrun['netimp'] = lastrun['net'] - norder2['net']
                 norder2['oldbest'] = True
                 e['oldnet'] = e['net'] - lastrun['net'] + norder2['net']
     
             # Note raw improvement over previous best run
             # This can be n=2 for overall improvement, or n=1 if only raw, not net improvement
-            if lastrun['norder'] == 1:
+            if lastrun[key] == 1:
                 lastrun['rawimp'] = lastrun['raw'] - norder2['raw']
             else:
                 lastrun['rawimp'] = lastrun['raw'] - norder1['raw']
@@ -397,7 +399,7 @@ class Result(object):
             potnet = e['net'] - norder1['net'] + (lastrun['raw'] * e['indexval'])
             if potnet < e['net']:
                 e['potnet'] = potnet
-                if lastrun['norder'] != 1:
+                if lastrun[key] != 1:
                     lastrun['ispotential'] = True
 
 

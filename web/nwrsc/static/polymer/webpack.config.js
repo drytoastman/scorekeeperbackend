@@ -2,8 +2,7 @@ const path = require('path');
 module.exports = {
   mode: 'development',
   entry: {
-    live: './src/components/live-panel.js',
-    announcer: './src/components/announcer-panel.js',
+    live: [ './src/components/user-panel.js', './src/components/announcer-panel.js' ]
   },
   //devtool: 'inline-source-map',
 

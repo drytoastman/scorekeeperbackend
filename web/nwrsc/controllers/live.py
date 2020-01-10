@@ -13,7 +13,7 @@ from flask import current_app, g, render_template, request
 
 from nwrsc.controllers.blueprints import *
 from nwrsc.model import *
-from nwrsc.lib.misc import t3
+from nwrsc.lib.misc import ArchivedSeriesException, InvalidSeriesException, t3
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +37,6 @@ def live_background_thread(app):
             rem.close()
         bboard.clear()
         time.sleep(3)
-
 
 
 class LazyData:
@@ -328,11 +327,22 @@ def websocket():
     remotes.discard(ws)
     return ""
 
+
+def event_check():
+    g.seriestype = Series.type(g.series)
+    if g.seriestype == Series.INVALID:
+        raise InvalidSeriesException()
+    if g.seriestype != Series.ACTIVE:
+        raise ArchivedSeriesException()
+    g.event = Event.get(g.eventid)
+
 @Live.route("/<series>/event/<uuid:eventid>/user")
 def user():
-    return render_template('live/user.html')
+    event_check()
+    return render_template('live/panel.html', panel_type="user-panel")
 
 @Live.route("/<series>/event/<uuid:eventid>/announcer")
 def announcer():
-    return ""
+    event_check()
+    return render_template('live/panel.html', panel_type="announcer-panel")
 

@@ -14,7 +14,7 @@ import './class-table.js';
 import './champ-table.js';
 import './toptimes-table.js';
 
-class LivePanel extends LitElement {
+class UserPanel extends LitElement {
     static get properties() {
         return {
             appTitle: { type: String },
@@ -105,8 +105,8 @@ class LivePanel extends LitElement {
         console.log(`classchange ${e.target.children[idx].textContent}`);
         var select = {
             watch: {
-                series:  this.attributes.series.value,
-                eventid: this.attributes.eventid.value,
+                series:  panelConfig.series,
+                eventid: panelConfig.eventid,
                 //timer:   true,
                 //protimer: true,
                 entrant: true,
@@ -126,7 +126,7 @@ class LivePanel extends LitElement {
         super();
         var me = this;
         this.dataSource = new DataSource(
-            this.attributes.wsurl.value,
+            panelConfig.wsurl,
             function(d) {
                 if ("entrant" in d) me.entrant = d.entrant;
                 if ("class" in d)   me.cls     = d.class;
@@ -139,4 +139,4 @@ class LivePanel extends LitElement {
     }
 }
 
-customElements.define('live-panel', LivePanel);
+customElements.define('user-panel', UserPanel);

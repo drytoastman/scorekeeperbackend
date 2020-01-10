@@ -7,8 +7,15 @@
   <meta name="theme-color" content="#fff">
   <link rel="icon" href="manifest/favicon.ico">
   <script src="/static/polymer/node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
-  <script src="/static/polymer/dist/vendors~announcer~live.js" type="module"></script>
   <script src="/static/polymer/dist/vendors~live.js" type="module"></script>
+  <script>
+    var panelConfig = {
+            wsurl: "{{url_for('Live.websocket', _scheme='ws', _external=True)}}",
+            series: "{{g.series}}",
+            eventid: "{{g.eventid}}",
+            ispro: {{g.event.ispro|int}}
+        }
+  </script>
   <script src="/static/polymer/dist/live.js" type="module"></script>
 
   <title>Scorekeeper Live</title>
@@ -33,7 +40,7 @@
   </style>
 </head>
 <body>
-  <live-panel wsurl="{{url_for('Live.websocket', _scheme='ws', _external=True)}}" series="{{g.series}}" eventid="{{g.eventid}}">
+  <{{panel_type}}>
     <p id="jsyes"></p>
     <script type="text/javascript">
       document.getElementById('jsyes').innerHTML='Loading...'
@@ -41,6 +48,6 @@
     <noscript>
       <p>Could not render the custom element. Check that JavaScript is enabled.</p>
     </noscript>
-  </live-panel>
+  </{{panel_type}}>
 </body>
 </html>
