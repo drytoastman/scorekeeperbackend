@@ -461,7 +461,8 @@ class Result(object):
     @classmethod
     def _decorateChampResults(cls, champresults, *markentrants):
         """ Calculate things for the announcer/info displays """
-        champclass = champresults[markentrants[0]['classcode']]
+        champclass = champresults.get(markentrants[0]['classcode'], None)
+        if not champclass: return []
         newlist = deepcopy(champclass)
 
         for e in newlist:

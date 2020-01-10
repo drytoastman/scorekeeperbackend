@@ -1,0 +1,1 @@
+winpty docker run --rm -it -v `cygpath -w $(pwd)`:/code node:13.5.0-buster-slim bash

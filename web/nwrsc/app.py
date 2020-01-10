@@ -91,10 +91,10 @@ def create_app():
     @theapp.route('/api/swagger.yaml')
     def resultsfeed(): return send_from_directory('api', 'swagger.yaml')
 
-    @theapp.route('/live')
-    def livews(): return live_websocket()
-    @theapp.route('/wshtml')
-    def wshtml(): return render_template("announcer/websocket.html")
+    @theapp.route('/ws')
+    def ws(): return live_websocket()
+    @theapp.route('/live/<path:path>')
+    def live(path): return send_from_directory('polymer', path)
 
     @theapp.url_value_preprocessor
     def preprocessor(endpoint, values):

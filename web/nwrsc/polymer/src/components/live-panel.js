@@ -67,10 +67,6 @@ class LivePanel extends LitElement {
         <paper-dropdown-menu no-animations no-label-float>
             <paper-listbox slot="dropdown-content" class="dropdown-content" selected="0" @selected-changed="${this.classChange}">
               <paper-item>All</paper-item>
-              <paper-item>AS</paper-item>
-              <paper-item>BS</paper-item>
-              <paper-item>NS4</paper-item>
-              <paper-item>NS6</paper-item>
             </paper-listbox>
         </paper-dropdown-menu>
 

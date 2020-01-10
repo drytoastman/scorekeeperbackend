@@ -151,7 +151,7 @@ def table_change(app, db, payload):
                     ws.send(msg)
                     ws.environ['LAST'] = ts
                 except Exception as e:
-                    log.warning(e)
+                    log.warning(e, exc_info=e)
                     ws.close()
 
 

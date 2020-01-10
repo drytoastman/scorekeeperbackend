@@ -17,7 +17,7 @@ export class DataSource {
             return;
         }
 
-        var ws        = new WebSocket(`ws://${window.location.hostname}/live`);
+        var ws        = new WebSocket(`ws://${window.location.hostname}/ws`);
         ws.handler    = this;
         ws.requeststr = this.requeststr;
         ws.callback   = this.callback;
