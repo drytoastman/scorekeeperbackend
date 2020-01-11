@@ -60,7 +60,7 @@ BEGIN
 
     audit_row.logid = NEXTVAL(TG_ARGV[0] || '_logid_seq');
     EXECUTE 'INSERT INTO ' || TG_ARGV[0] || ' VALUES (($1).*)' USING audit_row;
-    EXECUTE pg_notify('datachange', TG_TABLE_SCHEMA || '.' || TG_TABLE_NAME);
+    EXECUTE pg_notify('datachange', TG_TABLE_NAME);
     RETURN NULL;
 END;
 $body$
@@ -76,7 +76,7 @@ BEGIN
             RETURN NULL;
         END IF;
     END IF;
-    EXECUTE pg_notify('datachange', TG_TABLE_SCHEMA || '.' || TG_TABLE_NAME);
+    EXECUTE pg_notify('datachange', TG_TABLE_NAME);
     RETURN NULL;
 END;
 $body$

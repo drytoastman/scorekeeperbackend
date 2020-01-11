@@ -76,7 +76,7 @@ class LazyData:
             self._cresults = Result.getChampResults()
         return self._cresults
 
-    def event(self, eventid, *carids, rungroup=None):
+    def event(self, eventid, carids, rungroup=None):
         key = ('e', str(eventid), *map(str, carids), rungroup)
         if key not in self._calculated:
             self._calculated[key] = Result.getDecoratedClassResults(self.settings, self.eresults(eventid), *carids, rungroup=rungroup)
@@ -109,17 +109,22 @@ class LazyData:
 
 
 def table_change(app, db, payload):
+    # For now, we keep the old notifications on table only (no series) until we can update schemas
     msg = None
     wsl = ()
 
     log.debug('change {}'.format(payload))
+    for k in bboard:
+        if k[1] == payload:  # same table, check all series
+            table_change_inner(app, db, k[0], k[1])
 
-    wslist = bboard[payload]
+
+def table_change_inner(app, db, series, table):
+
+    wslist = bboard[(series, table)]
     wslist = list(filter(lambda ws: not ws.closed, wslist))
     if not wslist:
         return
-
-    (series, table) = payload.split('.')
 
     with app.app_context():  # Need app context/g for model calls
         g.db = db
@@ -127,7 +132,6 @@ def table_change(app, db, payload):
         g.seriestype = Series.ACTIVE
         with g.db.cursor() as cur:
             cur.execute("SET search_path=%s,'public'", (g.series,))
-
 
         # Generate the new result
         if table == 'timertimes':
@@ -146,6 +150,7 @@ def table_change(app, db, payload):
                 # Relay on LazyData caching to keep this efficient but not hard to follow
                 attr = ws.environ['WATCH']
                 try:
+                    log.warning("check {} {}".format(ws, ws.environ['LAST']))
                     (res, ts) = nextResult(db, series, attr, ws.environ['LAST'])
                     if not res: continue
                     msg = json.dumps(res)  # TODO: maybe get this cached as well
@@ -225,26 +230,12 @@ def formatProTimer(events):
     return ret
 
 
-
 def loadEventResults(attr, event, carid, course, rungroup, run, **kwargs):
+    data         = {}
+    carids       = list(filter(None, [carid, kwargs.get('oppcarid', None)]))
+    data['last'] = getEntrantResults(attr, event=event, carids=carids, rungroup=rungroup)
 
     eventid = event.eventid
-    group, drivers = g.data.event(eventid, *filter(None, [carid, kwargs.get('oppcarid',None)]))
-    if not drivers: return
-    cgroup = g.data.champ(*drivers)
-
-    data = {}
-    classcode = drivers[0]['classcode']
-
-    if attr.get('entrant', False):
-        data['entrant'] = drivers[0]
-
-    if attr.get('class', False):
-        data['class'] = { 'classcode':classcode, 'order':group }
-
-    if attr.get('champ', False) and not event.ispractice and g.data.classdata.classlist[classcode].champtrophy:
-        data['champ'] = { 'classcode':classcode, 'order':cgroup }
-
     if attr.get('topnet',      False): data['topnet']      = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True },              carid=carid).serial(0)
     if attr.get('topnetleft',  False): data['topnetleft']  = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True,  'course': 1}, carid=carid).serial(0)
     if attr.get('topnetright', False): data['topnetright'] = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True,  'course': 2}, carid=carid).serial(0)
@@ -253,26 +244,38 @@ def loadEventResults(attr, event, carid, course, rungroup, run, **kwargs):
     if attr.get('toprawleft',  False): data['toprawleft']  = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False, 'course': 1}, carid=carid).serial(0)
     if attr.get('toprawright', False): data['toprawright'] = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False, 'course': 2}, carid=carid).serial(0)
 
-    if attr.get('next', False) or attr.get('runorder'):
-        if attr.get('runorder', False):
-            data['runorder'] =  { 'course': course, 'run': run, 'next': g.data.nextorder(eventid, course, rungroup, carid) }
+    if attr.get('runorder', False):
+        data['runorder'] =  { 'course': course, 'run': run, 'next': g.data.nextorder(eventid, course, rungroup, carid) }
 
-        if attr.get('next', False) and not event.ispro:
-            data['next'] = {}
-            nextids = g.data.nextorder(eventid, course, rungroup, carid)
-            if nextids:
-                (group, drivers) = g.data.event(eventid, nextids[0]['carid'], rungroup=rungroup)
-
-                if attr.get('entrant', False):
-                    data['next']['entrant'] = drivers[0]
-
-                if attr.get('class', False):
-                    data['next']['class'] = { 'classcode':classcode, 'order':group }
-
-                if attr.get('champ', False) and not event.ispractice and g.data.classdata.classlist[classcode].champtrophy:
-                    data['next']['champ'] = { 'classcode':classcode, 'order': g.data.champ(*drivers) }
+    if attr.get('next', False):
+        nextids = g.data.nextorder(eventid, course, rungroup, carid)
+        if nextids:
+            data['next'] = getEntrantResults(attr, event=event, carids=[nextids[0]['carid']], rungroup=rungroup)
 
     return data
+
+
+def getEntrantResults(attr, event, carids, rungroup):
+    ret = {}
+    if not carids:
+        return ret
+
+    (group, drivers) = g.data.event(event.eventid, carids, rungroup=rungroup)
+    if not drivers:
+        return ret
+
+    classcode = drivers[0]['classcode']
+
+    if attr.get('entrant', False):
+        ret['entrant'] = drivers[0]
+
+    if attr.get('class', False):
+        ret['class'] = { 'classcode':classcode, 'order': group }
+
+    if attr.get('champ', False) and not event.ispractice and g.data.classdata.classlist[classcode].champtrophy:
+        ret['champ'] = { 'classcode':classcode, 'order': g.data.champ(*drivers) }
+
+    return ret
 
 
 ## Below happens on websocket green thread
@@ -290,16 +293,16 @@ def new_watch_request(ws, req):
         raise InvalidSeriesException()
 
     if 'timer' in watch:
-        bboard[series+'.timertimes'].add(ws)
-        table_change(current_app, g.db, series+'.timertimes')
+        bboard[(series, 'timertimes')].add(ws)
+        table_change_inner(current_app, g.db, series, 'timertimes')
 
     if 'protimer' in watch:
-        bboard[series+'.localeventstream'].add(ws)
-        table_change(current_app, g.db, series+'.localeventstream')
+        bboard[(series, 'localeventstream')].add(ws)
+        table_change_inner(current_app, g.db, series, 'localeventstream')
 
     if watch.keys() & set(['entrant', 'class', 'champ', 'next', 'topnet', 'topraw', 'runorder']):
-        bboard[series+'.runs'].add(ws)
-        table_change(current_app, g.db, series+'.runs')
+        bboard[(series, 'runs')].add(ws)
+        table_change_inner(current_app, g.db, series, 'runs')
 
 
 @Live.route("/websocket")

@@ -20,11 +20,9 @@ class AnnouncerPanel extends LitElement {
 
     static get properties() {
         return {
-          appTitle:  { type: String },
-          dataSource: { type: Object },
-          entrant:   { type: Object },
-          cls:       { type: Object },
-          champ:     { type: Object },
+          prev:      { type: Object },
+          last:      { type: Object },
+          next:      { type: Object },
           runorder:  { type: Object },
           timer:     { type: Number },
 
@@ -82,15 +80,20 @@ class AnnouncerPanel extends LitElement {
                     </paper-tabs>
 
                     <iron-pages .selected="${this.cselected}">
-                        <div></div>
-                        <div class='panel'>
-                            <entrant-table .entrant="${this.entrant}"></entrant-table>
-                            <class-table .cls="${this.cls}"></class-table>
-                            <champ-table .champ="${this.champ}"></champ-table>
+                        <div>
+                            <entrant-table .entrant="${this.prev ? this.prev.entrant : undefined}"></entrant-table>
+                            <class-table       .cls="${this.prev ? this.prev.class   : undefined}"></class-table>
+                            <champ-table     .champ="${this.prev ? this.prev.champ   : undefined}"></champ-table>
                         </div>
                         <div class='panel'>
-                            <class-table .cls="${this.next ? this.next.class : undefined}"></class-table>
-                            <champ-table .champ="${this.next ? this.next.champ: undefined}"></champ-table>
+                            <entrant-table .entrant="${this.last ? this.last.entrant : undefined}"></entrant-table>
+                            <class-table       .cls="${this.last ? this.last.class   : undefined}"></class-table>
+                            <champ-table     .champ="${this.last ? this.last.champ   : undefined}"></champ-table>
+                        </div>
+                        <div class='panel'>
+                            <entrant-table .entrant="${this.next ? this.next.entrant : undefined}"></entrant-table>
+                            <class-table       .cls="${this.next ? this.next.class   : undefined}"></class-table>
+                            <champ-table     .champ="${this.next ? this.next.champ   : undefined}"></champ-table>
                         </div>
                     </iron-pages>
                 </div>
@@ -123,9 +126,10 @@ class AnnouncerPanel extends LitElement {
         this.dataSource = new DataSource(
             panelConfig.wsurl,
             function(d) {
-                if ("entrant" in d) me.entrant = d.entrant;
-                if ("class" in d)   me.cls     = d.class;
-                if ("champ" in d)   me.champ   = d.champ;
+                if ("last" in d) {
+                    me.prev = me.last;
+                    me.last = d.last;
+                }
                 if ("next" in d)    me.next    = d.next;
                 if ("topnet" in d)  me.topnet  = d.topnet;
                 if ("topraw" in d)  me.topraw  = d.topraw;
