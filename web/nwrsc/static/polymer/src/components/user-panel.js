@@ -45,10 +45,14 @@ class UserPanel extends LitElement {
             }
 
             paper-dropdown-menu {
-                width: 4rem;
+                width: 120px;
                 vertical-align: top;
                 margin-top: 5px;
                 --paper-input-container-color: white;
+            }
+
+            paper-listbox {
+                overflow-x: hidden;
             }
 
             paper-tabs {
@@ -65,6 +69,7 @@ class UserPanel extends LitElement {
         <paper-dropdown-menu no-animations no-label-float>
             <paper-listbox slot="dropdown-content" class="dropdown-content" selected="0" @selected-changed="${this.classChange}">
               <paper-item>All</paper-item>
+              ${panelConfig.classcodes.map(code => html`<paper-item>${code}</paper-item>`)}
             </paper-listbox>
         </paper-dropdown-menu>
 
@@ -105,11 +110,15 @@ class UserPanel extends LitElement {
 
     classChange(e) {
         var idx = e.target.selected;
-        console.log(`classchange ${e.target.children[idx].textContent}`);
+        var code = e.target.children[idx].textContent;
+        if (code == 'All') code = null;
+        console.log(`classchange ${code}`);
+
         var select = {
             watch: {
                 series:  panelConfig.series,
                 eventid: panelConfig.eventid,
+                classcode: code,
                 entrant: true,
                 class:   true,
                 champ:   true,

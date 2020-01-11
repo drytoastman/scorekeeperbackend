@@ -13,6 +13,7 @@
             wsurl: "{{url_for('Live.websocket', _scheme='ws', _external=True)}}",
             series: "{{g.series}}",
             eventid: "{{g.eventid}}",
+            classcodes: {{g.classlist|sort|to_json|safe}},
             ispro: {{g.event.ispro|int}}
         }
   </script>

@@ -88,11 +88,11 @@ class LazyData:
             self._calculated[key] = Result.getDecoratedChampResults(self.cresults, *drivers)
         return self._calculated[key]
 
-    def nextorder(self, eventid, course, rungroup, carid):
+    def nextorder(self, eventid, course, rungroup, carid, classcode=None):
         """ Get next carids in order and then match/return their results entries """
         key = ('n', str(eventid), course, rungroup, str(carid))
         if key not in self._calculated:
-            nextcars = RunOrder.getNextRunOrder(carid, eventid, course, rungroup)
+            nextcars = RunOrder.getNextRunOrder(carid, eventid, course, rungroup, classcode=classcode)
             order    = list()
             results  = self.eresults(eventid)
             for n in nextcars:
@@ -232,30 +232,30 @@ def formatProTimer(events):
 
 def loadEventResults(attr, event, carid, course, rungroup, run, **kwargs):
     data         = {}
+    eid          = event.eventid
     carids       = list(filter(None, [carid, kwargs.get('oppcarid', None)]))
-    data['last'] = getEntrantResults(attr, event=event, carids=carids, rungroup=rungroup)
+    data['last'] = loadEntrantResults(attr, event=event, carids=carids, rungroup=rungroup)
 
-    eventid = event.eventid
-    if attr.get('topnet',      False): data['topnet']      = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True },              carid=carid).serial(0)
-    if attr.get('topnetleft',  False): data['topnetleft']  = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True,  'course': 1}, carid=carid).serial(0)
-    if attr.get('topnetright', False): data['topnetright'] = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':True,  'counted':True,  'course': 2}, carid=carid).serial(0)
+    if attr.get('topnet',      False): data['topnet']      = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eid), {'indexed':True,  'counted':True },              carid=carid).serial(0)
+    if attr.get('topnetleft',  False): data['topnetleft']  = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eid), {'indexed':True,  'counted':True,  'course': 1}, carid=carid).serial(0)
+    if attr.get('topnetright', False): data['topnetright'] = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eid), {'indexed':True,  'counted':True,  'course': 2}, carid=carid).serial(0)
 
-    if attr.get('topraw',      False): data['topraw']      = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False },             carid=carid).serial(0)
-    if attr.get('toprawleft',  False): data['toprawleft']  = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False, 'course': 1}, carid=carid).serial(0)
-    if attr.get('toprawright', False): data['toprawright'] = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eventid), {'indexed':False, 'counted':False, 'course': 2}, carid=carid).serial(0)
+    if attr.get('topraw',      False): data['topraw']      = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eid), {'indexed':False, 'counted':False },             carid=carid).serial(0)
+    if attr.get('toprawleft',  False): data['toprawleft']  = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eid), {'indexed':False, 'counted':False, 'course': 1}, carid=carid).serial(0)
+    if attr.get('toprawright', False): data['toprawright'] = Result.getTopTimesLists(g.data.classdata, g.data.eresults(eid), {'indexed':False, 'counted':False, 'course': 2}, carid=carid).serial(0)
 
     if attr.get('runorder', False):
-        data['runorder'] =  { 'course': course, 'run': run, 'next': g.data.nextorder(eventid, course, rungroup, carid) }
+        data['runorder'] =  { 'course': course, 'run': run, 'next': g.data.nextorder(eid, course, rungroup, carid) }
 
     if attr.get('next', False):
-        nextids = g.data.nextorder(eventid, course, rungroup, carid)
+        nextids = g.data.nextorder(eid, course, rungroup, carid, classcode=attr.get('classcode', None))
         if nextids:
-            data['next'] = getEntrantResults(attr, event=event, carids=[nextids[0]['carid']], rungroup=rungroup)
+            data['next'] = loadEntrantResults(attr, event=event, carids=[nextids[0]['carid']], rungroup=rungroup)
 
     return data
 
 
-def getEntrantResults(attr, event, carids, rungroup):
+def loadEntrantResults(attr, event, carids, rungroup):
     ret = {}
     if not carids:
         return ret
@@ -287,6 +287,7 @@ def new_watch_request(ws, req):
     # Get our new stuff
     watch  = req.get('watch', {})
     ws.environ['WATCH'] = watch
+    ws.environ['LAST']  = datetime.datetime.fromtimestamp(0)
     series = watch['series']
 
     if Series.type(series) != Series.ACTIVE:
@@ -313,8 +314,6 @@ def websocket():
 
     try:
         remotes.add(ws)
-        ws.environ['LAST'] = datetime.datetime.fromtimestamp(0)
-
         while not ws.closed: # Only receive messages are requests for what to send
             data = ws.receive()
             if data:
@@ -339,6 +338,10 @@ def event_check():
     if g.seriestype != Series.ACTIVE:
         raise ArchivedSeriesException()
     g.event = Event.get(g.eventid)
+    g.classlist = []
+    if not g.event.usingSessions():
+        g.classlist = list(ClassData.get().classlist.keys())
+
 
 @Live.route("/<series>/event/<uuid:eventid>/user")
 def user():

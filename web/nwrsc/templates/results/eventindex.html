@@ -34,8 +34,8 @@ ul { padding-left: 0.7rem; }
 {% if not g.event.usingSessions() %}<li><a href='{{url_for('.champ')}}'>Championship</a></li>{% endif %}
 {%if config.SHOWLIVE and isactive -%}
 <li><a href="{{url_for('Announcer.index')}}">Old Announcer Panel</a></li>
-<li><a href="{{url_for('Live.announcer')}}">New Announcer</a></li>
-<li><a href="{{url_for('Live.user')}}">Live</a></li>
+<li><a href="{{url_for('Live.announcer')}}">New Announcer Panel</a></li>
+<li><a href="{{url_for('Live.user')}}">Live Panel</a></li>
 {% endif -%}
 {# <li><a href='{{url_for('Api.scca')}}'>SCCA Report</a></li> #}
 </ul>

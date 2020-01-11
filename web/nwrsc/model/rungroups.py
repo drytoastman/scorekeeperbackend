@@ -129,7 +129,7 @@ class RunGroups(defaultdict):
 class RunOrder(AttrBase):
 
     @classmethod
-    def getNextRunOrder(cls, carid, eventid, course, rungroup):
+    def getNextRunOrder(cls, carid, eventid, course, rungroup, classcode=None, count=3):
         """ Returns a list of objects (classcode, carid) for the next cars in order after carid """
         with g.db.cursor() as cur:
             cur.execute("SELECT unnest(cars) cid from runorder WHERE eventid=%s AND course=%s AND rungroup=%s", (eventid, course, rungroup))
@@ -137,9 +137,15 @@ class RunOrder(AttrBase):
             ret = []
             for ii, rowcarid in enumerate(order):
                 if rowcarid == carid:
-                    for jj in range(ii+1, ii+4)[:len(order)-1]:  # get next 3 but only to length of list (no repeats)
-                        cur.execute("SELECT c.carid,c.classcode,c.number from cars c WHERE carid=%s", (order[jj%len(order)], ))
-                        ret.append(RunOrder(**cur.fetchone()))
+                    for jj in range(1, len(order)):
+                        idx = (ii+jj)%len(order)
+                        cur.execute("SELECT c.carid,c.classcode,c.number from cars c WHERE carid=%s", (order[(ii+jj)%len(order)], ))
+                        roentry = RunOrder(**cur.fetchone())
+                        if classcode and roentry.classcode != classcode:
+                            continue
+                        ret.append(roentry)
+                        if len(ret) >= count:
+                            break
                     break
             return ret
 
