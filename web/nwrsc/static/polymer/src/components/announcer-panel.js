@@ -12,88 +12,110 @@ import './entrant-table.js';
 import './class-table.js';
 import './champ-table.js';
 import './toptimes-table.js';
+import './runorder-table.js';
+import './timer-box.js';
 
 
 class AnnouncerPanel extends LitElement {
-  static get properties() {
-    return {
-      appTitle: { type: String },
-      dataSource: { type: Object },
-      entrant: { type: Object },
-      cls: { type: Object },
-      champ: { type: Object },
-      timer: { type: Number },
-      selected: { type: Number }
-    };
-  }
 
-  static get styles() {
-    return [
-      css`
-        :host {
-        }
+    static get properties() {
+        return {
+          appTitle:  { type: String },
+          dataSource: { type: Object },
+          entrant:   { type: Object },
+          cls:       { type: Object },
+          champ:     { type: Object },
+          runorder:  { type: Object },
+          timer:     { type: Number },
 
-        .timer {
-            font-size: 150%;
-        }
+          cselected: { type: Number },
+          tselected: { type: Number }
+        };
+    }
 
-        .panel {
-            display: flex;
-            flex-wrap: wrap;
-        }
+    static get styles() {
+        return [css`
+            :host {
+            }
 
-        .panel * {
-            margin: 2px;
-            flex-grow: 1;
-        }
-      `
-    ];
-  }
+            .outer {
+                display: flex; 
+                width: 100%;
+            }
 
-    /*
-        .appbar {
-            display: flex;
-        }
+            .col1 {
+                flex-grow: 1;
+            }
 
-        paper-tabs {
-            flex-grow: 1;
-        }
-    */
+            timer-box, runorder-table {
+                display: block;
+                width: 100%;
+            }
 
-  render() {
-    // Anything that's related to rendering should be done in here.
-    return html`
-      <!-- Main content -->
+            .panel {
+                display: flex;
+                flex-wrap: wrap;
+            }
 
-        <paper-tabs selected="1" @selected-changed="${(e) => this.selected = e.target.selected}">
-        <paper-tab>Prev</paper-tab>
-        <paper-tab>Last</paper-tab>
-        <paper-tab>Next</paper-tab>
-        <paper-tab>Index</paper-tab>
-        <paper-tab>Raw</paper-tab>
-        </paper-tabs>
+            .panel * {
+                margin: 2px;
+                flex-grow: 1;
+            }
+          `
+        ];
+    }
 
-        <div class='timer'>${this.timer}</div>
-        <iron-pages .selected="${this.selected}">
-            <div></div>
-            <div class='panel'>
-                <entrant-table .entrant="${this.entrant}"></entrant-table>
-                <class-table .cls="${this.cls}"></class-table>
-                <champ-table .champ="${this.champ}"></champ-table>
+    render() {
+        // Anything that's related to rendering should be done in here.
+        return html`
+          <!-- Main content -->
+            <div class='outer'>
+            <div class='col1'>
+                <timer-box .time="${this.timer}"></timer-box>
+                <runorder-table .order="${this.runorder}"></runorder-table>
+
+                <div id='classtabs'>
+                    <paper-tabs selected="1" @selected-changed="${(e) => this.cselected = e.target.selected}">
+                    <paper-tab>2nd Last</paper-tab>
+                    <paper-tab>Last</paper-tab>
+                    <paper-tab>Next</paper-tab>
+                    </paper-tabs>
+
+                    <iron-pages .selected="${this.cselected}">
+                        <div></div>
+                        <div class='panel'>
+                            <entrant-table .entrant="${this.entrant}"></entrant-table>
+                            <class-table .cls="${this.cls}"></class-table>
+                            <champ-table .champ="${this.champ}"></champ-table>
+                        </div>
+                        <div class='panel'>
+                            <class-table .cls="${this.next ? this.next.class : undefined}"></class-table>
+                            <champ-table .champ="${this.next ? this.next.champ: undefined}"></champ-table>
+                        </div>
+                    </iron-pages>
+                </div>
             </div>
-            <div class='panel'>
-                <class-table .cls="${this.next ? this.next.class : undefined}"></class-table>
-                <champ-table .champ="${this.next ? this.next.champ: undefined}"></champ-table>
+
+            <div class='col2'>
+                <div id='tttabs'>
+                    <paper-tabs selected="0" @selected-changed="${(e) => this.tselected = e.target.selected}">
+                    <paper-tab>Index</paper-tab>
+                    <paper-tab>Raw</paper-tab>
+                    </paper-tabs>
+
+                    <iron-pages .selected="${this.tselected}">
+                        <div class='panel'>
+                            <toptimes-table .order="${this.topnet}" type="Index"></toptimes-table>
+                        </div>
+                        <div class='panel'>
+                            <toptimes-table .order="${this.topraw}" type="Raw"></toptimes-table>
+                        </div>
+                    </iron-pages>
+                </div>
             </div>
-            <div class='panel'>
-                <toptimes-table .order="${this.topnet}" type="Index"></toptimes-table>
             </div>
-            <div class='panel'>
-                <toptimes-table .order="${this.topraw}" type="Raw"></toptimes-table>
-            </div>
-        </iron-pages>
-    `;
-  }
+        `;
+    }
 
     constructor() {
         super();
@@ -107,7 +129,8 @@ class AnnouncerPanel extends LitElement {
                 if ("next" in d)    me.next    = d.next;
                 if ("topnet" in d)  me.topnet  = d.topnet;
                 if ("topraw" in d)  me.topraw  = d.topraw;
-                if ("timer" in d)   me.timer  = d.timer;
+                if ("timer" in d)   me.timer   = d.timer;
+                if ("runorder" in d) me.runorder = d.runorder;
             }
         );
 
@@ -116,6 +139,7 @@ class AnnouncerPanel extends LitElement {
                 series:  panelConfig.series,
                 eventid: panelConfig.eventid,
                 timer:   true,
+                runorder: true,
                 //protimer: true,
                 entrant: true,
                 class:   true,

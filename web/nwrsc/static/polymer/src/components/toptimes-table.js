@@ -14,11 +14,7 @@ class TopTimesTable extends LitElement {
   static get styles() {
     return [ tablecss, css`
             td {
-                max-width: 9rem; // for the below to work
-            }
-            td.name {
-                overflow: hidden;
-                text-overflow: ellipsis;
+                max-width: 9rem; // for the overflow to work
             }
      ` ]
   }
@@ -33,7 +29,7 @@ class TopTimesTable extends LitElement {
         return html`
             <tr class='${e.current ? 'highlight' : ''} ${e.ispotential ? 'couldhave' : ''} ${e.isold ? 'improvedon' : ''}'>
             <td>${e.pos}</td>
-            <td class='name'>${e.name}</td>
+            <td class='name limit'>${e.name}</td>
             <td>${e.classcode}</td>
             <!--<td>${e.indexstr}</td>-->
             <td>${t3(e.indexval)}</td>

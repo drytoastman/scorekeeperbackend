@@ -100,6 +100,7 @@ class LazyData:
                 if subkey in results:
                     for e in results[subkey]:
                         if e['carid'] == str(n.carid):
+                            e['bestrun'] = Result.getBestNetRun(e, course=course)
                             order.append(e)
                             break
             self._calculated[key] = order
@@ -296,7 +297,7 @@ def new_watch_request(ws, req):
         bboard[series+'.localeventstream'].add(ws)
         table_change(current_app, g.db, series+'.localeventstream')
 
-    if watch.keys() & set(['entrant', 'class', 'champ', 'next', 'topnet', 'topraw']):
+    if watch.keys() & set(['entrant', 'class', 'champ', 'next', 'topnet', 'topraw', 'runorder']):
         bboard[series+'.runs'].add(ws)
         table_change(current_app, g.db, series+'.runs')
 
