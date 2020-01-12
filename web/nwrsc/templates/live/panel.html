@@ -7,8 +7,9 @@
   <meta name="theme-color" content="#fff">
   <link rel="icon" href="manifest/favicon.ico">
   <script src="/static/polymer/node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
-  <script src="/static/polymer/dist/vendors~live.js" type="module"></script>
+  <script src="/static/polymer/{{config.DEBUG and "devel" or "dist"}}/vendors~live.js" type="module"></script>
   <script>
+    window.polymerSkipLoadingFontRoboto = true;
     var panelConfig = {
             wsurl: "{{url_for('Live.websocket', _scheme='ws', _external=True)}}",
             series: "{{g.series}}",
@@ -17,7 +18,7 @@
             ispro: {{g.event.ispro|int}}
         }
   </script>
-  <script src="/static/polymer/dist/live.js" type="module"></script>
+  <script src="/static/polymer/{{config.DEBUG and "devel" or "dist"}}/live.js" type="module"></script>
 
   <title>Scorekeeper Live</title>
   <style>
@@ -35,8 +36,9 @@
       --improved-on-background: #EEF;
       --improved-on-color: #99E;
       --highlight-background: #DDD;
-      --paper-tabs-selection-bar-color: #000;
+      --paper-tabs-selection-bar-color: #ff5926;
       --paper-tab-ink: #000;
+      --paper-font-subhead_-_font-size: 14px;
     }
 
   </style>

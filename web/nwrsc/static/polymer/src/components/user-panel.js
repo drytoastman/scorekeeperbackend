@@ -57,6 +57,7 @@ class UserPanel extends LitElement {
 
             paper-tabs {
                 flex-grow: 1;
+                font-size: 110%;
             }
           `
         ];

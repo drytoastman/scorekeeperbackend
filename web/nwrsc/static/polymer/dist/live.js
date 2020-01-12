@@ -158,6 +158,7 @@
 
             paper-tabs {
                 flex-grow: 1;
+                font-size: 110%;
             }
           `]}render(){return s.c`
         <div class='appbar'>
@@ -265,6 +266,10 @@
                 flex: 100%;
                 text-align: center;
             }
+
+            paper-tabs {
+                font-size: 120%;
+            }
           `]}render(){return s.c`
           <!-- Main content -->
             <div class='outer'>
@@ -330,4 +335,4 @@
                 </div>
             </div>
             </div>
-        `}constructor(){super();var t=this;this.classData=null,this.dataSource=new r.a(panelConfig.wsurl,(function(e){"last"in e&&(t.prev=t.last,t.last=e.last),"next"in e&&(t.next=e.next),"topnet"in e&&(t.topnet=e.topnet),"topraw"in e&&(t.topraw=e.topraw),"timer"in e&&(t.timer=e.timer),"runorder"in e&&(t.runorder=e.runorder)})),this.dataSource.request({watch:{series:panelConfig.series,eventid:panelConfig.eventid,timer:!0,runorder:!0,entrant:!0,class:!0,champ:!0,next:!0,topnet:!0,topraw:!0}})}classChange(t){var e=t.target.selected,a=t.target.children[e].textContent;if("Off"==a)return null!=this.classData&&(this.classData.shutdown(),this.classData=null),void(this.lastclass=null);var s=this;null==this.classData&&(this.classData=new r.a(panelConfig.wsurl,t=>{"last"in t&&(s.lastclass=t.last)})),this.classData.request({watch:{series:panelConfig.series,eventid:panelConfig.eventid,classcode:a,entrant:!0,class:!0,champ:!0}})}}customElements.define("announcer-panel",c)}});
+        `}constructor(){super();var t=this;this.classData=null,this.dataSource=new r.a(panelConfig.wsurl,(function(e){"last"in e&&(t.prev=t.last,t.last=e.last),"next"in e&&(t.next=e.next),"topnet"in e&&(t.topnet=e.topnet),"topraw"in e&&(t.topraw=e.topraw),"timer"in e&&(t.timer=e.timer),"runorder"in e&&(t.runorder=e.runorder)})),this.dataSource.request({watch:{series:panelConfig.series,eventid:panelConfig.eventid,timer:!0,runorder:!0,entrant:!0,class:!0,champ:!0,next:!0,topnet:!0,topraw:!0}})}classChange(t){var e=t.target.selected,a=t.target.children[e].textContent;if("Off"==a)return null!=this.classData&&(this.classData.shutdown(),this.classData=null),void(this.lastclass=null);var s=this;null==this.classData&&(this.classData=new r.a(panelConfig.wsurl,t=>{"last"in t&&(s.lastclass=t.last)})),this.lastclass=null,this.classData.request({watch:{series:panelConfig.series,eventid:panelConfig.eventid,classcode:a,entrant:!0,class:!0,champ:!0}})}}customElements.define("announcer-panel",c)}});

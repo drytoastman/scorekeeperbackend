@@ -66,6 +66,10 @@ class AnnouncerPanel extends LitElement {
                 flex: 100%;
                 text-align: center;
             }
+
+            paper-tabs {
+                font-size: 120%;
+            }
           `
         ];
     }
@@ -197,6 +201,7 @@ class AnnouncerPanel extends LitElement {
             );
         }
 
+        this.lastclass = null;
         this.classData.request({
             watch: {
                 series:  panelConfig.series,

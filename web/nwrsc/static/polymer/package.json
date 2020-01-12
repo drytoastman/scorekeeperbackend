@@ -3,12 +3,10 @@
   "version": "0.0.1",
   "main": "src/components/live-panel.js",
   "scripts": {
-    "watch": "webpack --watch --watch-poll",
     "build": "webpack",
-    "devel": "webpack --mode=development"
+    "devel": "webpack --mode=development --output-path /code/devel --watch --watch-poll"
   },
   "dependencies": {
-    "@polymer/app-layout": "~3.1.0",
     "@polymer/iron-icon": "~3.0.1",
     "@polymer/iron-icons": "~3.0.1",
     "@polymer/iron-pages": "~3.0.1",
