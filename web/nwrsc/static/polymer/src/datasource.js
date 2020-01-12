@@ -5,6 +5,7 @@ export class DataSource {
         this.requeststr = "";
         this.url = url
         this.callback = callback;
+        this.stop = false;
     }
 
     request(obj) {
@@ -12,7 +13,16 @@ export class DataSource {
         this._sendRequest();
     }
 
+    shutdown() {
+        this.stop = true;
+        this.ws.close();
+    }
+
     _sendRequest() {
+        if (this.stop) {
+            return;
+        }
+
         if (this.ws != null && this.ws.readyState == this.ws.OPEN) {
             this.ws.send(this.requeststr);
             return;

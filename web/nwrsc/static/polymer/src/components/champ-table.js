@@ -7,6 +7,7 @@ class ChampTable extends LitElement {
   static get properties() {
     return {
       champ: { type: Object },
+      display: { type: String }
     };
   }
 
@@ -14,6 +15,9 @@ class ChampTable extends LitElement {
     return [ tablecss ]
   }
 
+  updated(changed) {
+    this.style.display = this.champ ? "" : "none";
+  }
 
   render() {
     if (!this.champ) {

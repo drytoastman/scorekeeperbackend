@@ -4,6 +4,7 @@ import { LitElement, html, css } from 'lit-element';
 import '@polymer/paper-tabs/paper-tabs.js';
 import '@polymer/paper-tabs/paper-tab.js';
 import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '@polymer/paper-item/paper-item.js';
 import '@polymer/iron-pages/iron-pages.js';
 
@@ -23,6 +24,7 @@ class AnnouncerPanel extends LitElement {
           prev:      { type: Object },
           last:      { type: Object },
           next:      { type: Object },
+          lastclass: { type: Object },
           runorder:  { type: Object },
           timer:     { type: Number },
 
@@ -59,6 +61,11 @@ class AnnouncerPanel extends LitElement {
                 margin: 2px;
                 flex-grow: 1;
             }
+
+            .panel paper-dropdown-menu {
+                flex: 100%;
+                text-align: center;
+            }
           `
         ];
     }
@@ -73,10 +80,11 @@ class AnnouncerPanel extends LitElement {
                 <runorder-table .order="${this.runorder}"></runorder-table>
 
                 <div id='classtabs'>
-                    <paper-tabs selected="1" @selected-changed="${(e) => this.cselected = e.target.selected}">
+                    <paper-tabs selected="1" @selected-changed="${(e) => { this.cselected = e.target.selected}}">
                     <paper-tab>2nd Last</paper-tab>
                     <paper-tab>Last</paper-tab>
                     <paper-tab>Next</paper-tab>
+                    <paper-tab>By Class</paper-tab>
                     </paper-tabs>
 
                     <iron-pages .selected="${this.cselected}">
@@ -94,6 +102,18 @@ class AnnouncerPanel extends LitElement {
                             <entrant-table .entrant="${this.next ? this.next.entrant : undefined}"></entrant-table>
                             <class-table       .cls="${this.next ? this.next.class   : undefined}"></class-table>
                             <champ-table     .champ="${this.next ? this.next.champ   : undefined}"></champ-table>
+                        </div>
+                        <div class='panel'>
+                            <paper-dropdown-menu no-animations no-label-float>
+                            <paper-listbox slot="dropdown-content" class="dropdown-content" selected="0" @selected-changed="${this.classChange}">
+                                <paper-item>Off</paper-item>
+                                ${panelConfig.classcodes.map(code => html`<paper-item>${code}</paper-item>`)}
+                            </paper-listbox>
+                            </paper-dropdown-menu>
+
+                            <entrant-table .entrant="${this.lastclass ? this.lastclass.entrant : undefined}"></entrant-table>
+                            <class-table       .cls="${this.lastclass ? this.lastclass.class   : undefined}"></class-table>
+                            <champ-table     .champ="${this.lastclass ? this.lastclass.champ   : undefined}"></champ-table>
                         </div>
                     </iron-pages>
                 </div>
@@ -123,6 +143,7 @@ class AnnouncerPanel extends LitElement {
     constructor() {
         super();
         var me = this;
+        this.classData = null;
         this.dataSource = new DataSource(
             panelConfig.wsurl,
             function(d) {
@@ -151,6 +172,39 @@ class AnnouncerPanel extends LitElement {
                 next:    true,
                 topnet:  true,
                 topraw:  true,
+            }
+        });
+    }
+
+    classChange(e) {
+        var idx = e.target.selected;
+        var code = e.target.children[idx].textContent;
+
+        if (code == 'Off') {
+            if (this.classData != null) {
+                this.classData.shutdown();
+                this.classData = null;
+            }
+            this.lastclass = null;
+            return;
+        }
+
+        var me = this;
+        if (this.classData == null) {
+            this.classData = new DataSource(
+                panelConfig.wsurl,
+                (d) => { if ("last" in d) me.lastclass = d.last }
+            );
+        }
+
+        this.classData.request({
+            watch: {
+                series:  panelConfig.series,
+                eventid: panelConfig.eventid,
+                classcode: code,
+                entrant: true,
+                class:   true,
+                champ:   true,
             }
         });
     }
