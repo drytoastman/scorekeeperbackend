@@ -12,4 +12,3 @@ web/nwrsc/static/*.css
 web/nwrsc/static/.webassets-cache
 web/nwrsc/static/swaggerui
 build
-dist

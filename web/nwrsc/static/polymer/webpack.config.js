@@ -1,6 +1,6 @@
 const path = require('path');
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   entry: {
     live: [ './src/components/user-panel.js', './src/components/announcer-panel.js' ]
   },
