@@ -87,7 +87,7 @@ class Result(object):
 
     @classmethod
     def getEventResults(cls, eventid):
-        if cls._needUpdate(True, ('classlist', 'indexlist', 'events', 'cars', 'runs', 'externalresults'), eventid):
+        if cls._needEventUpdate(eventid):
             cls._updateEventResults(eventid)
         return cls._loadResults(eventid)
 
@@ -169,6 +169,25 @@ class Result(object):
     #####################  Everything below here is for internal use, use the API above ##############
 
     #### Helpers for basic results operations
+
+    @classmethod
+    def _needEventUpdate(cls, eventid):
+        # check if we can/need to update, look for specifc eventid in data to reduce unnecessary event churn when following a single event (live)
+        if g.seriestype != Series.ACTIVE:
+            return False
+        with g.db.cursor() as cur:
+            cur.execute("SELECT coalesce(max(ltime),'epoch') FROM publiclog WHERE tablen='drivers'")
+            dm = cur.fetchone()[0]
+            cur.execute("SELECT coalesce(max(ltime),'epoch') FROM serieslog WHERE tablen IN ('settings', 'classlist', 'indexlist', 'cars')")
+            sm = cur.fetchone()[0]
+            cur.execute("SELECT coalesce(max(ltime),'epoch') FROM serieslog WHERE tablen IN ('events', 'runs', 'externalresults') AND (olddata->>'eventid'=%s::text OR newdata->>'eventid'=%s::text)", (eventid, eventid))
+            em = cur.fetchone()[0]
+            cur.execute("SELECT coalesce(modified,  'epoch') FROM results WHERE series=%s AND name=%s::text", (g.series, eventid))
+            rm = cur.fetchone()[0]
+
+            if rm < max(dm, sm, em):
+                return True
+        return False
 
     @classmethod
     def _needUpdate(cls, usedrivers, stables, name):

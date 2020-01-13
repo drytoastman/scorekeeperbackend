@@ -31,7 +31,7 @@ class MyApp(WSGIApplication):
 if __name__ == '__main__':
     logging_setup('/var/log/scweb.log')
     logging.getLogger('werkzeug').setLevel(logging.WARN)
-    logging.getLogger('geventwebsocket.handler').setLevel(logging.INFO)
+    logging.getLogger('geventwebsocket.handler').setLevel(logging.WARNING)
     logging.getLogger("webserver").info("starting server")
 
     MyApp().run()

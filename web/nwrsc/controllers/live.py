@@ -150,7 +150,6 @@ def table_change_inner(app, db, series, table):
                 # Relay on LazyData caching to keep this efficient but not hard to follow
                 attr = ws.environ['WATCH']
                 try:
-                    log.warning("check {} {}".format(ws, ws.environ['LAST']))
                     (res, ts) = nextResult(db, series, attr, ws.environ['LAST'])
                     if not res: continue
                     msg = json.dumps(res)  # TODO: maybe get this cached as well
