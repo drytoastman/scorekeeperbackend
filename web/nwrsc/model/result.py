@@ -176,8 +176,8 @@ class Result(object):
         if g.seriestype != Series.ACTIVE:
             return False
         def row2time(rows):
-            if rows: return rows[0]
-            return 0
+            if rows: return rows[0][0]
+            return datetime.datetime.fromtimestamp(0)
 
         with g.db.cursor() as cur:
             cur.execute("SELECT max(ltime) FROM publiclog WHERE tablen='drivers'")
