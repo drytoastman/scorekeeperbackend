@@ -175,15 +175,19 @@ class Result(object):
         # check if we can/need to update, look for specifc eventid in data to reduce unnecessary event churn when following a single event (live)
         if g.seriestype != Series.ACTIVE:
             return False
+        def row2time(rows):
+            if rows: return rows[0]
+            return 0
+
         with g.db.cursor() as cur:
-            cur.execute("SELECT coalesce(max(ltime),'epoch') FROM publiclog WHERE tablen='drivers'")
-            dm = cur.fetchone()[0]
-            cur.execute("SELECT coalesce(max(ltime),'epoch') FROM serieslog WHERE tablen IN ('settings', 'classlist', 'indexlist', 'cars')")
-            sm = cur.fetchone()[0]
-            cur.execute("SELECT coalesce(max(ltime),'epoch') FROM serieslog WHERE tablen IN ('events', 'runs', 'externalresults') AND (olddata->>'eventid'=%s::text OR newdata->>'eventid'=%s::text)", (eventid, eventid))
-            em = cur.fetchone()[0]
-            cur.execute("SELECT coalesce(modified,  'epoch') FROM results WHERE series=%s AND name=%s::text", (g.series, eventid))
-            rm = cur.fetchone()[0]
+            cur.execute("SELECT max(ltime) FROM publiclog WHERE tablen='drivers'")
+            dm = row2time(cur.fetchall())
+            cur.execute("SELECT max(ltime) FROM serieslog WHERE tablen IN ('settings', 'classlist', 'indexlist', 'cars')")
+            sm = row2time(cur.fetchall())
+            cur.execute("SELECT max(ltime) FROM serieslog WHERE tablen IN ('events', 'runs', 'externalresults') AND (olddata->>'eventid'=%s::text OR newdata->>'eventid'=%s::text)", (eventid, eventid))
+            em = row2time(cur.fetchall())
+            cur.execute("SELECT modified   FROM results WHERE series=%s AND name=%s::text", (g.series, eventid))
+            rm = row2time(cur.fetchall())
 
             if rm < max(dm, sm, em):
                 return True
