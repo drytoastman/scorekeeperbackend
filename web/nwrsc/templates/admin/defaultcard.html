@@ -1,19 +1,11 @@
-<!-- wkhtmltopdf can't handle newer CSS like flex-box so we revert to tables for the header -->
-<table class='header'>
-<tr>
+<!-- wkhtmltopdf can't handle newer CSS like flex-box so we revert to floats -->
 
-<td class='eventinfo'>
+<div class='eventinfo'>
 <div class='name'>{{g.event.name}}</div>
 <div class='date'>{{g.event.date}}</div>
-</td>
+</div>
 
-<td class='rules'>
-{% if g.settings and g.settings.requestrulesack %}
-I have read and accept the rules<input type='checkbox' {{reg.sattr.rulesack and "checked='checked'" or ""}}>
-{% endif %}
-</td>
-
-<td class='codes' colspan='5'>
+<div class='codes'>
 {% if reg.caridbarcode %}
 <svg class="barcode"
     jsbarcode-format="CODE128C"
@@ -27,9 +19,14 @@ I have read and accept the rules<input type='checkbox' {{reg.sattr.rulesack and 
     jsbarcode-fontSize="12"
 ></svg>
 {% endif %}
-</td>
-</tr>
-</table>
+</div>
+
+<div class='rules'>
+{% if g.settings and g.settings.requestrulesack %}
+I have read and accept the rules</br>
+<input type='checkbox' {{reg.sattr.rulesack and "checked='checked'" or ""}}>
+{% endif %}
+</div>
 
 
 <table class='entrant'>

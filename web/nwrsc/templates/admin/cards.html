@@ -8,7 +8,7 @@
 <script type="text/javascript">
 $(document).ready(function(){
     JsBarcode(".barcode").init();
-    $('svg.barcode').css("transform", "translate(-25px,0px) scale(1.2,1.0)");
+    $('svg.barcode').css("transform", "translate(-26px,0px) scale(1.2,1.0)");
  });
 </script>
 
@@ -33,14 +33,28 @@ div.card {
     border: none;
 }
 
+.eventinfo {
+    float: left;
+    white-space: nowrap;
+}
+
 .rules {
+    float: right;
     white-space: nowrap;
     text-align: center;
     font-size: 0.8rem;
 }
 
 .codes {
+    float: right;
+    width: 20rem;  /* tied to svg.barcode/transform/scale */
     text-align: right;
+}
+
+svg.barcode {
+    /** doesn't work with wkhtmltopdf do it in javascript instead:
+    transform: translate(-26px,0px) scale(1.2,1.0) !important;
+    */
 }
 
 .eventinfo .name {
@@ -53,9 +67,9 @@ div.card {
     font-size: 1.1rem;
 }
 
-span.label1, span.label2, span.label3 { 
-    font-weight: bold; 
-    font-size: 1.0rem; 
+span.label1, span.label2, span.label3 {
+    font-weight: bold;
+    font-size: 1.0rem;
     display: inline-block;
     text-align: right;
 }

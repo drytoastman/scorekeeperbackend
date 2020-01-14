@@ -644,7 +644,8 @@ def cards():
         for r in registered:
             r.__dict__.update(r.dattr)
             r.__dict__.update(r.cattr)
-            r.quickentry = "{:010d}".format(r.carid.time_low)
+            q = "{:010d}".format(r.carid.time_low)
+            r.quickentry = "{} {} {}".format(q[0:3], q[3:6], q[6:])
             r.caridbarcode = r.carid and "{:040d}".format(r.carid.int) or "" # UUID in base 10 with extra zeros to make 40 digits which fits into 128C
         if ctype == 'lastname':
             registered.sort(key=lambda m: getattr(m, 'firstname').lower())
