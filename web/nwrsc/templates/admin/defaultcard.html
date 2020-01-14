@@ -13,18 +13,18 @@ I have read and accept the rules<input type='checkbox' {{reg.sattr.rulesack and 
 {% endif %}
 </td>
 
-<td class='codes'>
+<td class='codes' colspan='5'>
 {% if reg.caridbarcode %}
 <svg class="barcode"
     jsbarcode-format="CODE128C"
-    jsbarcode-height="25"
+    jsbarcode-height="30"
     jsbarcode-width="1"
     jsbarcode-margin="2"
     jsbarcode-value="{{reg.caridbarcode}}"
     jsbarcode-text="Quick {{reg.quickentry}}"
     jsbarcode-textMargin="0"
     jsbarcode-textAlign="right"
-    jsbarcode-fontSize="14"
+    jsbarcode-fontSize="12"
 ></svg>
 {% endif %}
 </td>
