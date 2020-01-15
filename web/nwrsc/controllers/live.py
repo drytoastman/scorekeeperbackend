@@ -352,3 +352,8 @@ def announcer():
     event_check()
     return render_template('live/panel.html', panel_type="announcer-panel")
 
+@Live.route("/<series>/event/<uuid:eventid>/dataentry")
+def dataentry():
+    event_check()
+    return render_template('live/panel.html', panel_type="dataentry-panel")
+

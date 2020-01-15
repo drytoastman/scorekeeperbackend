@@ -75,7 +75,6 @@ class AnnouncerPanel extends LitElement {
     }
 
     render() {
-        // Anything that's related to rendering should be done in here.
         return html`
           <!-- Main content -->
             <div class='outer'>

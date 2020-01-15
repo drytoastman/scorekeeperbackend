@@ -64,7 +64,6 @@ class UserPanel extends LitElement {
     }
 
     render() {
-        // Anything that's related to rendering should be done in here.
         return html`
         <div class='appbar'>
         <paper-dropdown-menu no-animations no-label-float>
