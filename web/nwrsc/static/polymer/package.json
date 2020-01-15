@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "src/components/live-panel.js",
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --mode=production",
     "devel": "webpack --mode=development --output-path /code/devel --watch --watch-poll"
   },
   "dependencies": {
