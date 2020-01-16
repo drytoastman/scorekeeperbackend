@@ -7,13 +7,15 @@ class RunOrderTable extends LitElement {
   static get properties() {
     return {
       order: { type: Object },
+      small: { type: Boolean },
     };
   }
 
   static get styles() {
     return [ tablecss, css`
             td {
-                max-width: 9rem; // for the overflow to work
+                /* for overflow to work */
+                max-width: 9rem;
             }
      ` ]
   }
@@ -24,11 +26,13 @@ class RunOrderTable extends LitElement {
         return html``;
     }
 
+    var small = this.small;
+
     function erow(e) {
         return html`
             <tr>
             <td class='name limit'>${e.firstname} ${e.lastname}</td>
-            <td class='limit'>${e.year} ${e.model} ${e.color}</td>
+            ${small ? '' : html`<td class='limit'>${e.year} ${e.model} ${e.color}</td>`}
             <td>${e.classcode}</td>
             <td>${e.bestrun ? html`${t3(e.bestrun.raw)} (${e.bestrun.cones}, ${e.bestrun.gates})` : ''}</td>
             <td>${e.position}</td>
@@ -41,8 +45,15 @@ class RunOrderTable extends LitElement {
         <!-- next to finish table -->
         <table class='runorder'>
         <tbody>
-        <tr class='head'><th colspan='6'>Next To Finish</th></tr>
-        <tr class='subhead'><th>Name</th><th>Car</th><th>Class</th><th>Best</th><th>Pos</th><th>Need</th></tr>
+        <tr class='head'><th colspan='${small ? '5':'6'}'>Next To Finish</th></tr>
+        <tr class='subhead'>
+        <th>Name</th>
+        ${small ? '' : html`<th>Car</th>`}
+        <th>Class</th>
+        <th>Best</th>
+        <th>Pos</th>
+        <th>Need</th>
+        </tr>
         ${this.order.next.map(e => erow(e))}
         </tbody>
         </table>`;

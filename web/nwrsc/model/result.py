@@ -480,7 +480,15 @@ class Result(object):
 
         # Mark this entrant as current, clear others if decorate is called multiple times
         decoratedlist.sort(key=itemgetter('net'))
-        return tuple([decoratedlist, markedlist])
+        # Keep the marked list in the same order as passed in carids
+        sortedmarks = list()
+        for cid in carids:
+            for m in markedlist:
+                if m['carid'] == cid:
+                    sortedmarks.append(m)
+                    break
+
+        return tuple([decoratedlist, sortedmarks])
 
 
     @classmethod

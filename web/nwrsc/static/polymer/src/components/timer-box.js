@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit-element';
 import { tablecss } from './styles.js';
+import { t3 } from '../filters.js';
 
 class TimerBox extends LitElement {
 
@@ -24,7 +25,7 @@ class TimerBox extends LitElement {
         <table>
         <tbody>
         <tr class='head'><th colspan='6'>Timer</th></tr>
-        <tr><td class='timer'>${this.time}</td></tr>
+        <tr><td class='timer'>${t3(this.time)}</td></tr>
         </tbody>
         </table>`;
   }

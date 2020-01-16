@@ -334,6 +334,7 @@ CREATE TABLE localeventstream (
 CREATE INDEX ON localeventstream(time);
 REVOKE ALL   ON localeventstream FROM public;
 GRANT  ALL   ON localeventstream TO mergeaccess;
+CREATE TRIGGER  localeventstreammod AFTER INSERT OR UPDATE OR DELETE ON localeventstream FOR EACH ROW EXECUTE PROCEDURE notifymods();
 COMMENT ON TABLE localeventstream IS 'Local events useful for serving up to the announcer interface, not merged';
 
 

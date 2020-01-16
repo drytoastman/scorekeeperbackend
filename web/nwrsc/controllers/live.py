@@ -142,7 +142,11 @@ def table_change_inner(app, db, series, table):
                 ws.send(msg)
 
         elif table == 'localeventstream':
-            pass
+            for ws in wslist:
+                events = EventStream.getLastN(30)
+                if events:
+                    data = formatProTimer(reversed(events))
+                    ws.send(json.dumps({'protimer': data}))
 
         elif table == 'runs':
             g.data = LazyData()
@@ -173,11 +177,10 @@ def nextResult(db, series, attr, lastresult):
 
     if event.ispro:
         # Get the last run on the opposite course with the same classcode
-        back         = lastresult - datetime.timedelta(seconds=60)
-        opp          = Run.getLast(event.eventid, back, classcode=le['classcode'], course=args['course']=='1' and '2' or '1')
-        oppcarid     = opp and opp['last_entry']['carid'] or None
-        data         = loadEventResults(oppcarid=oppcarid, **args)
-        data['side'] = args['course'] == 1 and 'left' or 'right'
+        back     = lastresult - datetime.timedelta(seconds=60)
+        opp      = Run.getLast(event.eventid, back, classcode=le['classcode'], course=args['course']=='1' and '2' or '1')
+        oppcarid = opp and opp['last_entry']['carid'] or None
+        data     = loadEventResults(oppcarid=oppcarid, **args)
     else:
         data = loadEventResults(**args)
 
@@ -206,22 +209,19 @@ def formatProTimer(events):
             record[1].append(dict())
 
         elif etype == 'RUN':
-            data     = e['event']['data']
-            attr     = data['attr']
-            course   = data['course']-1
-            reaction = attr.get('reaction', '')
-            sixty    = attr.get('sixty', '')
-            status   = data.get('status', '')
-            raw      = data.get('raw', 'NaN')
-            if raw != 'NaN':  # run data
-                for r in record[course]:
-                    if r['reaction'] == reaction and r['sixty'] == sixty:
-                        r['raw'] = raw
-            elif len(record[course]):
-                last = record[course][-1]
-                last['reaction'] = reaction
-                last['sixty']    = sixty
-                last['status']   = status
+            data   = e['event']['data']
+            attr   = data['attr']
+            course = data['course']-1
+            fmt    = dict(rowid=data['rowid'], reaction=attr.get('reaction',''), sixty=attr.get('sixty',''), status=data.get('status',''), raw=data.get('raw', 'NaN'))
+
+            for r in record[course]:
+                if r.get('rowid', None) == fmt['rowid']:
+                    r.update(fmt)
+                    break
+            else:
+                if len(record[course]):
+                    last = record[course][-1]
+                    last.update(fmt)
 
     ret = {}
     ret['left']  = record[0][-3:]
@@ -350,7 +350,7 @@ def user():
 @Live.route("/<series>/event/<uuid:eventid>/announcer")
 def announcer():
     event_check()
-    return render_template('live/panel.html', panel_type="announcer-panel")
+    return render_template('live/panel.html', panel_type=g.event.ispro and "pro-announcer-panel" or "announcer-panel")
 
 @Live.route("/<series>/event/<uuid:eventid>/dataentry")
 def dataentry():

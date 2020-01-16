@@ -3,6 +3,7 @@ module.exports = {
   entry: {
     live: [ './src/components/user-panel.js',
             './src/components/announcer-panel.js',
+            './src/components/pro-announcer-panel.js',
             './src/components/dataentry-panel.js'
         ]
   },

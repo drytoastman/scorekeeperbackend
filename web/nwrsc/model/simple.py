@@ -115,6 +115,17 @@ class EventStream(object):
         ret.sort(key=lambda e: e['time'])
         return ret
 
+    @classmethod
+    def getLastN(self, n):
+        """ Get the last N events from the stream """
+        ret = list()
+        with g.db.cursor() as cur:
+            cur.execute("SELECT * FROM localeventstream ORDER BY time DESC LIMIT %s", (n, ))
+            for row in cur.fetchall():
+                ret.append(row)
+        return ret
+
+
 
 class ExternalResult(AttrBase):
     TABLENAME = "externalresults"

@@ -70,7 +70,7 @@ def create_app():
     ### URL handling and Blueprints for the various sections
     def defaultdest(adapter):
         if adapter.server_name.startswith('reg'): return '/register'
-        return '/results'
+        return '/results/'
 
     theapp.add_url_rule('/',             'default', redirect_to=defaultdest)
     theapp.register_blueprint(Admin,     url_prefix="/admin/<series>")
@@ -177,9 +177,12 @@ def create_app():
     @theapp.errorhandler(500)
     def errorlog(e):
         """ We want to log exception information to file for later investigation when debugger framework isn't presenting it for us and present a simple reportable error for user """
-        log.warning(str(e))
         if isinstance(e, HTTPException): # and (500 <= e.code < 600):
+            if not (300 <= e.code <= 308):
+                log.warning("{}: {}".format(request.path, e))
             return e
+
+        log.warning("{}: {}".format(request.path, e))
         traceback = get_current_traceback(ignore_system_exceptions=True, show_hidden_frames=True)
         last = traceback.frames[-1]
         now = datetime.datetime.now().replace(microsecond=0)
