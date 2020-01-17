@@ -46,11 +46,12 @@ class AttrBase(object):
 
 
     @classmethod
-    def changelistener(cls, host, port, user, callback):
+    def changelistener(cls, host, port, user, events, callback):
         import select
         db = cls.connect(host, port, user, app='changelistener', autocommit=True)
         with db.cursor() as cur:
-            cur.execute("LISTEN datachange;")
+            for e in events:
+                cur.execute("LISTEN {}".format(e))
             while True:
                 if select.select([db],[],[],5) == ([],[],[]):
                     pass
@@ -58,7 +59,7 @@ class AttrBase(object):
                     db.poll()
                     while db.notifies:
                         notify = db.notifies.pop(0)
-                        callback(notify.payload) # payload is the table name
+                        callback(notify.channel, notify.payload) # payload is the table name
 
 
     @classmethod

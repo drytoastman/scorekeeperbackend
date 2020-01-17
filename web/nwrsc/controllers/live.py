@@ -28,8 +28,10 @@ def live_background_thread(app):
     log = logging.getLogger("nwrsc.SocketsHandler")
     while True:
         try:
-            db = AttrBase.connect(app.config['DBHOST'], app.config['DBPORT'], app.config['DBUSER'], app='wsserver', autocommit=True) # don't leave SELECT idle-in-transactions
-            AttrBase.changelistener(app.config['DBHOST'], app.config['DBPORT'], app.config['DBUSER'], functools.partial(table_change, app, db))
+            db = AttrBase.connect(  app.config['DBHOST'], app.config['DBPORT'], app.config['DBUSER'], app='wsserver', autocommit=True)
+
+            AttrBase.changelistener(app.config['DBHOST'], app.config['DBPORT'], app.config['DBUSER'],
+                                    ('runs', 'timertimes', 'localeventstream'),  functools.partial(table_change, app, db))
         except Exception as e:
             log.warning("changelistener exception, will retry: {}".format(e), exc_info=e)
 
@@ -108,14 +110,14 @@ class LazyData:
 
 
 
-def table_change(app, db, payload):
+def table_change(app, db, table, schema):
     # For now, we keep the old notifications on table only (no series) until we can update schemas
     msg = None
     wsl = ()
 
-    log.debug('change {}'.format(payload))
+    log.debug('change {} {}'.format(table, schema))
     for k in bboard:
-        if k[1] == payload:  # same table, check all series
+        if k[1] == table and (schema == 'public' or k[0] == schema):
             table_change_inner(app, db, k[0], k[1])
 
 
