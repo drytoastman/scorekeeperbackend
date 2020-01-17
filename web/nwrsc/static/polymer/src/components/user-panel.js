@@ -45,14 +45,14 @@ class UserPanel extends LitElement {
             }
 
             paper-dropdown-menu {
-                width: 120px;
+                max-width: 90px;
                 vertical-align: top;
                 margin-top: 5px;
                 --paper-input-container-color: white;
             }
 
             paper-listbox {
-                overflow-x: hidden;
+                min-width: 90px;
             }
 
             paper-tabs {

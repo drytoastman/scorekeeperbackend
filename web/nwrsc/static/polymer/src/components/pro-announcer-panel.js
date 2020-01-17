@@ -74,6 +74,10 @@ class ProAnnouncerPanel extends LitElement {
                 text-align: center;
             }
 
+            paper-listbox {
+                min-width: 100px;
+            }
+
             paper-tabs {
                 font-size: 120%;
             }
