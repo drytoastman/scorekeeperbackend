@@ -25,7 +25,9 @@ class ProTimerBox extends LitElement {
   }
 
   render() {
-    if (!this.timedata) return html``;
+    if (!this.timedata) return html`
+        <div>Waiting for data</div>
+    `;
 
     function trow(e) {
         return html`

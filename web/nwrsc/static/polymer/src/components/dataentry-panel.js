@@ -2,7 +2,8 @@ import { LitElement, html, css } from 'lit-element';
 
 import { DataSource } from '../datasource.js';
 import './entrant-table.js';
-import './small-class-table.js';
+import './class-table.js';
+import './champ-table.js';
 
 class DataEntryPanel extends LitElement {
     static get properties() {
@@ -14,7 +15,7 @@ class DataEntryPanel extends LitElement {
     static get styles() {
         return [
           css`
-            entrant-table, small-class-table, champ-table {
+            entrant-table, class-table, champ-table {
                 display: block;
                 font-size: 90%;
                 margin-bottom: 1rem;
@@ -27,7 +28,7 @@ class DataEntryPanel extends LitElement {
         return html`
         <div class='panel'>
             <entrant-table .entrant="${this.last ? this.last.entrant : undefined}"></entrant-table>
-            <small-class-table .cls="${this.last ? this.last.class   : undefined}"></small-class-table>
+            <class-table       .cls="${this.last ? this.last.class   : undefined}" noindexcol=true nodiff1col=true></class-table>
             <champ-table     .champ="${this.last ? this.last.champ   : undefined}"></champ-table>
         </div>
         `;

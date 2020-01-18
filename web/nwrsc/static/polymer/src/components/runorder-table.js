@@ -23,7 +23,9 @@ class RunOrderTable extends LitElement {
 
   render() {
     if (!this.order) {
-        return html``;
+        return html`
+            <div>Waiting for data</div>
+        `;
     }
 
     var small = this.small;

@@ -16,7 +16,9 @@ class EntrantTable extends LitElement {
 
   render() {
     if (!this.entrant) {
-        return html``;
+        return html`
+            <div>Waiting for data</div>
+        `;
     }
 
     function impval(val) {
