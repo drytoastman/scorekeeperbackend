@@ -9,6 +9,7 @@ import uuid
 from flask import g
 
 from .base import AttrBase
+from nwrsc.lib.misc import InvalidPasswordException
 
 log = logging.getLogger(__name__)
 
@@ -124,7 +125,7 @@ class Series(object):
                 if oldpassword == cur.fetchone()[0]:
                     cur.execute("select verify_user(%s, %s)", (g.series, newpassword))
                 else:
-                    raise Exception("Old password does not match")
+                    raise InvalidPasswordException("Old password does not match")
 
     @classmethod
     def testPassword(cls, password):
@@ -132,7 +133,7 @@ class Series(object):
         with g.db.cursor() as cur:
             cur.execute("select data from localcache where name=%s", (g.series,))
             if cur.fetchone()[0] != password:
-                raise Exception("Incorrect password")
+                raise InvalidPasswordException("Incorrect password")
 
 
     @classmethod
