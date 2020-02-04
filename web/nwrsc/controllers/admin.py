@@ -124,7 +124,7 @@ def login():
             authSeries(g.series)
             return redirect(getRecordedPath(ADMINKEY, url_for(".index")))
         except InvalidPasswordException as ip:
-            log.error("Login failure: %s", e)
+            log.error("Login failure: %s", ip)
         except Exception as e:
             log.error("Login failure: %s", e, exc_info=e)
     return render_template('/admin/login.html', base='.login', form=form, series=g.series)
