@@ -21,6 +21,9 @@ class InvalidChallengeException(Exception):
 class NotLoggedInException(Exception):
     pass
 
+class InvalidPasswordException(Exception):
+    pass
+
 class DisplayableError(Exception):
     def __init__(self, header, content, **kwargs):
         Exception.__init__(self, **kwargs)

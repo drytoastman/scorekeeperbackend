@@ -178,7 +178,7 @@ def create_app():
     def errorlog(e):
         """ We want to log exception information to file for later investigation when debugger framework isn't presenting it for us and present a simple reportable error for user """
         if isinstance(e, HTTPException): # and (500 <= e.code < 600):
-            if not (300 <= e.code <= 308):
+            if not (300 <= e.code <= 404):
                 log.warning("{}: {}".format(request.path, e))
             return e
 
