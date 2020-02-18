@@ -7,6 +7,13 @@
 {% endif %}
 <title>{{g.title or "Scorekeeper"}}</title>
 {% block headers %}{% endblock %}
+<script>
+$(document).ready(function() {
+    if (navigator.userAgent.match(/Trident/) && (document.location.pathname.substring(1,8) != "results")) {
+        $('body').prepend("<div style='text-align: center; background:#F44; color:#FFF'>Internet Explorer it not a supported browser.  Please use an updated browser such as Firefox, Chrome or Edge.</div>");
+    }
+});
+</script>
 </head>
 <body>
 {% block content %}{% endblock %}
