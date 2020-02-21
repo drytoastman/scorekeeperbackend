@@ -112,6 +112,7 @@ def slogin():
             authSuper()
             return redirect(getRecordedPath(ADMINKEY, url_for(".index")))
         flash("Incorrect password")
+        log.error("SuperAdmin login failure")
     return render_template('/admin/login.html', base='.slogin', form=form, series='SuperAdmin')
 
 
@@ -124,9 +125,9 @@ def login():
             authSeries(g.series)
             return redirect(getRecordedPath(ADMINKEY, url_for(".index")))
         except InvalidPasswordException as ip:
-            log.error("Login failure: %s", ip)
+            log.error("Login failure for {}: {}".format(g.series, ip))
         except Exception as e:
-            log.error("Login failure: %s", e, exc_info=e)
+            log.error("Login failure for {}: {}".format(g.series, ip), exc_info=e)
     return render_template('/admin/login.html', base='.login', form=form, series=g.series)
 
 
