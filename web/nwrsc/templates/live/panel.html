@@ -15,7 +15,8 @@
             series: "{{g.series}}",
             eventid: "{{g.eventid}}",
             classcodes: {{g.classlist|sort|to_json|safe}},
-            ispro: {{g.event.ispro|int}}
+            ispro: {{g.event.ispro|int}},
+            {% if course %}course: {{course}}{% endif %}
         }
   </script>
   <script src="/static/polymer/{{config.DEBUG and "devel" or "dist"}}/live.js" type="module"></script>

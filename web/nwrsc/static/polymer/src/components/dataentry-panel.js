@@ -48,6 +48,7 @@ class DataEntryPanel extends LitElement {
             watch: {
                 series:  panelConfig.series,
                 eventid: panelConfig.eventid,
+                course:  panelConfig.course,
                 entrant: true,
                 class:   true,
                 champ:   true

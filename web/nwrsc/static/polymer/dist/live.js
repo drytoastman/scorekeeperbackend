@@ -57,7 +57,7 @@
         border-color: var(--titlesfill);
         color: var(--titlescolor);
     }
-  `},21:function(t,e,a){"use strict";a.d(e,"a",(function(){return s}));class s{constructor(t,e){this.ws=null,this.requeststr="",this.url=t,this.callback=e,this.stop=!1}request(t){this.requeststr=JSON.stringify(t),this._sendRequest()}shutdown(){this.stop=!0,this.ws.close()}_sendRequest(){if(!this.stop)if(null==this.ws||this.ws.readyState!=this.ws.OPEN){var t=new WebSocket(this.url);t.handler=this,t.requeststr=this.requeststr,t.callback=this.callback,t.onopen=function(t){this.send(this.requeststr)},t.onmessage=function(t){this.callback(JSON.parse(t.data))},t.onclose=function(t){console.log("wsclose"),this.handler._sendRequest()},this.ws=t}else this.ws.send(this.requeststr)}}},39:function(t,e,a){"use strict";var s=a(1),r=a(10),n=a(15);class l extends s.a{static get properties(){return{entrant:{type:Object}}}static get styles(){return[n.a]}render(){if(!this.entrant)return s.c`
+  `},21:function(t,e,a){"use strict";a.d(e,"a",(function(){return s}));class s{constructor(t,e){this.ws=null,this.requeststr="",this.url=t,this.callback=e,this.stop=!1}request(t){this.requeststr=JSON.stringify(t),this._sendRequest()}shutdown(){this.stop=!0,this.ws.close()}_sendRequest(){if(!this.stop)if(null==this.ws||this.ws.readyState!=this.ws.OPEN){var t=new WebSocket(this.url);t.handler=this,t.requeststr=this.requeststr,t.callback=this.callback,t.onopen=function(t){this.send(this.requeststr)},t.onmessage=function(t){this.callback(JSON.parse(t.data))},t.onclose=function(t){this.handler._sendRequest()},this.ws=t}else this.ws.send(this.requeststr)}}},39:function(t,e,a){"use strict";var s=a(1),r=a(10),n=a(15);class l extends s.a{static get properties(){return{entrant:{type:Object}}}static get styles(){return[n.a]}render(){if(!this.entrant)return s.c`
             <div>Waiting for data</div>
         `;function t(t){return t?s.c`<span class='change'>[${Object(r.a)(t,!0)}]</span>`:""}return s.c`
         <!-- entrant -->
@@ -252,7 +252,7 @@
             <class-table       .cls="${this.last?this.last.class:void 0}" noindexcol=true nodiff1col=true></class-table>
             <champ-table     .champ="${this.last?this.last.champ:void 0}"></champ-table>
         </div>
-        `}constructor(){super();var t=this;this.dataSource=new r.a(panelConfig.wsurl,(function(e){"last"in e&&(t.last=e.last)})),this.dataSource.request({watch:{series:panelConfig.series,eventid:panelConfig.eventid,entrant:!0,class:!0,champ:!0}}),document.body.style.margin="0"}}customElements.define("dataentry-panel",n)},62:function(t,e,a){"use strict";a.r(e);var s=a(1),r=(a(53),a(38),a(49),a(52),a(54),a(50),a(21)),n=(a(39),a(40),a(41),a(51),a(58),a(15)),l=a(10);class i extends s.a{static get properties(){return{time:{type:Number}}}static get styles(){return[n.a,s.b`
+        `}constructor(){super();var t=this;this.dataSource=new r.a(panelConfig.wsurl,(function(e){"last"in e&&(t.last=e.last)})),this.dataSource.request({watch:{series:panelConfig.series,eventid:panelConfig.eventid,course:panelConfig.course,entrant:!0,class:!0,champ:!0}}),document.body.style.margin="0"}}customElements.define("dataentry-panel",n)},62:function(t,e,a){"use strict";a.r(e);var s=a(1),r=(a(53),a(38),a(49),a(52),a(54),a(50),a(21)),n=(a(39),a(40),a(41),a(51),a(58),a(15)),l=a(10);class i extends s.a{static get properties(){return{time:{type:Number}}}static get styles(){return[n.a,s.b`
       td.timer {
         font-size: 300%;
         text-align: center;

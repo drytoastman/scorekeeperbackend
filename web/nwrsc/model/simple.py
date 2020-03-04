@@ -166,7 +166,7 @@ class Run(AttrBase):
                 args.append(classcode)
                 filt += "AND lower(c.classcode)=lower(%s) "
             if course:
-                args.extend([course, course])
+                args.extend([str(course), str(course)])
                 filt += "AND (s.newdata->>'course'=%s OR s.olddata->>'course'=%s) "
 
             cur.execute("select s.ltime, c.carid, c.classcode, s.olddata, s.newdata " +

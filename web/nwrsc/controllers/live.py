@@ -154,9 +154,8 @@ def table_change_inner(app, db, series, table):
             g.data = LazyData()
             for ws in wslist:
                 # Relay on LazyData caching to keep this efficient but not hard to follow
-                attr = ws.environ['WATCH']
                 try:
-                    (res, ts) = nextResult(db, series, attr, ws.environ['LAST'])
+                    (res, ts) = nextResult(db, series, ws.environ['WATCH'], ws.environ['LAST'])
                     if not res: continue
                     msg = json.dumps(res)  # TODO: maybe get this cached as well
                     ws.send(msg)
@@ -168,8 +167,9 @@ def table_change_inner(app, db, series, table):
 
 def nextResult(db, series, attr, lastresult):
     event     = Event.get(attr['eventid'])
+    course    = attr.get('course', None)
     classcode = attr.get('classcode', None)
-    lastrun   = Run.getLast(event.eventid, lastresult, classcode=classcode)
+    lastrun   = Run.getLast(event.eventid, lastresult, classcode=classcode, course=course)
 
     if not lastrun: # empty dict
         return (None, lastresult)
@@ -357,5 +357,5 @@ def announcer():
 @Live.route("/<series>/event/<uuid:eventid>/dataentry")
 def dataentry():
     event_check()
-    return render_template('live/panel.html', panel_type="dataentry-panel")
+    return render_template('live/panel.html', panel_type="dataentry-panel", course=request.args.get('course',1))
 
