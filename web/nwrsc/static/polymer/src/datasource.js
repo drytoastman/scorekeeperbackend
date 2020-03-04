@@ -34,7 +34,7 @@ export class DataSource {
         ws.callback   = this.callback;
         ws.onopen     = function(e) { this.send(this.requeststr); };
         ws.onmessage  = function(e) { this.callback(JSON.parse(e.data)); };
-        ws.onclose    = function(e) { console.log('wsclose'); this.handler._sendRequest(); };
+        ws.onclose    = function(e) { this.handler._sendRequest(); };
 
         this.ws = ws;
     }
