@@ -31,11 +31,7 @@ RUN    apt-get update \
 FROM python:3.7.5-slim-buster as builder
 COPY . /tmp/base
 ENV PYTHONWARNINGS="ignore"
-RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/common
-RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/email
-RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/sync
-RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/web
-RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/dns
+RUN pip3 install --no-deps --disable-pip-version-check --install-option='--prefix=/install' /tmp/base/common /tmp/base/email /tmp/base/sync /tmp/base/web /tmp/base/dns
 
 # Now create the final image from our base and builder pieces
 FROM base
