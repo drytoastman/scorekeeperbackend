@@ -279,15 +279,15 @@ function initsessform(id, eventid, limit, msg, sessions, cars)
     me.find('.sessiondynamic').remove(); // clear out previous incarnation
 
     sessions.split(',').forEach(function(e) {
-        $('#registersessionmarker').before(`
-            <div class='row align-items-center sessiondynamic'>
-            <div class='col-1'></div>
-            <input class='col-1' name='${e}' type='checkbox'/>
-            <label class='col-3' for='${e}'>${e} Session</label>
-            <select class='col-6 sessionselect' name='car-${e}'>
-            </select>
-            </div>
-        `);
+        $('#registersessionmarker').before(
+            "<div class='row align-items-center sessiondynamic'>" +
+            "<div class='col-1'></div>" +
+            "<input class='col-1' name='"+e+"' type='checkbox'/>" +
+            "<label class='col-3' for='"+e+"'>"+e+" Session</label>" +
+            "<select class='col-6 sessionselect' name='car-"+e+"'>" +
+            "</select>" +
+            "</div>"
+        );
     });
 
     if (cars.length > 0) {
