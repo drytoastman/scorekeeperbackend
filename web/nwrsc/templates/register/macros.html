@@ -19,10 +19,12 @@
 {% endmacro %}
 
 
-{% macro carDisplay(car, session='', unpaid=False, paid=0) %}
+{% macro carDisplay(car, session='', unpaid=False, paid=0, simpleindex=False) %}
 <div class='cardisplay'>
-{% if g.classdata %}
+{% if not simpleindex and g.classdata %}
 {% set istr = g.classdata.getEffectiveIndex(car)[1] -%}
+{% else %}
+{% set istr = car.indexcode %}
 {% endif %}
 {% if session %}
 <span class='code'>{{session}} Session

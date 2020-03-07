@@ -69,7 +69,7 @@ $(document).ready(function(){
 <span class='name'>{{name}}</span>
 <ol>
 {% for e in entries %}
-<li>{{rm.carDisplay(e, e.session)}}</li>
+<li>{{rm.carDisplay(e, e.session, simpleindex=True)}}</li>
 {% endfor %}
 </ol>
 </div> {# col eventtitle #}
