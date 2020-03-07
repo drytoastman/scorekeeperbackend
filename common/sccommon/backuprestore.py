@@ -15,6 +15,7 @@ def backup_db(bucketname):
     with open(dumpfile, 'w') as dump:
         dump.write("UPDATE pg_database SET datallowconn = 'false' WHERE datname = 'scorekeeper';\n")
         dump.write("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'scorekeeper';\n")
+        dump.flush() # new python more block than line based
         subprocess.run(["pg_dumpall", "-U", "postgres", "-c"], stdout=dump)
         dump.write("UPDATE pg_database SET datallowconn = 'true' WHERE datname = 'scorekeeper';\n")
 
