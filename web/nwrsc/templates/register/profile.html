@@ -43,11 +43,10 @@ $(document).ready(function(){
 <span class='fas fa-check'></span>
 {% endif %} 
 {{eid}}
-</div>
+</div> {# blank #}
 {% endfor %}
-</div>
-
-</div>
+</div> {# checklist #}
+</div> {# groupswrapper #}
 {% endif %}
 
 <button class='editprofile btn btn-outline-register' title='Edit Profile' data-toggle='modal' data-target='#profilemodal'>Edit Profile</button>
@@ -55,13 +54,11 @@ $(document).ready(function(){
 {% if not g.driver.optoutmail %}
 <button class='editgroups  btn btn-outline-register' title='Groups' data-toggle='modal' data-target='#groupsmodal'>Groups</button>
 {% endif %}
-</div>
+</div> {# col-md-6 #}
 
 
 <div class='col-md-6'>
-<div class='title'>
-Upcoming Entries For All Series
-</div>
+<div class='title'>Upcoming Entries For All Series</div>
 
 {% for date,events in upcoming.items()|sort %}
 {% for (series,name),entries in events.items()|sort %}
@@ -75,11 +72,11 @@ Upcoming Entries For All Series
 <li>{{rm.carDisplay(e, e.session)}}</li>
 {% endfor %}
 </ol>
+</div> {# col eventtitle #}
+</div> {# row #}
 {% endfor %}
 {% endfor %}
 <div><a class='icallink' href='{{url_for(".ical", driverid=g.driver.driverid)}}'><span class='far fa-calendar'></span>Dynamic iCal Link</a></div>
-</div> {# title col #}
-</div> {# row #}
 
 </div> {# col-md-6 #}
 </div> {# row #}
@@ -92,12 +89,12 @@ Upcoming Entries For All Series
     <form id='groupsform' action='{{url_for(".subunsub")}}' method='POST'>
         {% for eid in listids|sort %}
         <div class='row'>
-        <div class='col-2 p-0'><input type='checkbox' {{eid not in unsubids and 'checked' or ''}} name='{{eid}}'></input></div>
+        <div class='col-2 p-0'><input type='checkbox' {{eid not in unsubids and 'checked' or ''}} name='{{eid}}'/></div>
         <div class='col pt-2'>{{eid}}</div>
         </div>
         {% endfor %}
         <div class='row'>
-        <div class='col p-0'><input class="btn btn-register" type="submit" value="Update Subscriptions"></div>
+        <div class='col p-0'><input class="btn btn-register" type="submit" value="Update Subscriptions"/></div>
         </div>
     </form>
 {% endcall %}

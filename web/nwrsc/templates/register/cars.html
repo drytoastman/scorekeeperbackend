@@ -59,6 +59,7 @@ gCars['{{c.carid}}'] = {{c|to_json|safe}};
         <button class='editcar   btn btn-outline-register' title='Edit Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'><i class='fas fa-edit'></i></button>
         <button class='deletecar btn btn-outline-register' title='Delete Car' data-carid='{{car.carid}}' data-toggle='modal' data-target='#carmodal'><i class='fas fa-trash-alt'></i></button>
     {% endif %}
+    </div>
     </td>
     <td class='cardisplay'>{{rm.carDisplay(car)}}</td></tr>
 {% endif %}
