@@ -13,15 +13,16 @@
 1. Download the latest scorekeeper zip from <https://github.com/drytoastman/scorekeeperfrontend/releases>
    for your OS and extract to a chosen directory.  There are several scripts (or .bat files on Windows):
    * **StartScorekeeper** - the normal way to start the system
-   * **LoadCerts** - to load new certificates for SSL communication
    * **StartProtimer** - used to start just the pro timer interface without requirng Docker or a database
 
 1. Run **StartScorekeeper** while connected to the Internet so that the backend is
    properly downloaded and a database is setup
 
-1. If you have never run **LoadCerts** on this machine before, you should do so now.
-   You will be asked for the certificates file, select the **certs.tgz** provided by your administrator.
-   These are shared between versions so you only need to do it once.
+1. If you have never run **LoadCerts** on this machine before, the Cert box
+   will be red as it only has a filler certificate. Select **File** &rarr;
+   **LoadCerts**. You will be asked for the certificates file, select the
+   **certs.tgz** provided by the system administrator. These are shared
+   between versions so you only need to do it once.
 
    <span style='color:red'>
    Without this step, you cannot sync with scorekeeper.wwscc.org or other laptops.
