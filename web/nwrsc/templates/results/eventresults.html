@@ -2,7 +2,7 @@
 {% import "results/ttmacros.html" as tt %}
 {% if g.event.ispro %}
 {% import "results/promacros.html" as res %}
-{% elif g.event.usingSessions %}
+{% elif g.event.usingSessions() %}
 {% import "results/sessionmacros.html" as res %}
 {% else %}
 {% import "results/macros.html" as res %}
