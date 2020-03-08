@@ -10,7 +10,7 @@ if [ ! -d /certs ]; then
 fi
 
 if [ ! -f "/certs/root.cert" ]; then
-    /docker-entrypoint-initdb.d/certgen.bash /certs
+    /docker-entrypoint-initdb.d/certgen.bash /certs missing
 fi
 
 chmod -f 600 /certs/*
