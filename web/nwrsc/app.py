@@ -38,6 +38,7 @@ def create_app():
         "DBHOST":                          os.environ.get('DBHOST',                '/var/run/postgresql'),
         "DBPORT":                      int(os.environ.get('DBPORT',                5432)),
         "DBUSER":                          os.environ.get('DBUSER',                'localuser'),
+        "EMAIL_BLACKLIST":list(filter(None,os.environ.get('EMAIL_BLACKLIST',       '').split(','))),
         "IS_MAIN_SERVER":         any2bool(os.environ.get('IS_MAIN_SERVER',        False)),
         "MAX_CONTENT_LENGTH":                                                      2 * 1024 * 1024,
         "ONSITE":                 any2bool(os.environ.get('ONSITE',                False)),

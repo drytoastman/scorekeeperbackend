@@ -108,5 +108,5 @@ class SenderThread(threading.Thread, QueueSleepMixin):
             msg['List-Id'] = "Scorekeeper {} List <{}.lists.{}>".format(unsub['listid'], unsub['listid'], self.domain)
             msg['List-Unsubscribe'] = "<{}>".format(unsub['url'])
 
+        log.info("sendto {}".format(rcpt['email']))
         smtp.sendmail(self.sender, [rcpt['email']], msg.as_bytes(policy=self.policy))
-

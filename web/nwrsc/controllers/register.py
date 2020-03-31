@@ -3,6 +3,7 @@ import datetime
 import itertools
 import logging
 import os
+import socket
 import time
 import uuid
 
@@ -372,12 +373,21 @@ def login():
                     request.args = dict(token=token)
                     return finish()
 
-                url = url_for('.finish', token=token, _external=True)
-                EmailQueue.queueMessage(
-                    subject = "Scorekeeper Profile Request",
-                    recipient=req,
-                    body = render_template("/register/newprofileemail.html", url=url)
-                )
+                try:
+                    host = req['email'].split('@')[1]
+                    socket.gethostbyaddr(socket.gethostbyname(host))
+                    if host in current_app.config['EMAIL_BLACKLIST']:
+                        raise socket.error('blacklisted host')
+
+                    url  = url_for('.finish', token=token, _external=True)
+                    EmailQueue.queueMessage(
+                        subject = "Scorekeeper Profile Request",
+                        recipient=req,
+                        body = render_template("/register/newprofileemail.html", url=url)
+                    )
+                except (socket.error, IndexError) as e:
+                    log.warning("Host check for {} failed ({}), not sending email".format(req['email'], e))
+
                 return redirect(url_for(".emailsent", rcpt="{} {} <{}>".format(req['firstname'], req['lastname'], req['email'])))
         else:
             flashformerrors(register)

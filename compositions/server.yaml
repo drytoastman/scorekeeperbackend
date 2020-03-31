@@ -42,6 +42,7 @@ services:
         - MAIL_SEND_FROM=mailman@scorekeeper.wwscc.org
         - MAIL_SEND_DEFAULT_REPLYTO=admin@scorekeeper.wwscc.org
         - SECRETS_FILE=/webdata/websecrets.json
+        - EMAIL_BLACKLIST=mail.ru
 
   email:
     image: drytoastman/scpython:latest
