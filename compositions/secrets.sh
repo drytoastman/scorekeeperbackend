@@ -5,6 +5,8 @@ if [ $# -ne 3 ] || ( [ $1 != 'backup' ] && [ $1 != 'restore' ] ); then
     exit -1;
 fi
 
+export MSYS_NO_PATHCONV=1
+
 for VOL in 'webdata' 'emaildata' 'crondata'; do
     docker volume create $2_$VOL
 done

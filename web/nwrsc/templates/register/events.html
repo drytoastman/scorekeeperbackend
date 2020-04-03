@@ -6,27 +6,31 @@
 {{super()}}
 {% if not g.isonsite %}
 <script src="https://www.paypalobjects.com/api/checkout.js"></script>
+<script src="https://js.squareupsandbox.com/v2/paymentform"></script>
 {% endif %}
 <script type="text/javascript">
 
-function paymentSubmit(ppresolve, ppreject)
+function orderSubmit(ppresolve, ppreject)
 {
     // Use .then() and wait as paypal wants this function to return the payment id
-    $('#paymentform .error').text("");
+    $('#orderform .error').text("");
     return $.ajax({
         dataType: 'json',
-        url:      '{{url_for('.payment')}}',
-        data:     $('#paymentform').serialize(),
+        url:      '{{url_for('.order')}}',
+        data:     $('#orderform').serialize(),
         method:   'POST'}).then(function(data, txtstatus, xhr) {
             if (data.paymentID) {
                 return data.paymentID; 
-            } else if (data.redirect) {
-                window.location.href = data.redirect;
+            } else if (data.refid) {
+                //alert(data.refid);
+                $('#ordermodal').modal('hide');
+                $('#squaremodal').modal('show');
+                //window.location.href = data.redirect;
             } else {
-                $('#paymentform .error').text(data.error ? data.error : "An error occured");
+                $('#orderform .error').text(data.error ? data.error : "An error occured");
             }
         }).fail(function(xhr, status, error) { 
-            $('#paymentform .error').text("Server returned code " + xhr.status);
+            $('#orderform .error').text("Server returned code " + xhr.status);
             if (typeof ppreject == "function") {
                 ppreject(xhr.status);
             }
@@ -53,9 +57,18 @@ $(document).ready(function() {
         Scorekeeper.add_collapse_icons('#'+this.id); 
     });
 
-    $('#paymentmodal').on('show.bs.modal', function (e) {
+    $('#ordermodal').on('show.bs.modal', function (e) {
         var button = $(e.relatedTarget) // Button that triggered the modal
-        initpaymentform('#paymentform', button.data('eventid'), button.data('sessions'));
+        initpaymentform('#orderform', button.data('eventid'), button.data('sessions'));
+    });
+
+    $('#squaremodal').on('shown.bs.modal', function (e) {
+        paymentForm = create_square_form();
+        paymentForm.build();
+    });
+
+    $('#squaremodal').on('hide.bs.modal', function (e) {
+        paymentForm.destroy();
     });
 
     $('#registermodal').on('show.bs.modal', function (e) {
@@ -85,18 +98,46 @@ $(document).ready(function() {
 
     $('#sqcheckoutbutton').click(function(e) {
         e.preventDefault();
-        paymentSubmit();
+        orderSubmit();
     });
 
     paypal.Button.render({
         env:         'production',
         commit:      true,
         style:       { label: 'checkout', size:  'medium', shape: 'pill', color: 'blue' },
-        payment:     paymentSubmit,
+        payment:     orderSubmit,
         onAuthorize: paypalAuthorize,
         }, '#paypal-button-container'
     );
 });
+
+    // Create and initialize a payment form object
+function create_square_form() 
+{
+    return new SqPaymentForm({
+        applicationId: "{{config.SQ_APPLICATION_ID}}",
+        autoBuild: false,
+        callbacks: {
+            cardNonceResponseReceived: function (errors, nonce, cardData) {
+                if (errors) {
+                    errors.forEach(function (error) {
+                        alert(error.message);
+                    });
+                    return;
+                }
+                $('#square-nonce').val(nonce);
+                paymentSubmit();
+            },
+        },
+        card: { elementId: 'sq-card' },
+    });
+}
+
+function onGetCardNonce(event) 
+{
+    event.preventDefault();
+    paymentForm.requestCardNonce();
+}
 
 var gRegistered = Array();
 var gAccounts = Array();
@@ -182,9 +223,10 @@ gAccounts["{{ev.eventid}}"] = { id: "{{accounts[ev.eventid].accountid}}", type: 
     </form>
 {% endcall %}
 
-{% call m.modal('paymentmodal', 'Payment Selection', '') %}
-    <form id='paymentform' action='{{url_for(".payment")}}' method='POST'>
+{% call m.modal('ordermodal', 'Payment Selection', '') %}
+    <form id='orderform' action='{{url_for(".order")}}' method='POST'>
         <input type='hidden' name='eventid' value=''/>
+        <input type='hidden' name='square-nonce' value=''/>
         {% for c in cars.values() %}
         <div class='row align-items-center' id='payrow-{{c.carid}}'>
         <div class="col">{{rm.carDisplay(c)}}</div>
@@ -213,6 +255,18 @@ gAccounts["{{ev.eventid}}"] = { id: "{{accounts[ev.eventid].accountid}}", type: 
         <div class='row mt-2 square-row'>
             <div class='col'><input id='sqcheckoutbutton' type='submit' class='btn btn-register' value='Square Checkout'/></div>
         </div>
+        <div class='col text-center'><span class='statuslabel error'></span></div>
+    </form>
+{% endcall %}
+
+
+{% call m.modal('squaremodal', 'Square Payment', '', '') %}
+    <form id='squareform' action='{{url_for(".order")}}' method='POST'>
+        <input type='hidden' name='eventid' value=''/>
+        <input type='hidden' name='square-nonce' value=''/>
+            <hr/>
+            <div id="sq-card" class="col"></div>
+            <button id="sq-creditcard" class="btn btn-register col text-center" onclick="onGetCardNonce(event)">Square Checkout</button>
         <div class='col text-center'><span class='statuslabel error'></span></div>
     </form>
 {% endcall %}

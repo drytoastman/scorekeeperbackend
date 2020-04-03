@@ -48,6 +48,8 @@ services:
         net1:
     ports:
         - "80:80"  # Web for all
+    environment:
+        - SECRETS_FILE=/webdata/websecrets.json
 
   sync:
     image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"

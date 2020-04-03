@@ -103,7 +103,7 @@
                 <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-limit='{{ev.mylimit}}' data-msg='{{ev.limitmessage}}' data-toggle='modal' data-target='#registermodal{{slist and "session" or ""}}' data-sessions='{{slist}}'>Add/Change</button>
             {%- endif %}
             {%- if showpayment %}
-                <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-toggle='modal' data-target='#paymentmodal' data-sessions='{{slist}}'>Make Payment</button>
+                <button class='register btn btn-outline-register' data-eventid='{{ev.eventid}}' data-toggle='modal' data-target='#ordermodal' data-sessions='{{slist}}'>Make Payment</button>
             {%- endif %}
 
             {%- if registered|length >= ev.mylimit and ev.limitmessage %}

@@ -62,6 +62,7 @@ def setup():
     authendpoints = ('Admin.login', 'Admin.slogin')
     mainserverendpoints = ('Admin.drivers', 'Admin.purge', 'Admin.archive')
 
+    log.warning("session is {}".format(session))
     if request.endpoint in outsideendpoints: # special URL without g.series
         return
 

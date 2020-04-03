@@ -24,7 +24,7 @@ class MyApp(WSGIApplication):
             "formatters": {}
         }
         if os.environ.get('DEBUG', False):
-            #opts.timeout = 9000  # Don't kill worker while in pdb, but causes longer reload wait if syntax error
+            opts.timeout = 9000  # Don't kill worker while in pdb, but causes longer reload wait if syntax error
             opts.reload = True
         super().init(parser, opts, args=opts.args)
 
