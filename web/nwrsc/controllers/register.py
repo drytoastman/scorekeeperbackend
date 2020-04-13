@@ -386,7 +386,7 @@ def login():
                         body = render_template("/register/newprofileemail.html", url=url)
                     )
                 except (socket.error, IndexError) as e:
-                    log.warning("Host check for {} failed ({}), not sending email".format(req['email'], e))
+                    log.warning("Ignore {} ({}; {})".format(req['email'], request.remote_addr, request.headers['X-Forwarded-For']))
 
                 return redirect(url_for(".emailsent", rcpt="{} {} <{}>".format(req['firstname'], req['lastname'], req['email'])))
         else:
