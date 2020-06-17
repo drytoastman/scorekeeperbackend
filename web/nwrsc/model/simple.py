@@ -99,7 +99,7 @@ class EmailQueue(object):
 class EmailFilter(object):
 
     @classmethod
-    def getAll(self, **kwargs):
+    def getAll(cls, **kwargs):
         return cls.getall("SELECT * FROM emailfilter ORDER by forder")
 
 
