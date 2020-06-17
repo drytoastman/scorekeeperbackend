@@ -96,7 +96,7 @@ class EmailQueue(object):
         g.db.commit()
 
 
-class EmailFilter(object):
+class EmailFilter(AttrBase):
 
     @classmethod
     def getAll(cls, **kwargs):
