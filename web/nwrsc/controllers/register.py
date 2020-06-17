@@ -376,8 +376,13 @@ def login():
                 try:
                     host = req['email'].split('@')[1]
                     socket.gethostbyaddr(socket.gethostbyname(host))
-                    if host in current_app.config['EMAIL_BLACKLIST']:
-                        raise socket.error('blacklisted host')
+
+                    for f in EmailFilter.getAll():
+                        if req['email'].endswith(f.match):
+                            if f.drop: # blacklist
+                                raise socket.error('blacklisted host')
+                            else: # whitelist
+                                break
 
                     url  = url_for('.finish', token=token, _external=True)
                     EmailQueue.queueMessage(

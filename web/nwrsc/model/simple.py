@@ -96,6 +96,13 @@ class EmailQueue(object):
         g.db.commit()
 
 
+class EmailFilter(object):
+
+    @classmethod
+    def getAll(self, **kwargs):
+        return cls.getall("SELECT * FROM emailfilter ORDER by forder")
+
+
 class EventStream(object):
 
     @classmethod

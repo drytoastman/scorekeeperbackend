@@ -10,5 +10,5 @@ from .result import Result
 from .rungroups import RunGroups, RunOrder
 from .series import Series
 from .settings import Settings
-from .simple import Attendance, Audit, Challenge, EmailQueue, EventStream, ExternalResult, LocalInfo, NumberEntry, Run, TempCache, TimerTimes, Unsubscribe, WeekendMembers
+from .simple import Attendance, Audit, Challenge, EmailQueue, EmailFilter, EventStream, ExternalResult, LocalInfo, NumberEntry, Run, TempCache, TimerTimes, Unsubscribe, WeekendMembers
 
