@@ -374,15 +374,19 @@ def login():
                     return finish()
 
                 try:
-                    host = req['email'].split('@')[1]
-                    socket.gethostbyaddr(socket.gethostbyname(host))
-
+                    whitelist = False
                     for f in EmailFilter.getAll():
                         if req['email'].endswith(f.match):
                             if f.drop: # blacklist
-                                raise socket.error('blacklisted host')
+                                raise socket.error('blacklisted email')
                             else: # whitelist
+                                whitelist = True
                                 break
+
+                    if not whitelist:
+                        # if we didn't whitelist, do the reverse(dns(host)) test here
+                        host = req['email'].split('@')[1]
+                        socket.gethostbyaddr(socket.gethostbyname(host))
 
                     url  = url_for('.finish', token=token, _external=True)
                     EmailQueue.queueMessage(
@@ -392,6 +396,7 @@ def login():
                     )
                 except (socket.error, IndexError) as e:
                     log.warning("Ignore {} ({}; {})".format(req['email'], request.remote_addr, request.headers['X-Forwarded-For']))
+                    return "Request filtered due to suspicious parameters"
 
                 return redirect(url_for(".emailsent", rcpt="{} {} <{}>".format(req['firstname'], req['lastname'], req['email'])))
         else:
