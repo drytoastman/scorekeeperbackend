@@ -527,58 +527,6 @@ def ustsdecode():
     return json_encode(current_app.usts.loads(request.args['token']))
 
 
-@Admin.route("/emailtool", methods=['GET','POST'])
-def emailtool():
-    form = GroupEmailForm()
-    upfl = current_app.config.get('UPLOAD_FOLDER', '')
-    uppr = os.path.isdir(upfl)
-
-    if 'emaillist' in request.form:
-        emaillist = json.loads(request.form['emaillist'])
-        form.token.data = current_app.usts.dumps(emaillist)
-        form.count.data = len(emaillist)
-        form.unsub.data = True
-    elif 'token' in request.form:
-        try:
-            if form.validate_on_submit():
-                attachments = []
-                listid = Settings.get('emaillistid')
-                for d in (form.attach1.data, form.attach2.data):
-                    if d and d.filename:
-                        sfilename = secure_filename(d.filename)
-                        d.save(os.path.join(upfl, sfilename))
-                        attachments.append({'name': sfilename, 'mime': d.mimetype})
-
-                if form.unsub.data:
-                    form.body.data += "\n<p>&nbsp;</p><hr><p>Unsubscribe at {{url}}</p>"
-
-                for r in current_app.usts.loads(request.form['token'], max_age=86400):
-                    unsub = {}
-                    if form.unsub.data and r.get('driverid', ''):
-                        utoken = current_app.usts.dumps({'id': r['driverid'], 'listid': listid})
-                        unsub['url']    = url_for('Register.unsubscribe', series=g.series, token=utoken, _external=True)
-                        unsub['listid'] = listid
-
-                    EmailQueue.queueMessage(
-                        subject     = form.subject.data,
-                        recipient   = r,
-                        replyto     = { 'name': form.replyname.data, 'email': form.replyemail.data },
-                        body        = render_template_string(form.body.data, url=unsub['url'], **r),
-                        unsub       = unsub,
-                        attachments = attachments,
-                    )
-
-                flash("Group mail queued", category='success')
-                return redirect(url_for('.contactlist'))
-
-        except Exception as e:
-            flash("Group mail error: {}".format(e))
-            log.exception(e)
-
-    return render_template('/admin/emailtool.html', form=form, attachments=uppr, sender=os.environ['MAIL_SEND_FROM'])
-
-
-
 @Admin.route("/weekendreport")
 def weekendreport():
     weekends = set()

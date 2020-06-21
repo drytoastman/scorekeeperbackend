@@ -81,27 +81,6 @@ $(document).ready(function(){
         },
         buttons: [
             {
-                className: 'btn btn-outline-admin', 
-                text: 'Send Email To', 
-                action: function (e, dt, node, config) {
-                    var data;
-                    if (thetable.rows('.selected').count() > 0)
-                        data = thetable.rows({selected: true});
-                    else
-                        data = thetable.rows({filter: 'applied'});
-
-                    var list = [];
-                    data[0].forEach(function(rownum) {
-                        var x = thetable.row(rownum).data();
-                        if (x.optoutmail || !x.email.match(Scorekeeper.emailRegex)) return;
-                        list.push({driverid:x.driverid, firstname:x.firstname, lastname:x.lastname, email:x.email});
-                    });
-
-                    $("#emailtoolvalue").val(JSON.stringify(list));
-                    $("#emailtoolform").submit();
-                }
-            },
-            {
                 extend: 'copyHtml5',
                 className: 'btn btn-outline-admin',
                 text: 'Copy Valid Email',
@@ -124,7 +103,8 @@ $(document).ready(function(){
                     } 
                 },
                 customize: function (output) {
-                    return output.replace(/\t/g,' ').replace(/\r?\n|\r/g,', ');
+					var separator = $('input[name="separator"]:checked').val() || ', ';
+                    return output.replace(/\t/g, ' ').replace(/\r?\n|\r/g, separator);
                 }
             },
             {   
@@ -161,6 +141,14 @@ $(document).ready(function(){
         thetable.rows().invalidate('data')
         thetable.draw();
     });
+
+	$('div.dt-buttons').prepend(
+		"<div style='font-size: 80%; vertical-align: middle;'> " +
+		"Separator<br>" +
+		"<input type='radio' name='separator' value=', ' checked><label for=', ' style='margin-bottom:0'>Comma</label><br>" +
+		"<input type='radio' name='separator' value='; '><label for='; ' style='margin-bottom:0'>Semicolon</label>" +
+		"</div>"
+	);
 });
 </script>
 {% endblock headers %}
@@ -204,11 +192,6 @@ $(document).ready(function(){
 </textarea>
 </div>
 {% endcall %}
-
-<form style="display: hidden" action="{{url_for(".emailtool")}}" method="POST" id="emailtoolform">
-    <input type='hidden' name="emaillist" value="" id="emailtoolvalue" />
-    <input type='hidden' name="emailcount" value="" id="emailtoolcount" />
-</form>
 
 {% endblock content %}
 
