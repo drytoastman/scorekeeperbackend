@@ -61,7 +61,8 @@ class SenderThread(threading.Thread, QueueSleepMixin):
                     with db.cursor() as cur:
                         cur.execute("SELECT * FROM emailqueue ORDER BY created LIMIT 20")
                         if cur.rowcount > 0:
-                            with smtplib.SMTP(self.server) as smtp:
+                            with smtplib.SMTP(self.server, 587) as smtp:
+                                smtp.starttls()
                                 if hasattr(self, 'password'):
                                     smtp.login(self.user, self.password)
                                 for row in cur.fetchall():

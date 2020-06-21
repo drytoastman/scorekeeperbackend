@@ -386,7 +386,7 @@ def login():
                     if not whitelist:
                         # if we didn't whitelist, do the reverse(dns(host)) test here
                         host = req['email'].split('@')[1]
-                        socket.gethostbyaddr(socket.gethostbyname(host))
+                        socket.gethostbyname(host)
 
                     url  = url_for('.finish', token=token, _external=True)
                     EmailQueue.queueMessage(
@@ -395,7 +395,7 @@ def login():
                         body = render_template("/register/newprofileemail.html", url=url)
                     )
                 except (socket.error, IndexError) as e:
-                    log.warning("Ignore {} ({}; {})".format(req['email'], request.remote_addr, request.headers['X-Forwarded-For']))
+                    log.warning("Ignore {} ({}; {})".format(req['email'], request.remote_addr, request.headers.get('X-Forwarded-For', 'NoXForward')))
                     return "Request filtered due to suspicious parameters"
 
                 return redirect(url_for(".emailsent", rcpt="{} {} <{}>".format(req['firstname'], req['lastname'], req['email'])))
