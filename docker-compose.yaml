@@ -19,7 +19,7 @@ networks:
 services:
 
   db:
-    image:   "drytoastman/scdb:${TRAVIS_TAG:-latest}"
+    image:   "drytoastman/scdb:${VERSION:-latest}"
     build:   "db"
     env_file: [ default.env ]
     volumes:  
@@ -34,7 +34,7 @@ services:
         - "127.0.0.1:6432:6432" # DB for trusted localhost
 
   web:
-    image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
+    image:   "drytoastman/scpython:${VERSION:-latest}"
     build:   "."
     command: "bash -c 'pip --disable-pip-version-check install -e /code && exec webserver.py'"
     env_file: [ default.env ]
@@ -50,7 +50,7 @@ services:
         - "80:80"  # Web for all
 
   sync:
-    image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
+    image:   "drytoastman/scpython:${VERSION:-latest}"
     command: "bash -c 'pip --disable-pip-version-check install -e /code && syncserver'"
     env_file: [ default.env ]
     volumes:
@@ -62,7 +62,7 @@ services:
         net1:
 
   dns:
-    image:   "drytoastman/scpython:${TRAVIS_TAG:-latest}"
+    image:   "drytoastman/scpython:${VERSION:-latest}"
     command: "bash -c 'pip --disable-pip-version-check install -e /code && dnsserver'"
     env_file: [ default.env ]
     volumes:
