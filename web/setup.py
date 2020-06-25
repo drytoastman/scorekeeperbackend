@@ -9,5 +9,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    scripts=['bin/webserver.py'],
+    scripts=['bin/webserver.py', 'bin/legacy_renewal.py'],
 )
