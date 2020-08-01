@@ -23,7 +23,7 @@ def logging_setup(filename=None):
     root.handlers = []
 
     if filename:
-        fhandler = logging.handlers.RotatingFileHandler(filename, maxBytes=10000000, backupCount=10)
+        fhandler = logging.handlers.WatchedFileHandler(filename)
         fhandler.setFormatter(fmt)
         fhandler.setLevel(level)
         root.addHandler(fhandler)
