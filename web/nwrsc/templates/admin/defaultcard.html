@@ -24,7 +24,7 @@
 <div class='rules'>
 {% if g.settings and g.settings.requestrulesack %}
 I have read and accept the rules</br>
-<input type='checkbox' {{reg.sattr.rulesack and "checked='checked'" or ""}}>
+<input type='checkbox' {{reg and reg.sattr.rulesack and "checked='checked'" or ""}}>
 {% endif %}
 </div>
 
