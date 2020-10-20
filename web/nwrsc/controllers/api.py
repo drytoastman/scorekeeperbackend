@@ -97,9 +97,11 @@ class SwaggerXMLEncoder():
 
 def api_encode(data):
     accepted = ['application/json', 'application/xml', 'text/xml']
-    retformat = request.accept_mimetypes.best_match(accepted, 'text/html')
+    if request.args.get('json', 0):
+        retformat = 'application/json'
+    else:
+        retformat = request.accept_mimetypes.best_match(accepted, 'text/html')
     retcode = "200"
-    log.warning(retformat)
 
     if retformat.endswith('/json'):
         data = SwaggerJSONEncoder().encode(data)
