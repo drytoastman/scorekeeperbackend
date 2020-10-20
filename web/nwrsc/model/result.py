@@ -96,7 +96,10 @@ class Result(object):
         if cls._needUpdate(True, ('challengerounds', 'challengeruns'), challengeid):
             cls._updateChallengeResults(challengeid)
         ret = dict() # note: JSON can't store using ints as keys
-        for rnd in cls._loadResults(challengeid):
+        res = cls._loadResults(challengeid)
+        if not type(res) is list:
+            res = res.values()
+        for rnd in res:
             ret[rnd['round']] = rnd
         return ret
 
@@ -797,7 +800,8 @@ class SeriesInfo(dict):
         for e in self['events']:
             if uuid.UUID(e['eventid']) == eventid:
                 newe = Event(**e)
-                newe.date = datetime.datetime.strptime(newe.date, "%Y-%m-%d")
+                try:    newe.date = datetime.datetime.strptime(newe.date, "%Y-%m-%d")
+                except: newe.date = datetime.datetime.fromisoformat(newe.date.strip('Z'))
                 return newe
         return None
 
