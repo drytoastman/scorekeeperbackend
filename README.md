@@ -1,3 +1,5 @@
+# This is now a legacy project, it will be archived soon
+
 # Scorekeeper Backend
 
 [![Build Status](https://travis-ci.org/drytoastman/scorekeeperbackend.svg?branch=master)](https://travis-ci.org/drytoastman/scorekeeperbackend)
