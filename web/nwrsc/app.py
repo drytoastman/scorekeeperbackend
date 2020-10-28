@@ -73,15 +73,11 @@ def create_app():
         return '/results/'
 
     theapp.add_url_rule('/',             'default', redirect_to=defaultdest)
-    theapp.register_blueprint(Admin,     url_prefix="/admin/<series>")
     theapp.register_blueprint(Announcer, url_prefix="/announcer/<series>")
     theapp.register_blueprint(Api,       url_prefix="/api")
     theapp.register_blueprint(Docs,      url_prefix="/docs")
     theapp.register_blueprint(Live,      url_prefix="/live")
-    theapp.register_blueprint(Register,  url_prefix="/register")
     theapp.register_blueprint(Results,   url_prefix="/results/<series>")
-    theapp.add_url_rule('/admin/squareoauth', "Admin.squareoauth")
-    theapp.add_url_rule('/admin/',       "Admin.base")
     theapp.add_url_rule('/announcer/',   "Announcer.base")
     theapp.add_url_rule('/results/',     "Results.base")
 

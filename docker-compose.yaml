@@ -18,20 +18,20 @@ networks:
 
 services:
 
-  db:
-    image:   "drytoastman/scdb:${VERSION:-latest}"
-    build:   "db"
-    env_file: [ default.env ]
-    volumes:  
-        - "database:/var/lib/postgresql/data"
-        - "socket:/var/run/postgresql"
-        - "logs:/var/log"
-        - "certs:/certs"
-    networks:
-        net1:
-    ports:
-        - "54329:5432" # DB for external SSL connections
-        - "127.0.0.1:6432:6432" # DB for trusted localhost
+  #db:
+  #  image:   "drytoastman/scdb:${VERSION:-latest}"
+  #  build:   "db"
+  #  env_file: [ default.env ]
+  #  volumes:  
+  #      - "database:/var/lib/postgresql/data"
+  #      - "socket:/var/run/postgresql"
+  #      - "logs:/var/log"
+  #      - "certs:/certs"
+  #  networks:
+  #      net1:
+  #  ports:
+  #      - "54329:5432" # DB for external SSL connections
+  #      - "127.0.0.1:6432:6432" # DB for trusted localhost
 
   web:
     image:   "drytoastman/scpython:${VERSION:-latest}"
