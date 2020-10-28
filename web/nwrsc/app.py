@@ -11,7 +11,6 @@ from traceback import format_tb
 from flask import Flask, request, abort, g, current_app, message_flashed, render_template, send_from_directory
 from flask_assets import Environment
 from flask_compress import Compress
-from flask_bcrypt import Bcrypt
 from itsdangerous import URLSafeTimedSerializer
 from jinja2 import ChoiceLoader, FunctionLoader
 from werkzeug.contrib.profiler import ProfilerMiddleware
@@ -208,11 +207,7 @@ def create_app():
 
 
     ### Crypto, Compression and optional Profiling
-    theapp.hasher = Bcrypt(theapp)
-    theapp.usts = URLSafeTimedSerializer(theapp.config["SECRET_KEY"])
     Compress(theapp)
-    if theapp.config.get('PROFILE', False):
-        theapp.wsgi_app = ProfilerMiddleware(theapp.wsgi_app, restrictions=[30])
 
     ### Reverse Proxy handler
     theapp.wsgi_app = ReverseProxied(theapp.wsgi_app)

@@ -2,7 +2,6 @@ import csv
 import datetime
 import re
 import json
-import icalendar
 import io
 from flask import current_app, escape, make_response
 import pytz
