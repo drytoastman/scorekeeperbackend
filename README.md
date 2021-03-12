@@ -1,4 +1,4 @@
-# This is now a legacy project, it will be archived soon
+# This is now a legacy project, it has been archived.
 
 # Scorekeeper Backend
 
